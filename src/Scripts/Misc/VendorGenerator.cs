@@ -80,7 +80,9 @@ namespace Server
 			LandTile lt = map.Tiles.GetLandTile(x, y);
 
 			if (IsFloor(lt.ID) && (canFit || CanFit(map, x, y, lt.Z)))
+			{
 				return true;
+			}
 
 			StaticTile[] tiles = map.Tiles.GetStaticTiles(x, y);
 
@@ -90,7 +92,9 @@ namespace Server
 				ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
 
 				if (IsStaticFloor(t.ID) && (canFit || CanFit(map, x, y, t.Z + (id.Surface ? id.CalcHeight : 0))))
+				{
 					return true;
+				}
 			}
 
 			return false;
@@ -158,11 +162,15 @@ namespace Server
 					eable.Free();
 
 					if (hasSpawner)
+					{
 						break;
+					}
 				}
 
 				if (hasSpawner)
+				{
 					continue;
+				}
 
 				int xAvg = xTotal / si.m_Floor.Count;
 				int yAvg = yTotal / si.m_Floor.Count;
@@ -171,25 +179,39 @@ namespace Server
 				ShopFlags flags = si.m_Flags;
 
 				if ((flags & ShopFlags.Armor) != 0)
+				{
 					names.Add("armorer");
+				}
 
 				if ((flags & ShopFlags.MetalWeapon) != 0)
+				{
 					names.Add("weaponsmith");
+				}
 
 				if ((flags & ShopFlags.ArcheryWeapon) != 0)
+				{
 					names.Add("bowyer");
+				}
 
 				if ((flags & ShopFlags.Scroll) != 0)
+				{
 					names.Add("mage");
+				}
 
 				if ((flags & ShopFlags.Spellbook) != 0)
+				{
 					names.Add("mage");
+				}
 
 				if ((flags & ShopFlags.Bread) != 0)
+				{
 					names.Add("baker");
+				}
 
 				if ((flags & ShopFlags.Jewel) != 0)
+				{
 					names.Add("jeweler");
+				}
 
 				if ((flags & ShopFlags.Potion) != 0)
 				{
@@ -224,7 +246,9 @@ namespace Server
 						int fd = (int)Math.Sqrt(rx * rx + ry * ry);
 
 						if (fd > 0 && fd < 5)
+						{
 							fd -= Utility.Random(10);
+						}
 
 						if (fd < dist && GetFloorZ(map, fp.X, fp.Y, out int tz))
 						{
@@ -234,10 +258,14 @@ namespace Server
 					}
 
 					if (cp == Point2D.Zero)
+					{
 						continue;
+					}
 
 					if (!GetFloorZ(map, cp.X, cp.Y, out int z))
+					{
 						continue;
+					}
 
 					new Spawner(1, 1, 1, 0, 4, (string)names[j]).MoveToWorld(new Point3D(cp.X, cp.Y, z), map);
 				}
@@ -249,7 +277,9 @@ namespace Server
 		private static void CheckPoint(Map map, int x, int y)
 		{
 			if (IsFloor(map, x, y, true))
+			{
 				CheckFloor(map, x, y);
+			}
 		}
 
 		private static void CheckFloor(Map map, int x, int y)
@@ -285,19 +315,29 @@ namespace Server
 		private static bool IsClothes(int itemID)
 		{
 			if (itemID >= 0x1515 && itemID <= 0x1518)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x152E && itemID <= 0x1531)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x1537 && itemID <= 0x154C)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x1EFD && itemID <= 0x1F04)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x170B && itemID <= 0x171C)
+			{
 				return true;
+			}
 
 			return false;
 		}
@@ -305,16 +345,24 @@ namespace Server
 		private static bool IsArmor(int itemID)
 		{
 			if (itemID >= 0x13BB && itemID <= 0x13E2)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13E5 && itemID <= 0x13F2)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x1408 && itemID <= 0x141A)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x144E && itemID <= 0x1457)
+			{
 				return true;
+			}
 
 			return false;
 		}
@@ -322,28 +370,44 @@ namespace Server
 		private static bool IsMetalWeapon(int itemID)
 		{
 			if (itemID >= 0xF43 && itemID <= 0xF4E)
+			{
 				return true;
+			}
 
 			if (itemID >= 0xF51 && itemID <= 0xF52)
+			{
 				return true;
+			}
 
 			if (itemID >= 0xF5C && itemID <= 0xF63)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13AF && itemID <= 0x13B0)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13B5 && itemID <= 0x13BA)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13FA && itemID <= 0x13FB)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13FE && itemID <= 0x1407)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x1438 && itemID <= 0x1443)
+			{
 				return true;
+			}
 
 			return false;
 		}
@@ -351,13 +415,19 @@ namespace Server
 		private static bool IsArcheryWeapon(int itemID)
 		{
 			if (itemID >= 0xF4F && itemID <= 0xF50)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13B1 && itemID <= 0x13B2)
+			{
 				return true;
+			}
 
 			if (itemID >= 0x13FC && itemID <= 0x13FD)
+			{
 				return true;
+			}
 
 			return false;
 		}
@@ -374,32 +444,52 @@ namespace Server
 			if ((flags & TileFlag.Wearable) != 0)
 			{
 				if (IsClothes(itemID))
+				{
 					res |= ShopFlags.Clothes;
+				}
 				else if (IsArmor(itemID))
+				{
 					res |= ShopFlags.Armor;
+				}
 				else if (IsMetalWeapon(itemID))
+				{
 					res |= ShopFlags.MetalWeapon;
+				}
 				else if (IsArcheryWeapon(itemID))
+				{
 					res |= ShopFlags.ArcheryWeapon;
+				}
 			}
 
 			if (itemID == 0x98C || itemID == 0x103B || itemID == 0x103C)
+			{
 				res |= ShopFlags.Bread;
+			}
 
 			if (itemID >= 0xF0F && itemID <= 0xF30)
+			{
 				res |= ShopFlags.Jewel;
+			}
 
 			if (itemID >= 0xEFB && itemID <= 0xF0D)
+			{
 				res |= ShopFlags.Potion;
+			}
 
 			if (itemID >= 0xF78 && itemID <= 0xF91)
+			{
 				res |= ShopFlags.Reagent;
+			}
 
 			if ((itemID >= 0xE35 && itemID <= 0xE3A) || (itemID >= 0xEF4 && itemID <= 0xEF9) || (itemID >= 0x1F2D && itemID <= 0x1F72))
+			{
 				res |= ShopFlags.Scroll;
+			}
 
 			if (itemID == 0xE38 || itemID == 0xEFA)
+			{
 				res |= ShopFlags.Spellbook;
+			}
 
 			return res;
 		}
@@ -423,7 +513,9 @@ namespace Server
 					RecurseFindFloor(map, x, y, floor);
 
 					if (floor.Count == 0)
+					{
 						return;
+					}
 
 					si = new ShopInfo
 					{
@@ -462,9 +554,13 @@ namespace Server
 			TileFlag landFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
 
 			if ((landFlags & TileFlag.Impassable) != 0 && topZ > z && (z + 16) > lowZ)
+			{
 				return false;
+			}
 			else if ((landFlags & TileFlag.Impassable) == 0 && z == avgZ && !lt.Ignored)
+			{
 				hasSurface = true;
+			}
 
 			StaticTile[] staticTiles = map.Tiles.GetStaticTiles(x, y);
 
@@ -473,7 +569,9 @@ namespace Server
 			for (int i = 0; i < staticTiles.Length; ++i)
 			{
 				if (IsDisplayCase(staticTiles[i].ID))
+				{
 					continue;
+				}
 
 				ItemData id = TileData.ItemTable[staticTiles[i].ID & TileData.MaxItemValue];
 
@@ -481,9 +579,13 @@ namespace Server
 				impassable = id.Impassable;
 
 				if ((surface || impassable) && (staticTiles[i].Z + id.CalcHeight) > z && (z + 16) > staticTiles[i].Z)
+				{
 					return false;
+				}
 				else if (surface && !impassable && z == (staticTiles[i].Z + id.CalcHeight))
+				{
 					hasSurface = true;
+				}
 			}
 
 			Sector sector = map.GetSector(x, y);
@@ -500,9 +602,13 @@ namespace Server
 					impassable = id.Impassable;
 
 					if ((surface || impassable) && (item.Z + id.CalcHeight) > z && (z + 16) > item.Z)
+					{
 						return false;
+					}
 					else if (surface && !impassable && z == (item.Z + id.CalcHeight))
+					{
 						hasSurface = true;
+					}
 				}
 			}
 
@@ -514,7 +620,9 @@ namespace Server
 			Point2D p = new(x, y);
 
 			if (floor.Contains(p))
+			{
 				return;
+			}
 
 			floor.Add(p);
 
@@ -523,7 +631,9 @@ namespace Server
 				for (int yo = -1; yo <= 1; ++yo)
 				{
 					if ((xo != 0 || yo != 0) && IsFloor(map, x + xo, y + yo, false))
+					{
 						RecurseFindFloor(map, x + xo, y + yo, floor);
+					}
 				}
 			}
 		}

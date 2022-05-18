@@ -328,9 +328,9 @@ namespace Server
 				Spawner sp = new(types[i]);
 
 				if (isGuildmaster)
-					sp.Count = 1;
+					sp.Amount = 1;
 				else
-					sp.Count = NPCCount;
+					sp.Amount = NPCCount;
 
 				sp.MinDelay = MinTime;
 				sp.MaxDelay = MaxTime;

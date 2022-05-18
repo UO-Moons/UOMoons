@@ -75,8 +75,8 @@ namespace Server.Engines.MLQuests.Definitions
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Strongroot"), new Point3D(597, 1744, 0), Map.Felucca);
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Strongroot"), new Point3D(597, 1744, 0), Map.Trammel);
 
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(2), 0, 12, "SapOfSosaria"), new Point3D(757, 1004, 0), Map.Felucca);
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(2), 0, 12, "SapOfSosaria"), new Point3D(757, 1004, 0), Map.Trammel);
+			PutSpawner(new Spawner(1, 30, 160, 0, 12, "SapOfSosaria"), new Point3D(757, 1004, 0), Map.Felucca);
+			PutSpawner(new Spawner(1, 30, 160, 0, 12, "SapOfSosaria"), new Point3D(757, 1004, 0), Map.Trammel);
 		}
 	}
 
@@ -158,11 +158,11 @@ namespace Server.Engines.MLQuests.Definitions
 		{
 			base.Generate();
 
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(90), 0, 5, "Bravehorn"), new Point3D(1193, 2467, 0), Map.Felucca);
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(90), 0, 5, "Bravehorn"), new Point3D(1193, 2467, 0), Map.Trammel);
+			PutSpawner(new Spawner(1, 30, 90, 0, 5, "Bravehorn"), new Point3D(1193, 2467, 0), Map.Felucca);
+			PutSpawner(new Spawner(1, 30, 90, 0, 5, "Bravehorn"), new Point3D(1193, 2467, 0), Map.Trammel);
 
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30), 0, 8, "BravehornsMate"), new Point3D(1192, 2467, 0), Map.Felucca);
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(30), 0, 8, "BravehornsMate"), new Point3D(1192, 2467, 0), Map.Trammel);
+			PutSpawner(new Spawner(5, 20, 30, 0, 8, "BravehornsMate"), new Point3D(1192, 2467, 0), Map.Felucca);
+			PutSpawner(new Spawner(5, 20, 30, 0, 8, "BravehornsMate"), new Point3D(1192, 2467, 0), Map.Trammel);
 		}
 	}
 
@@ -196,8 +196,8 @@ namespace Server.Engines.MLQuests.Definitions
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Huntsman"), new Point3D(1676, 593, 16), Map.Felucca);
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Huntsman"), new Point3D(1676, 593, 16), Map.Trammel);
 
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), 0, 10, "TimberWolf"), new Point3D(1671, 592, 16), Map.Felucca);
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(15), 0, 10, "TimberWolf"), new Point3D(1671, 592, 16), Map.Trammel);
+			PutSpawner(new Spawner(5, 5, 15, 0, 10, "TimberWolf"), new Point3D(1671, 592, 16), Map.Felucca);
+			PutSpawner(new Spawner(5, 5, 15, 0, 10, "TimberWolf"), new Point3D(1671, 592, 16), Map.Trammel);
 		}
 	}
 
@@ -232,7 +232,7 @@ namespace Server.Engines.MLQuests.Definitions
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Arielle"), new Point3D(1560, 1182, -27), Map.Ilshenar);
 			PutSpawner(new Spawner(1, 5, 10, 0, 5, "Arielle"), new Point3D(3366, 292, 9), Map.Felucca); // Felucca spawn for reds
 
-			PutSpawner(new Spawner(6, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), 0, 20, "ABauble"), new Point3D(1585, 1212, -13), Map.Ilshenar);
+			PutSpawner(new Spawner(6, 5, 30, 0, 20, "ABauble"), new Point3D(1585, 1212, -13), Map.Ilshenar);
 		}
 	}
 

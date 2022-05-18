@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Engines.XmlSpawner2;
 using Server.Factions;
 using Server.Mobiles;
 using Server.Network;
@@ -541,6 +542,10 @@ namespace Server.Items
 			{
 				return false;
 			}
+			else if(!XmlAttach.CheckCanEquip(this, from))
+			{
+				return false;
+			}
 			else
 			{
 				return base.CanEquip(from);
@@ -591,6 +596,8 @@ namespace Server.Items
 				from.AddSkillMod(m_MageMod);
 			}
 
+			XmlAttach.CheckOnEquip(this, from);
+
 			return true;
 		}
 
@@ -635,7 +642,7 @@ namespace Server.Items
 				ImmolatingWeaponSpell.StopImmolating(this);
 
 				m.CheckStatTimers();
-
+				XmlAttach.CheckOnRemoved(this, parent);
 				m.Delta(MobileDelta.WeaponDamage);
 			}
 		}
@@ -1039,6 +1046,7 @@ namespace Server.Items
 		public virtual int AbsorbDamageAOS(Mobile attacker, Mobile defender, int damage)
 		{
 			bool blocked = false;
+			int originaldamage = damage;
 
 			if (defender.Player || defender.Body.IsHuman)
 			{
@@ -1076,6 +1084,7 @@ namespace Server.Items
 					if (defender.FindItemOnLayer(Layer.TwoHanded) is BaseShield shield)
 					{
 						_ = shield.OnHit(this, damage);
+						XmlAttach.OnArmorHit(attacker, defender, shield, this, originaldamage);
 					}
 				}
 			}
@@ -1100,7 +1109,10 @@ namespace Server.Items
 					armorItem = defender.ChestArmor;
 
 				if (armorItem is IWearableDurability armor)
+				{
 					_ = armor.OnHit(this, damage); // call OnHit to lose durability
+					XmlAttach.OnArmorHit(attacker, defender, armorItem, this, originaldamage);
+				}
 			}
 
 			return damage;
@@ -1111,8 +1123,11 @@ namespace Server.Items
 			if (Core.AOS)
 				return AbsorbDamageAOS(attacker, defender, damage);
 
-			if (defender.FindItemOnLayer(Layer.TwoHanded) is BaseShield shield)
+			BaseShield shield = defender.FindItemOnLayer(Layer.TwoHanded) as BaseShield;
+			if (shield != null)
+			{
 				damage = shield.OnHit(this, damage);
+			}
 
 			double chance = Utility.RandomDouble();
 
@@ -1133,6 +1148,9 @@ namespace Server.Items
 
 			if (armorItem is IWearableDurability armor)
 				damage = armor.OnHit(this, damage);
+
+			damage -= XmlAttach.OnArmorHit(attacker, defender, armorItem, this, damage);
+			damage -= XmlAttach.OnArmorHit(attacker, defender, shield, this, damage);
 
 			int virtualArmor = defender.VirtualArmor + defender.VirtualArmorMod;
 
@@ -1592,7 +1610,7 @@ namespace Server.Items
 			if (defender is IHonorTarget target && target.ReceivedHonorContext != null)
 				target.ReceivedHonorContext.OnTargetHit(attacker);
 
-			if (!(this is BaseRanged))
+			if (this is not BaseRanged)
 			{
 				if (AnimalForm.UnderTransformation(attacker, typeof(GiantSerpent)))
 					_ = defender.ApplyPoison(attacker, Poison.Lesser);
@@ -1600,6 +1618,8 @@ namespace Server.Items
 				if (AnimalForm.UnderTransformation(defender, typeof(BullFrog)))
 					_ = attacker.ApplyPoison(defender, Poison.Regular);
 			}
+
+			XmlAttach.OnWeaponHit(this, attacker, defender, damageGiven);
 		}
 
 		public virtual double GetAosDamage(Mobile attacker, int bonus, int dice, int sides)
@@ -3001,6 +3021,8 @@ namespace Server.Items
 					case SkillName.Archery: list.Add(1061175); break; // skill required: archery
 				}
 			}
+
+			XmlAttach.AddAttachmentProperties(this, list);
 
 			if (m_Hits >= 0 && m_MaxHits > 0)
 				list.Add(1060639, "{0}\t{1}", m_Hits, m_MaxHits); // durability ~1_val~ / ~2_val~

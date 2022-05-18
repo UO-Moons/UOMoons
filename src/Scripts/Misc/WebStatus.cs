@@ -1,4 +1,3 @@
-#region References
 using Server.Guilds;
 using Server.Network;
 using System;
@@ -6,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
-#endregion
 
 namespace Server.Misc
 {

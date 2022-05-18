@@ -456,7 +456,7 @@ namespace Server.Commands
 						int indexOf = m_Params[i].IndexOf('=');
 
 						if (indexOf >= 0)
-							sp.SpawnNames.Add(m_Params[i].Substring(++indexOf));
+							sp.SpawnObjects.Add(new Mobiles.SpawnObject(m_Params[i].Substring(++indexOf)));
 					}
 					else if (m_Params[i].StartsWith("MinDelay"))
 					{
@@ -484,7 +484,7 @@ namespace Server.Commands
 						int indexOf = m_Params[i].IndexOf('=');
 
 						if (indexOf >= 0)
-							sp.Count = Utility.ToInt32(m_Params[i].Substring(++indexOf));
+							sp.MaxCount = Utility.ToInt32(m_Params[i].Substring(++indexOf));
 					}
 					else if (m_Params[i].StartsWith("Team"))
 					{

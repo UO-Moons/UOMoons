@@ -33,9 +33,6 @@ namespace Server.Misc
 		{
 			EventSink.OnClientVersionReceived += EventSink_ClientVersionReceived;
 
-			//ClientVersion.Required = null;
-			//Required = new ClientVersion( "6.0.0.0" );
-
 			if (m_DetectClientRequirement)
 			{
 				string path = Core.FindDataFile("client.exe");

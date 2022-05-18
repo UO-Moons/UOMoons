@@ -31,10 +31,6 @@ namespace Server.Misc
 			if (SaveBackup)
 				Backup();
 
-
-			/*if ( Core.Service )
-				e.Close = true;
-			else */
 			if (RestartServer)
 				Restart(e);
 		}

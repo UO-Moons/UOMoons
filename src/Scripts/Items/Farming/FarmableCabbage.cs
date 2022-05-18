@@ -2,24 +2,17 @@ namespace Server.Items
 {
 	public class FarmableCabbage : FarmableCrop
 	{
-		public static int GetCropID()
-		{
-			return 3254;
-		}
+		public static int GetCropID() => 3254;
+		public override int GetPickedID() => 3254;
 
 		public override Item GetCropObject()
 		{
-			Cabbage cabbage = new Cabbage
+			Cabbage cabbage = new()
 			{
 				ItemID = Utility.Random(3195, 2)
 			};
 
 			return cabbage;
-		}
-
-		public override int GetPickedID()
-		{
-			return 3254;
 		}
 
 		[Constructable]
@@ -34,8 +27,7 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
+			writer.WriteEncodedInt(0);
 		}
 
 		public override void Deserialize(GenericReader reader)

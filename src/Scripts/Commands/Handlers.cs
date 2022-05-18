@@ -342,8 +342,8 @@ namespace Server.Commands
 					{
 						if (item is Spawner spawner)
 						{
-							for (int i = 0; !hasBankerSpawner && i < spawner.SpawnNames.Count; ++i)
-								hasBankerSpawner = Insensitive.Equals(spawner.SpawnNames[i], "banker");
+							for (int i = 0; !hasBankerSpawner && i < spawner.SpawnObjects.Count; ++i)
+								hasBankerSpawner = Insensitive.Equals(spawner.SpawnObjects[i].SpawnName, "banker");
 
 							if (hasBankerSpawner)
 								break;

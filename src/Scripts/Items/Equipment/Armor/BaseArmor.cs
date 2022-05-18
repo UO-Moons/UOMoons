@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Engines.XmlSpawner2;
 using Server.Factions;
 using Server.Network;
 using System;
@@ -959,7 +960,15 @@ namespace Server.Items
 				}
 			}
 
-			return base.CanEquip(from);
+			if (!XmlAttach.CheckCanEquip(this, from))
+			{
+				return false;
+			}
+			else
+			{
+
+				return base.CanEquip(from);
+			}
 		}
 
 		public override bool CheckPropertyConfliction(Mobile m)
@@ -982,6 +991,7 @@ namespace Server.Items
 
 			AddStatBonuses(from);
 
+			XmlAttach.CheckOnEquip(this, from);
 			return base.OnEquip(from);
 		}
 
@@ -997,7 +1007,7 @@ namespace Server.Items
 				((Mobile)parent).Delta(MobileDelta.Armor); // Tell them armor rating has changed
 				m.CheckStatTimers();
 			}
-
+			XmlAttach.CheckOnRemoved(this, parent);
 			base.OnRemoved(parent);
 		}
 
@@ -1219,6 +1229,8 @@ namespace Server.Items
 
 			if (m_HitPoints >= 0 && m_MaxHitPoints > 0)
 				list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
+
+			XmlAttach.AddAttachmentProperties(this, list);
 		}
 
 		#region ICraftable Members

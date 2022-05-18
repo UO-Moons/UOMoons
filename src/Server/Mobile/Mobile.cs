@@ -1417,6 +1417,9 @@ namespace Server
 			return (Utility.InUpdateRange(this, m) && CanSee(m) && InLOS(m));
 		}
 
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool GuardImmune { get; set; }
+
 		/// <summary>
 		/// Overridable. Gets or sets which Mobile that this Mobile is currently engaged in combat with.
 		/// <seealso cref="OnCombatantChange" />
@@ -2632,6 +2635,21 @@ namespace Server
 			Criminal = true;
 
 			Region.OnCriminalAction(this, message);
+		}
+
+		public virtual bool IsPlayer()
+		{
+			return Utilities.IsPlayer(this);
+		}
+
+		public virtual bool IsStaff()
+		{
+			return Utilities.IsStaff(this);
+		}
+
+		public virtual bool IsOwner()
+		{
+			return Utilities.IsOwner(this);
 		}
 
 		public virtual bool IsSnoop(Mobile from)
@@ -4514,6 +4532,7 @@ namespace Server
 			{
 				case 0:
 					{
+						GuardImmune = reader.ReadBool();
 						LastStrGain = reader.ReadDeltaTime();
 						LastIntGain = reader.ReadDeltaTime();
 						LastDexGain = reader.ReadDeltaTime();
@@ -4759,6 +4778,7 @@ namespace Server
 		{
 			writer.Write(0); // version
 
+			writer.Write(GuardImmune);
 			writer.WriteDeltaTime(LastStrGain);
 			writer.WriteDeltaTime(LastIntGain);
 			writer.WriteDeltaTime(LastDexGain);
@@ -4928,7 +4948,10 @@ namespace Server
 		private static readonly string[] m_AccessLevelNames = new string[]
 			{
 				"a player",
+				"a VIP",
 				"a counselor",
+				"a decorator",
+				"a Spawner",
 				"a game master",
 				"a seer",
 				"an administrator",

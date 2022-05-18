@@ -2,8 +2,6 @@ using System;
 
 namespace Server.Misc
 {
-	// This fastwalk detection is no longer required
-	// As of B36 PlayerMobile implements movement packet throttling which more reliably controls movement speeds
 	public class Fastwalk
 	{
 		private static readonly int MaxSteps = Settings.Configuration.Get<int>("Fastwalk", "MaxSteps");

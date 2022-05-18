@@ -6,7 +6,7 @@
 [![Github code lines](https://img.shields.io/tokei/lines/github/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/)
 [![GitHub repo size](https://img.shields.io/github/repo-size/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/)
 
-UOMOons is an Ultima Online server emulator based on RunUO [https://github.com/runuo/runuo]
+UOMoons is an Ultima Online server emulator based on RunUO [https://github.com/runuo/runuo]
 The main objective of UOMoons is to update the server code to new technologies, improve the performance and give support for better customization.
 
 For change Era configuration and some basic server configuration you can use the ```bin\settings.ini``` file

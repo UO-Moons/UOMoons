@@ -59,14 +59,14 @@ namespace Server.Engines.MLQuests.Definitions
 			PutSpawner(new Spawner(1, 5, 10, 0, 3, "Aeluva"), new Point3D(7064, 349, 0), Map.Trammel);
 
 			// Split up to prevent stacking on the spawner
-			PutSpawner(new Spawner(20, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 30, "MiniatureMushroom"), new Point3D(7015, 366, 0), Map.Felucca);
-			PutSpawner(new Spawner(20, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 30, "MiniatureMushroom"), new Point3D(7015, 366, 0), Map.Trammel);
+			PutSpawner(new Spawner(20, 15, 30, 0, 30, "MiniatureMushroom"), new Point3D(7015, 366, 0), Map.Felucca);
+			PutSpawner(new Spawner(20, 15, 30, 0, 30, "MiniatureMushroom"), new Point3D(7015, 366, 0), Map.Trammel);
 
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 20, "MiniatureMushroom"), new Point3D(7081, 373, 0), Map.Felucca);
-			PutSpawner(new Spawner(5, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 20, "MiniatureMushroom"), new Point3D(7081, 373, 0), Map.Trammel);
+			PutSpawner(new Spawner(5, 15, 30, 0, 20, "MiniatureMushroom"), new Point3D(7081, 373, 0), Map.Felucca);
+			PutSpawner(new Spawner(5, 15, 30, 0, 20, "MiniatureMushroom"), new Point3D(7081, 373, 0), Map.Trammel);
 
-			PutSpawner(new Spawner(15, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 20, "MiniatureMushroom"), new Point3D(7052, 414, 0), Map.Felucca);
-			PutSpawner(new Spawner(15, TimeSpan.FromSeconds(15), TimeSpan.FromSeconds(30), 0, 20, "MiniatureMushroom"), new Point3D(7052, 414, 0), Map.Trammel);
+			PutSpawner(new Spawner(15, 15, 30, 0, 20, "MiniatureMushroom"), new Point3D(7052, 414, 0), Map.Felucca);
+			PutSpawner(new Spawner(15, 15, 30, 0, 20, "MiniatureMushroom"), new Point3D(7052, 414, 0), Map.Trammel);
 		}
 	}
 

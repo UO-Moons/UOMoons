@@ -590,6 +590,9 @@ namespace Server
 
 		private static bool IsInTokuno(Mobile m)
 		{
+			if (m == null)
+				return false;
+
 			if (m.Region.IsPartOf("Fan Dancer's Dojo"))
 				return true;
 

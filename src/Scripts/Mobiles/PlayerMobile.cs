@@ -598,7 +598,7 @@ namespace Server.Mobiles
 
 		private static bool CheckBlock(MountBlock block)
 		{
-			return ((block is MountBlock) && block.m_Timer.Running);
+			return (block is not null) && block.m_Timer.Running;
 		}
 
 		private class MountBlock

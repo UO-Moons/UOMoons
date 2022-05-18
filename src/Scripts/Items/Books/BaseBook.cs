@@ -67,6 +67,12 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int PagesCount => Pages.Length;
 
+		public string BookString
+		{
+			get => ContentAsString;
+			set => BuildBookFromString(value);
+		}
+
 		public BookPageInfo[] Pages { get; private set; }
 
 		[Constructable]
@@ -121,6 +127,81 @@ namespace Server.Items
 		}
 
 		public virtual BookContent DefaultContent => null;
+
+		public void BuildBookFromString(string content)
+		{
+			if (content == null)
+			{
+				return;
+			}
+
+			//const int cpl = 22; //characters per line
+			//const int cplEj = 25; //characters per line EJ Client
+			int cpl;
+			if (Core.SA) //needs to be EJ
+			{
+				cpl = 26; //characters per line EJ Client
+			}
+			else
+			{
+				cpl = 22; //characters per line
+			}
+
+			int lns;
+			if (Core.SA)//needs to be EJ
+			{
+				lns = 10; //line per page EJ Client
+			}
+			else
+			{
+				lns = 8; //line per page
+			}
+
+			int pos = 0, nextpos;
+			List<string[]> newpages = new();
+
+			while (newpages.Count < Pages.Length && pos < content.Length)
+			{
+				List<string> lines = new();
+
+				for (int i = 0; i < lns; ++i)
+				{
+					if (content.Length - pos < cpl)
+					{
+						lines.Add(content[pos..]);
+						pos = content.Length;
+						break;
+					}
+					else
+					{
+						if ((nextpos = content.LastIndexOfAny(" /|\\.!@#$%^&*()_+=-".ToCharArray(), pos + cpl, cpl)) > 0)
+						{
+							lines.Add(content.Substring(pos, nextpos - pos + 1));
+							pos = nextpos + 1;
+						}
+						else
+						{
+							lines.Add(content.Substring(pos, cpl));
+							pos += cpl;
+						}
+					}
+				}
+
+				newpages.Add(lines.ToArray());
+			}
+
+			for (int i = 0; i < Pages.Length; ++i)
+			{
+				if (i < newpages.Count)
+				{
+					Pages[i] = new BookPageInfo(newpages[i]);
+				}
+				else
+				{
+					Pages[i] = new BookPageInfo();
+				}
+			}
+		}
 
 		public BaseBook(Serial serial) : base(serial)
 		{
@@ -278,7 +359,7 @@ namespace Server.Items
 		{
 			get
 			{
-				StringBuilder sb = new StringBuilder();
+				StringBuilder sb = new();
 
 				foreach (BookPageInfo bpi in Pages)
 				{
@@ -296,7 +377,7 @@ namespace Server.Items
 		{
 			get
 			{
-				List<string> lines = new List<string>();
+				List<string> lines = new();
 
 				foreach (BookPageInfo bpi in Pages)
 				{
@@ -304,6 +385,46 @@ namespace Server.Items
 				}
 
 				return lines.ToArray();
+			}
+		}
+
+		public virtual void ContentChangeEC(NetState state, PacketReader pvSrc)
+		{
+			int page = pvSrc.ReadUInt16();
+			int lineCount = pvSrc.ReadUInt16();
+			int index = page - 1;
+
+			if (index < 0 || index >= Pages.Length)
+			{
+				return;
+			}
+
+			if (lineCount == 0xFFFF)
+			{
+				// send for new page
+				state.Send(new BookPageDetails(this, page, Pages[index]));
+			}
+			else if (Writable && state.Mobile != null && state.Mobile.InRange(GetWorldLocation(), 1))
+			{
+				// updates after page is moved away from
+				if (lineCount <= 19)
+				{
+					string[] lines = new string[lineCount];
+
+					for (int j = 0; j < lineCount; ++j)
+					{
+						if ((lines[j] = pvSrc.ReadUTF8StringSafe()).Length >= 80)
+						{
+							return;
+						}
+					}
+
+					Pages[index].Lines = lines;
+				}
+				else
+				{
+					return;
+				}
 			}
 		}
 
@@ -317,9 +438,8 @@ namespace Server.Items
 		public static void OldHeaderChange(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			BaseBook book = World.FindItem(pvSrc.ReadInt32()) as BaseBook;
 
-			if (book == null || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+			if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 				return;
 
 			pvSrc.Seek(4, SeekOrigin.Current); // Skip flags and page count
@@ -334,9 +454,8 @@ namespace Server.Items
 		public static void HeaderChange(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			BaseBook book = World.FindItem(pvSrc.ReadInt32()) as BaseBook;
 
-			if (book == null || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+			if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 				return;
 
 			pvSrc.Seek(4, SeekOrigin.Current); // Skip flags and page count
@@ -362,9 +481,8 @@ namespace Server.Items
 		public static void ContentChange(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			BaseBook book = World.FindItem(pvSrc.ReadInt32()) as BaseBook;
 
-			if (book == null || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+			if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 				return;
 
 			int pageCount = pvSrc.ReadUInt16();
@@ -381,8 +499,17 @@ namespace Server.Items
 					--index;
 
 					int lineCount = pvSrc.ReadUInt16();
+					int lns;
+					if (Core.SA)// needs to be EJ
+					{
+						lns = 10; //line per page EJ Client
+					}
+					else
+					{
+						lns = 8; //line per page
+					}
 
-					if (lineCount <= 8)
+					if (lineCount <= lns)
 					{
 						string[] lines = new string[lineCount];
 
@@ -435,6 +562,26 @@ namespace Server.Items
 					m_Stream.Write(buffer, 0, buffer.Length);
 					m_Stream.Write((byte)0);
 				}
+			}
+		}
+
+		public BookPageDetails(BaseBook book, int page, BookPageInfo info)
+			: base(0x66)
+		{
+			EnsureCapacity(256);
+
+			m_Stream.Write(book.Serial);
+			m_Stream.Write((ushort)0x1);
+
+			m_Stream.Write((ushort)page);
+			m_Stream.Write((ushort)info.Lines.Length);
+
+			for (int i = 0; i < info.Lines.Length; ++i)
+			{
+				byte[] buffer = Utility.UTF8.GetBytes(info.Lines[i]);
+
+				m_Stream.Write(buffer, 0, buffer.Length);
+				m_Stream.Write((byte)0);
 			}
 		}
 	}

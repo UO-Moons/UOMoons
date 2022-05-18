@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Engines.XmlSpawner2;
 using System;
 
 namespace Server.Items
@@ -159,6 +160,18 @@ namespace Server.Items
 
 				from.CheckStatTimers();
 			}
+
+			if (parent is Mobile)
+			{
+				if (XmlAttach.CheckCanEquip(this, (Mobile)parent))
+				{
+					XmlAttach.CheckOnEquip(this, (Mobile)parent);
+				}
+				else
+				{
+					((Mobile)parent).AddToBackpack(this);
+				}
+			}
 		}
 
 		public override void OnRemoved(IEntity parent)
@@ -173,6 +186,7 @@ namespace Server.Items
 
 				from.CheckStatTimers();
 			}
+			XmlAttach.CheckOnRemoved(this, parent);
 		}
 
 		public BaseJewel(Serial serial) : base(serial)
@@ -263,6 +277,8 @@ namespace Server.Items
 				list.Add(1075210, prop.ToString()); // Increased Karma Loss ~1val~%
 
 			base.AddResistanceProperties(list);
+
+			XmlAttach.AddAttachmentProperties(this, list);
 
 			if (m_HitPoints >= 0 && m_MaxHitPoints > 0)
 				list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~

@@ -1,5 +1,6 @@
 using Server.Accounting;
 using Server.ContextMenus;
+using Server.Engines.TownHouses;
 using Server.Guilds;
 using Server.Gumps;
 using Server.Items;
@@ -1092,6 +1093,19 @@ namespace Server.Multis
 
 		public virtual bool IsInside(Point3D p, int height)
 		{
+			Sector sector = Map.GetSector(p);
+
+			foreach (BaseMulti m in sector.Multis)
+			{
+				if (m != this && m is TownHouse house && house.ForSaleSign is RentalContract && house.IsInside(p, height))
+					return false;
+			}
+
+			return Region.Contains(p);
+		}
+		/*
+		public virtual bool IsInside(Point3D p, int height)
+		{
 			if (Deleted)
 				return false;
 
@@ -1130,7 +1144,7 @@ namespace Server.Multis
 
 			return false;
 		}
-
+		*/
 		public SecureAccessResult CheckSecureAccess(Mobile m, Item item)
 		{
 			if (Secures == null || !(item is Container))

@@ -276,6 +276,21 @@ namespace Server
 		}
 	}
 
+	public class BeforeWorldSaveEventArgs : EventArgs
+	{
+		public BeforeWorldSaveEventArgs()
+		{
+		}
+	}
+
+
+	public class AfterWorldSaveEventArgs : EventArgs
+	{
+		public AfterWorldSaveEventArgs()
+		{
+		}
+	}
+
 	public static partial class EventSink
 	{
 		//Server
@@ -295,6 +310,18 @@ namespace Server
 		public static void InvokeWorldSave()
 		{
 			OnWorldSave?.Invoke();
+		}
+
+		public static event Action<BeforeWorldSaveEventArgs> BeforeWorldSave;
+		public static void InvokeBeforeWorldSave(BeforeWorldSaveEventArgs e)
+		{
+			BeforeWorldSave?.Invoke(e);
+		}
+
+		public static event Action<AfterWorldSaveEventArgs> AfterWorldSave;
+		public static void InvokeAfterWorldSave(AfterWorldSaveEventArgs e)
+		{
+			AfterWorldSave?.Invoke(e);
 		}
 
 		public static event Action<string, int, bool> OnWorldBroadcast;

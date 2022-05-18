@@ -7,16 +7,7 @@ namespace Server.Misc
 	{
 		private static string m_Path;
 
-		public static string FilePath
-		{
-			get
-			{
-				if (m_Path != null)
-					return m_Path;
-
-				return m_Path = Settings.Configuration.Get<string>("Server", "FilePath");
-			}
-		}
+		public static string FilePath => m_Path ??= Settings.Configuration.Get<string>("Server", "FilePath");
 
 		[CallPriority(int.MinValue + 1)]
 		public static void Configure()
@@ -45,7 +36,9 @@ namespace Server.Misc
 				m_Path = Console.ReadLine();
 
 				if (m_Path != null)
+				{
 					m_Path = m_Path.Trim();
+				}
 			}
 			while (m_Path == null || !Directory.Exists(m_Path));
 

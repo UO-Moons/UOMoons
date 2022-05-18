@@ -397,7 +397,7 @@ namespace Server.Network
 				List<BuyItemResponse> buyList = new(msgSize / 7);
 				for (; msgSize > 0; msgSize -= 7)
 				{
-					byte layer = pvSrc.ReadByte();
+					_ = pvSrc.ReadByte();
 					Serial serial = pvSrc.ReadInt32();
 					int amount = pvSrc.ReadInt16();
 

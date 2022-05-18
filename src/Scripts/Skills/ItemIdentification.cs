@@ -1,3 +1,4 @@
+using Server.Engines.XmlSpawner2;
 using Server.Mobiles;
 using Server.Targeting;
 using System;
@@ -54,6 +55,8 @@ namespace Server.Items
 				{
 					from.SendLocalizedMessage(500353); // You are not certain...
 				}
+
+				XmlAttach.RevealAttachments(from, o);
 			}
 		}
 	}

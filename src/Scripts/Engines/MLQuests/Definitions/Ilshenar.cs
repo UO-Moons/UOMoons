@@ -1,4 +1,4 @@
-﻿using Server.Engines.MLQuests.Objectives;
+using Server.Engines.MLQuests.Objectives;
 using Server.Engines.MLQuests.Rewards;
 using Server.Items;
 using Server.Mobiles;
@@ -31,9 +31,9 @@ namespace Server.Engines.MLQuests.Definitions
 		{
 			base.Generate();
 
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), 0, 5, "Lissbet"), new Point3D(1568, 1040, -7), Map.Ilshenar);
+			PutSpawner(new Spawner(1, 10, 30, 0, 5, "Lissbet"), new Point3D(1568, 1040, -7), Map.Ilshenar);
 			PutSpawner(new Spawner(1, 5, 10, 0, 8, "GrandpaCharley"), new Point3D(1322, 1331, -14), Map.Ilshenar);
-			PutSpawner(new Spawner(1, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30), 0, 3, "Sheep"), new Point3D(1308, 1324, -14), Map.Ilshenar);
+			PutSpawner(new Spawner(1, 10, 30, 0, 3, "Sheep"), new Point3D(1308, 1324, -14), Map.Ilshenar);
 		}
 	}
 

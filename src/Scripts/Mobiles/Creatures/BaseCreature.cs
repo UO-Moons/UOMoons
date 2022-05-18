@@ -211,6 +211,8 @@ namespace Server.Mobiles
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool SeeksHome { get; set; }
 
+		public int FollowRange { get; set; }
+
 		[CommandProperty(AccessLevel.GameMaster)]
 		public string CorpseNameOverride { get; set; }
 
@@ -338,6 +340,17 @@ namespace Server.Mobiles
 			}
 			set
 			{
+			}
+		}
+
+		public virtual bool HoldSmartSpawning
+		{
+			get
+			{
+				// dont smartspawn paragons
+				if (IsParagon) return true;
+
+				return false;
 			}
 		}
 
@@ -3722,9 +3735,7 @@ namespace Server.Mobiles
 
 			if (min > max)
 			{
-				int hold = min;
-				min = max;
-				max = hold;
+				(max, min) = (min, max);
 			}
 
 			/* Example:
@@ -4476,7 +4487,7 @@ namespace Server.Mobiles
 						}
 
 						OnKilledBy(ds.m_Mobile);
-
+						
 						if (!givenFactionKill)
 						{
 							givenFactionKill = true;
@@ -4512,6 +4523,8 @@ namespace Server.Mobiles
 								givenQuestKill = true;
 							}
 						}
+
+						XmlQuest.RegisterKill(this, ds.m_Mobile);
 					}
 
 					for (int i = 0; i < titles.Count; ++i)

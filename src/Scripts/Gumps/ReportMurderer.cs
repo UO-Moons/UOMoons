@@ -65,6 +65,7 @@ namespace Server.Gumps
 
 				Titles.AwardFame(g, fameAward, false);
 				Titles.AwardKarma(g, karmaAward, true);
+				XmlQuest.RegisterKill(m, g);
 
 				if (killers.Contains(g))
 				{

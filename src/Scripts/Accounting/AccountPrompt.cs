@@ -1,7 +1,6 @@
-using Server.Accounting;
 using System;
 
-namespace Server.Misc
+namespace Server.Accounting
 {
 	public class AccountPrompt
 	{

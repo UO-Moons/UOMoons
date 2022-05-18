@@ -224,10 +224,10 @@ namespace Server.Engines.Reports
 			textFormat.Alignment = StringAlignment.Center;
 			textFormat.LineAlignment = StringAlignment.Center;
 
-			using Font font = new Font(_fontFamily, _labelFontSize);
+			using Font font = new(_fontFamily, _labelFontSize);
 			using Brush textBrush = new SolidBrush(_fontColor);
-			using Pen solidPen = new Pen(_fontColor);
-			using Pen lightPen = new Pen(Color.FromArgb(128, _fontColor));
+			using Pen solidPen = new(_fontColor);
+			using Pen lightPen = new(Color.FromArgb(128, _fontColor));
 			float labelWidth = _barWidth + _spaceBtwBars;
 
 			for (int i = 0; i < _regions.Length; ++i)
@@ -239,7 +239,7 @@ namespace Server.Engines.Reports
 				if (rc.X + rc.Width > _xOrigin + _graphWidth)
 					rc.Width = _xOrigin + _graphWidth - rc.X;
 
-				using (SolidBrush brsh = new SolidBrush(Color.FromArgb(48, GetColor(i))))
+				using (SolidBrush brsh = new(Color.FromArgb(48, GetColor(i))))
 					gfx.FillRectangle(brsh, rc);
 
 				rc.Offset((rc.Width - 200.0f) * 0.5f, -16.0f);

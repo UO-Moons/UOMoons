@@ -1,5 +1,8 @@
 using Server.Items;
+using Server.Mobiles;
+using Server.Multis;
 using Server.Network;
+using Server.Spells;
 using System;
 using System.Collections.Generic;
 
@@ -43,12 +46,16 @@ namespace Server.Misc
 		public static List<Weather> GetWeatherList(Map facet)
 		{
 			if (facet == null)
+			{
 				return null;
+			}
 
 			m_WeatherByFacet.TryGetValue(facet, out List<Weather> list);
 
 			if (list == null)
+			{
 				m_WeatherByFacet[facet] = list = new List<Weather>();
+			}
 
 			return list;
 		}
@@ -65,14 +72,20 @@ namespace Server.Misc
 					area = new Rectangle2D(bounds.X + Utility.Random(bounds.Width - width), bounds.Y + Utility.Random(bounds.Height - height), width, height);
 
 					if (!CheckWeatherConflict(m_Facets[i], null, area))
+					{
 						isValid = true;
+					}
 
 					if (isValid)
+					{
 						break;
+					}
 				}
 
 				if (!isValid)
+				{
 					continue;
+				}
 				_ = new Weather(m_Facets[i], new Rectangle2D[] { area }, temperature, chanceOfPercipitation, chanceOfExtremeTemperature, TimeSpan.FromSeconds(30.0))
 				{
 					Bounds = bounds,
@@ -92,14 +105,18 @@ namespace Server.Misc
 			List<Weather> list = GetWeatherList(facet);
 
 			if (list == null)
+			{
 				return false;
+			}
 
 			for (int i = 0; i < list.Count; ++i)
 			{
 				Weather w = list[i];
 
 				if (w != exclude && w.IntersectsWith(area))
+				{
 					return true;
+				}
 			}
 
 			return false;
@@ -119,34 +136,20 @@ namespace Server.Misc
 
 		public static bool CheckIntersection(Rectangle2D r1, Rectangle2D r2)
 		{
-			if (r1.X >= (r2.X + r2.Width))
+			if (r1.X >= (r2.X + r2.Width) || r2.X >= (r1.X + r1.Width) || r1.Y >= (r2.Y + r2.Height) || r2.Y >= (r1.Y + r1.Height))
+			{
 				return false;
-
-			if (r2.X >= (r1.X + r1.Width))
-				return false;
-
-			if (r1.Y >= (r2.Y + r2.Height))
-				return false;
-
-			if (r2.Y >= (r1.Y + r1.Height))
-				return false;
+			}
 
 			return true;
 		}
 
 		public static bool CheckContains(Rectangle2D big, Rectangle2D small)
 		{
-			if (small.X < big.X)
+			if (small.X < big.X || small.Y < big.Y || (small.X + small.Width) > (big.X + big.Width) || (small.Y + small.Height) > (big.Y + big.Height))
+			{
 				return false;
-
-			if (small.Y < big.Y)
-				return false;
-
-			if ((small.X + small.Width) > (big.X + big.Width))
-				return false;
-
-			if ((small.Y + small.Height) > (big.Y + big.Height))
-				return false;
+			}
 
 			return true;
 		}
@@ -156,7 +159,9 @@ namespace Server.Misc
 			for (int i = 0; i < Area.Length; ++i)
 			{
 				if (CheckIntersection(area, Area[i]))
+				{
 					return true;
+				}
 			}
 
 			return false;
@@ -173,7 +178,9 @@ namespace Server.Misc
 			List<Weather> list = GetWeatherList(facet);
 
 			if (list != null)
+			{
 				list.Add(this);
+			}
 
 			Timer.DelayCall(TimeSpan.FromSeconds((0.2 + (Utility.RandomDouble() * 0.8)) * interval.TotalSeconds), interval, new TimerCallback(OnTick));
 		}
@@ -181,7 +188,9 @@ namespace Server.Misc
 		public virtual void Reposition()
 		{
 			if (Area.Length == 0)
+			{
 				return;
+			}
 
 			int width = Area[0].Width;
 			int height = Area[0].Height;
@@ -194,14 +203,20 @@ namespace Server.Misc
 				area = new Rectangle2D(Bounds.X + Utility.Random(Bounds.Width - width), Bounds.Y + Utility.Random(Bounds.Height - height), width, height);
 
 				if (!CheckWeatherConflict(Facet, this, area))
+				{
 					isValid = true;
+				}
 
 				if (isValid)
+				{
 					break;
+				}
 			}
 
 			if (!isValid)
+			{
 				return;
+			}
 
 			Area[0] = area;
 		}
@@ -220,12 +235,14 @@ namespace Server.Misc
 		public virtual void MoveForward()
 		{
 			if (Area.Length == 0)
+			{
 				return;
+			}
 
 			for (int i = 0; i < 5; ++i) // try 5 times to find a valid spot
 			{
-				int xOffset = (MoveSpeed * MoveAngleX) / 100;
-				int yOffset = (MoveSpeed * MoveAngleY) / 100;
+				int xOffset = MoveSpeed * MoveAngleX / 100;
+				int yOffset = MoveSpeed * MoveAngleY / 100;
 
 				Rectangle2D oldArea = Area[0];
 				Rectangle2D newArea = new(oldArea.X + xOffset, oldArea.Y + yOffset, oldArea.Width, oldArea.Height);
@@ -261,14 +278,18 @@ namespace Server.Misc
 			if (m_Active)
 			{
 				if (m_Stage > 0 && MoveSpeed > 0)
+				{
 					MoveForward();
+				}
 
 				int type, density, temperature;
 
 				temperature = Temperature;
 
 				if (m_ExtremeTemperature)
+				{
 					temperature *= -1;
+				}
 
 				if (m_Stage < 15)
 				{
@@ -279,15 +300,23 @@ namespace Server.Misc
 					density = 150 - (m_Stage * 5);
 
 					if (density < 10)
+					{
 						density = 10;
+					}
 					else if (density > 70)
+					{
 						density = 70;
+					}
 				}
 
 				if (density == 0)
+				{
 					type = 0xFE;
+				}
 				else if (temperature > 0)
+				{
 					type = 0;
+				}
 				else
 					type = 2;
 
@@ -301,18 +330,87 @@ namespace Server.Misc
 					Mobile mob = ns.Mobile;
 
 					if (mob == null || mob.Map != Facet)
+					{
 						continue;
+					}
 
-					bool contains = (Area.Length == 0);
+					bool contains = Area.Length == 0;
 
 					for (int j = 0; !contains && j < Area.Length; ++j)
 						contains = Area[j].Contains(mob.Location);
 
 					if (!contains)
+					{
 						continue;
+					}
 
 					if (weatherPacket == null)
+					{
 						weatherPacket = Packet.Acquire(new Server.Network.Weather(type, density, temperature));
+					}
+
+					bool IsInside = false;
+					if (mob != null)
+					{
+						BaseHouse house = BaseHouse.FindHouseAt(mob.Location, mob.Map, 20);
+						if (house != null)
+							IsInside = true;
+					}
+
+					PlayerMobile pm = mob as PlayerMobile;
+					if (m_ExtremeTemperature)
+					{
+						pm.SendMessage("Major Storm in these area");
+
+						switch (Utility.Random(50))
+						{
+
+							case 0:
+								{
+									((PlayerMobile)mob).BoltEffect(0);
+									((PlayerMobile)mob).Damage(Utility.Random(1, 2));
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+							case 1:
+								{
+									((PlayerMobile)mob).BoltEffect(0);
+									((PlayerMobile)mob).Damage(Utility.Random(1, 2));
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+							case 2:
+								{
+									((PlayerMobile)mob).BoltEffect(0);
+									((PlayerMobile)mob).Damage(Utility.Random(1, 2));
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+							case 3:
+								{
+									((PlayerMobile)mob).BoltEffect(0);
+									((PlayerMobile)mob).Damage(Utility.Random(1, 5));
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+							case 4:
+								{
+									((PlayerMobile)mob).BoltEffect(0);
+									SpellHelper.Damage(TimeSpan.Zero, (PlayerMobile)mob, Utility.Random(5, 15), 0, 0, 0, 0, 100);
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+							case 5:
+								{
+									((PlayerMobile)mob).BoltEffect(1);
+									SpellHelper.Damage(TimeSpan.Zero, (PlayerMobile)mob, Utility.Random(5, 15), 0, 0, 0, 0, 100);
+									((PlayerMobile)mob).SendMessage("You have a lightning bolt to the side!");
+									break;
+								}
+
+							default: break;
+						}
+					}
 
 					ns.Send(weatherPacket);
 				}
@@ -340,7 +438,9 @@ namespace Server.Misc
 			Map facet = from.Map;
 
 			if (facet == null)
+			{
 				return;
+			}
 
 			List<Weather> list = Weather.GetWeatherList(facet);
 
@@ -351,7 +451,9 @@ namespace Server.Misc
 				Weather w = list[i];
 
 				for (int j = 0; j < w.Area.Length; ++j)
+				{
 					AddWorldPin(w.Area[j].X + (w.Area[j].Width / 2), w.Area[j].Y + (w.Area[j].Height / 2));
+				}
 			}
 
 			base.OnDoubleClick(from);
@@ -364,7 +466,6 @@ namespace Server.Misc
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
 			writer.Write(0);
 		}
 

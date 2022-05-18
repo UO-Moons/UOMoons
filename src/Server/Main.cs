@@ -374,7 +374,7 @@ namespace Server
 			Version ver = Assembly.GetName().Version;
 
 			// Added to help future code support on forums, as a 'check' people can ask for to it see if they recompiled core or not
-			Utility.WriteConsole(ConsoleColor.Cyan, "CorexUO - [https://github.com/corexuo/] Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
+			Utility.WriteConsole(ConsoleColor.Cyan, "UOMoons - [https://github.com/UO-Moons/UOMoons] Version {0}.{1}.{2}.{3}", ver.Major, ver.Minor, ver.Build, ver.Revision);
 			Utility.WriteConsole(ConsoleColor.Cyan, "Core: Running on .NET Core {0}.{1}.{2}", Environment.Version.Major, Environment.Version.Minor, Environment.Version.Build);
 
 			string s = Arguments;

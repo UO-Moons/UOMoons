@@ -7,19 +7,16 @@ namespace Server.Misc
 {
 	public static partial class MapUO
 	{
-		private static class Settings
-		{
-			public const bool PartyTrack = true;
-			public const bool GuildTrack = true;
-			public const bool GuildHitsPercent = true;
-		}
+		private static readonly bool PartyTrack = Settings.Configuration.Get<bool>("MapUO", "PartyTrack");
+		private static readonly bool GuildTrack = Settings.Configuration.Get<bool>("MapUO", "GuildTrack");
+		private static readonly bool GuildHitsPercent = Settings.Configuration.Get<bool>("MapUO", "GuildHitsPercent");
 
 		public static void Initialize()
 		{
-			if (Settings.PartyTrack)
+			if (PartyTrack)
 				ProtocolExtensions.Register(0x00, true, new OnPacketReceive(OnPartyTrack));
 
-			if (Settings.GuildTrack)
+			if (GuildTrack)
 				ProtocolExtensions.Register(0x01, true, new OnPacketReceive(OnGuildTrack));
 		}
 
@@ -112,7 +109,7 @@ namespace Server.Misc
 							m_Stream.Write((short)mob.Y);
 							m_Stream.Write((byte)(mob.Map == null ? 0 : mob.Map.MapID));
 
-							if (Settings.GuildHitsPercent && mob.Alive)
+							if (GuildHitsPercent && mob.Alive)
 								m_Stream.Write((byte)(mob.Hits / Math.Max(mob.HitsMax, 1.0) * 100));
 							else
 								m_Stream.Write((byte)0);
