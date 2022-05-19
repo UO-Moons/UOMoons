@@ -298,15 +298,15 @@ namespace Server.Factions
 				#endregion
 
 				#region Put in Town
-				else if (obj is TownMonolith m)
+				else if (obj is TownMonolith tm)
 				{
-					if (m.Town == null || m.Town != m_Town)
+					if (tm.Town == null || tm.Town != m_Town)
 						from.SendLocalizedMessage(1042245); // This is not the correct town sigil monolith
 					else if (m_Corrupted == null || m_Corrupted != Faction.Find(from))
 						from.SendLocalizedMessage(1042244); // Your faction did not corrupt this sigil.  Take it to your stronghold.
 					else
 					{
-						m.Sigil = this;
+						tm.Sigil = this;
 
 						m_Corrupting = null;
 						PurificationStart = DateTime.UtcNow;

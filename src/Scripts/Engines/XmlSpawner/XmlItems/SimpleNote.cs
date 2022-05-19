@@ -6,7 +6,7 @@ using Server.Gumps;
 */
 namespace Server.Items
 {
-	public class SimpleNote : Item
+	public class SimpleNote : BaseItem
 	{
 		private int m_size = 1;
 		private string m_NoteString;

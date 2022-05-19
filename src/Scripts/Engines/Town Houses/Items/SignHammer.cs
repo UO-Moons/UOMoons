@@ -10,7 +10,7 @@ namespace Server.Engines.TownHouses
 		Swap
 	}
 
-	public class SignHammer : Item
+	public class SignHammer : BaseItem
 	{
 		private static readonly Hashtable s_Table = new();
 		private static readonly ArrayList s_List = new();

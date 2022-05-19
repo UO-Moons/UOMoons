@@ -5,7 +5,7 @@ using System.Collections;
 namespace Server.Items
 {
 
-	public class XmlLatch : Item
+	public class XmlLatch : BaseItem
 	{
 		private TimeSpan m_MinDelay;
 		private TimeSpan m_MaxDelay;

@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Server.Engines.XmlSpawner2
 {
-	public class QuestLeadersStone : Item
+	public class QuestLeadersStone : BaseItem
 	{
 
 		[Constructable]

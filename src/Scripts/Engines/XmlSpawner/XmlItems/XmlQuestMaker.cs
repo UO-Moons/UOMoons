@@ -2,7 +2,7 @@ using Server.Mobiles;
 
 namespace Server.Items
 {
-	public class XmlQuestMaker : Item
+	public class XmlQuestMaker : BaseItem
 	{
 
 		public XmlQuestMaker(Serial serial) : base(serial)

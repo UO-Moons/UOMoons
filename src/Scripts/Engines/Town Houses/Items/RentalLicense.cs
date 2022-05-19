@@ -1,6 +1,6 @@
 namespace Server.Engines.TownHouses
 {
-	public class RentalLicense : Item
+	public class RentalLicense : BaseItem
 	{
 		private Mobile c_Owner;
 

@@ -7,7 +7,7 @@ using Server.Gumps;
 
 namespace Server.Items
 {
-	public class QuestRewardStone : Item
+	public class QuestRewardStone : BaseItem
 	{
 		[Constructable]
 		public QuestRewardStone() : base(0xED4)

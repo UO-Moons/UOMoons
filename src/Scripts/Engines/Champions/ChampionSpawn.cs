@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Server.Engines.Champions
 {
-	public class ChampionSpawn : Item
+	public class ChampionSpawn : BaseItem
 	{
 		public static readonly int MaxStrayDistance = 250;
 
@@ -1389,7 +1389,7 @@ namespace Server.Engines.Champions
 				AddLabel(gTab[2], top, gFontHue, spawn.AutoRestart.ToString());
 				top += gRowHeight;
 
-				List<Damager> damagers = new List<Damager>();
+				List<Damager> damagers = new();
 				foreach (Mobile mob in spawn.m_DamageEntries.Keys)
 				{
 					damagers.Add(new Damager(mob, spawn.m_DamageEntries[mob]));
@@ -1513,7 +1513,7 @@ namespace Server.Engines.Champions
 		}
 	}
 
-	public class IdolOfTheChampion : Item
+	public class IdolOfTheChampion : BaseItem
 	{
 		public ChampionSpawn Spawn { get; private set; }
 

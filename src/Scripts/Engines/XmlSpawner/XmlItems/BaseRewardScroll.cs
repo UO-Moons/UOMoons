@@ -1,6 +1,6 @@
 namespace Server.Items
 {
-	public abstract class BaseRewardScroll : Item
+	public abstract class BaseRewardScroll : BaseItem
 	{
 		public override double DefaultWeight => 0.0;
 
@@ -24,7 +24,7 @@ namespace Server.Items
 		}
 	}
 
-	public class RewardScrollDeed : Item
+	public class RewardScrollDeed : BaseItem
 	{
 		[Constructable]
 		public RewardScrollDeed(int amount)
@@ -38,7 +38,6 @@ namespace Server.Items
 			Movable = true;
 			Hue = 1165;
 			Name = "Reward Scroll Deed";
-
 		}
 
 		public override void OnDoubleClick(Mobile from)

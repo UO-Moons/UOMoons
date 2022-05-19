@@ -18,7 +18,7 @@ using System.Xml;
 
 namespace Server.Mobiles
 {
-	public class XmlSpawner : Item, ISpawner
+	public class XmlSpawner : BaseItem, ISpawner
 	{
 		private static bool m_XmlPoints;
 		private static bool m_XmlFactions;

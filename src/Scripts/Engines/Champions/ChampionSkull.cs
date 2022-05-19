@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Server.Items
 {
-	public class ChampionSkull : Item
+	public class ChampionSkull : BaseItem
 	{
 		public static readonly ChampionSkullType[] Types = //
 			Enum.GetValues(typeof(ChampionSkullType))

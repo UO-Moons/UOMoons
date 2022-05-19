@@ -7,7 +7,7 @@ For this tile trap, 0 is the state when the player moves off or is not standing,
 
 namespace Server.Items
 {
-	public class SimpleTileTrap : Item
+	public class SimpleTileTrap : BaseItem
 	{
 		private int m_SwitchSound = 939;
 		private Item m_TargetItem0;

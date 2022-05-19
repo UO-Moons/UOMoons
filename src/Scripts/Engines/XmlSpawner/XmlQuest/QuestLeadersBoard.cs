@@ -3,7 +3,7 @@ using Server.Engines.XmlSpawner2;
 namespace Server.Items
 {
 	[Flipable(0x1E5E, 0x1E5F)]
-	public class QuestLeadersBoard : Item
+	public class QuestLeadersBoard : BaseItem
 	{
 
 		public QuestLeadersBoard(Serial serial) : base(serial)

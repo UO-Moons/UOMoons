@@ -10,7 +10,7 @@ namespace Server.Items
 		void Activate(Mobile from, int state, ArrayList links);
 	}
 
-	public class SimpleLever : Item, ILinkable
+	public class SimpleLever : BaseItem, ILinkable
 	{
 		public enum SleverType { Two_State, Three_State }
 

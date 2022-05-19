@@ -18,7 +18,7 @@ namespace Server.Engines.TownHouses
 	}
 
 	[Flipable(0xC0B, 0xC0C)]
-	public class TownHouseSign : Item
+	public class TownHouseSign : BaseItem
 	{
 		public static List<TownHouseSign> AllSigns { get; } = new List<TownHouseSign>();
 
