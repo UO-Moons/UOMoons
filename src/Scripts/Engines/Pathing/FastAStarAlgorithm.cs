@@ -14,7 +14,7 @@ namespace Server.PathAlgorithms.FastAStar
 
 	public class FastAStarAlgorithm : PathAlgorithm
 	{
-		public static PathAlgorithm Instance = new FastAStarAlgorithm();
+		public static readonly PathAlgorithm Instance = new FastAStarAlgorithm();
 
 		private const int MaxDepth = 300;
 		private const int AreaSize = 38;
@@ -27,8 +27,8 @@ namespace Server.PathAlgorithms.FastAStar
 
 		private static readonly Direction[] m_Path = new Direction[AreaSize * AreaSize];
 		private static readonly PathNode[] m_Nodes = new PathNode[NodeCount];
-		private static readonly BitArray m_Touched = new BitArray(NodeCount);
-		private static readonly BitArray m_OnOpen = new BitArray(NodeCount);
+		private static readonly BitArray m_Touched = new(NodeCount);
+		private static readonly BitArray m_OnOpen = new(NodeCount);
 		private static readonly int[] m_Successors = new int[8];
 
 		private static int m_xOffset, m_yOffset;
@@ -53,7 +53,7 @@ namespace Server.PathAlgorithms.FastAStar
 			return Utility.InRange(start, goal, AreaSize);
 		}
 
-		private void RemoveFromChain(int node)
+		private static void RemoveFromChain(int node)
 		{
 			if (node < 0 || node >= NodeCount)
 				return;
@@ -77,7 +77,7 @@ namespace Server.PathAlgorithms.FastAStar
 			m_Nodes[node].next = -1;
 		}
 
-		private void AddToChain(int node)
+		private static void AddToChain(int node)
 		{
 			if (node < 0 || node >= NodeCount)
 				return;
@@ -123,7 +123,6 @@ namespace Server.PathAlgorithms.FastAStar
 			m_OnOpen[m_OpenList] = true;
 			m_Touched[m_OpenList] = true;
 
-			BaseCreature bc = m as BaseCreature;
 
 			int pathCount, parent;
 			int backtrack = 0, depth = 0;
@@ -137,7 +136,7 @@ namespace Server.PathAlgorithms.FastAStar
 				if (++depth > MaxDepth)
 					break;
 
-				if (bc != null)
+				if (m is BaseCreature bc)
 				{
 					MoveImpl.AlwaysIgnoreDoors = bc.CanOpenDoors;
 					MoveImpl.IgnoreMovableImpassables = bc.CanMoveOverObstacles;
@@ -207,7 +206,7 @@ namespace Server.PathAlgorithms.FastAStar
 			return null;
 		}
 
-		private int GetIndex(int x, int y, int z)
+		private static int GetIndex(int x, int y, int z)
 		{
 			x -= m_xOffset;
 			y -= m_yOffset;
@@ -217,7 +216,7 @@ namespace Server.PathAlgorithms.FastAStar
 			return x + (y * AreaSize) + (z * AreaSize * AreaSize);
 		}
 
-		private int FindBest(int node)
+		private static int FindBest(int node)
 		{
 			int least = m_Nodes[node].total;
 			int leastNode = node;
@@ -241,14 +240,14 @@ namespace Server.PathAlgorithms.FastAStar
 			return leastNode;
 		}
 
-		public int GetSuccessors(int p, Mobile m, Map map)
+		public static int GetSuccessors(int p, Mobile m, Map map)
 		{
 			int px = p % AreaSize;
-			int py = (p / AreaSize) % AreaSize;
+			int py = p / AreaSize % AreaSize;
 			int pz = m_Nodes[p].z;
 			int x, y;
 
-			Point3D p3D = new Point3D(px + m_xOffset, py + m_yOffset, pz);
+			Point3D p3D = new(px + m_xOffset, py + m_yOffset, pz);
 
 			int[] vals = m_Successors;
 			int count = 0;

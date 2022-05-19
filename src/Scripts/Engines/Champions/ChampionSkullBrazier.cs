@@ -6,37 +6,52 @@ namespace Server.Engines.Champions
 {
 	public class ChampionSkullBrazier : AddonComponent
 	{
+		private ChampionSkullPlatform m_Platform;
 		private ChampionSkullType m_Type;
 		private Item m_Skull;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public ChampionSkullPlatform Platform { get; private set; }
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public ChampionSkullType Type { get => m_Type; set { m_Type = value; InvalidateProperties(); } }
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Item Skull { get => m_Skull; set { m_Skull = value; if (Platform != null) Platform.Validate(); } }
-
-		public override int LabelNumber => 1049489 + (int)m_Type;
-
-		public ChampionSkullBrazier(ChampionSkullPlatform platform, ChampionSkullType type) : base(0x19BB)
+		public ChampionSkullBrazier(ChampionSkullPlatform platform, ChampionSkullType type)
+			: base(0x19BB)
 		{
 			Hue = 0x455;
 			Light = LightType.Circle300;
 
-			Platform = platform;
+			m_Platform = platform;
 			m_Type = type;
 		}
 
-		public ChampionSkullBrazier(Serial serial) : base(serial)
+		public ChampionSkullBrazier(Serial serial)
+			: base(serial)
 		{
 		}
 
+		[CommandProperty(AccessLevel.GameMaster)]
+		public ChampionSkullPlatform Platform => m_Platform;
+		[CommandProperty(AccessLevel.GameMaster)]
+		public ChampionSkullType Type
+		{
+			get => m_Type;
+			set
+			{
+				m_Type = value;
+				InvalidateProperties();
+			}
+		}
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Item Skull
+		{
+			get => m_Skull;
+			set
+			{
+				m_Skull = value;
+				if (m_Platform != null)
+					m_Platform.Validate();
+			}
+		}
+		public override int LabelNumber => 1049489 + (int)m_Type;
 		public override void OnDoubleClick(Mobile from)
 		{
-			if (Platform != null)
-				Platform.Validate();
+			if (m_Platform != null)
+				m_Platform.Validate();
 
 			BeginSacrifice(from);
 		}
@@ -64,7 +79,7 @@ namespace Server.Engines.Champions
 			}
 			else
 			{
-				SendLocalizedMessageTo(from, 1049487); // I already have my champions awakening skull!
+				SendLocalizedMessageTo(from, 1049487, ""); // I already have my champions awakening skull!
 			}
 		}
 
@@ -86,11 +101,11 @@ namespace Server.Engines.Champions
 			}
 			else if (skull == null)
 			{
-				SendLocalizedMessageTo(from, 1049488); // That is not my champions awakening skull!
+				SendLocalizedMessageTo(from, 1049488, ""); // That is not my champions awakening skull!
 			}
 			else if (m_Skull != null)
 			{
-				SendLocalizedMessageTo(from, 1049487); // I already have my champions awakening skull!
+				SendLocalizedMessageTo(from, 1049487, ""); // I already have my champions awakening skull!
 			}
 			else if (!skull.IsChildOf(from.Backpack))
 			{
@@ -107,34 +122,17 @@ namespace Server.Engines.Champions
 				}
 				else
 				{
-					SendLocalizedMessageTo(from, 1049488); // That is not my champions awakening skull!
+					SendLocalizedMessageTo(from, 1049488, ""); // That is not my champions awakening skull!
 				}
-			}
-		}
-
-		private class SacrificeTarget : Target
-		{
-			private readonly ChampionSkullBrazier m_Brazier;
-
-			public SacrificeTarget(ChampionSkullBrazier brazier) : base(12, false, TargetFlags.None)
-			{
-				m_Brazier = brazier;
-			}
-
-			protected override void OnTarget(Mobile from, object targeted)
-			{
-				m_Brazier.EndSacrifice(from, targeted as ChampionSkull);
 			}
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
-
+			writer.Write(0);
 			writer.Write((int)m_Type);
-			writer.Write(Platform);
+			writer.Write(m_Platform);
 			writer.Write(m_Skull);
 		}
 
@@ -149,21 +147,30 @@ namespace Server.Engines.Champions
 				case 0:
 					{
 						m_Type = (ChampionSkullType)reader.ReadInt();
-						Platform = reader.ReadItem() as ChampionSkullPlatform;
+						m_Platform = reader.ReadItem() as ChampionSkullPlatform;
 						m_Skull = reader.ReadItem();
 
-						if (Platform == null)
+						if (m_Platform == null)
 							Delete();
 
 						break;
 					}
 			}
+		}
 
-			if (Hue == 0x497)
-				Hue = 0x455;
+		private class SacrificeTarget : Target
+		{
+			private readonly ChampionSkullBrazier m_Brazier;
+			public SacrificeTarget(ChampionSkullBrazier brazier)
+				: base(12, false, TargetFlags.None)
+			{
+				m_Brazier = brazier;
+			}
 
-			if (Light != LightType.Circle300)
-				Light = LightType.Circle300;
+			protected override void OnTarget(Mobile from, object targeted)
+			{
+				m_Brazier.EndSacrifice(from, targeted as ChampionSkull);
+			}
 		}
 	}
 }

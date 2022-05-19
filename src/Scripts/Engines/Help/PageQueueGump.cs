@@ -92,7 +92,7 @@ namespace Server.Engines.Help
 
 					string typeString = PageQueue.GetPageTypeName(e.Type);
 
-					string html = string.Format("[{0}] {1} <basefont color=#{2:X6}>[<u>{3}</u>]</basefont>", typeString, e.Message, e.Handler == null ? 0xFF0000 : 0xFF, e.Handler == null ? "Unhandled" : "Handling");
+					string html = $"[{typeString}] {e.Message} <basefont color=#{(e.Handler == null ? 0xFF0000 : 0xFF):X6}>[<u>{(e.Handler == null ? "Unhandled" : "Handling")}</u>]</basefont>";
 
 					Add(new GumpHtml(12, 44 + ((i % 5) * 80), 350, 70, html, true, true));
 					Add(new GumpButton(370, 44 + ((i % 5) * 80) + 24, 0xFA5, 0xFA7, i + 1, GumpButtonType.Reply, 0));
@@ -169,14 +169,12 @@ namespace Server.Engines.Help
 			{
 				string path = Path.Combine(Core.BaseDirectory, "Data/pageresponse.cfg");
 
-				using (StreamWriter op = new(path))
+				using StreamWriter op = new(path);
+				for (int i = 0; i < m_List.Count; ++i)
 				{
-					for (int i = 0; i < m_List.Count; ++i)
-					{
-						PredefinedResponse resp = (PredefinedResponse)m_List[i];
+					PredefinedResponse resp = (PredefinedResponse)m_List[i];
 
-						op.WriteLine("{0}\t{1}", resp.Title, resp.Message);
-					}
+					op.WriteLine("{0}\t{1}", resp.Title, resp.Message);
 				}
 			}
 			catch (Exception e)
@@ -195,27 +193,25 @@ namespace Server.Engines.Help
 			{
 				try
 				{
-					using (StreamReader ip = new(path))
+					using StreamReader ip = new(path);
+					string line;
+
+					while ((line = ip.ReadLine()) != null)
 					{
-						string line;
-
-						while ((line = ip.ReadLine()) != null)
+						try
 						{
-							try
-							{
-								line = line.Trim();
+							line = line.Trim();
 
-								if (line.Length == 0 || line.StartsWith("#"))
-									continue;
+							if (line.Length == 0 || line.StartsWith("#"))
+								continue;
 
-								string[] split = line.Split('\t');
+							string[] split = line.Split('\t');
 
-								if (split.Length == 2)
-									list.Add(new PredefinedResponse(split[0], split[1]));
-							}
-							catch
-							{
-							}
+							if (split.Length == 2)
+								list.Add(new PredefinedResponse(split[0], split[1]));
+						}
+						catch
+						{
 						}
 					}
 				}
@@ -280,7 +276,7 @@ namespace Server.Engines.Help
 
 					PredefinedResponse resp = (PredefinedResponse)list[i];
 
-					string html = string.Format("<u>{0}</u><br>{1}", resp.Title, resp.Message);
+					string html = $"<u>{resp.Title}</u><br>{resp.Message}";
 
 					AddHtml(12, 44 + ((i % 5) * 80), 350, 70, html, true, true);
 
@@ -484,7 +480,7 @@ namespace Server.Engines.Help
 				AddLabelCropped(128, 18, 264, 20, 2100, entry.Sent.ToString());
 
 				AddLabel(18, 38, 2100, "Sender:");
-				AddLabelCropped(128, 38, 264, 20, 2100, string.Format("{0} {1} [{2}]", entry.Sender.RawName, entry.Sender.Location, entry.Sender.Map));
+				AddLabelCropped(128, 38, 264, 20, 2100, $"{entry.Sender.RawName} {entry.Sender.Location} [{entry.Sender.Map}]");
 
 				AddButton(18, bottom - (buttons * 22), 0xFAB, 0xFAD, 8, GumpButtonType.Reply, 0);
 				AddImageTiled(52, bottom - (buttons * 22) + 1, 340, 80, 0xA40/*0xBBC*//*0x2458*/ );
@@ -532,7 +528,7 @@ namespace Server.Engines.Help
 				}
 
 				AddLabel(18, 78, 2100, "Page Location:");
-				AddLabelCropped(128, 78, 264, 20, 2100, string.Format("{0} [{1}]", entry.PageLocation, entry.PageMap));
+				AddLabelCropped(128, 78, 264, 20, 2100, $"{entry.PageLocation} [{entry.PageMap}]");
 
 				AddButton(18, bottom - (buttons * 22), 0xFA5, 0xFA7, 3, GumpButtonType.Reply, 0);
 				AddLabel(52, bottom - (buttons++ * 22), 2100, "Go to Page Location");
@@ -579,7 +575,7 @@ namespace Server.Engines.Help
 
 		public void Resend(NetState state)
 		{
-			PageEntryGump g = new PageEntryGump(m_Mobile, m_Entry);
+			PageEntryGump g = new(m_Mobile, m_Entry);
 
 			g.SendTo(state);
 		}
@@ -599,7 +595,7 @@ namespace Server.Engines.Help
 					{
 						if (m_Entry.Handler != state.Mobile)
 						{
-							PageQueueGump g = new PageQueueGump();
+							PageQueueGump g = new();
 
 							g.SendTo(state);
 						}
@@ -709,7 +705,7 @@ namespace Server.Engines.Help
 
 							state.Mobile.SendMessage("You delete the page.");
 
-							PageQueueGump g = new PageQueueGump();
+							PageQueueGump g = new();
 
 							g.SendTo(state);
 						}

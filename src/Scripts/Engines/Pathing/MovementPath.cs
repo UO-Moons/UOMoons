@@ -34,7 +34,7 @@ namespace Server
 			OverrideAlgorithm = alg;
 
 			long start = DateTime.UtcNow.Ticks;
-			MovementPath path = new MovementPath(from, new Point3D(p));
+			MovementPath path = new(from, new Point3D(p));
 			long end = DateTime.UtcNow.Ticks;
 			double len = Math.Round((end - start) / 10000.0, 2);
 
@@ -61,9 +61,7 @@ namespace Server
 
 		public static void Path_OnTarget(Mobile from, object obj)
 		{
-			IPoint3D p = obj as IPoint3D;
-
-			if (p == null)
+			if (obj is not IPoint3D p)
 				return;
 
 			Spells.SpellHelper.GetSurfaceTop(ref p);

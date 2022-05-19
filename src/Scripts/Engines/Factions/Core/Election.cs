@@ -29,16 +29,12 @@ namespace Server.Factions
 		{
 			get
 			{
-				TimeSpan period;
-
-				switch (CurrentState)
+				var period = CurrentState switch
 				{
-					default:
-					case ElectionState.Pending: period = PendingPeriod; break;
-					case ElectionState.Election: period = VotingPeriod; break;
-					case ElectionState.Campaign: period = CampaignPeriod; break;
-				}
-
+					ElectionState.Election => VotingPeriod,
+					ElectionState.Campaign => CampaignPeriod,
+					_ => PendingPeriod,
+				};
 				TimeSpan until = (LastStateTime + period) - DateTime.UtcNow;
 
 				if (until < TimeSpan.Zero)
@@ -48,16 +44,12 @@ namespace Server.Factions
 			}
 			set
 			{
-				TimeSpan period;
-
-				switch (CurrentState)
+				var period = CurrentState switch
 				{
-					default:
-					case ElectionState.Pending: period = PendingPeriod; break;
-					case ElectionState.Election: period = VotingPeriod; break;
-					case ElectionState.Campaign: period = CampaignPeriod; break;
-				}
-
+					ElectionState.Election => VotingPeriod,
+					ElectionState.Campaign => CampaignPeriod,
+					_ => PendingPeriod,
+				};
 				LastStateTime = DateTime.UtcNow - period + value;
 			}
 		}
@@ -96,7 +88,7 @@ namespace Server.Factions
 
 						for (int i = 0; i < count; ++i)
 						{
-							Candidate cd = new Candidate(reader);
+							Candidate cd = new(reader);
 
 							if (cd.Mobile != null)
 								Candidates.Add(cd);
@@ -380,8 +372,8 @@ namespace Server.Factions
 		{
 			TimeSpan gameTime = TimeSpan.Zero;
 
-			if (From is PlayerMobile)
-				gameTime = ((PlayerMobile)From).GameTime;
+			if (From is PlayerMobile mobile)
+				gameTime = mobile.GameTime;
 
 			int kp = 0;
 
@@ -487,7 +479,7 @@ namespace Server.Factions
 
 						for (int i = 0; i < count; ++i)
 						{
-							Voter voter = new Voter(reader, Mobile);
+							Voter voter = new(reader, Mobile);
 
 							if (voter.From != null)
 								Voters.Add(voter);

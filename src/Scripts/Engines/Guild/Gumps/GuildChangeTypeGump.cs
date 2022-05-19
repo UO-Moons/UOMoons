@@ -45,17 +45,13 @@ namespace Server.Gumps
 		{
 			if ((Guild.NewGuildSystem && !BaseGuildGump.IsLeader(m_Mobile, m_Guild)) || (!Guild.NewGuildSystem && GuildGump.BadLeader(m_Mobile, m_Guild)))
 				return;
-
-			GuildType newType;
-
-			switch (info.ButtonID)
+			var newType = info.ButtonID switch
 			{
-				default: newType = m_Guild.Type; break;
-				case 1: newType = GuildType.Regular; break;
-				case 2: newType = GuildType.Order; break;
-				case 3: newType = GuildType.Chaos; break;
-			}
-
+				1 => GuildType.Regular,
+				2 => GuildType.Order,
+				3 => GuildType.Chaos,
+				_ => m_Guild.Type,
+			};
 			if (m_Guild.Type != newType)
 			{
 				PlayerState pl = PlayerState.Find(m_Mobile);
@@ -78,8 +74,8 @@ namespace Server.Gumps
 
 			if (Guild.NewGuildSystem)
 			{
-				if (m_Mobile is PlayerMobile)
-					m_Mobile.SendGump(new GuildInfoGump((PlayerMobile)m_Mobile, m_Guild));
+				if (m_Mobile is PlayerMobile mobile)
+					m_Mobile.SendGump(new GuildInfoGump(mobile, m_Guild));
 
 				return;
 			}

@@ -91,8 +91,7 @@ namespace Server.Engines.Help
 			m_PageLocation = sender.Location;
 			PageMap = sender.Map;
 
-			PlayerMobile pm = sender as PlayerMobile;
-			if (pm != null && pm.SpeechLog != null && Array.IndexOf(SpeechLogAttachment, type) >= 0)
+			if (sender is PlayerMobile pm && pm.SpeechLog != null && Array.IndexOf(SpeechLogAttachment, type) >= 0)
 				SpeechLog = new List<SpeechLogEntry>(pm.SpeechLog);
 
 			m_Timer = new InternalTimer(this);
@@ -146,8 +145,8 @@ namespace Server.Engines.Help
 
 	public class PageQueue
 	{
-		private static readonly Hashtable m_KeyedByHandler = new Hashtable();
-		private static readonly Hashtable m_KeyedBySender = new Hashtable();
+		private static readonly Hashtable m_KeyedByHandler = new();
+		private static readonly Hashtable m_KeyedBySender = new();
 
 		public static void Initialize()
 		{
@@ -156,9 +155,7 @@ namespace Server.Engines.Help
 
 		public static bool CheckAllowedToPage(Mobile from)
 		{
-			PlayerMobile pm = from as PlayerMobile;
-
-			if (pm == null)
+			if (from is not PlayerMobile pm)
 				return true;
 
 			if (pm.DesignContext != null)
@@ -290,14 +287,14 @@ namespace Server.Engines.Help
 			Mobile sender = entry.Sender;
 			DateTime time = DateTime.UtcNow;
 
-			MailMessage mail = new MailMessage(Email.FromAddress, Email.SpeechLogPageAddresses)
+			MailMessage mail = new(Email.FromAddress, Email.SpeechLogPageAddresses)
 			{
-				Subject = "CorexUO Speech Log Page Forwarding"
+				Subject = "UOMoons Speech Log Page Forwarding"
 			};
 
-			using (StringWriter writer = new StringWriter())
+			using (StringWriter writer = new())
 			{
-				writer.WriteLine("CorexUO Speech Log Page - {0}", PageQueue.GetPageTypeName(entry.Type));
+				writer.WriteLine("UOMoons Speech Log Page - {0}", GetPageTypeName(entry.Type));
 				writer.WriteLine();
 
 				writer.WriteLine("From: '{0}', Account: '{1}'", sender.RawName, sender.Account is Account ? sender.Account.Username : "???");

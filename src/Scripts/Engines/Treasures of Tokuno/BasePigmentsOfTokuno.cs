@@ -1,5 +1,6 @@
 using Server.Misc;
 using Server.Mobiles;
+using Server.Targeting;
 using System;
 
 namespace Server.Items
@@ -100,7 +101,7 @@ namespace Server.Items
 			if (IsAccessibleTo(from) && from.InRange(GetWorldLocation(), 3))
 			{
 				from.SendLocalizedMessage(1070929); // Select the artifact or enhanced magic item to dye.
-				from.BeginTarget(3, false, Server.Targeting.TargetFlags.None, new TargetStateCallback(InternalCallback), this);
+				from.BeginTarget(3, false, TargetFlags.None, new TargetStateCallback(InternalCallback), this);
 			}
 			else
 				from.SendLocalizedMessage(502436); // That is not accessible.
@@ -113,9 +114,7 @@ namespace Server.Items
 			if (pigment.Deleted || pigment.UsesRemaining <= 0 || !from.InRange(pigment.GetWorldLocation(), 3) || !pigment.IsAccessibleTo(from))
 				return;
 
-			Item i = targeted as Item;
-
-			if (i == null)
+			if (targeted is not Item i)
 				from.SendLocalizedMessage(1070931); // You can only dye artifacts and enhanced magic items with this tub.
 			else if (!from.InRange(i.GetWorldLocation(), 3) || !IsAccessibleTo(from))
 				from.SendLocalizedMessage(502436); // That is not accessible.
@@ -154,12 +153,12 @@ namespace Server.Items
 
 			CraftResource resource = CraftResource.None;
 
-			if (i is BaseWeapon)
-				resource = ((BaseWeapon)i).Resource;
-			else if (i is BaseArmor)
-				resource = ((BaseArmor)i).Resource;
-			else if (i is BaseClothing)
-				resource = ((BaseClothing)i).Resource;
+			if (i is BaseWeapon weapon)
+				resource = weapon.Resource;
+			else if (i is BaseArmor armor)
+				resource = armor.Resource;
+			else if (i is BaseClothing clothing)
+				resource = clothing.Resource;
 
 			if (!CraftResources.IsStandard(resource))
 				return true;

@@ -63,7 +63,7 @@ namespace Server.Engines.Doom
 
 		public override void OnDeath(Mobile m)
 		{
-			if (m != null && !m.Deleted && !(m is WandererOfTheVoid))
+			if (m != null && !m.Deleted && m is not WandererOfTheVoid)
 			{
 				Timer kick = new LeverPuzzleController.LampRoomKickTimer(m);
 				kick.Start(); ;

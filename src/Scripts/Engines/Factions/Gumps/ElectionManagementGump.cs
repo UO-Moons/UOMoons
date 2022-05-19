@@ -147,9 +147,9 @@ namespace Server.Factions
 							AddHtml(x, 140 + (idx * 20), 80, 20, Color(Center(FormatTimeSpan(time - election.LastStateTime)), LabelColor), false, false);
 							x += 80;
 						}
-						else if (obj is int)
+						else if (obj is int @int)
 						{
-							AddHtml(x, 140 + (idx * 20), 60, 20, Color(Center((int)obj + "%"), LabelColor), false, false);
+							AddHtml(x, 140 + (idx * 20), 60, 20, Color(Center(@int + "%"), LabelColor), false, false);
 							x += 60;
 						}
 					}

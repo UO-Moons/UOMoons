@@ -102,7 +102,7 @@ namespace Server.Engines.TownHouses
 
 		private static bool CanRent(Mobile m, BaseHouse house, bool say)
 		{
-			if (house is TownHouse && ((TownHouse)house).ForSaleSign.PriceType != "Sale")
+			if (house is TownHouse house1 && house1.ForSaleSign.PriceType != "Sale")
 			{
 				if (say)
 				{

@@ -1,4 +1,4 @@
-﻿using Server.Guilds;
+using Server.Guilds;
 using Server.Network;
 
 namespace Server.Gumps
@@ -8,7 +8,7 @@ namespace Server.Gumps
 		private readonly Mobile m_Mobile;
 		private readonly Guild m_Guild;
 
-		private const string DefaultWebsite = "https://github.com/corexuo/";
+		private const string DefaultWebsite = "https://github.com/uo-moons/";
 
 		public GuildCharterGump(Mobile from, Guild guild) : base(20, 30)
 		{

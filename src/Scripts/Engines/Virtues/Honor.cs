@@ -34,16 +34,15 @@ namespace Server
 
 			protected override void OnTarget(Mobile from, object targeted)
 			{
-				PlayerMobile pm = from as PlayerMobile;
-				if (pm == null)
+				if (from is not PlayerMobile pm)
 					return;
 
 				if (targeted == pm)
 				{
 					EmbraceHonor(pm);
 				}
-				else if (targeted is Mobile)
-					Honor(pm, (Mobile)targeted);
+				else if (targeted is Mobile mobile)
+					Honor(pm, mobile);
 			}
 
 			protected override void OnTargetOutOfRange(Mobile from, object targeted)
@@ -54,14 +53,13 @@ namespace Server
 
 		private static int GetHonorDuration(PlayerMobile from)
 		{
-			switch (VirtueHelper.GetLevel(from, VirtueName.Honor))
+			return VirtueHelper.GetLevel(from, VirtueName.Honor) switch
 			{
-				case VirtueLevel.Seeker: return 30;
-				case VirtueLevel.Follower: return 90;
-				case VirtueLevel.Knight: return 300;
-
-				default: return 0;
-			}
+				VirtueLevel.Seeker => 30,
+				VirtueLevel.Follower => 90,
+				VirtueLevel.Knight => 300,
+				_ => 0,
+			};
 		}
 
 		private static void EmbraceHonor(PlayerMobile pm)
@@ -120,11 +118,10 @@ namespace Server
 
 		private static void Honor(PlayerMobile source, Mobile target)
 		{
-			IHonorTarget honorTarget = target as IHonorTarget;
 			GuardedRegion reg = (GuardedRegion)source.Region.GetRegion(typeof(GuardedRegion));
 			Map map = source.Map;
 
-			if (honorTarget == null)
+			if (target is not IHonorTarget honorTarget)
 				return;
 
 			if (honorTarget.ReceivedHonorContext != null)
@@ -132,7 +129,7 @@ namespace Server
 				if (honorTarget.ReceivedHonorContext.Source == source)
 					return;
 
-				if (honorTarget.ReceivedHonorContext.CheckDistance())
+				if (HonorContext.CheckDistance())
 				{
 					source.SendLocalizedMessage(1063233); // Somebody else is honoring this opponent
 					return;
@@ -173,7 +170,7 @@ namespace Server
 			if (source.SentHonorContext != null)
 				source.SentHonorContext.Cancel();
 
-			new HonorContext(source, target);
+			_ = new HonorContext(source, target);
 
 			source.Direction = source.GetDirectionTo(target);
 
@@ -226,7 +223,7 @@ namespace Server
 
 			m_Timer = new InternalTimer(this);
 			m_Timer.Start();
-			source.m_hontime = (DateTime.UtcNow + TimeSpan.FromMinutes(40));
+			source.m_hontime = DateTime.UtcNow + TimeSpan.FromMinutes(40);
 
 			Timer.DelayCall(TimeSpan.FromMinutes(40),
 				delegate ()
@@ -279,7 +276,7 @@ namespace Server
 					m_HonorDamage += amount * 0.8;
 				}
 			}
-			else if (from is BaseCreature && ((BaseCreature)from).GetMaster() == Source)
+			else if (from is BaseCreature creature && creature.GetMaster() == Source)
 			{
 				m_HonorDamage += amount * 0.8;
 			}
@@ -337,7 +334,7 @@ namespace Server
 			}
 		}
 
-		public void OnSourceKilled()
+		public static void OnSourceKilled()
 		{
 			return;
 		}
@@ -360,12 +357,12 @@ namespace Server
 			if (Source.Virtues.Honor > targetFame)
 				return;
 
-			double dGain = (targetFame / 100) * (m_HonorDamage / m_TotalDamage);    //Initial honor gain is 100th of the monsters honor
+			double dGain = targetFame / 100 * (m_HonorDamage / m_TotalDamage);    //Initial honor gain is 100th of the monsters honor
 
 			if (m_HonorDamage == m_TotalDamage && m_FirstHit == FirstHit.Granted)
-				dGain = dGain * 1.5;                            //honor gain is increased alot more if the combat was fully honorable
+				dGain *= 1.5;                            //honor gain is increased alot more if the combat was fully honorable
 			else
-				dGain = dGain * 0.9;
+				dGain *= 0.9;
 
 			int gain = Math.Min((int)dGain, 200);
 
@@ -392,7 +389,7 @@ namespace Server
 
 		public int PerfectionLuckBonus => (PerfectionDamageBonus * PerfectionDamageBonus) / 10;
 
-		public bool CheckDistance()
+		public static bool CheckDistance()
 		{
 			return true;
 		}
@@ -416,7 +413,7 @@ namespace Server
 
 			protected override void OnTick()
 			{
-				m_Context.CheckDistance();
+				CheckDistance();
 			}
 		}
 	}

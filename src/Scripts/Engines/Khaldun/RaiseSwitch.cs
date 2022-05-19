@@ -129,8 +129,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 
 			RaisableItem = (RaisableItem)reader.ReadItem();
 

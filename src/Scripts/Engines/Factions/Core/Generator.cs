@@ -13,7 +13,7 @@ namespace Server.Factions
 
 		public static void GenerateFactions_OnCommand(CommandEventArgs e)
 		{
-			new FactionPersistance();
+			_ = new FactionPersistance();
 
 			List<Faction> factions = Faction.Factions;
 
@@ -34,7 +34,7 @@ namespace Server.Factions
 
 			if (!CheckExistance(def.Monolith, facet, typeof(TownMonolith)))
 			{
-				TownMonolith mono = new TownMonolith(town);
+				TownMonolith mono = new(town);
 				mono.MoveToWorld(def.Monolith, facet);
 				mono.Sigil = new Sigil(town);
 			}

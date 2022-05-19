@@ -38,8 +38,7 @@ namespace Server.Factions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -60,7 +59,9 @@ namespace Server.Factions
 			public InternalBuyInfo()
 			{
 				for (int i = 0; i < 5; ++i)
+				{
 					Add(new GenericBuyInfo(typeof(Board), 3, 20, 0x1BD7, 0));
+				}
 			}
 		}
 

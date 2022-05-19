@@ -15,7 +15,7 @@ namespace Server.Engines.TownHouses
 
 		private void Errors()
 		{
-			new ErrorsGump(Owner);
+			_ = new ErrorsGump(Owner);
 		}
 	}
 }

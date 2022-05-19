@@ -42,8 +42,8 @@ namespace Server.Factions
 				PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042201, from.NetState); // You are not in my faction, I cannot sell you a horse!
 			else if (FactionGump.Exists(from))
 				from.SendLocalizedMessage(1042160); // You already have a faction menu open.
-			else if (from is PlayerMobile)
-				from.SendGump(new HorseBreederGump((PlayerMobile)from, Faction));
+			else if (from is PlayerMobile mobile)
+				from.SendGump(new HorseBreederGump(mobile, Faction));
 		}
 
 		public override void VendorSell(Mobile from)
@@ -70,8 +70,7 @@ namespace Server.Factions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 }

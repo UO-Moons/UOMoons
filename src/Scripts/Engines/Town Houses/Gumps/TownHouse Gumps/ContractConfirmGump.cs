@@ -37,10 +37,10 @@ namespace Server.Engines.TownHouses
 
 			text += "<BR>   Here is some more info reguarding this property:<BR>";
 
-			text += string.Format("<CENTER>Lockdowns: {0}<BR>", c_Contract.Locks);
-			text += string.Format("Secures: {0}<BR>", c_Contract.Secures);
-			text += string.Format("Floors: {0}<BR>", (c_Contract.MaxZ - c_Contract.MinZ < 200) ? (c_Contract.MaxZ - c_Contract.MinZ) / 20 + 1 : 1);
-			text += string.Format("Space: {0} cubic units", c_Contract.CalcVolume());
+			text += $"<CENTER>Lockdowns: {c_Contract.Locks}<BR>";
+			text += $"Secures: {c_Contract.Secures}<BR>";
+			text += $"Floors: {((c_Contract.MaxZ - c_Contract.MinZ < 200) ? ((c_Contract.MaxZ - c_Contract.MinZ) / 20) + 1 : 1)}<BR>";
+			text += $"Space: {c_Contract.CalcVolume()} cubic units";
 
 			AddHtml(40, y += 30, width - 60, 200, HTML.Black + text, false, true);
 
@@ -65,7 +65,7 @@ namespace Server.Engines.TownHouses
 
 				if (!locsec)
 				{
-					Owner.SendMessage((Owner == c_Contract.RentalMaster ? "You don't have the lockdowns or secures available for this contract." : "The owner of this contract cannot rent this property at this time."));
+					Owner.SendMessage(Owner == c_Contract.RentalMaster ? "You don't have the lockdowns or secures available for this contract." : "The owner of this contract cannot rent this property at this time.");
 				}
 			}
 			else

@@ -103,8 +103,8 @@ namespace Server.Engines.Craft
 			}
 			// ****************************************
 
-			if (notice is int && (int)notice > 0)
-				AddHtmlLocalized(170, 295, 350, 40, (int)notice, LabelColor, false, false);
+			if (notice is int @int && @int > 0)
+				AddHtmlLocalized(170, 295, 350, 40, @int, LabelColor, false, false);
 			else if (notice is string)
 				AddHtml(170, 295, 350, 40, string.Format("<BASEFONT COLOR=#{0:X6}>{1}</BASEFONT>", FontColor, notice), false, false);
 
@@ -481,7 +481,7 @@ namespace Server.Engines.Craft
 					{
 						if (m_Page == CraftPage.PickResource && index >= 0 && index < system.CraftSubRes.Count)
 						{
-							int groupIndex = (context == null ? -1 : context.LastGroupIndex);
+							_ = context == null ? -1 : context.LastGroupIndex;
 
 							CraftSubRes res = system.CraftSubRes.GetAt(index);
 
@@ -499,7 +499,7 @@ namespace Server.Engines.Craft
 						}
 						else if (m_Page == CraftPage.PickResource2 && index >= 0 && index < system.CraftSubRes2.Count)
 						{
-							int groupIndex = (context == null ? -1 : context.LastGroupIndex);
+							_ = context == null ? -1 : context.LastGroupIndex;
 
 							CraftSubRes res = system.CraftSubRes2.GetAt(index);
 

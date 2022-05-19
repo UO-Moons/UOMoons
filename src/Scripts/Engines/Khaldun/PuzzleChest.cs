@@ -32,17 +32,17 @@ namespace Server.Items
 
 		public static PuzzleChestCylinder RandomCylinder()
 		{
-			switch (Utility.Random(8))
+			return Utility.Random(8) switch
 			{
-				case 0: return PuzzleChestCylinder.LightBlue;
-				case 1: return PuzzleChestCylinder.Blue;
-				case 2: return PuzzleChestCylinder.Green;
-				case 3: return PuzzleChestCylinder.Orange;
-				case 4: return PuzzleChestCylinder.Purple;
-				case 5: return PuzzleChestCylinder.Red;
-				case 6: return PuzzleChestCylinder.DarkBlue;
-				default: return PuzzleChestCylinder.Yellow;
-			}
+				0 => PuzzleChestCylinder.LightBlue,
+				1 => PuzzleChestCylinder.Blue,
+				2 => PuzzleChestCylinder.Green,
+				3 => PuzzleChestCylinder.Orange,
+				4 => PuzzleChestCylinder.Purple,
+				5 => PuzzleChestCylinder.Red,
+				6 => PuzzleChestCylinder.DarkBlue,
+				_ => PuzzleChestCylinder.Yellow,
+			};
 		}
 
 		public PuzzleChestSolution()
@@ -121,7 +121,7 @@ namespace Server.Items
 
 		public PuzzleChestSolution(GenericReader reader)
 		{
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 
 			int length = reader.ReadEncodedInt();
 			for (int i = 0; ; i++)
@@ -157,15 +157,13 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-
+			writer.WriteEncodedInt(0);
 			writer.WriteDeltaTime(When);
 		}
 
 		public PuzzleChestSolutionAndTime(GenericReader reader) : base(reader)
 		{
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 
 			When = reader.ReadDeltaTime();
 		}
@@ -269,7 +267,7 @@ namespace Server.Items
 			}
 		}
 
-		public void DoDamage(Mobile to)
+		public static void DoDamage(Mobile to)
 		{
 			switch (Utility.Random(4))
 			{
@@ -688,8 +686,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 
 			m_Solution = new PuzzleChestSolution(reader);
 
@@ -737,8 +734,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
@@ -764,8 +760,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 }

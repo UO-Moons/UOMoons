@@ -37,8 +37,8 @@ namespace Server.Guilds
 			AllianceInfo otherAlliance = m_Other.Alliance;
 			//NOTE TO SELF: Only only alliance leader can see pending guild alliance statuses
 
-			bool PendingWar = (war != null);
-			bool ActiveWar = (activeWar != null);
+			bool PendingWar = war != null;
+			bool ActiveWar = activeWar != null;
 			AddPage(0);
 
 			AddBackground(0, 0, 520, 335, 0x242C);

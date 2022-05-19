@@ -15,7 +15,7 @@ namespace Server.PathAlgorithms.SlowAStar
 
 	public class SlowAStarAlgorithm : PathAlgorithm
 	{
-		public static PathAlgorithm Instance = new SlowAStarAlgorithm();
+		public static readonly PathAlgorithm Instance = new SlowAStarAlgorithm();
 
 		private const int MaxDepth = 300;
 		private const int MaxNodes = MaxDepth * 16;
@@ -48,18 +48,16 @@ namespace Server.PathAlgorithms.SlowAStar
 		{
 			m_Goal = goal;
 
-			BaseCreature bc = m as BaseCreature;
-
 			PathNode curNode;
 
-			PathNode goalNode = new PathNode
+			PathNode goalNode = new()
 			{
 				x = goal.X,
 				y = goal.Y,
 				z = goal.Z
 			};
 
-			PathNode startNode = new PathNode
+			PathNode startNode = new()
 			{
 				x = start.X,
 				y = start.Y,
@@ -69,8 +67,7 @@ namespace Server.PathAlgorithms.SlowAStar
 
 			PathNode[] closed = m_Closed, open = m_Open, successors = m_Successors;
 			Direction[] path = m_Path;
-
-			int closedCount = 0, openCount = 0, sucCount = 0, pathCount = 0;
+			int closedCount = 0, openCount = 0, pathCount = 0;
 			int popIndex, curF;
 			int x, y, z;
 			int depth = 0;
@@ -157,9 +154,8 @@ namespace Server.PathAlgorithms.SlowAStar
 				for (int i = popIndex; i < openCount; ++i)
 					open[i] = open[i + 1];
 
-				sucCount = 0;
-
-				if (bc != null)
+				int sucCount = 0;
+				if (m is BaseCreature bc)
 				{
 					MoveImpl.AlwaysIgnoreDoors = bc.CanOpenDoors;
 					MoveImpl.IgnoreMovableImpassables = bc.CanMoveOverObstacles;

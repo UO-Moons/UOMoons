@@ -1,25 +1,20 @@
 using Server.Gumps;
 using Server.Items;
+using Server.Misc;
 using Server.Mobiles;
 using Server.Regions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Engines.Champions
 {
-	public class ChampionSpawn : BaseItem
+	public class ChampionSpawn : Item
 	{
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int SpawnSzMod
-		{
-			get => (m_SPawnSzMod < 1 || m_SPawnSzMod > 12) ? 12 : m_SPawnSzMod;
-			set => m_SPawnSzMod = (value < 1 || value > 12) ? 12 : value;
-		}
-		private int m_SPawnSzMod;
+		public static readonly int MaxStrayDistance = 250;
 
 		private bool m_Active;
 		private ChampionSpawnType m_Type;
-		private List<Mobile> m_Creatures;
 		private List<Item> m_RedSkulls;
 		private List<Item> m_WhiteSkulls;
 		private ChampionPlatform m_Platform;
@@ -29,10 +24,33 @@ namespace Server.Engines.Champions
 		//private int m_SpawnRange;
 		private Rectangle2D m_SpawnArea;
 		private ChampionSpawnRegion m_Region;
+
+		private TimeSpan m_ExpireDelay;
+		private TimeSpan m_RestartDelay;
 		private Timer m_Timer, m_RestartTimer;
 
 		private IdolOfTheChampion m_Idol;
 		private Dictionary<Mobile, int> m_DamageEntries;
+
+		public List<Mobile> Creatures { get; private set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public string GroupName { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public double SpawnMod { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int SpawnRadius { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public double KillsMod { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool AutoRestart { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public string SpawnName { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool ConfinedRoaming { get; set; }
@@ -41,12 +59,13 @@ namespace Server.Engines.Champions
 		public bool HasBeenAdvanced { get; set; }
 
 		[Constructable]
-		public ChampionSpawn() : base(0xBD2)
+		public ChampionSpawn()
+			: base(0xBD2)
 		{
 			Movable = false;
 			Visible = false;
 
-			m_Creatures = new List<Mobile>();
+			Creatures = new List<Mobile>();
 			m_RedSkulls = new List<Item>();
 			m_WhiteSkulls = new List<Item>();
 
@@ -54,10 +73,14 @@ namespace Server.Engines.Champions
 			m_Altar = new ChampionAltar(this);
 			m_Idol = new IdolOfTheChampion(this);
 
-			ExpireDelay = TimeSpan.FromMinutes(10.0);
-			RestartDelay = TimeSpan.FromMinutes(10.0);
+			m_ExpireDelay = TimeSpan.FromMinutes(10.0);
+			m_RestartDelay = TimeSpan.FromMinutes(10.0);
 
 			m_DamageEntries = new Dictionary<Mobile, int>();
+			RandomizeType = false;
+
+			SpawnRadius = 35;
+			SpawnMod = 1;
 
 			Timer.DelayCall(TimeSpan.Zero, new TimerCallback(SetInitialSpawnArea));
 		}
@@ -65,7 +88,8 @@ namespace Server.Engines.Champions
 		public void SetInitialSpawnArea()
 		{
 			//Previous default used to be 24;
-			SpawnArea = new Rectangle2D(new Point2D(X - 24, Y - 24), new Point2D(X + 24, Y + 24));
+			SpawnArea = new Rectangle2D(new Point2D(X - SpawnRadius, Y - SpawnRadius),
+				new Point2D(X + SpawnRadius, Y + SpawnRadius));
 		}
 
 		public void UpdateRegion()
@@ -78,19 +102,6 @@ namespace Server.Engines.Champions
 				m_Region = new ChampionSpawnRegion(this);
 				m_Region.Register();
 			}
-
-			/*
-			if( m_Region == null )
-			{
-				m_Region = new ChampionSpawnRegion( this );
-			}
-			else
-			{
-				m_Region.Unregister();
-				//Why doesn't Region allow me to set it's map/Area meself? ><
-				m_Region = new ChampionSpawnRegion( this );
-			}
-			*/
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -120,13 +131,21 @@ namespace Server.Engines.Champions
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public TimeSpan RestartDelay { get; set; }
+		public TimeSpan RestartDelay
+		{
+			get => m_RestartDelay;
+			set => m_RestartDelay = value;
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public DateTime RestartTime { get; private set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public TimeSpan ExpireDelay { get; set; }
+		public TimeSpan ExpireDelay
+		{
+			get => m_ExpireDelay;
+			set => m_ExpireDelay = value;
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public DateTime ExpireTime { get; set; }
@@ -152,6 +171,8 @@ namespace Server.Engines.Champions
 					Start();
 				else
 					Stop();
+
+				//PrimevalLichPuzzle.Update(this);
 
 				InvalidateProperties();
 			}
@@ -190,11 +211,40 @@ namespace Server.Engines.Champions
 			}
 		}
 
-		public int MaxKills => (m_SPawnSzMod * (250 / 12)) - (Level * m_SPawnSzMod);
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int StartLevel { get; private set; }
+
+		private void RemoveSkulls()
+		{
+			if (m_WhiteSkulls != null)
+			{
+				for (int i = 0; i < m_WhiteSkulls.Count; ++i)
+					m_WhiteSkulls[i].Delete();
+
+				m_WhiteSkulls.Clear();
+			}
+
+			if (m_RedSkulls != null)
+			{
+				for (int i = 0; i < m_RedSkulls.Count; i++)
+					m_RedSkulls[i].Delete();
+
+				m_RedSkulls.Clear();
+			}
+		}
+
+		public int MaxKills
+		{
+			get
+			{
+				int l = Level;
+				return ChampionSystem.MaxKillsForLevel(l);
+			}
+		}
 
 		public bool IsChampionSpawn(Mobile m)
 		{
-			return m_Creatures.Contains(m);
+			return Creatures.Contains(m);
 		}
 
 		public void SetWhiteSkullCount(int val)
@@ -222,7 +272,7 @@ namespace Server.Engines.Champions
 			}
 		}
 
-		public void Start()
+		public void Start(bool serverLoad = false)
 		{
 			if (m_Active || Deleted)
 				return;
@@ -242,15 +292,31 @@ namespace Server.Engines.Champions
 			m_RestartTimer = null;
 
 			if (m_Altar != null)
-			{
-				if (Champion != null)
-					m_Altar.Hue = 0x26;
-				else
-					m_Altar.Hue = 0;
-			}
+				m_Altar.Hue = 0;
 
-			if (m_Platform != null)
-				m_Platform.Hue = 0x452;
+			//PrimevalLichPuzzle.Update(this);
+
+			if (!serverLoad)
+			{
+				double chance = Utility.RandomDouble();
+
+				if (chance < 0.1)
+					Level = 4;
+				else if (chance < 0.25)
+					Level = 3;
+				else if (chance < 0.5)
+					Level = 2;
+				else if (Utility.RandomBool())
+					Level = 1;
+
+				StartLevel = Level;
+
+				if (Level > 0 && m_Altar != null)
+				{
+					Effects.PlaySound(m_Altar.Location, m_Altar.Map, 0x29);
+					Effects.SendLocationEffect(new Point3D(m_Altar.X + 1, m_Altar.Y + 1, m_Altar.Z), m_Altar.Map, 0x3728, 10);
+				}
+			}
 		}
 
 		public void Stop()
@@ -260,6 +326,15 @@ namespace Server.Engines.Champions
 
 			m_Active = false;
 			HasBeenAdvanced = false;
+
+			// We must despawn all the creatures.
+			if (Creatures != null)
+			{
+				for (int i = 0; i < Creatures.Count; ++i)
+					Creatures[i].Delete();
+
+				Creatures.Clear();
+			}
 
 			if (m_Timer != null)
 				m_Timer.Stop();
@@ -272,10 +347,12 @@ namespace Server.Engines.Champions
 			m_RestartTimer = null;
 
 			if (m_Altar != null)
-				m_Altar.Hue = 0;
+				m_Altar.Hue = 0x455;
 
-			if (m_Platform != null)
-				m_Platform.Hue = 0x497;
+			//PrimevalLichPuzzle.Update(this);
+
+			RemoveSkulls();
+			m_Kills = 0;
 		}
 
 		public void BeginRestart(TimeSpan ts)
@@ -295,11 +372,16 @@ namespace Server.Engines.Champions
 			{
 				switch (Utility.Random(5))
 				{
-					case 0: Type = ChampionSpawnType.VerminHorde; break;
-					case 1: Type = ChampionSpawnType.UnholyTerror; break;
-					case 2: Type = ChampionSpawnType.ColdBlood; break;
-					case 3: Type = ChampionSpawnType.Abyss; break;
-					case 4: Type = ChampionSpawnType.Arachnid; break;
+					case 0:
+						Type = ChampionSpawnType.Abyss; break;
+					case 1:
+						Type = ChampionSpawnType.Arachnid; break;
+					case 2:
+						Type = ChampionSpawnType.ColdBlood; break;
+					case 3:
+						Type = ChampionSpawnType.VerminHorde; break;
+					case 4:
+						Type = ChampionSpawnType.UnholyTerror; break;
 				}
 			}
 
@@ -309,15 +391,16 @@ namespace Server.Engines.Champions
 		}
 
 		#region Scroll of Transcendence
-		private ScrollofTranscendence CreateRandomSoT(bool felucca)
+		public static ScrollOfTranscendence CreateRandomSoT(bool felucca)
 		{
 			int level = Utility.RandomMinMax(1, 5);
 
 			if (felucca)
 				level += 5;
 
-			return ScrollofTranscendence.CreateRandom(level, level);
+			return ScrollOfTranscendence.CreateRandom(level, level);
 		}
+
 		#endregion
 
 		public static void GiveScrollTo(Mobile killer, SpecialScroll scroll)
@@ -325,7 +408,7 @@ namespace Server.Engines.Champions
 			if (scroll == null || killer == null)   //sanity
 				return;
 
-			if (scroll is ScrollofTranscendence)
+			if (scroll is ScrollOfTranscendence)
 				killer.SendLocalizedMessage(1094936); // You have received a Scroll of Transcendence!
 			else
 				killer.SendLocalizedMessage(1049524); // You have received a scroll of power!
@@ -353,9 +436,15 @@ namespace Server.Engines.Champions
 
 				switch (VirtueHelper.GetLevel(prot, VirtueName.Justice))
 				{
-					case VirtueLevel.Seeker: chance = 60; break;
-					case VirtueLevel.Follower: chance = 80; break;
-					case VirtueLevel.Knight: chance = 100; break;
+					case VirtueLevel.Seeker:
+						chance = 60;
+						break;
+					case VirtueLevel.Follower:
+						chance = 80;
+						break;
+					case VirtueLevel.Knight:
+						chance = 100;
+						break;
 				}
 
 				if (chance > Utility.Random(100))
@@ -371,15 +460,21 @@ namespace Server.Engines.Champions
 							prot.AddToBackpack(scrollDupe);
 						}
 					}
-					catch { }
+					catch
+					{
+					}
 				}
 			}
 		}
+
+		private DateTime _NextGhostCheck;
 
 		public void OnSlice()
 		{
 			if (!m_Active || Deleted)
 				return;
+
+			int currentRank = Rank;
 
 			if (Champion != null)
 			{
@@ -387,37 +482,39 @@ namespace Server.Engines.Champions
 				{
 					RegisterDamageTo(Champion);
 
-					if (Champion is BaseChampion)
-						AwardArtifact(((BaseChampion)Champion).GetArtifact());
+					if (Champion is BaseChampion champion)
+						AwardArtifact(champion.GetArtifact());
 
 					m_DamageEntries.Clear();
 
-					if (m_Platform != null)
-						m_Platform.Hue = 0x497;
-
 					if (m_Altar != null)
 					{
-						m_Altar.Hue = 0;
+						m_Altar.Hue = 0x455;
 
 						if (!Core.ML || Map == Map.Felucca)
 						{
-							new StarRoomGate(true, m_Altar.Location, m_Altar.Map);
+							_ = new StarRoomGate(true, m_Altar.Location, m_Altar.Map);
 						}
 					}
 
 					Champion = null;
 					Stop();
 
-					BeginRestart(RestartDelay);
+					if (AutoRestart)
+						BeginRestart(m_RestartDelay);
+				}
+				else if (Champion.Alive && Champion.GetDistanceToSqrt(this) > MaxStrayDistance)
+				{
+					Champion.MoveToWorld(new Point3D(X, Y, Z - 15), Map);
 				}
 			}
 			else
 			{
 				int kills = m_Kills;
 
-				for (int i = 0; i < m_Creatures.Count; ++i)
+				for (int i = 0; i < Creatures.Count; ++i)
 				{
-					Mobile m = m_Creatures[i];
+					Mobile m = Creatures[i];
 
 					if (m.Deleted)
 					{
@@ -425,16 +522,19 @@ namespace Server.Engines.Champions
 						{
 							((Corpse)m.Corpse).BeginDecay(TimeSpan.FromMinutes(1));
 						}
-						m_Creatures.RemoveAt(i);
+						Creatures.RemoveAt(i);
 						--i;
-						++m_Kills;
+
+						int rankOfMob = GetRankFor(m);
+						if (rankOfMob == currentRank)
+							++m_Kills;
 
 						Mobile killer = m.FindMostRecentDamager(false);
 
 						RegisterDamageTo(m);
 
-						if (killer is BaseCreature)
-							killer = ((BaseCreature)killer).GetMaster();
+						if (killer is BaseCreature creature)
+							killer = creature.GetMaster();
 
 						if (killer is PlayerMobile mobile)
 						{
@@ -443,14 +543,13 @@ namespace Server.Engines.Champions
 							{
 								if (Map == Map.Felucca)
 								{
-									if (Utility.RandomDouble() < 0.001)
+									if (Utility.RandomDouble() < ChampionSystem.ScrollChance)
 									{
 										PlayerMobile pm = mobile;
-										double random = Utility.Random(49);
 
-										if (random <= 24)
+										if (Utility.RandomDouble() < ChampionSystem.TranscendenceChance)
 										{
-											ScrollofTranscendence SoTF = CreateRandomSoT(true);
+											ScrollOfTranscendence SoTF = CreateRandomSoT(true);
 											GiveScrollTo(pm, SoTF);
 										}
 										else
@@ -466,15 +565,14 @@ namespace Server.Engines.Champions
 									if (Utility.RandomDouble() < 0.0015)
 									{
 										killer.SendLocalizedMessage(1094936); // You have received a Scroll of Transcendence!
-										ScrollofTranscendence SoTT = CreateRandomSoT(false);
+										ScrollOfTranscendence SoTT = CreateRandomSoT(false);
 										killer.AddToBackpack(SoTT);
 									}
 								}
 							}
 							#endregion
 
-							int mobSubLevel = GetSubLevelFor(m) + 1;
-
+							int mobSubLevel = rankOfMob + 1;
 							if (mobSubLevel >= 0)
 							{
 								bool gainedPath = false;
@@ -484,16 +582,17 @@ namespace Server.Engines.Champions
 								if (VirtueHelper.Award(killer, VirtueName.Valor, pointsToGain, ref gainedPath))
 								{
 									if (gainedPath)
-										m.SendLocalizedMessage(1054032); // You have gained a path in Valor!
+										killer.SendLocalizedMessage(1054032); // You have gained a path in Valor!
 									else
-										m.SendLocalizedMessage(1054030); // You have gained in Valor!
-
-									//No delay on Valor gains
+										killer.SendLocalizedMessage(1054030); // You have gained in Valor!
+																			  //No delay on Valor gains
 								}
 
 								ChampionTitleInfo info = mobile.ChampionTitles;
 
 								info.Award(m_Type, mobSubLevel);
+
+								//Server.Engines.CityLoyalty.CityLoyaltySystem.OnSpawnCreatureKilled(m as BaseCreature, mobSubLevel);
 							}
 						}
 					}
@@ -516,11 +615,31 @@ namespace Server.Engines.Champions
 
 				Respawn();
 			}
+
+			if (m_Timer != null && m_Timer.Running && _NextGhostCheck < DateTime.UtcNow)
+			{
+				foreach (var ghost in m_Region.GetEnumeratedMobiles().OfType<PlayerMobile>().Where(pm => !pm.Alive && (pm.Corpse == null || pm.Corpse.Deleted)))
+				{
+					Map map = ghost.Map;
+					Point3D loc = Helpers.GetNearestShrine(ghost, ref map);
+
+					if (loc != Point3D.Zero)
+					{
+						ghost.MoveToWorld(loc, map);
+					}
+					else
+					{
+						ghost.MoveToWorld(new Point3D(989, 520, -50), Map.Malas);
+					}
+				}
+
+				_NextGhostCheck = DateTime.UtcNow + TimeSpan.FromMinutes(Utility.RandomMinMax(5, 8));
+			}
 		}
 
 		public void AdvanceLevel()
 		{
-			ExpireTime = DateTime.UtcNow + ExpireDelay;
+			ExpireTime = DateTime.UtcNow + m_ExpireDelay;
 
 			if (Level < 16)
 			{
@@ -543,14 +662,9 @@ namespace Server.Engines.Champions
 
 		public void SpawnChampion()
 		{
-			if (m_Altar != null)
-				m_Altar.Hue = 0x26;
-
-			if (m_Platform != null)
-				m_Platform.Hue = 0x452;
-
 			m_Kills = 0;
 			Level = 0;
+			StartLevel = 0;
 			InvalidateProperties();
 			SetWhiteSkullCount(0);
 
@@ -558,10 +672,22 @@ namespace Server.Engines.Champions
 			{
 				Champion = Activator.CreateInstance(ChampionSpawnInfo.GetInfo(m_Type).Champion) as Mobile;
 			}
-			catch { }
+			catch
+			{
+			}
 
 			if (Champion != null)
-				Champion.MoveToWorld(new Point3D(X, Y, Z - 15), Map);
+			{
+				Point3D p = new(X, Y, Z - 15);
+
+				Champion.MoveToWorld(p, Map);
+				((BaseCreature)Champion).Home = p;
+
+				if (Champion is BaseChampion champion)
+				{
+					champion.OnChampPopped(this);
+				}
+			}
 		}
 
 		public void Respawn()
@@ -569,39 +695,60 @@ namespace Server.Engines.Champions
 			if (!m_Active || Deleted || Champion != null)
 				return;
 
-			while (m_Creatures.Count < ((m_SPawnSzMod * (200 / 12))) - (GetSubLevel() * (m_SPawnSzMod * (40 / 12))))
+			int currentLevel = Level;
+			int currentRank = Rank;
+			int maxSpawn = (int)(MaxKills * 0.5d * SpawnMod);
+			if (currentLevel >= 16)
+				maxSpawn = Math.Min(maxSpawn, MaxKills - m_Kills);
+			if (maxSpawn < 3)
+				maxSpawn = 3;
+
+			int spawnRadius = (int)(SpawnRadius * ChampionSystem.SpawnRadiusModForLevel(Level));
+			Rectangle2D spawnBounds = new(new Point2D(X - spawnRadius, Y - spawnRadius),
+				new Point2D(X + spawnRadius, Y + spawnRadius));
+
+			int mobCount = 0;
+			foreach (Mobile m in Creatures)
+			{
+				if (GetRankFor(m) == currentRank)
+					++mobCount;
+			}
+
+			while (mobCount <= maxSpawn)
 			{
 				Mobile m = Spawn();
 
 				if (m == null)
 					return;
 
-				Point3D loc = GetSpawnLocation();
+				Point3D loc = GetSpawnLocation(spawnBounds, spawnRadius);
 
 				// Allow creatures to turn into Paragons at Ilshenar champions.
 				m.OnBeforeSpawn(loc, Map);
 
-				m_Creatures.Add(m);
+				Creatures.Add(m);
 				m.MoveToWorld(loc, Map);
+				++mobCount;
 
 				if (m is BaseCreature)
 				{
 					BaseCreature bc = m as BaseCreature;
 					bc.Tamable = false;
+					bc.IsChampionSpawn = true;
 
 					if (!ConfinedRoaming)
 					{
 						bc.Home = Location;
-						bc.RangeHome = (int)(Math.Sqrt(m_SpawnArea.Width * m_SpawnArea.Width + m_SpawnArea.Height * m_SpawnArea.Height) / 2);
+						bc.RangeHome = spawnRadius;
 					}
 					else
 					{
 						bc.Home = bc.Location;
 
-						Point2D xWall1 = new(m_SpawnArea.X, bc.Y);
-						Point2D xWall2 = new(m_SpawnArea.X + m_SpawnArea.Width, bc.Y);
-						Point2D yWall1 = new(bc.X, m_SpawnArea.Y);
-						Point2D yWall2 = new(bc.X, m_SpawnArea.Y + m_SpawnArea.Height);
+						Point2D xWall1 = new(spawnBounds.X, bc.Y);
+						Point2D xWall2 = new(spawnBounds.X + spawnBounds.Width, bc.Y);
+						Point2D yWall1 = new(bc.X, spawnBounds.Y);
+						Point2D yWall2 = new(bc.X, spawnBounds.Y + spawnBounds.Height);
 
 						double minXDist = Math.Min(bc.GetDistanceToSqrt(xWall1), bc.GetDistanceToSqrt(xWall2));
 						double minYDist = Math.Min(bc.GetDistanceToSqrt(yWall1), bc.GetDistanceToSqrt(yWall2));
@@ -614,21 +761,29 @@ namespace Server.Engines.Champions
 
 		public Point3D GetSpawnLocation()
 		{
+			return GetSpawnLocation(m_SpawnArea, 24);
+		}
+
+		public Point3D GetSpawnLocation(Rectangle2D rect, int range)
+		{
 			Map map = Map;
 
 			if (map == null)
 				return Location;
+			_ = Location.X;
+			_ = Location.Y;
 
 			// Try 20 times to find a spawnable location.
 			for (int i = 0; i < 20; i++)
 			{
-				/*
-				int x = Location.X + (Utility.Random( (m_SpawnRange * 2) + 1 ) - m_SpawnRange);
-				int y = Location.Y + (Utility.Random( (m_SpawnRange * 2) + 1 ) - m_SpawnRange);
-				*/
+				int dx = Utility.Random(range * 2);
+				int dy = Utility.Random(range * 2);
+				int x = rect.X + dx;
+				int y = rect.Y + dy;
 
-				int x = Utility.Random(m_SpawnArea.X, m_SpawnArea.Width);
-				int y = Utility.Random(m_SpawnArea.Y, m_SpawnArea.Height);
+				// Make spawn area circular
+				//if ((cx - x) * (cx - x) + (cy - y) * (cy - y) > range * range)
+				//	continue;
 
 				int z = Map.GetAverageZ(x, y);
 
@@ -643,25 +798,9 @@ namespace Server.Engines.Champions
 			return Location;
 		}
 
-		private const int Level1 = 4;  // First spawn level from 0-4 red skulls
-		private const int Level2 = 8;  // Second spawn level from 5-8 red skulls
-		private const int Level3 = 12; // Third spawn level from 9-12 red skulls
+		public int Rank => ChampionSystem.RankForLevel(Level);
 
-		public int GetSubLevel()
-		{
-			int level = Level;
-
-			if (level <= Level1)
-				return 0;
-			else if (level <= Level2)
-				return 1;
-			else if (level <= Level3)
-				return 2;
-
-			return 3;
-		}
-
-		public int GetSubLevelFor(Mobile m)
+		public int GetRankFor(Mobile m)
 		{
 			Type[][] types = ChampionSpawnInfo.GetInfo(m_Type).SpawnTypes;
 			Type t = m.GetType();
@@ -684,7 +823,7 @@ namespace Server.Engines.Champions
 		{
 			Type[][] types = ChampionSpawnInfo.GetInfo(m_Type).SpawnTypes;
 
-			int v = GetSubLevel();
+			int v = Rank;
 
 			if (v >= 0 && v < types.Length)
 				return Spawn(types[v]);
@@ -692,7 +831,7 @@ namespace Server.Engines.Champions
 			return null;
 		}
 
-		public Mobile Spawn(params Type[] types)
+		public static Mobile Spawn(params Type[] types)
 		{
 			try
 			{
@@ -711,8 +850,7 @@ namespace Server.Engines.Champions
 			if (m_WhiteSkulls.Count == 0)
 			{
 				// They didn't even get 20%, go back a level
-
-				if (Level > 0)
+				if (Level > StartLevel)
 					--Level;
 
 				InvalidateProperties();
@@ -722,32 +860,31 @@ namespace Server.Engines.Champions
 				SetWhiteSkullCount(0);
 			}
 
-			ExpireTime = DateTime.UtcNow + ExpireDelay;
+			ExpireTime = DateTime.UtcNow + m_ExpireDelay;
 		}
 
 		public Point3D GetRedSkullLocation(int index)
 		{
 			int x, y;
 
-			if (index < 5)
+			switch (index)
 			{
-				x = index - 2;
-				y = -2;
-			}
-			else if (index < 9)
-			{
-				x = 2;
-				y = index - 6;
-			}
-			else if (index < 13)
-			{
-				x = 10 - index;
-				y = 2;
-			}
-			else
-			{
-				x = -2;
-				y = 14 - index;
+				case < 5:
+					x = index - 2;
+					y = -2;
+					break;
+				case < 9:
+					x = 2;
+					y = index - 6;
+					break;
+				case < 13:
+					x = 10 - index;
+					y = 2;
+					break;
+				default:
+					x = -2;
+					y = 14 - index;
+					break;
 			}
 
 			return new Point3D(X + x, Y + y, Z - 15);
@@ -760,10 +897,22 @@ namespace Server.Engines.Champions
 			switch (index)
 			{
 				default:
-				case 0: x = -1; y = -1; break;
-				case 1: x = 1; y = -1; break;
-				case 2: x = 1; y = 1; break;
-				case 3: x = -1; y = 1; break;
+				case 0:
+					x = -1;
+					y = -1;
+					break;
+				case 1:
+					x = 1;
+					y = -1;
+					break;
+				case 2:
+					x = 1;
+					y = 1;
+					break;
+				case 3:
+					x = -1;
+					y = 1;
+					break;
 			}
 
 			return new Point3D(X + x, Y + y, Z - 15);
@@ -879,33 +1028,19 @@ namespace Server.Engines.Champions
 			if (m_Idol != null)
 				m_Idol.Delete();
 
-			if (m_RedSkulls != null)
+			RemoveSkulls();
+
+			if (Creatures != null)
 			{
-				for (int i = 0; i < m_RedSkulls.Count; ++i)
-					m_RedSkulls[i].Delete();
-
-				m_RedSkulls.Clear();
-			}
-
-			if (m_WhiteSkulls != null)
-			{
-				for (int i = 0; i < m_WhiteSkulls.Count; ++i)
-					m_WhiteSkulls[i].Delete();
-
-				m_WhiteSkulls.Clear();
-			}
-
-			if (m_Creatures != null)
-			{
-				for (int i = 0; i < m_Creatures.Count; ++i)
+				for (int i = 0; i < Creatures.Count; ++i)
 				{
-					Mobile mob = m_Creatures[i];
+					Mobile mob = Creatures[i];
 
 					if (!mob.Player)
 						mob.Delete();
 				}
 
-				m_Creatures.Clear();
+				Creatures.Clear();
 			}
 
 			if (Champion != null && !Champion.Player)
@@ -916,7 +1051,8 @@ namespace Server.Engines.Champions
 			UpdateRegion();
 		}
 
-		public ChampionSpawn(Serial serial) : base(serial)
+		public ChampionSpawn(Serial serial)
+			: base(serial)
 		{
 		}
 
@@ -988,10 +1124,12 @@ namespace Server.Engines.Champions
 			artifact.Delete();
 		}
 
-		public void GiveArtifact(Mobile to, Item artifact)
+		public static void GiveArtifact(Mobile to, Item artifact)
 		{
 			if (to == null || artifact == null)
 				return;
+
+			to.PlaySound(0x5B4);
 
 			Container pack = to.Backpack;
 
@@ -1010,9 +1148,18 @@ namespace Server.Engines.Champions
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(8); // version
 
-			writer.Write(m_SPawnSzMod);
+			writer.Write(StartLevel);
+
+			writer.Write(KillsMod);
+			writer.Write(GroupName);
+
+			writer.Write(SpawnName);
+			writer.Write(AutoRestart);
+			writer.Write(SpawnMod);
+			writer.Write(SpawnRadius);
+
 			writer.Write(m_DamageEntries.Count);
 			foreach (KeyValuePair<Mobile, int> kvp in m_DamageEntries)
 			{
@@ -1027,20 +1174,20 @@ namespace Server.Engines.Champions
 
 			writer.Write(RandomizeType);
 
-			//			writer.Write( m_SpawnRange );
+			// writer.Write( m_SpawnRange );
 			writer.Write(m_Kills);
 
 			writer.Write(m_Active);
 			writer.Write((int)m_Type);
-			writer.Write(m_Creatures, true);
+			writer.Write(Creatures, true);
 			writer.Write(m_RedSkulls, true);
 			writer.Write(m_WhiteSkulls, true);
 			writer.WriteItem<ChampionPlatform>(m_Platform);
 			writer.WriteItem<ChampionAltar>(m_Altar);
-			writer.Write(ExpireDelay);
+			writer.Write(m_ExpireDelay);
 			writer.WriteDeltaTime(ExpireTime);
 			writer.Write(Champion);
-			writer.Write(RestartDelay);
+			writer.Write(m_RestartDelay);
 
 			writer.Write(m_RestartTimer != null);
 
@@ -1058,10 +1205,21 @@ namespace Server.Engines.Champions
 
 			switch (version)
 			{
-				case 0:
+				case 8:
+					StartLevel = reader.ReadInt();
+					goto case 7;
+				case 7:
+					KillsMod = reader.ReadDouble();
+					GroupName = reader.ReadString();
+					goto case 6;
+				case 6:
+					SpawnName = reader.ReadString();
+					AutoRestart = reader.ReadBool();
+					SpawnMod = reader.ReadDouble();
+					SpawnRadius = reader.ReadInt();
+					goto case 5;
+				case 5:
 					{
-						m_SPawnSzMod = reader.ReadInt();
-
 						int entries = reader.ReadInt();
 						Mobile m;
 						int damage;
@@ -1076,27 +1234,57 @@ namespace Server.Engines.Champions
 							m_DamageEntries.Add(m, damage);
 						}
 
+						goto case 4;
+					}
+				case 4:
+					{
 						ConfinedRoaming = reader.ReadBool();
 						m_Idol = reader.ReadItem<IdolOfTheChampion>();
 						HasBeenAdvanced = reader.ReadBool();
 
+						goto case 3;
+					}
+				case 3:
+					{
 						m_SpawnArea = reader.ReadRect2D();
 
+						goto case 2;
+					}
+				case 2:
+					{
 						RandomizeType = reader.ReadBool();
+
+						goto case 1;
+					}
+				case 1:
+					{
+						if (version < 3)
+						{
+							int oldRange = reader.ReadInt();
+
+							m_SpawnArea = new Rectangle2D(new Point2D(X - oldRange, Y - oldRange), new Point2D(X + oldRange, Y + oldRange));
+						}
 
 						m_Kills = reader.ReadInt();
 
+						goto case 0;
+					}
+				case 0:
+					{
+						if (version < 1)
+							m_SpawnArea = new Rectangle2D(new Point2D(X - 24, Y - 24), new Point2D(X + 24, Y + 24));    //Default was 24
+
 						bool active = reader.ReadBool();
 						m_Type = (ChampionSpawnType)reader.ReadInt();
-						m_Creatures = reader.ReadStrongMobileList();
+						Creatures = reader.ReadStrongMobileList();
 						m_RedSkulls = reader.ReadStrongItemList();
 						m_WhiteSkulls = reader.ReadStrongItemList();
 						m_Platform = reader.ReadItem<ChampionPlatform>();
 						m_Altar = reader.ReadItem<ChampionAltar>();
-						ExpireDelay = reader.ReadTimeSpan();
+						m_ExpireDelay = reader.ReadTimeSpan();
 						ExpireTime = reader.ReadDeltaTime();
 						Champion = reader.ReadMobile();
-						RestartDelay = reader.ReadTimeSpan();
+						m_RestartDelay = reader.ReadTimeSpan();
 
 						if (reader.ReadBool())
 						{
@@ -1104,26 +1292,147 @@ namespace Server.Engines.Champions
 							BeginRestart(RestartTime - DateTime.UtcNow);
 						}
 
+						if (version < 4)
+						{
+							m_Idol = new IdolOfTheChampion(this);
+							m_Idol.MoveToWorld(new Point3D(X, Y, Z - 15), Map);
+						}
+
 						if (m_Platform == null || m_Altar == null || m_Idol == null)
 							Delete();
 						else if (active)
-							Start();
+							Start(true);
 
 						break;
 					}
 			}
 
+			foreach (BaseCreature bc in Creatures.OfType<BaseCreature>())
+			{
+				bc.IsChampionSpawn = true;
+			}
+
 			Timer.DelayCall(TimeSpan.Zero, new TimerCallback(UpdateRegion));
+		}
+
+		public void SendGump(Mobile mob)
+		{
+			mob.SendGump(new ChampionSpawnInfoGump(this));
+		}
+
+		private class ChampionSpawnInfoGump : Gump
+		{
+			private class Damager
+			{
+				public Mobile Mobile;
+				public int Damage;
+				public Damager(Mobile mob, int dmg)
+				{
+					Mobile = mob;
+					Damage = dmg;
+				}
+
+			}
+			private const int gBoarder = 20;
+			private const int gRowHeight = 25;
+			private const int gFontHue = 0;
+			private static readonly int[] gWidths = { 20, 160, 160, 20 };
+			private static readonly int[] gTab;
+			private static readonly int gWidth;
+
+			static ChampionSpawnInfoGump()
+			{
+				gWidth = gWidths.Sum();
+				int tab = 0;
+				gTab = new int[gWidths.Length];
+				for (int i = 0; i < gWidths.Length; ++i)
+				{
+					gTab[i] = tab;
+					tab += gWidths[i];
+				}
+			}
+
+			private readonly ChampionSpawn m_Spawn;
+
+			public ChampionSpawnInfoGump(ChampionSpawn spawn)
+				: base(40, 40)
+			{
+				m_Spawn = spawn;
+
+				AddBackground(0, 0, gWidth, gBoarder * 2 + gRowHeight * (8 + spawn.m_DamageEntries.Count), 0x13BE);
+
+				int top = gBoarder;
+				AddLabel(gBoarder, top, gFontHue, "Champion Spawn Info Gump");
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Kills");
+				AddLabel(gTab[2], top, gFontHue, spawn.Kills.ToString());
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Max Kills");
+				AddLabel(gTab[2], top, gFontHue, spawn.MaxKills.ToString());
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Level");
+				AddLabel(gTab[2], top, gFontHue, spawn.Level.ToString());
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Rank");
+				AddLabel(gTab[2], top, gFontHue, spawn.Rank.ToString());
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Active");
+				AddLabel(gTab[2], top, gFontHue, spawn.Active.ToString());
+				top += gRowHeight;
+
+				AddLabel(gTab[1], top, gFontHue, "Auto Restart");
+				AddLabel(gTab[2], top, gFontHue, spawn.AutoRestart.ToString());
+				top += gRowHeight;
+
+				List<Damager> damagers = new List<Damager>();
+				foreach (Mobile mob in spawn.m_DamageEntries.Keys)
+				{
+					damagers.Add(new Damager(mob, spawn.m_DamageEntries[mob]));
+				}
+				damagers = damagers.OrderByDescending(x => x.Damage).ToList();
+
+				foreach (Damager damager in damagers)
+				{
+					AddLabelCropped(gTab[1], top, 100, gRowHeight, gFontHue, damager.Mobile.RawName);
+					AddLabelCropped(gTab[2], top, 80, gRowHeight, gFontHue, damager.Damage.ToString());
+					top += gRowHeight;
+				}
+
+				AddButton(gWidth - (gBoarder + 30), top, 0xFA5, 0xFA7, 1, GumpButtonType.Reply, 0);
+				AddLabel(gWidth - (gBoarder + 100), top, gFontHue, "Refresh");
+			}
+
+			public override void OnResponse(Network.NetState sender, RelayInfo info)
+			{
+				switch (info.ButtonID)
+				{
+					case 1:
+						m_Spawn.SendGump(sender.Mobile);
+						break;
+				}
+			}
 		}
 	}
 
 	public class ChampionSpawnRegion : BaseRegion
 	{
+		public static void Initialize()
+		{
+			EventSink.OnLogout += OnLogout;
+			EventSink.OnLogin += OnLogin;
+		}
+
 		public override bool YoungProtected => false;
 
 		public ChampionSpawn ChampionSpawn { get; }
 
-		public ChampionSpawnRegion(ChampionSpawn spawn) : base(null, spawn.Map, Region.Find(spawn.Location, spawn.Map), spawn.SpawnArea)
+		public ChampionSpawnRegion(ChampionSpawn spawn)
+			: base(null, spawn.Map, Find(spawn.Location, spawn.Map), spawn.SpawnArea)
 		{
 			ChampionSpawn = spawn;
 		}
@@ -1136,17 +1445,82 @@ namespace Server.Engines.Champions
 		public override void AlterLightLevel(Mobile m, ref int global, ref int personal)
 		{
 			base.AlterLightLevel(m, ref global, ref personal);
-			global = Math.Max(global, 1 + ChampionSpawn.Level);   //This is a guesstimate.  TODO: Verify & get exact values // OSI testing: at 2 red skulls, light = 0x3 ; 1 red = 0x3.; 3 = 8; 9 = 0xD 8 = 0xD 12 = 0x12 10 = 0xD
+			global = Math.Max(global, 1 + ChampionSpawn.Level); //This is a guesstimate.  TODO: Verify & get exact values // OSI testing: at 2 red skulls, light = 0x3 ; 1 red = 0x3.; 3 = 8; 9 = 0xD 8 = 0xD 12 = 0x12 10 = 0xD
+		}
+
+		public override bool OnMoveInto(Mobile m, Direction d, Point3D newLocation, Point3D oldLocation)
+		{
+			if (m is PlayerMobile && !m.Alive && (m.Corpse == null || m.Corpse.Deleted) && Map == Map.Felucca)
+			{
+				return false;
+			}
+
+			return base.OnMoveInto(m, d, newLocation, oldLocation);
+		}
+
+		public static void OnLogout(Mobile m)
+		{
+			if (m is PlayerMobile && m.Region.IsPartOf<ChampionSpawnRegion>() && m.AccessLevel == AccessLevel.Player && m.Map == Map.Felucca)
+			{
+				if (m.Alive && m.Backpack != null)
+				{
+					var list = new List<Item>(m.Backpack.Items.Where(i => i.LootType == LootType.Cursed));
+
+					foreach (var item in list)
+					{
+						item.MoveToWorld(m.Location, m.Map);
+					}
+
+					ColUtility.Free(list);
+				}
+
+				Timer.DelayCall(TimeSpan.FromMilliseconds(250), () =>
+				{
+					Map map = m.LogoutMap;
+
+					Point3D loc = Helpers.GetNearestShrine(m, ref map);
+
+					if (loc != Point3D.Zero)
+					{
+						m.LogoutLocation = loc;
+						m.LogoutMap = map;
+					}
+					else
+					{
+						m.LogoutLocation = new Point3D(989, 520, -50);
+						m.LogoutMap = Map.Malas;
+					}
+				});
+			}
+		}
+
+		public static void OnLogin(Mobile m)
+		{
+			if (m is PlayerMobile && !m.Alive && (m.Corpse == null || m.Corpse.Deleted) && m.Region.IsPartOf<ChampionSpawnRegion>() && m.Map == Map.Felucca)
+			{
+				Map map = m.Map;
+				Point3D loc = Helpers.GetNearestShrine(m, ref map);
+
+				if (loc != Point3D.Zero)
+				{
+					m.MoveToWorld(loc, map);
+				}
+				else
+				{
+					m.MoveToWorld(new Point3D(989, 520, -50), Map.Malas);
+				}
+			}
 		}
 	}
 
-	public class IdolOfTheChampion : BaseItem
+	public class IdolOfTheChampion : Item
 	{
 		public ChampionSpawn Spawn { get; private set; }
 
 		public override string DefaultName => "Idol of the Champion";
 
-		public IdolOfTheChampion(ChampionSpawn spawn) : base(0x1F18)
+		public IdolOfTheChampion(ChampionSpawn spawn)
+			: base(0x1F18)
 		{
 			Spawn = spawn;
 			Movable = false;
@@ -1160,15 +1534,15 @@ namespace Server.Engines.Champions
 				Spawn.Delete();
 		}
 
-		public IdolOfTheChampion(Serial serial) : base(serial)
+		public IdolOfTheChampion(Serial serial)
+			: base(serial)
 		{
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 
 			writer.Write(Spawn);
 		}
@@ -1176,7 +1550,6 @@ namespace Server.Engines.Champions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			int version = reader.ReadInt();
 
 			switch (version)

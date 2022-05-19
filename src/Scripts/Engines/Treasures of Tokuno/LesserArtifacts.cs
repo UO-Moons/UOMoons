@@ -33,7 +33,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -70,7 +70,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -107,7 +107,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -150,7 +150,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -184,7 +184,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -221,7 +221,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -258,7 +258,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -302,7 +302,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -339,7 +339,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -376,7 +376,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -415,7 +415,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -452,7 +452,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -488,7 +488,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -524,7 +524,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 
 		public override int InitMinHits => 255;
@@ -561,7 +561,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -600,7 +600,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 		public override int InitMinHits => 255;
 		public override int InitMaxHits => 255;
@@ -690,7 +690,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 			m_UrnName = reader.ReadString();
 
 			Utility.Intern(ref m_UrnName);
@@ -750,7 +750,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 			m_SwordsName = reader.ReadString();
 
 			Utility.Intern(ref m_SwordsName);
@@ -795,10 +795,8 @@ namespace Server.Items
 				int min = 20;
 				int max = 80;
 
-				if (item is BaseWeapon)
+				if (item is BaseWeapon weapon)
 				{
-					BaseWeapon weapon = (BaseWeapon)item;
-
 					if (Core.AOS)
 						BaseRunicTool.ApplyAttributesTo(weapon, attributeCount, min, max);
 					else
@@ -808,10 +806,8 @@ namespace Server.Items
 						weapon.DurabilityLevel = (DurabilityLevel)Utility.Random(6);
 					}
 				}
-				else if (item is BaseArmor)
+				else if (item is BaseArmor armor)
 				{
-					BaseArmor armor = (BaseArmor)item;
-
 					if (Core.AOS)
 						BaseRunicTool.ApplyAttributesTo(armor, attributeCount, min, max);
 					else
@@ -820,10 +816,10 @@ namespace Server.Items
 						armor.Durability = (DurabilityLevel)Utility.Random(6);
 					}
 				}
-				else if (item is BaseHat && Core.AOS)
-					BaseRunicTool.ApplyAttributesTo((BaseHat)item, attributeCount, min, max);
-				else if (item is BaseJewel && Core.AOS)
-					BaseRunicTool.ApplyAttributesTo((BaseJewel)item, attributeCount, min, max);
+				else if (item is BaseHat hat && Core.AOS)
+					BaseRunicTool.ApplyAttributesTo(hat, attributeCount, min, max);
+				else if (item is BaseJewel jewel && Core.AOS)
+					BaseRunicTool.ApplyAttributesTo(jewel, attributeCount, min, max);
 
 				DropItem(item);
 			}
@@ -844,7 +840,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -878,7 +874,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -1025,8 +1021,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt(); // Required for BasePigmentsOfTokuno insertion
+			_ = reader.ReadInt();
 		}
 	}
 }

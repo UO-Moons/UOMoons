@@ -17,21 +17,21 @@ namespace Server.Engines.TownHouses
 			const int width = 200;
 			int y = 0;
 
-			AddHtml(0, y += 10, width, string.Format("<CENTER>{0} this House?", c_Sign.RentByTime == TimeSpan.Zero ? "Purchase" : "Rent"));
+			AddHtml(0, y += 10, width, $"<CENTER>{(c_Sign.RentByTime == TimeSpan.Zero ? "Purchase" : "Rent")} this House?");
 			AddImage(width / 2 - 100, y + 2, 0x39);
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			if (c_Sign.RentByTime == TimeSpan.Zero)
 			{
-				AddHtml(0, y += 25, width, string.Format("<CENTER>{0}: {1}", "Price", c_Sign.Free ? "Free" : "" + c_Sign.Price));
+				AddHtml(0, y += 25, width, $"<CENTER>{"Price"}: {(c_Sign.Free ? "Free" : "" + c_Sign.Price)}");
 			}
 			else if (c_Sign.RecurRent)
 			{
-				AddHtml(0, y += 25, width, string.Format("<CENTER>{0}: {1}", "Recurring " + c_Sign.PriceType, c_Sign.Price));
+				AddHtml(0, y += 25, width, $"<CENTER>{"Recurring " + c_Sign.PriceType}: {c_Sign.Price}");
 			}
 			else
 			{
-				AddHtml(0, y += 25, width, string.Format("<CENTER>{0}: {1}", "One " + c_Sign.PriceTypeShort, c_Sign.Price));
+				AddHtml(0, y += 25, width, $"<CENTER>{"One " + c_Sign.PriceTypeShort}: {c_Sign.Price}");
 			}
 
 			if (c_Sign.KeepItems)

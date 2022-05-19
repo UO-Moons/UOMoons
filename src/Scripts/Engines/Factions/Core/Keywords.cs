@@ -37,8 +37,8 @@ namespace Server.Factions
 
 							if (FactionGump.Exists(from))
 								from.SendLocalizedMessage(1042160); // You already have a faction menu open.
-							else if (town.Owner != null && from is PlayerMobile)
-								from.SendGump(new FinanceGump((PlayerMobile)from, town.Owner, town));
+							else if (town.Owner != null && from is PlayerMobile mobile)
+								from.SendGump(new FinanceGump(mobile, town.Owner, town));
 
 							break;
 						}
@@ -145,7 +145,7 @@ namespace Server.Factions
 							Faction faction = Faction.Find(from);
 
 							if (faction != null)
-								faction.BeginHonorLeadership(from);
+								Faction.BeginHonorLeadership(from);
 
 							break;
 						}

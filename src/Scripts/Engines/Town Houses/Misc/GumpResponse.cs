@@ -167,7 +167,7 @@ namespace Server.Engines.TownHouses
 				return false;
 			}
 
-			if (!(gump is HouseGump))
+			if (gump is not HouseGump)
 			{
 				return true;
 			}

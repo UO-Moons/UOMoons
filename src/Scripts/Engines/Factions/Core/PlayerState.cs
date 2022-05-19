@@ -187,8 +187,8 @@ namespace Server.Factions
 
 		public void Attach()
 		{
-			if (Mobile is PlayerMobile)
-				((PlayerMobile)Mobile).FactionPlayerState = this;
+			if (Mobile is PlayerMobile mobile)
+				mobile.FactionPlayerState = this;
 		}
 
 		public PlayerState(Mobile mob, Faction faction, List<PlayerState> owner)
@@ -246,8 +246,8 @@ namespace Server.Factions
 
 		public static PlayerState Find(Mobile mob)
 		{
-			if (mob is PlayerMobile)
-				return ((PlayerMobile)mob).FactionPlayerState;
+			if (mob is PlayerMobile mobile)
+				return mobile.FactionPlayerState;
 
 			return null;
 		}

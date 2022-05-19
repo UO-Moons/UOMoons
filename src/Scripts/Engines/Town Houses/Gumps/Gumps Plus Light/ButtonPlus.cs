@@ -27,13 +27,13 @@ namespace Server.Engines.TownHouses
 
 		public void Invoke()
 		{
-			if (c_Callback is GumpCallback)
+			if (c_Callback is GumpCallback callback)
 			{
-				((GumpCallback)c_Callback)();
+				callback();
 			}
-			else if (c_Callback is GumpStateCallback)
+			else if (c_Callback is GumpStateCallback callback1)
 			{
-				((GumpStateCallback)c_Callback)(c_Param);
+				callback1(c_Param);
 			}
 		}
 	}

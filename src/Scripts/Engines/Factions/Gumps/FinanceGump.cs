@@ -242,8 +242,7 @@ namespace Server.Factions
 						if (index >= 0 && index < vendorLists.Count)
 						{
 							VendorList vendorList = vendorLists[index];
-
-							Town town = Town.FromRegion(m_From.Region);
+							_ = Town.FromRegion(m_From.Region);
 
 							if (Town.FromRegion(m_From.Region) != m_Town)
 							{

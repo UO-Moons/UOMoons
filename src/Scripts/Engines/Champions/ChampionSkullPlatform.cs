@@ -6,7 +6,6 @@ namespace Server.Engines.Champions
 	public class ChampionSkullPlatform : BaseAddon
 	{
 		private ChampionSkullBrazier m_Power, m_Enlightenment, m_Venom, m_Pain, m_Greed, m_Death;
-
 		[Constructable]
 		public ChampionSkullPlatform()
 		{
@@ -57,6 +56,11 @@ namespace Server.Engines.Champions
 			AddComponent(comp, 2, 0, -7);
 		}
 
+		public ChampionSkullPlatform(Serial serial)
+			: base(serial)
+		{
+		}
+
 		public void Validate()
 		{
 			if (Validate(m_Power) && Validate(m_Enlightenment) && Validate(m_Venom) && Validate(m_Pain) && Validate(m_Greed) && Validate(m_Death))
@@ -91,16 +95,10 @@ namespace Server.Engines.Champions
 			return brazier != null && brazier.Skull != null && !brazier.Skull.Deleted;
 		}
 
-		public ChampionSkullPlatform(Serial serial) : base(serial)
-		{
-		}
-
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
-
+			writer.Write(0);
 			writer.Write(m_Power);
 			writer.Write(m_Enlightenment);
 			writer.Write(m_Venom);

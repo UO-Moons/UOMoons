@@ -18,13 +18,13 @@ namespace Server.Engines.ConPVP
 
 		private readonly ArrayList m_Helpers;
 
-		private Mobile FindOwner(object parent)
+		private static Mobile FindOwner(object parent)
 		{
-			if (parent is Item)
-				return ((Item)parent).RootParent as Mobile;
+			if (parent is Item item)
+				return item.RootParent as Mobile;
 
-			if (parent is Mobile)
-				return (Mobile)parent;
+			if (parent is Mobile mobile)
+				return mobile;
 
 			return null;
 		}
@@ -272,15 +272,15 @@ namespace Server.Engines.ConPVP
 			if (obj == from)
 				return false;
 
-			if (!(obj is IPoint3D))
+			if (obj is not IPoint3D)
 				return false;
 
-			Point3D pt = new Point3D((IPoint3D)obj);
+			Point3D pt = new((IPoint3D)obj);
 
 			if (obj is Mobile)
 				pt.Z += 10;
-			else if (obj is Item)
-				pt.Z += ((Item)obj).ItemData.CalcHeight + 1;
+			else if (obj is Item item)
+				pt.Z += item.ItemData.CalcHeight + 1;
 
 			m_Flying = true;
 			Visible = false;
@@ -352,7 +352,7 @@ namespace Server.Engines.ConPVP
 				MoveToWorld(m.Location, m.Map);
 		}
 
-		private readonly Point3DList m_Path = new Point3DList();
+		private readonly Point3DList m_Path = new();
 		private int m_PathIdx = 0;
 
 		private void BeginFlight(Point3D dest)
@@ -368,7 +368,7 @@ namespace Server.Engines.ConPVP
 				dest = swap;
 			}*/
 
-			ArrayList list = new ArrayList();
+			ArrayList list = new();
 			double rise, run, zslp;
 			double dist3d, dist2d;
 			double x, y, z;
@@ -384,9 +384,9 @@ namespace Server.Engines.ConPVP
 			else
 				dist3d = dist2d;
 
-			rise = ((float)yd) / dist3d;
-			run = ((float)xd) / dist3d;
-			zslp = ((float)zd) / dist3d;
+			rise = yd / dist3d;
+			run = xd / dist3d;
+			zslp = zd / dist3d;
 
 			x = org.X;
 			y = org.Y;
@@ -399,7 +399,7 @@ namespace Server.Engines.ConPVP
 
 				if (list.Count > 0)
 				{
-					p = (Point3D)list[list.Count - 1];
+					p = (Point3D)list[^1];
 
 					if (p.X != ix || p.Y != iy || p.Z != iz)
 						list.Add(new Point3D(ix, iy, iz));
@@ -416,7 +416,7 @@ namespace Server.Engines.ConPVP
 
 			if (list.Count > 0)
 			{
-				if (((Point3D)list[list.Count - 1]) != dest)
+				if (((Point3D)list[^1]) != dest)
 					list.Add(dest);
 			}
 
@@ -494,7 +494,7 @@ namespace Server.Engines.ConPVP
 				if (m_PathIdx > 0) // move to the next location
 					MoveToWorld(m_Path[m_PathIdx - 1]);
 
-				Point3D pTop = new Point3D(GetWorldLocation()), pBottom = new Point3D(m_Path[pathCheckEnd - 1]);
+				Point3D pTop = new(GetWorldLocation()), pBottom = new(m_Path[pathCheckEnd - 1]);
 				Utility.FixPoints(ref pTop, ref pBottom);
 
 				for (int i = m_PathIdx; i < pathCheckEnd; i++)
@@ -555,7 +555,7 @@ namespace Server.Engines.ConPVP
 					}
 				}
 
-				Rectangle2D rect = new Rectangle2D(pTop.X, pTop.Y, (pBottom.X - pTop.X) + 1, (pBottom.Y - pTop.Y) + 1);
+				Rectangle2D rect = new(pTop.X, pTop.Y, (pBottom.X - pTop.X) + 1, pBottom.Y - pTop.Y + 1);
 
 				IPooledEnumerable area = Map.GetItemsInBounds(rect);
 				foreach (Item i in area)
@@ -601,10 +601,10 @@ namespace Server.Engines.ConPVP
 						continue;
 
 					area.Free();
-					if (i is BRGoal)
+					if (i is BRGoal goal)
 					{
-						Point3D oldLoc = new Point3D(GetWorldLocation());
-						if (CheckScore((BRGoal)i, Thrower, 3))
+						Point3D oldLoc = new(GetWorldLocation());
+						if (CheckScore(goal, Thrower, 3))
 							DoAnim(oldLoc, point, Map);
 						else
 							HitObject(point, loc.Z, height);
@@ -932,9 +932,7 @@ namespace Server.Engines.ConPVP
 			else
 				Hue = 0x84C;
 
-			BRBomb b = m.Backpack.FindItemByType(typeof(BRBomb), true) as BRBomb;
-
-			if (b != null)
+			if (m.Backpack.FindItemByType(typeof(BRBomb), true) is BRBomb b)
 				b.CheckScore(this, m, 7);
 
 			return true;
@@ -970,15 +968,13 @@ namespace Server.Engines.ConPVP
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
 			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -1018,7 +1014,7 @@ namespace Server.Engines.ConPVP
 
 			BRTeamInfo ourTeam = game.GetTeamInfo(mob);
 
-			ArrayList entries = new ArrayList();
+			ArrayList entries = new();
 
 			if (section == null)
 			{
@@ -1258,9 +1254,7 @@ namespace Server.Engines.ConPVP
 				if (mob == null)
 					return null;
 
-				BRPlayerInfo val = Players[mob] as BRPlayerInfo;
-
-				if (val == null)
+				if (Players[mob] is not BRPlayerInfo val)
 					Players[mob] = val = new BRPlayerInfo(this, mob);
 
 				return val;
@@ -1545,12 +1539,10 @@ namespace Server.Engines.ConPVP
 
 		public int GetTeamID(Mobile mob)
 		{
-			PlayerMobile pm = mob as PlayerMobile;
-
-			if (pm == null)
+			if (mob is not PlayerMobile pm)
 			{
-				if (mob is BaseCreature)
-					return ((BaseCreature)mob).Team - 1;
+				if (mob is BaseCreature creature)
+					return creature.Team - 1;
 				else
 					return -1;
 			}
@@ -1574,7 +1566,7 @@ namespace Server.Engines.ConPVP
 			return -1;
 		}
 
-		private void ApplyHues(Participant p, int hueOverride)
+		private static void ApplyHues(Participant p, int hueOverride)
 		{
 			for (int i = 0; i < p.Players.Length; ++i)
 			{
@@ -1690,7 +1682,7 @@ namespace Server.Engines.ConPVP
 
 		private void Finish_Callback()
 		{
-			ArrayList teams = new ArrayList();
+			ArrayList teams = new();
 
 			for (int i = 0; i < m_Context.Participants.Count; ++i)
 			{
@@ -1706,7 +1698,7 @@ namespace Server.Engines.ConPVP
 
 			Tournament tourny = m_Context.m_Tournament;
 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 
 			if (tourny != null && tourny.TournyType == TournyType.FreeForAll)
 			{
@@ -1818,9 +1810,7 @@ namespace Server.Engines.ConPVP
 
 			for (int i = 0; i < m_Context.Participants.Count; ++i)
 			{
-				Participant p = m_Context.Participants[i] as Participant;
-
-				if (p == null || p.Players == null)
+				if (m_Context.Participants[i] is not Participant p || p.Players == null)
 					continue;
 
 				for (int j = 0; j < p.Players.Length; ++j)

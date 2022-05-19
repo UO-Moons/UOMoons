@@ -7,23 +7,23 @@ namespace Server.Items
 		private bool m_Decays;
 		private DateTime m_DecayTime;
 		private Timer m_Timer;
-
-		public override int LabelNumber => 1049498;  // dark moongate
-
 		[Constructable]
-		public StarRoomGate() : this(false)
+		public StarRoomGate()
+			: this(false)
 		{
 		}
 
 		[Constructable]
-		public StarRoomGate(bool decays, Point3D loc, Map map) : this(decays)
+		public StarRoomGate(bool decays, Point3D loc, Map map)
+			: this(decays)
 		{
 			MoveToWorld(loc, map);
 			Effects.PlaySound(loc, map, 0x20E);
 		}
 
 		[Constructable]
-		public StarRoomGate(bool decays) : base(new Point3D(5143, 1774, 0), Map.Felucca)
+		public StarRoomGate(bool decays)
+			: base(new Point3D(5143, 1774, 0), Map.Felucca)
 		{
 			Dispellable = false;
 			ItemID = 0x1FD4;
@@ -38,10 +38,12 @@ namespace Server.Items
 			}
 		}
 
-		public StarRoomGate(Serial serial) : base(serial)
+		public StarRoomGate(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public override int LabelNumber => 1049498;// dark moongate
 		public override void OnAfterDelete()
 		{
 			if (m_Timer != null)
@@ -90,8 +92,8 @@ namespace Server.Items
 		private class InternalTimer : Timer
 		{
 			private readonly Item m_Item;
-
-			public InternalTimer(Item item, DateTime end) : base(end - DateTime.UtcNow)
+			public InternalTimer(Item item, DateTime end)
+				: base(end - DateTime.UtcNow)
 			{
 				m_Item = item;
 			}

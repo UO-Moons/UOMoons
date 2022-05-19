@@ -134,13 +134,13 @@ namespace Server.Factions
 			return false;
 		}
 
-		private Mobile FindOwner(object parent)
+		private static Mobile FindOwner(object parent)
 		{
-			if (parent is Item)
-				return ((Item)parent).RootParent as Mobile;
+			if (parent is Item item)
+				return item.RootParent as Mobile;
 
-			if (parent is Mobile)
-				return (Mobile)parent;
+			if (parent is Mobile mobile)
+				return mobile;
 
 			return null;
 		}
@@ -226,10 +226,8 @@ namespace Server.Factions
 			#region Give To Mobile
 			if (obj is Mobile)
 			{
-				if (obj is PlayerMobile)
+				if (obj is PlayerMobile targ)
 				{
-					PlayerMobile targ = (PlayerMobile)obj;
-
 					Faction toFaction = Faction.Find(targ);
 					Faction fromFaction = Faction.Find(from);
 
@@ -258,10 +256,8 @@ namespace Server.Factions
 			else if (obj is BaseMonolith)
 			{
 				#region Put in Stronghold
-				if (obj is StrongholdMonolith)
+				if (obj is StrongholdMonolith m)
 				{
-					StrongholdMonolith m = (StrongholdMonolith)obj;
-
 					if (m.Faction == null || m.Faction != Faction.Find(from))
 						from.SendLocalizedMessage(1042246); // You can't place that on an enemy monolith
 					else if (m.Town == null || m.Town != m_Town)
@@ -302,10 +298,8 @@ namespace Server.Factions
 				#endregion
 
 				#region Put in Town
-				else if (obj is TownMonolith)
+				else if (obj is TownMonolith m)
 				{
-					TownMonolith m = (TownMonolith)obj;
-
 					if (m.Town == null || m.Town != m_Town)
 						from.SendLocalizedMessage(1042245); // This is not the correct town sigil monolith
 					else if (m_Corrupted == null || m_Corrupted != Faction.Find(from))
@@ -378,9 +372,7 @@ namespace Server.Factions
 
 						Update();
 
-						Mobile mob = RootParent as Mobile;
-
-						if (mob != null)
+						if (RootParent is Mobile mob)
 							mob.SolidHueOverride = OwnershipHue;
 
 						break;

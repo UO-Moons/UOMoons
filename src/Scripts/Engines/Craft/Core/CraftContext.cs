@@ -26,16 +26,7 @@ namespace Server.Engines.Craft
 			LastGroupIndex = -1;
 		}
 
-		public CraftItem LastMade
-		{
-			get
-			{
-				if (Items.Count > 0)
-					return Items[0];
-
-				return null;
-			}
-		}
+		public CraftItem LastMade => Items.Count > 0 ? Items[0] : null;
 
 		public void OnMade(CraftItem item)
 		{

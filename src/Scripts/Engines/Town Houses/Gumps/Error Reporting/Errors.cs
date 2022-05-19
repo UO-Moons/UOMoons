@@ -7,12 +7,8 @@ namespace Server.Engines.TownHouses
 {
 	public class Errors
 	{
-		private static readonly List<string> s_ErrorLog = new List<string>();
-		private static readonly List<Mobile> s_Checked = new List<Mobile>();
-
-		public static List<string> ErrorLog => s_ErrorLog;
-
-		public static List<Mobile> Checked => s_Checked;
+		public static List<string> ErrorLog { get; } = new();
+		public static List<Mobile> Checked { get; } = new();
 
 		public static void Initialize()
 		{
@@ -37,19 +33,17 @@ namespace Server.Engines.TownHouses
 		private static void OnLogin(Mobile m)
 		{
 			if (m.AccessLevel != AccessLevel.Player
-				&& s_ErrorLog.Count != 0
-				&& !s_Checked.Contains(m))
+				&& ErrorLog.Count != 0
+				&& !Checked.Contains(m))
 			{
-				new ErrorsNotifyGump(m);
+				_ = new ErrorsNotifyGump(m);
 			}
 		}
 
 		public static void Report(string error)
 		{
-			s_ErrorLog.Add(string.Format("<B>{0}</B><BR>{1}<BR>", DateTime.UtcNow, error));
-
-			s_Checked.Clear();
-
+			ErrorLog.Add($"<B>{DateTime.UtcNow}</B><BR>{error}<BR>");
+			Checked.Clear();
 			Notify();
 		}
 

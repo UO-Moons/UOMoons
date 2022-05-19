@@ -2514,7 +2514,7 @@ namespace Server.Mobiles
 			if (ReceivedHonorContext != null)
 				ReceivedHonorContext.OnTargetKilled();
 			if (SentHonorContext != null)
-				SentHonorContext.OnSourceKilled();
+				HonorContext.OnSourceKilled();
 
 			RecoverAmmo();
 

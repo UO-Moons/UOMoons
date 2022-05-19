@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class LysanderNotebook1 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -54,14 +54,13 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class LysanderNotebook2 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -150,13 +149,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class LysanderNotebook3 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -238,13 +237,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class LysanderNotebook7 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -343,13 +342,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class LysanderNotebook8 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -438,13 +437,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class LysanderNotebook11 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Lysander's Notebook", "L. Gathenwale",
 				new BookPageInfo
@@ -530,7 +529,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 }

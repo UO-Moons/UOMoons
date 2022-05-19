@@ -28,7 +28,7 @@ namespace Server.Engines.Craft
 			if (!item.IsChildOf(from.Backpack))
 				return EnhanceResult.NotInBackpack;
 
-			if (!(item is BaseArmor) && !(item is BaseWeapon))
+			if (item is not BaseArmor && item is not BaseWeapon)
 				return EnhanceResult.BadItem;
 
 			if (item is IArcaneEquip eq)

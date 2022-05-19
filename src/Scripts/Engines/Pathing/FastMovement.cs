@@ -1,16 +1,15 @@
-#region References
+
 using Server.Items;
 using Server.Mobiles;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#endregion
 
 namespace Server.Movement
 {
 	public class FastMovementImpl : IMovementImpl
 	{
-		public static bool Enabled = false;
+		public static readonly bool Enabled = false;
 
 		private const int PersonHeight = 16;
 		private const int StepHeight = 2;
@@ -641,7 +640,7 @@ namespace Server.Movement
 			}
 		}
 
-		public void Offset(Direction d, ref int x, ref int y)
+		public static void Offset(Direction d, ref int x, ref int y)
 		{
 			switch (d & Direction.Mask)
 			{
@@ -678,8 +677,8 @@ namespace Server.Movement
 
 		private static class MovementPool
 		{
-			private static readonly object _MovePoolLock = new object();
-			private static readonly Queue<List<Item>> _MoveCachePool = new Queue<List<Item>>(0x400);
+			private static readonly object _MovePoolLock = new();
+			private static readonly Queue<List<Item>> _MoveCachePool = new(0x400);
 
 			public static void AcquireMoveCache(ref List<Item> cache, IEnumerable<Item> items)
 			{

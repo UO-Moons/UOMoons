@@ -199,6 +199,7 @@ namespace Server.Mobiles
 
 		private bool m_Paragon;
 		private int m_FailedReturnHome; /* return to home failure counter */
+		private bool m_IsChampionSpawn;
 
 		#endregion
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -504,6 +505,31 @@ namespace Server.Mobiles
 
 				InvalidateProperties();
 			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool IsChampionSpawn
+		{
+			get => m_IsChampionSpawn;
+			set
+			{
+				if (m_IsChampionSpawn != value)
+				{
+					if (!m_IsChampionSpawn && value)
+						SetToChampionSpawn();
+
+					m_IsChampionSpawn = value;
+
+					OnChampionSpawnChange();
+				}
+			}
+		}
+
+		protected virtual void OnChampionSpawnChange()
+		{ }
+
+		public virtual void SetToChampionSpawn()
+		{
 		}
 
 		public virtual bool HasManaOveride => false;

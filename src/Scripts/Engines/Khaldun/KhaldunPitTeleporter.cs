@@ -47,12 +47,12 @@ namespace Server.Items
 			Map map = MapDest;
 
 			if (map == null || map == Map.Internal)
-				map = m.Map;
+				_ = m.Map;
 
 			Point3D p = m_PointDest;
 
 			if (p == Point3D.Zero)
-				p = m.Location;
+				_ = m.Location;
 
 			if (m.InRange(this, 3))
 			{
@@ -85,8 +85,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 
 			Active = reader.ReadBool();
 			m_PointDest = reader.ReadPoint3D();

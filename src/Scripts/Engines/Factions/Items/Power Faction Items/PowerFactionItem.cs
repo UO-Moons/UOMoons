@@ -1,5 +1,6 @@
 using Server.Factions;
 using Server.Mobiles;
+using Server.Network;
 using System;
 using System.IO;
 
@@ -96,16 +97,14 @@ namespace Server
 
 									killer.SendSound(1470);
 									killer.LocalOverheadMessage(
-										Server.Network.MessageType.Regular, 2119, false,
+										MessageType.Regular, 2119, false,
 										"You notice a strange item on the corpse, and decide to pick it up."
 									);
 
 									try
 									{
-										using (StreamWriter op = new StreamWriter("faction-power-items.log", true))
-										{
-											op.WriteLine("{0}\t{1}\t{2}\t{3}", DateTime.UtcNow, killer, victim, obj);
-										}
+										using StreamWriter op = new("faction-power-items.log", true);
+										op.WriteLine("{0}\t{1}\t{2}\t{3}", DateTime.UtcNow, killer, victim, obj);
 									}
 									catch
 									{
@@ -130,22 +129,22 @@ namespace Server
 			{
 				from.SendLocalizedMessage(1042038); // You must have the object in your backpack to use it.
 			}
-			else if (from is PlayerMobile && ((PlayerMobile)from).DuelContext != null)
+			else if (from is PlayerMobile mobile && mobile.DuelContext != null)
 			{
 				from.SendMessage("You can't use that.");
 			}
 			else if (Faction.Find(from) == null)
 			{
-				from.LocalOverheadMessage(Server.Network.MessageType.Regular, 2119, false, "The object vanishes from your hands as you touch it.");
+				from.LocalOverheadMessage(MessageType.Regular, 2119, false, "The object vanishes from your hands as you touch it.");
 
 				Timer.DelayCall(TimeSpan.FromSeconds(1.0), delegate ()
 				{
-					from.LocalOverheadMessage(Server.Network.MessageType.Regular, 2118, false, "You feel a strange tingling sensation throughout your body.");
+					from.LocalOverheadMessage(MessageType.Regular, 2118, false, "You feel a strange tingling sensation throughout your body.");
 				});
 
 				Timer.DelayCall(TimeSpan.FromSeconds(4.0), delegate ()
 				{
-					from.LocalOverheadMessage(Server.Network.MessageType.Regular, 2118, false, "Your skin begins to burn.");
+					from.LocalOverheadMessage(MessageType.Regular, 2118, false, "Your skin begins to burn.");
 				});
 
 				new DestructionTimer(from).Start();
@@ -180,8 +179,7 @@ namespace Server
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 }

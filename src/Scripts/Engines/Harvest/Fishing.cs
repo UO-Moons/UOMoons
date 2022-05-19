@@ -189,7 +189,7 @@ namespace Server.Engines.Harvest
 
 			return type;
 		}
-
+		/*
 		private static Map SafeMap(Map map)
 		{
 			if (map == null || map == Map.Internal)
@@ -197,7 +197,7 @@ namespace Server.Engines.Harvest
 
 			return map;
 		}
-
+		*/
 		public override bool CheckResources(Mobile from, Item tool, HarvestDefinition def, Map map, Point3D loc, bool timed)
 		{
 			Container pack = from.Backpack;

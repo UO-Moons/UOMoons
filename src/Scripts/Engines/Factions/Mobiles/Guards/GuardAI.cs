@@ -57,14 +57,14 @@ namespace Server.Factions
 			Entries = entries;
 		}
 
-		public static readonly SpellCombo Simple = new SpellCombo(50,
+		public static readonly SpellCombo Simple = new(50,
 			new ComboEntry(typeof(ParalyzeSpell), 20),
 			new ComboEntry(typeof(ExplosionSpell), 100, TimeSpan.FromSeconds(2.8)),
 			new ComboEntry(typeof(PoisonSpell), 30),
 			new ComboEntry(typeof(EnergyBoltSpell))
 		);
 
-		public static readonly SpellCombo Strong = new SpellCombo(90,
+		public static readonly SpellCombo Strong = new(90,
 			new ComboEntry(typeof(ParalyzeSpell), 20),
 			new ComboEntry(typeof(ExplosionSpell), 50, TimeSpan.FromSeconds(2.8)),
 			new ComboEntry(typeof(PoisonSpell), 30),
@@ -150,9 +150,8 @@ namespace Server.Factions
 			if (pack == null)
 				return false;
 
-			Item weapon = m_Guard.Weapon as Item;
 
-			if (weapon != null && weapon.Parent == m_Guard && !(weapon is Fists))
+			if (m_Guard.Weapon is Item weapon && weapon.Parent == m_Guard && weapon is not Fists)
 			{
 				pack.DropItem(weapon);
 				return true;
@@ -217,7 +216,7 @@ namespace Server.Factions
 			return true;
 		}
 
-		public int GetStatMod(Mobile mob, StatType type)
+		public static int GetStatMod(Mobile mob, StatType type)
 		{
 			StatMod mod = mob.GetStatMod(string.Format("[Magic] {0} Offset", type));
 
@@ -234,18 +233,18 @@ namespace Server.Factions
 			if (maxCircle < 1)
 				maxCircle = 1;
 
-			switch (Utility.Random(maxCircle * 2))
+			return Utility.Random(maxCircle * 2) switch
 			{
-				case 0: case 1: return new MagicArrowSpell(m_Guard, null);
-				case 2: case 3: return new HarmSpell(m_Guard, null);
-				case 4: case 5: return new FireballSpell(m_Guard, null);
-				case 6: case 7: return new LightningSpell(m_Guard, null);
-				case 8: return new MindBlastSpell(m_Guard, null);
-				case 9: return new ParalyzeSpell(m_Guard, null);
-				case 10: return new EnergyBoltSpell(m_Guard, null);
-				case 11: return new ExplosionSpell(m_Guard, null);
-				default: return new FlameStrikeSpell(m_Guard, null);
-			}
+				0 or 1 => new MagicArrowSpell(m_Guard, null),
+				2 or 3 => new HarmSpell(m_Guard, null),
+				4 or 5 => new FireballSpell(m_Guard, null),
+				6 or 7 => new LightningSpell(m_Guard, null),
+				8 => new MindBlastSpell(m_Guard, null),
+				9 => new ParalyzeSpell(m_Guard, null),
+				10 => new EnergyBoltSpell(m_Guard, null),
+				11 => new ExplosionSpell(m_Guard, null),
+				_ => new FlameStrikeSpell(m_Guard, null),
+			};
 		}
 
 		public Mobile FindDispelTarget(bool activeOnly)
@@ -351,7 +350,7 @@ namespace Server.Factions
 						}
 					}
 
-					return active != null ? active : inactive;
+					return active ?? inactive;
 				}
 			}
 
@@ -360,7 +359,7 @@ namespace Server.Factions
 
 		public bool CanDispel(Mobile m)
 		{
-			return (m is BaseCreature && ((BaseCreature)m).Summoned && m_Mobile.CanBeHarmful(m, false) && !((BaseCreature)m).IsAnimatedDead);
+			return m is BaseCreature creature && creature.Summoned && m_Mobile.CanBeHarmful(m, false) && !creature.IsAnimatedDead;
 		}
 
 		public void RunTo(Mobile m)
@@ -478,7 +477,7 @@ namespace Server.Factions
 			{
 				Target targ = m_Guard.Target;
 
-				Mobile toHarm = (dispelTarget == null ? combatant : dispelTarget);
+				Mobile toHarm = dispelTarget ?? combatant;
 
 				if ((targ.Flags & TargetFlags.Harmful) != 0 && toHarm != null)
 				{
@@ -659,7 +658,7 @@ namespace Server.Factions
 						int dexMod = GetStatMod(m_Guard, StatType.Dex);
 						int intMod = GetStatMod(m_Guard, StatType.Int);
 
-						List<Type> types = new List<Type>();
+						List<Type> types = new();
 
 						if (strMod <= 0)
 							types.Add(typeof(StrengthSpell));
@@ -698,7 +697,7 @@ namespace Server.Factions
 							int dexMod = GetStatMod(combatant, StatType.Dex);
 							int intMod = GetStatMod(combatant, StatType.Int);
 
-							List<Type> types = new List<Type>();
+							List<Type> types = new();
 
 							if (strMod >= 0)
 								types.Add(typeof(WeakenSpell));
@@ -754,7 +753,7 @@ namespace Server.Factions
 				if (spell == null || !spell.Cast())
 					EquipWeapon();
 			}
-			else if (m_Mobile.Spell is Spell && ((Spell)m_Mobile.Spell).State == SpellState.Sequencing)
+			else if (m_Mobile.Spell is Spell spell && spell.State == SpellState.Sequencing)
 			{
 				EquipWeapon();
 			}

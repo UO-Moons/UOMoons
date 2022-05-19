@@ -31,11 +31,11 @@ namespace Server.Gumps
 			text = text.Trim();
 
 			if (text.Length > 3)
-				text = text.Substring(0, 3);
+				text = text[..3];
 
 			if (text.Length > 0)
 			{
-				if (Guild.FindByAbbrev(text) != null)
+				if (BaseGuild.FindByAbbrev(text) != null)
 				{
 					m_Mobile.SendMessage("{0} conflicts with the abbreviation of an existing guild.", text);
 				}

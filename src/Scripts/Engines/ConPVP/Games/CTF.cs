@@ -39,15 +39,13 @@ namespace Server.Engines.ConPVP
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
 			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -87,7 +85,7 @@ namespace Server.Engines.ConPVP
 
 			CTFTeamInfo ourTeam = game.GetTeamInfo(mob);
 
-			List<IRankedCTF> entries = new List<IRankedCTF>();
+			List<IRankedCTF> entries = new();
 
 			if (section == null)
 			{
@@ -462,13 +460,13 @@ namespace Server.Engines.ConPVP
 			MoveToWorld(m_TeamInfo.Origin, m_TeamInfo.Game.Facet);
 		}
 
-		private Mobile FindOwner(object parent)
+		private static Mobile FindOwner(object parent)
 		{
-			if (parent is Item)
-				return ((Item)parent).RootParent as Mobile;
+			if (parent is Item item)
+				return item.RootParent as Mobile;
 
-			if (parent is Mobile)
-				return (Mobile)parent;
+			if (parent is Mobile mobile)
+				return mobile;
 
 			return null;
 		}
@@ -508,8 +506,7 @@ namespace Server.Engines.ConPVP
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -857,9 +854,7 @@ namespace Server.Engines.ConPVP
 
 		public int GetTeamID(Mobile mob)
 		{
-			PlayerMobile pm = mob as PlayerMobile;
-
-			if (pm == null)
+			if (mob is not PlayerMobile pm)
 				return -1;
 
 			if (pm.DuelContext == null || pm.DuelContext != m_Context)
@@ -881,7 +876,7 @@ namespace Server.Engines.ConPVP
 			return -1;
 		}
 
-		private void ApplyHues(Participant p, int hueOverride)
+		private static void ApplyHues(Participant p, int hueOverride)
 		{
 			for (int i = 0; i < p.Players.Length; ++i)
 			{
@@ -1025,7 +1020,7 @@ namespace Server.Engines.ConPVP
 
 		private void Finish_Callback()
 		{
-			List<CTFTeamInfo> teams = new List<CTFTeamInfo>();
+			List<CTFTeamInfo> teams = new();
 
 			for (int i = 0; i < m_Context.Participants.Count; ++i)
 			{
@@ -1044,7 +1039,7 @@ namespace Server.Engines.ConPVP
 
 			Tournament tourny = m_Context.m_Tournament;
 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 
 			if (tourny != null && tourny.TournyType == TournyType.FreeForAll)
 			{

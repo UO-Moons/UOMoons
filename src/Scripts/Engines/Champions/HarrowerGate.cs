@@ -3,10 +3,8 @@ namespace Server.Items
 	public class HarrowerGate : Moongate
 	{
 		private Mobile m_Harrower;
-
-		public override int LabelNumber => 1049498;  // dark moongate
-
-		public HarrowerGate(Mobile harrower, Point3D loc, Map map, Point3D targLoc, Map targMap) : base(targLoc, targMap)
+		public HarrowerGate(Mobile harrower, Point3D loc, Map map, Point3D targLoc, Map targMap)
+			: base(targLoc, targMap)
 		{
 			m_Harrower = harrower;
 
@@ -17,10 +15,12 @@ namespace Server.Items
 			MoveToWorld(loc, map);
 		}
 
-		public HarrowerGate(Serial serial) : base(serial)
+		public HarrowerGate(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public override int LabelNumber => 1049498;// dark moongate
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -48,9 +48,6 @@ namespace Server.Items
 						break;
 					}
 			}
-
-			if (Light != LightType.Circle300)
-				Light = LightType.Circle300;
 		}
 	}
 }

@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class TavarasJournal1 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -89,13 +89,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal2 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -218,13 +218,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal3 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -315,13 +315,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal6 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -425,13 +425,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal7 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -523,13 +523,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal8 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -641,13 +641,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal9 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -735,13 +735,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal11 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -853,13 +853,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal14 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -962,13 +962,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal16 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -1083,13 +1083,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal16b : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -1193,13 +1193,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal17 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -1264,13 +1264,13 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 
 	public class TavarasJournal19 : BaseBook
 	{
-		public static readonly BookContent Content = new BookContent
+		public static readonly BookContent Content = new 
 			(
 				"Journal: Discovery of the Tomb", "Tavara Sewel",
 				new BookPageInfo
@@ -1324,7 +1324,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 }

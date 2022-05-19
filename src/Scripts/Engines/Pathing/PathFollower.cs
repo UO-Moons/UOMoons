@@ -33,8 +33,8 @@ namespace Server
 
 		public Point3D GetGoalLocation()
 		{
-			if (Goal is Item)
-				return ((Item)Goal).GetWorldLocation();
+			if (Goal is Item item)
+				return item.GetWorldLocation();
 
 			return new Point3D(Goal);
 		}
@@ -96,7 +96,7 @@ namespace Server
 			return true;
 		}
 
-		public bool Check(Point3D loc, Point3D goal, int range)
+		public static bool Check(Point3D loc, Point3D goal, int range)
 		{
 			if (!Utility.InRange(loc, goal, range))
 				return false;

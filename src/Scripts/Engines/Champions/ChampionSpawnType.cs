@@ -18,17 +18,22 @@ namespace Server.Engines.Champions
 
 	public class ChampionSpawnInfo
 	{
-		public string Name { get; }
-		public Type Champion { get; }
-		public Type[][] SpawnTypes { get; }
-		public string[] LevelNames { get; }
+		private readonly string m_Name;
+		private readonly Type m_Champion;
+		private readonly Type[][] m_SpawnTypes;
+		private readonly string[] m_LevelNames;
+
+		public string Name => m_Name;
+		public Type Champion => m_Champion;
+		public Type[][] SpawnTypes => m_SpawnTypes;
+		public string[] LevelNames => m_LevelNames;
 
 		public ChampionSpawnInfo(string name, Type champion, string[] levelNames, Type[][] spawnTypes)
 		{
-			Name = name;
-			Champion = champion;
-			LevelNames = levelNames;
-			SpawnTypes = spawnTypes;
+			m_Name = name;
+			m_Champion = champion;
+			m_LevelNames = levelNames;
+			m_SpawnTypes = spawnTypes;
 		}
 
 		public static ChampionSpawnInfo[] Table { get; } = new ChampionSpawnInfo[]

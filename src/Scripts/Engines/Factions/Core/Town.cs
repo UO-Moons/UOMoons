@@ -117,10 +117,8 @@ namespace Server.Factions
 
 				foreach (BaseMonolith monolith in monoliths)
 				{
-					if (monolith is TownMonolith)
+					if (monolith is TownMonolith townMonolith)
 					{
-						TownMonolith townMonolith = (TownMonolith)monolith;
-
 						if (townMonolith.Town == this)
 							return townMonolith;
 					}
@@ -167,17 +165,13 @@ namespace Server.Factions
 			else if (isSheriff)
 				type = "guard";
 
-			if (obj is BaseFactionVendor)
+			if (obj is BaseFactionVendor vendor)
 			{
-				BaseFactionVendor vendor = (BaseFactionVendor)obj;
-
 				if (vendor.Town == this && isFinance)
 					vendor.Delete();
 			}
-			else if (obj is BaseFactionGuard)
+			else if (obj is BaseFactionGuard guard)
 			{
-				BaseFactionGuard guard = (BaseFactionGuard)obj;
-
 				if (guard.Town == this && isSheriff)
 					guard.Delete();
 			}
@@ -240,7 +234,7 @@ namespace Server.Factions
 
 		public ArrayList BuildFinanceList()
 		{
-			ArrayList list = new ArrayList();
+			ArrayList list = new();
 
 			List<VendorList> vendorLists = VendorLists;
 
@@ -397,7 +391,7 @@ namespace Server.Factions
 			if (mob == null || mob.Deleted)
 				return false;
 
-			return (mob.AccessLevel >= AccessLevel.GameMaster || mob == Sheriff);
+			return mob.AccessLevel >= AccessLevel.GameMaster || mob == Sheriff;
 		}
 
 		public bool IsFinance(Mobile mob)
@@ -405,7 +399,7 @@ namespace Server.Factions
 			if (mob == null || mob.Deleted)
 				return false;
 
-			return (mob.AccessLevel >= AccessLevel.GameMaster || mob == Finance);
+			return mob.AccessLevel >= AccessLevel.GameMaster || mob == Finance;
 		}
 
 		public static List<Town> Towns => Reflector.Towns;

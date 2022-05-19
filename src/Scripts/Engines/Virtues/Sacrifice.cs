@@ -32,9 +32,7 @@ namespace Server
 
 		public static void CheckAtrophy(Mobile from)
 		{
-			PlayerMobile pm = from as PlayerMobile;
-
-			if (pm == null)
+			if (from is not PlayerMobile pm)
 				return;
 
 			try
@@ -60,9 +58,7 @@ namespace Server
 			if (from.Alive)
 				return;
 
-			PlayerMobile pm = from as PlayerMobile;
-
-			if (pm == null)
+			if (from is not PlayerMobile pm)
 				return;
 
 			if (from.Criminal)
@@ -90,17 +86,7 @@ namespace Server
 
 		public static void Sacrifice(Mobile from, object targeted)
 		{
-			if (!from.CheckAlive())
-				return;
-
-			PlayerMobile pm = from as PlayerMobile;
-
-			if (pm == null)
-				return;
-
-			Mobile targ = targeted as Mobile;
-
-			if (targ == null)
+			if (!from.CheckAlive() || from is not PlayerMobile pm || targeted is not Mobile targ)
 				return;
 
 			if (!ValidateCreature(targ))
@@ -172,10 +158,9 @@ namespace Server
 
 		public static bool ValidateCreature(Mobile m)
 		{
-			if (m is BaseCreature && (((BaseCreature)m).Controlled || ((BaseCreature)m).Summoned))
-				return false;
-
-			return (m is Lich || m is Succubus || m is Daemon || m is EvilMage || m is EnslavedGargoyle || m is GargoyleEnforcer);
+			return m is BaseCreature creature && (creature.Controlled || creature.Summoned)
+				? false
+				: m is Lich || m is Succubus || m is Daemon || m is EvilMage || m is EnslavedGargoyle || m is GargoyleEnforcer;
 		}
 
 		private class InternalTarget : Target

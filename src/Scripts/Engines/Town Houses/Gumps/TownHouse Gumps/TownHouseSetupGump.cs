@@ -820,7 +820,7 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (!(obj is int))
+			if (obj is not int)
 			{
 				return;
 			}
@@ -886,7 +886,7 @@ namespace Server.Engines.TownHouses
 
 		private void Murderers(object obj)
 		{
-			if (!(obj is Intu))
+			if (obj is not Intu)
 			{
 				return;
 			}
@@ -979,7 +979,7 @@ namespace Server.Engines.TownHouses
 
 		private void Claim()
 		{
-			new TownHouseConfirmGump(Owner, c_Sign);
+			_ = new TownHouseConfirmGump(Owner, c_Sign);
 			OnClose();
 		}
 

@@ -67,7 +67,7 @@ namespace Server.Engines.Chat
 					return;
 				}
 
-				if (NameVerification.Validate(chatName, 2, 31, true, true, true, 0, NameVerification.SpaceDashPeriodQuote) && chatName.ToLower().IndexOf("system") == -1)
+				if (NameVerification.Validate(chatName, 2, 31, true, true, true, 0, NameVerification.SpaceDashPeriodQuote) && !chatName.ToLower().Contains("system", StringComparison.CurrentCulture))
 				{
 					// TODO: Optimize this search
 

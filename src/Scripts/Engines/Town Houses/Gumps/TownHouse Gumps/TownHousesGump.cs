@@ -24,7 +24,7 @@ namespace Server.Engines.TownHouses
 
 		private static void OnHouses(CommandInfo info)
 		{
-			new TownHousesGump(info.Mobile);
+			_ = new TownHousesGump(info.Mobile);
 		}
 
 		private ListPage c_ListPage;
@@ -52,7 +52,7 @@ namespace Server.Engines.TownHouses
 				AddButton(width / 2 - 10, y += 25, 0x25E4, 0x25E5, "Page Down", PageDown);
 			}
 
-			ArrayList list = new ArrayList();
+			ArrayList list = new();
 			if (c_ListPage == ListPage.Town)
 			{
 				list = new ArrayList(TownHouseSign.AllSigns);
@@ -124,14 +124,14 @@ namespace Server.Engines.TownHouses
 
 		private void TownHouseMenu(object obj)
 		{
-			if (!(obj is TownHouseSign))
+			if (obj is not TownHouseSign)
 			{
 				return;
 			}
 
 			NewGump();
 
-			new TownHouseSetupGump(Owner, (TownHouseSign)obj);
+			_ = new TownHouseSetupGump(Owner, (TownHouseSign)obj);
 		}
 
 		private void Page(object obj)
@@ -142,7 +142,7 @@ namespace Server.Engines.TownHouses
 
 		private void Goto(object obj)
 		{
-			if (!(obj is BaseHouse))
+			if (obj is not BaseHouse)
 			{
 				return;
 			}
@@ -155,7 +155,7 @@ namespace Server.Engines.TownHouses
 
 		private void HouseMenu(object obj)
 		{
-			if (!(obj is BaseHouse))
+			if (obj is not BaseHouse)
 			{
 				return;
 			}
@@ -167,14 +167,14 @@ namespace Server.Engines.TownHouses
 
 		private void New()
 		{
-			TownHouseSign sign = new TownHouseSign();
+			TownHouseSign sign = new();
 			Owner.AddToBackpack(sign);
 			Owner.SendMessage(
 				"A new sign is now in your backpack.  It will move on it's own during setup, but if you don't complete setup you may want to delete it.");
 
 			NewGump();
 
-			new TownHouseSetupGump(Owner, sign);
+			_ = new TownHouseSetupGump(Owner, sign);
 		}
 
 		private void PageUp()

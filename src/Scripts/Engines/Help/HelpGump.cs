@@ -71,8 +71,8 @@ namespace Server.Engines.Help
 
 		private static bool IsYoung(Mobile m)
 		{
-			if (m is PlayerMobile)
-				return ((PlayerMobile)m).Young;
+			if (m is PlayerMobile mobile)
+				return mobile.Young;
 
 			return false;
 		}
@@ -236,9 +236,9 @@ namespace Server.Engines.Help
 						{
 							from.SendLocalizedMessage(1061632); // You can't do that while carrying the sigil.
 						}
-						else if (from is PlayerMobile && ((PlayerMobile)from).CanUseStuckMenu() && from.Region.CanUseStuckMenu(from) && !CheckCombat(from) && !from.Frozen && !from.Criminal && (Core.AOS || !from.Murderer))
+						else if (from is PlayerMobile mobile && mobile.CanUseStuckMenu() && from.Region.CanUseStuckMenu(from) && !CheckCombat(from) && !from.Frozen && !from.Criminal && (Core.AOS || !from.Murderer))
 						{
-							StuckMenu menu = new StuckMenu(from, from, true);
+							StuckMenu menu = new(from, from, true);
 
 							menu.BeginClose();
 

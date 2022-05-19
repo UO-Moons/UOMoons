@@ -175,11 +175,10 @@ namespace Server.Engines.ConPVP
 
 		private void ReKingify(Mobile m)
 		{
-			KHTeamInfo ti = null;
 			if (m_Game == null || m == null)
 				return;
 
-			ti = m_Game.GetTeamInfo(m);
+			KHTeamInfo ti = m_Game.GetTeamInfo(m);
 			if (ti == null)
 				return;
 
@@ -221,7 +220,6 @@ namespace Server.Engines.ConPVP
 
 			protected override void OnTick()
 			{
-				KHTeamInfo ti = null;
 				KHPlayerInfo pi = null;
 
 				if (m_Hill == null || m_Hill.Deleted || m_Hill.Game == null)
@@ -237,7 +235,7 @@ namespace Server.Engines.ConPVP
 					return;
 				}
 
-				ti = m_Hill.Game.GetTeamInfo(m_Hill.King);
+				KHTeamInfo ti = m_Hill.Game.GetTeamInfo(m_Hill.King);
 				if (ti != null)
 					pi = ti[m_Hill.King];
 
@@ -387,7 +385,7 @@ namespace Server.Engines.ConPVP
 
 			KHTeamInfo ourTeam = game.GetTeamInfo(mob);
 
-			ArrayList entries = new ArrayList();
+			ArrayList entries = new();
 
 			for (int i = 0; i < game.Context.Participants.Count; ++i)
 			{
@@ -618,9 +616,8 @@ namespace Server.Engines.ConPVP
 				if (mob == null)
 					return null;
 
-				KHPlayerInfo val = Players[mob] as KHPlayerInfo;
 
-				if (val == null)
+				if (Players[mob] is not KHPlayerInfo val)
 					Players[mob] = val = new KHPlayerInfo(this, mob);
 
 				return val;
@@ -902,9 +899,7 @@ namespace Server.Engines.ConPVP
 
 		public int GetTeamID(Mobile mob)
 		{
-			PlayerMobile pm = mob as PlayerMobile;
-
-			if (pm == null)
+			if (mob is not PlayerMobile pm)
 			{
 				if (mob is BaseCreature)
 					return ((BaseCreature)mob).Team - 1;
@@ -931,7 +926,7 @@ namespace Server.Engines.ConPVP
 			return -1;
 		}
 
-		private void ApplyHues(Participant p, int hueOverride)
+		private static void ApplyHues(Participant p, int hueOverride)
 		{
 			for (int i = 0; i < p.Players.Length; ++i)
 			{
@@ -1052,7 +1047,7 @@ namespace Server.Engines.ConPVP
 
 		private void Finish_Callback()
 		{
-			ArrayList teams = new ArrayList();
+			ArrayList teams = new();
 
 			for (int i = 0; i < m_Context.Participants.Count; ++i)
 			{
@@ -1068,7 +1063,7 @@ namespace Server.Engines.ConPVP
 
 			Tournament tourny = m_Context.m_Tournament;
 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 
 			if (tourny != null && tourny.TournyType == TournyType.FreeForAll)
 			{
@@ -1176,9 +1171,7 @@ namespace Server.Engines.ConPVP
 
 			for (int i = 0; i < m_Context.Participants.Count; ++i)
 			{
-				Participant p = m_Context.Participants[i] as Participant;
-
-				if (p == null || p.Players == null)
+				if (m_Context.Participants[i] is not Participant p || p.Players == null)
 					continue;
 
 				for (int j = 0; j < p.Players.Length; ++j)

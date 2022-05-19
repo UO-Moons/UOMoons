@@ -49,17 +49,17 @@ namespace Server.Engines.Craft
 			private int GetWeakenChance(Mobile mob, SkillName skill, int curHits, int maxHits)
 			{
 				// 40% - (1% per hp lost) - (1% per 10 craft skill)
-				return (40 + (maxHits - curHits)) - (int)(((m_Deed != null) ? m_Deed.SkillLevel : mob.Skills[skill].Value) / 10);
+				return 40 + (maxHits - curHits) - (int)(((m_Deed != null) ? m_Deed.SkillLevel : mob.Skills[skill].Value) / 10);
 			}
 
 			private bool CheckWeaken(Mobile mob, SkillName skill, int curHits, int maxHits)
 			{
-				return (GetWeakenChance(mob, skill, curHits, maxHits) > Utility.Random(100));
+				return GetWeakenChance(mob, skill, curHits, maxHits) > Utility.Random(100);
 			}
 
-			private int GetRepairDifficulty(int curHits, int maxHits)
+			private static int GetRepairDifficulty(int curHits, int maxHits)
 			{
-				return (((maxHits - curHits) * 1250) / Math.Max(maxHits, 1)) - 250;
+				return ((maxHits - curHits) * 1250 / Math.Max(maxHits, 1)) - 250;
 			}
 
 			private bool CheckRepairDifficulty(Mobile mob, SkillName skill, int curHits, int maxHits)
@@ -222,9 +222,9 @@ namespace Server.Engines.Craft
 				{
 					number = 1044282; // You must be near a forge and and anvil to repair items. * Yes, there are two and's *
 				}
-				else if (m_CraftSystem is DefTinkering && targeted is Golem)
+				else if (m_CraftSystem is DefTinkering && targeted is Golem golem)
 				{
-					Golem g = (Golem)targeted;
+					Golem g = golem;
 					int damage = g.HitsMax - g.Hits;
 
 					if (g.IsDeadBondedPet)
@@ -287,9 +287,8 @@ namespace Server.Engines.Craft
 						}
 					}
 				}
-				else if (targeted is BaseWeapon)
+				else if (targeted is BaseWeapon weapon)
 				{
-					BaseWeapon weapon = (BaseWeapon)targeted;
 					SkillName skill = m_CraftSystem.MainSkill;
 					int toWeaken = 0;
 
@@ -354,9 +353,8 @@ namespace Server.Engines.Craft
 						toDelete = true;
 					}
 				}
-				else if (targeted is BaseArmor)
+				else if (targeted is BaseArmor armor)
 				{
-					BaseArmor armor = (BaseArmor)targeted;
 					SkillName skill = m_CraftSystem.MainSkill;
 					int toWeaken = 0;
 
@@ -417,9 +415,8 @@ namespace Server.Engines.Craft
 						toDelete = true;
 					}
 				}
-				else if (targeted is BaseClothing)
+				else if (targeted is BaseClothing clothing)
 				{
-					BaseClothing clothing = (BaseClothing)targeted;
 					SkillName skill = m_CraftSystem.MainSkill;
 					int toWeaken = 0;
 
@@ -480,14 +477,14 @@ namespace Server.Engines.Craft
 						toDelete = true;
 					}
 				}
-				else if (!usingDeed && targeted is BlankScroll)
+				else if (!usingDeed && targeted is BlankScroll scroll)
 				{
 					SkillName skill = m_CraftSystem.MainSkill;
 
 					if (from.Skills[skill].Value >= 50.0)
 					{
-						((BlankScroll)targeted).Consume(1);
-						RepairDeed deed = new RepairDeed(RepairDeed.GetTypeFor(m_CraftSystem), from.Skills[skill].Value, from);
+						scroll.Consume(1);
+						RepairDeed deed = new(RepairDeed.GetTypeFor(m_CraftSystem), from.Skills[skill].Value, from);
 						from.AddToBackpack(deed);
 
 						number = 500442; // You create the item and put it in your backpack.
@@ -497,7 +494,7 @@ namespace Server.Engines.Craft
 				}
 				else if (targeted is Item)
 				{
-					number = (usingDeed) ? 1061136 : 1044277; // That item cannot be repaired. // You cannot repair that item with this type of repair contract.
+					number = usingDeed ? 1061136 : 1044277; // That item cannot be repaired. // You cannot repair that item with this type of repair contract.
 				}
 				else
 				{

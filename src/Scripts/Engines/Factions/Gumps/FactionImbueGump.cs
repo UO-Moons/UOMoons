@@ -92,10 +92,10 @@ namespace Server.Factions
 
 			if (m_Tool != null && !m_Tool.Deleted && m_Tool.UsesRemaining > 0)
 				m_Mobile.SendGump(new CraftGump(m_Mobile, m_CraftSystem, m_Tool, m_Notice));
-			else if (m_Notice is string)
-				m_Mobile.SendMessage((string)m_Notice);
-			else if (m_Notice is int && ((int)m_Notice) > 0)
-				m_Mobile.SendLocalizedMessage((int)m_Notice);
+			else if (m_Notice is string @string)
+				m_Mobile.SendMessage(@string);
+			else if (m_Notice is int @int && @int > 0)
+				m_Mobile.SendLocalizedMessage(@int);
 		}
 	}
 }

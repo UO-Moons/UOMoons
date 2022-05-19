@@ -209,6 +209,10 @@ namespace Server.Mobiles
 			}
 		}
 
+		public virtual void OnChampPopped(ChampionSpawn spawn)
+		{
+		}
+
 		public override bool OnBeforeDeath()
 		{
 			if (!NoKillAwards)

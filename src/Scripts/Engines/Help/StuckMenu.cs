@@ -201,8 +201,8 @@ namespace Server.Menus
 
 				new TeleportTimer(m_Mobile, entry, TimeSpan.FromSeconds(10.0 + (Utility.RandomDouble() * 110.0))).Start();
 
-				if (m_Mobile is PlayerMobile)
-					((PlayerMobile)m_Mobile).UsedStuckMenu();
+				if (m_Mobile is PlayerMobile mobile)
+					mobile.UsedStuckMenu();
 			}
 			else
 			{

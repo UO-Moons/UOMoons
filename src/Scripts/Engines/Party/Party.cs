@@ -31,9 +31,9 @@ namespace Server.Engines.PartySystem
 
 		public static void ListenToParty_OnTarget(Mobile from, object obj)
 		{
-			if (obj is Mobile)
+			if (obj is Mobile mobile)
 			{
-				Party p = Party.Get((Mobile)obj);
+				Party p = Get(mobile);
 
 				if (p == null)
 				{

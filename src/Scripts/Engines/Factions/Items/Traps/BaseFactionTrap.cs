@@ -104,7 +104,7 @@ namespace Server.Factions
 			{
 				foreach (Item item in m.GetItemsInRange(p, 0))
 				{
-					if (item is BaseFactionTrap && ((BaseFactionTrap)item).Faction == Faction)
+					if (item is BaseFactionTrap trap && trap.Faction == Faction)
 						return 1075263; // There is already a trap belonging to your faction at this location.;
 				}
 			}
@@ -230,8 +230,7 @@ namespace Server.Factions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 
 			Faction = Faction.ReadReference(reader);
 			Placer = reader.ReadMobile();
@@ -261,8 +260,8 @@ namespace Server.Factions
 
 			Faction faction = Faction.Find(mob, true);
 
-			if (faction == null && mob is BaseFactionGuard)
-				faction = ((BaseFactionGuard)mob).Faction;
+			if (faction == null && mob is BaseFactionGuard guard)
+				faction = guard.Faction;
 
 			if (faction == null)
 				return false;

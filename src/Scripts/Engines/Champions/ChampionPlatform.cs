@@ -1,44 +1,48 @@
 using Server.Items;
+using System;
 
 namespace Server.Engines.Champions
 {
 	public class ChampionPlatform : BaseAddon
 	{
 		private ChampionSpawn m_Spawn;
-
 		public ChampionPlatform(ChampionSpawn spawn)
 		{
 			m_Spawn = spawn;
 
 			for (int x = -2; x <= 2; ++x)
 				for (int y = -2; y <= 2; ++y)
-					AddComponent(0x750, x, y, -5);
+					AddComponent(0x3EE, x, y, -5);
 
 			for (int x = -1; x <= 1; ++x)
 				for (int y = -1; y <= 1; ++y)
-					AddComponent(0x750, x, y, 0);
+					AddComponent(0x3EE, x, y, 0);
 
 			for (int i = -1; i <= 1; ++i)
 			{
-				AddComponent(0x751, i, 2, 0);
-				AddComponent(0x752, 2, i, 0);
+				AddComponent(0x3EF, i, 2, 0);
+				AddComponent(0x3F0, 2, i, 0);
 
-				AddComponent(0x753, i, -2, 0);
-				AddComponent(0x754, -2, i, 0);
+				AddComponent(0x3F1, i, -2, 0);
+				AddComponent(0x3F2, -2, i, 0);
 			}
 
-			AddComponent(0x759, -2, -2, 0);
-			AddComponent(0x75A, 2, 2, 0);
-			AddComponent(0x75B, -2, 2, 0);
-			AddComponent(0x75C, 2, -2, 0);
+			AddComponent(0x03F7, -2, -2, 0);
+			AddComponent(0x03F8, 2, 2, 0);
+			AddComponent(0x03F9, -2, 2, 0);
+			AddComponent(0x03FA, 2, -2, 0);
+		}
+
+		public ChampionPlatform(Serial serial)
+			: base(serial)
+		{
 		}
 
 		public void AddComponent(int id, int x, int y, int z)
 		{
-			AddonComponent ac = new(id)
-			{
-				Hue = 0x497
-			};
+			AddonComponent ac = new AddonComponent(id);
+
+			ac.Hue = 0x452;
 
 			AddComponent(ac, x, y, z);
 		}
@@ -51,15 +55,11 @@ namespace Server.Engines.Champions
 				m_Spawn.Delete();
 		}
 
-		public ChampionPlatform(Serial serial) : base(serial)
-		{
-		}
-
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(0);
 
 			writer.Write(m_Spawn);
 		}
@@ -83,5 +83,41 @@ namespace Server.Engines.Champions
 					}
 			}
 		}
+		/*
+		private void FixComponents()
+		{
+			foreach (var comp in Components)
+			{
+				comp.Hue = 0x452;
+
+				if (comp.ItemID == 0x750)
+					comp.ItemID = 0x3EE;
+
+				if (comp.ItemID == 0x751)
+					comp.ItemID = 0x3EF;
+
+				if (comp.ItemID == 0x752)
+					comp.ItemID = 0x3F0;
+
+				if (comp.ItemID == 0x753)
+					comp.ItemID = 0x3F1;
+
+				if (comp.ItemID == 0x754)
+					comp.ItemID = 0x3F2;
+
+				if (comp.ItemID == 0x759)
+					comp.ItemID = 0x3F7;
+
+				if (comp.ItemID == 0x75A)
+					comp.ItemID = 0x3F8;
+
+				if (comp.ItemID == 0x75B)
+					comp.ItemID = 0x3F9;
+
+				if (comp.ItemID == 0x75C)
+					comp.ItemID = 0x3FA;
+			}
+		}
+		*/
 	}
 }

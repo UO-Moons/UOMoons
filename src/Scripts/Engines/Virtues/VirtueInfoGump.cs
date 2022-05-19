@@ -81,8 +81,6 @@ namespace Server
 			AddButton(280, 43, 4014, 4014, 2, GumpButtonType.Reply, 0);
 
 			AddHtmlLocalized(83, 275, 400, 40, (webPage == null) ? 1052055 : 1052052, false, false); // This virtue is not yet defined. OR -click to learn more (opens webpage)
-
-
 		}
 
 		public override void OnResponse(NetState state, RelayInfo info)

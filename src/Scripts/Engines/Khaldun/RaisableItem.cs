@@ -155,8 +155,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 
 			m_MaxElevation = reader.ReadEncodedInt();
 			MoveSound = reader.ReadEncodedInt();

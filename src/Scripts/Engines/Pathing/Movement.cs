@@ -28,7 +28,7 @@ namespace Server.Movement
 		{
 		}
 
-		private bool IsOk(bool ignoreDoors, bool ignoreSpellFields, int ourZ, int ourTop, StaticTile[] tiles, List<Item> items)
+		private static bool IsOk(bool ignoreDoors, bool ignoreSpellFields, int ourZ, int ourTop, StaticTile[] tiles, List<Item> items)
 		{
 			for (int i = 0; i < tiles.Length; ++i)
 			{
@@ -83,7 +83,7 @@ namespace Server.Movement
 				new List<Mobile>(),
 			};
 
-		private readonly List<Sector> m_Sectors = new List<Sector>();
+		private readonly List<Sector> m_Sectors = new();
 
 		private bool Check(Map map, Mobile m, List<Item> items, List<Mobile> mobiles, int x, int y, int startTop, int startZ, bool canSwim, bool cantWalk, out int newZ)
 		{
@@ -127,7 +127,7 @@ namespace Server.Movement
 					int itemZ = tile.Z;
 					int itemTop = itemZ;
 					int ourZ = itemZ + itemData.CalcHeight;
-					int ourTop = ourZ + PersonHeight;
+					_ = ourZ + PersonHeight;
 					int testTop = checkTop;
 
 					if (moveIsOk)
@@ -181,7 +181,7 @@ namespace Server.Movement
 					int itemZ = item.Z;
 					int itemTop = itemZ;
 					int ourZ = itemZ + itemData.CalcHeight;
-					int ourTop = ourZ + PersonHeight;
+					_ = ourZ + PersonHeight;
 					int testTop = checkTop;
 
 					if (moveIsOk)
@@ -223,7 +223,7 @@ namespace Server.Movement
 			if (considerLand && !landBlocks && stepTop >= landZ)
 			{
 				int ourZ = landCenter;
-				int ourTop = ourZ + PersonHeight;
+				_ = ourZ + PersonHeight;
 				int testTop = checkTop;
 
 				if (ourZ + PersonHeight > testTop)
@@ -262,9 +262,9 @@ namespace Server.Movement
 			return moveIsOk;
 		}
 
-		private bool CanMoveOver(Mobile m, Mobile t)
+		private static bool CanMoveOver(Mobile m, Mobile t)
 		{
-			return (!t.Alive || !m.Alive || t.IsDeadBondedPet || m.IsDeadBondedPet) || (t.Hidden && t.AccessLevel > AccessLevel.Player);
+			return !t.Alive || !m.Alive || t.IsDeadBondedPet || m.IsDeadBondedPet || (t.Hidden && t.AccessLevel > AccessLevel.Player);
 		}
 
 		public bool CheckMovement(Mobile m, Map map, Point3D loc, Direction d, out int newZ)
@@ -308,7 +308,7 @@ namespace Server.Movement
 			List<Mobile> mobsLeft = m_MobPools[1];
 			List<Mobile> mobsRight = m_MobPools[2];
 
-			bool checkMobs = (m is BaseCreature && !((BaseCreature)m).Controlled && (xForward != m_Goal.X || yForward != m_Goal.Y));
+			bool checkMobs = m is BaseCreature creature && !creature.Controlled && (xForward != m_Goal.X || yForward != m_Goal.Y);
 
 			if (checkDiagonals)
 			{
@@ -344,13 +344,13 @@ namespace Server.Movement
 						if ((item.ItemData.Flags & reqFlags) == 0)
 							continue;
 
-						if (sector == sectorStart && item.AtWorldPoint(xStart, yStart) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						if (sector == sectorStart && item.AtWorldPoint(xStart, yStart) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsStart.Add(item);
-						else if (sector == sectorForward && item.AtWorldPoint(xForward, yForward) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						else if (sector == sectorForward && item.AtWorldPoint(xForward, yForward) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsForward.Add(item);
-						else if (sector == sectorLeft && item.AtWorldPoint(xLeft, yLeft) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						else if (sector == sectorLeft && item.AtWorldPoint(xLeft, yLeft) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsLeft.Add(item);
-						else if (sector == sectorRight && item.AtWorldPoint(xRight, yRight) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						else if (sector == sectorRight && item.AtWorldPoint(xRight, yRight) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsRight.Add(item);
 					}
 
@@ -390,9 +390,9 @@ namespace Server.Movement
 						if ((item.ItemData.Flags & reqFlags) == 0)
 							continue;
 
-						if (item.AtWorldPoint(xStart, yStart) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						if (item.AtWorldPoint(xStart, yStart) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsStart.Add(item);
-						else if (item.AtWorldPoint(xForward, yForward) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						else if (item.AtWorldPoint(xForward, yForward) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsForward.Add(item);
 					}
 				}
@@ -408,7 +408,7 @@ namespace Server.Movement
 						if ((item.ItemData.Flags & reqFlags) == 0)
 							continue;
 
-						if (item.AtWorldPoint(xForward, yForward) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						if (item.AtWorldPoint(xForward, yForward) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsForward.Add(item);
 					}
 
@@ -422,7 +422,7 @@ namespace Server.Movement
 						if ((item.ItemData.Flags & reqFlags) == 0)
 							continue;
 
-						if (item.AtWorldPoint(xStart, yStart) && !(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue)
+						if (item.AtWorldPoint(xStart, yStart) && item is not BaseMulti && item.ItemID <= TileData.MaxItemValue)
 							itemsStart.Add(item);
 					}
 				}
@@ -482,7 +482,7 @@ namespace Server.Movement
 			return CheckMovement(m, m.Map, m.Location, d, out newZ);
 		}
 
-		private void GetStartZ(Mobile m, Map map, Point3D loc, List<Item> itemList, out int zLow, out int zTop)
+		private static void GetStartZ(Mobile m, Map map, Point3D loc, List<Item> itemList, out int zLow, out int zTop)
 		{
 			int xCheck = loc.X, yCheck = loc.Y;
 
@@ -570,7 +570,7 @@ namespace Server.Movement
 				zTop = loc.Z;
 		}
 
-		public void Offset(Direction d, ref int x, ref int y)
+		public static void Offset(Direction d, ref int x, ref int y)
 		{
 			switch (d & Direction.Mask)
 			{

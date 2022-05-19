@@ -80,7 +80,7 @@ namespace Server.Engines.Craft
 			return number;
 		}
 
-		private static readonly Dictionary<Type, int> _itemIds = new Dictionary<Type, int>();
+		private static readonly Dictionary<Type, int> _itemIds = new();
 
 		public static int ItemIDOf(Type type)
 		{
@@ -142,14 +142,14 @@ namespace Server.Engines.Craft
 
 		public void AddRes(Type type, TextDefinition name, int amount, TextDefinition message)
 		{
-			CraftRes craftRes = new CraftRes(type, name, amount, message);
+			CraftRes craftRes = new(type, name, amount, message);
 			Resources.Add(craftRes);
 		}
 
 
 		public void AddSkill(SkillName skillToMake, double minSkill, double maxSkill)
 		{
-			CraftSkill craftSkill = new CraftSkill(skillToMake, minSkill, maxSkill);
+			CraftSkill craftSkill = new(skillToMake, minSkill, maxSkill);
 			Skills.Add(craftSkill);
 		}
 
@@ -862,7 +862,7 @@ namespace Server.Engines.Craft
 
 					if (allRequiredSkills && chance >= 0.0)
 					{
-						if (Recipe == null || !(from is PlayerMobile mobile) || mobile.HasRecipe(Recipe))
+						if (Recipe == null || from is not PlayerMobile mobile || mobile.HasRecipe(Recipe))
 						{
 							int badCraft = craftSystem.CanCraft(from, tool, ItemType);
 
@@ -963,10 +963,10 @@ namespace Server.Engines.Craft
 			{
 				if (tool != null && !tool.Deleted && tool.UsesRemaining > 0)
 					from.SendGump(new CraftGump(from, craftSystem, tool, checkMessage));
-				else if (checkMessage is int && (int)checkMessage > 0)
-					from.SendLocalizedMessage((int)checkMessage);
-				else if (checkMessage is string)
-					from.SendMessage((string)checkMessage);
+				else if (checkMessage is int @int && @int > 0)
+					from.SendLocalizedMessage(@int);
+				else if (checkMessage is string @string)
+					from.SendMessage(@string);
 
 				return;
 			}
@@ -974,10 +974,10 @@ namespace Server.Engines.Craft
 			{
 				if (tool != null && !tool.Deleted && tool.UsesRemaining > 0)
 					from.SendGump(new CraftGump(from, craftSystem, tool, checkMessage));
-				else if (checkMessage is int && (int)checkMessage > 0)
-					from.SendLocalizedMessage((int)checkMessage);
-				else if (checkMessage is string)
-					from.SendMessage((string)checkMessage);
+				else if (checkMessage is int @int && @int > 0)
+					from.SendLocalizedMessage(@int);
+				else if (checkMessage is string @string)
+					from.SendMessage(@string);
 
 				return;
 			}
@@ -1002,10 +1002,10 @@ namespace Server.Engines.Craft
 				{
 					if (tool != null && !tool.Deleted && tool.UsesRemaining > 0)
 						from.SendGump(new CraftGump(from, craftSystem, tool, message));
-					else if (message is int && (int)message > 0)
-						from.SendLocalizedMessage((int)message);
-					else if (message is string)
-						from.SendMessage((string)message);
+					else if (message is int @int && @int > 0)
+						from.SendLocalizedMessage(@int);
+					else if (message is string @string)
+						from.SendMessage(@string);
 
 					return;
 				}
@@ -1013,10 +1013,10 @@ namespace Server.Engines.Craft
 				{
 					if (tool != null && !tool.Deleted && tool.UsesRemaining > 0)
 						from.SendGump(new CraftGump(from, craftSystem, tool, message));
-					else if (message is int && (int)message > 0)
-						from.SendLocalizedMessage((int)message);
-					else if (message is string)
-						from.SendMessage((string)message);
+					else if (message is int @int && @int > 0)
+						from.SendLocalizedMessage(@int);
+					else if (message is string @string)
+						from.SendMessage(@string);
 
 					return;
 				}
@@ -1073,7 +1073,7 @@ namespace Server.Engines.Craft
 
 					from.AddToBackpack(item);
 
-					EventSink.InvokeOnCraftSuccess(from, item, tool is Item ? tool : null);
+					EventSink.InvokeOnCraftSuccess(from, item, tool is not null ? tool : null);
 
 					if (from.AccessLevel > AccessLevel.Player)
 						CommandLogging.WriteLine(from, "Crafting {0} with craft system {1}", CommandLogging.Format(item), craftSystem.GetType().Name);
@@ -1146,10 +1146,10 @@ namespace Server.Engines.Craft
 				{
 					if (tool != null && !tool.Deleted && tool.UsesRemaining > 0)
 						from.SendGump(new CraftGump(from, craftSystem, tool, message));
-					else if (message is int && (int)message > 0)
-						from.SendLocalizedMessage((int)message);
-					else if (message is string)
-						from.SendMessage((string)message);
+					else if (message is int @int && @int > 0)
+						from.SendLocalizedMessage(@int);
+					else if (message is string @string)
+						from.SendMessage(@string);
 
 					return;
 				}

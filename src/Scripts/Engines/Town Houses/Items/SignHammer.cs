@@ -12,8 +12,8 @@ namespace Server.Engines.TownHouses
 
 	public class SignHammer : Item
 	{
-		private static readonly Hashtable s_Table = new Hashtable();
-		private static readonly ArrayList s_List = new ArrayList();
+		private static readonly Hashtable s_Table = new();
+		private static readonly ArrayList s_List = new();
 
 		public static void Initialize()
 		{

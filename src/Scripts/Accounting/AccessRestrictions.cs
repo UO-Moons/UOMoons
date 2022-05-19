@@ -5,6 +5,11 @@ using System.Net;
 
 namespace Server
 {
+	public interface IAccountRestricted
+	{
+		string Account { get; set; }
+	}
+
 	public class AccessRestrictions
 	{
 		public static void Initialize()

@@ -35,7 +35,7 @@ namespace Server.Engines.Champions
 
 			public static void Serialize(GenericWriter writer, TitleInfo info)
 			{
-				writer.WriteEncodedInt(0); // version
+				writer.WriteEncodedInt(0);
 
 				writer.WriteEncodedInt(info.Value);
 				writer.Write(info.LastDecay);

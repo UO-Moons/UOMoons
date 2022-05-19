@@ -46,11 +46,11 @@ namespace Server.Engines.Harvest
 				}
 			}
 
-			if (m_System is Lumberjacking && targeted is IChopable)
-				((IChopable)targeted).OnChop(from);
-			else if (m_System is Lumberjacking && targeted is IAxe && m_Tool is BaseAxe axe)
+			if (m_System is Lumberjacking && targeted is IChopable chopable)
+				chopable.OnChop(from);
+			else if (m_System is Lumberjacking && targeted is IAxe axe1 && m_Tool is BaseAxe axe)
 			{
-				IAxe obj = (IAxe)targeted;
+				IAxe obj = axe1;
 				Item item = (Item)targeted;
 
 				if (!item.IsChildOf(from.Backpack))
@@ -58,12 +58,12 @@ namespace Server.Engines.Harvest
 				else if (obj.Axe(from, axe))
 					from.PlaySound(0x13E);
 			}
-			else if (m_System is Lumberjacking && targeted is ICarvable)
-				((ICarvable)targeted).Carve(from, m_Tool);
+			else if (m_System is Lumberjacking && targeted is ICarvable carvable)
+				carvable.Carve(from, m_Tool);
 			else if (m_System is Lumberjacking && FurnitureAttribute.Check(targeted as Item))
 				DestroyFurniture(from, (Item)targeted);
-			else if (m_System is Mining && targeted is TreasureMap)
-				((TreasureMap)targeted).OnBeginDig(from);
+			else if (m_System is Mining && targeted is TreasureMap map)
+				map.OnBeginDig(from);
 			else
 				m_System.StartHarvesting(from, m_Tool, targeted);
 		}

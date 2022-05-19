@@ -17,7 +17,7 @@ namespace Server.Guilds
 
 		public void CalculateAllianceLeader()
 		{
-			m_Leader = ((m_Members.Count >= 2) ? m_Members[Utility.Random(m_Members.Count)] : null);
+			m_Leader = (m_Members.Count >= 2) ? m_Members[Utility.Random(m_Members.Count)] : null;
 		}
 
 		public void CheckLeader()
@@ -52,18 +52,12 @@ namespace Server.Guilds
 
 		public bool IsPendingMember(Guild g)
 		{
-			if (g.Alliance != this)
-				return false;
-
-			return m_PendingMembers.Contains(g);
+			return g.Alliance != this ? false : m_PendingMembers.Contains(g);
 		}
 
 		public bool IsMember(Guild g)
 		{
-			if (g.Alliance != this)
-				return false;
-
-			return m_Members.Contains(g);
+			return g.Alliance != this ? false : m_Members.Contains(g);
 		}
 
 		public AllianceInfo(Guild leader, string name, Guild partner)
@@ -287,9 +281,7 @@ namespace Server.Guilds
 
 		public void AllianceChat(Mobile from, string text)
 		{
-			PlayerMobile pm = from as PlayerMobile;
-
-			AllianceChat(from, (pm == null) ? 0x3B2 : pm.AllianceMessageHue, text);
+			AllianceChat(from, (from is not PlayerMobile pm) ? 0x3B2 : pm.AllianceMessageHue, text);
 		}
 		#endregion
 

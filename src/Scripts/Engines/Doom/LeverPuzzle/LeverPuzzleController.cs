@@ -594,7 +594,7 @@ namespace Server.Engines.Doom
 			Packet.Release(p);
 		}
 
-		public static string[] Msgs =
+		private static readonly string[] Msgs =
 		{
 			"You are pinned down by the weight of the boulder!!!",	// 0
 			"A speeding rock hits you in the head!",		// 1
@@ -602,7 +602,7 @@ namespace Server.Engines.Doom
 		};
 		/* font&hue for above msgs. index matches */
 
-		public static int[][] MsgParams =
+		private static readonly int[][] MsgParams =
 		{
 			new int[]{ 0x66d, 3 },
 			new int[]{ 0x66d, 3 },
@@ -610,7 +610,7 @@ namespace Server.Engines.Doom
 		};
 		/* World data for items */
 
-		public static int[][] TA =
+		private static readonly int[][] TA =
 		{
 
 			new int[]{316, 64, 5},					/* 3D Coords for levers */
@@ -636,24 +636,24 @@ namespace Server.Engines.Doom
 
 		/* CLILOC data for statue "correct souls" messages */
 
-		public static int[] Statue_Msg = { 1050009, 1050007, 1050008, 1050008 };
+		private static readonly int[] Statue_Msg = { 1050009, 1050007, 1050008, 1050008 };
 
 		/* Exit & Enter locations for the lamp room */
 
-		public static Point3D lr_Exit = new Point3D(353, 172, -1);
-		public static Point3D lr_Enter = new Point3D(467, 96, -1);
+		public static Point3D lr_Exit = new(353, 172, -1);
+		public static Point3D lr_Enter = new(467, 96, -1);
 
 		/* "Center" location in puzzle */
 
-		public static Point3D lp_Center = new Point3D(324, 64, -1);
+		public static Point3D lp_Center = new(324, 64, -1);
 
 		/* Lamp Room Area */
 
-		public static Rectangle2D lr_Rect = new Rectangle2D(465, 92, 10, 10);
+		public static Rectangle2D lr_Rect = new(465, 92, 10, 10);
 
 		/* Lamp Room area Poison message data */
 
-		public static int[][] PA =
+		private static readonly int[][] PA =
 		{
 			new int[]{ 0, 0, 0xA6 },
 			new int[]{ 1050001, 0x485, 0xAA },
@@ -662,7 +662,7 @@ namespace Server.Engines.Doom
 			new int[]{ 1050057, 0x485, 0xA4 },
 			new int[]{ 1062091, 0x23F3, 0xAC }
 		};
-		public static Poison[] PA2 =
+		private static readonly Poison[] PA2 =
 		{
 			Poison.Lesser,
 			Poison.Regular,
@@ -698,8 +698,7 @@ namespace Server.Engines.Doom
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 
 			m_Levers = reader.ReadStrongItemList();
 			m_Statues = reader.ReadStrongItemList();

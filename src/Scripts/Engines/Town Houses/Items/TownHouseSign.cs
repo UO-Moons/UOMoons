@@ -478,14 +478,14 @@ namespace Server.Engines.TownHouses
 
 			AllSigns.Add(this);
 		}
-
+		/*
 		private void SearchForHouse()
 		{
 			foreach (TownHouse house in TownHouse.AllTownHouses.Where(house => house.ForSaleSign == this))
 			{
 				House = house;
 			}
-		}
+		}*/
 
 		public void UpdateBlocks()
 		{
@@ -768,9 +768,9 @@ namespace Server.Engines.TownHouses
 
 			foreach (Item item in items.Where(item => item is not HouseSign && item is not BaseMulti && item is not BaseAddon && item is not AddonComponent && item != House.Hanger && item.Visible && !item.IsLockedDown && !item.IsSecure && !item.Movable && !c_PreviewItems.Contains(item)))
 			{
-				if (item is BaseDoor)
+				if (item is BaseDoor door)
 				{
-					ConvertDoor((BaseDoor)item);
+					ConvertDoor(door);
 				}
 				else if (!c_LeaveItems)
 				{
@@ -1114,12 +1114,12 @@ namespace Server.Engines.TownHouses
 
 			c_RentTime = DateTime.UtcNow;
 		}
-
+		/*
 		private void BeginRentTimer()
 		{
 			BeginRentTimer(TimeSpan.FromDays(1));
 		}
-
+		*/
 		private void BeginRentTimer(TimeSpan time)
 		{
 			if (!Owned)

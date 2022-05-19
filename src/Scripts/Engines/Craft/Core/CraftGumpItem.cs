@@ -62,7 +62,7 @@ namespace Server.Engines.Craft
 			AddButton(15, 387, 4014, 4016, 0, GumpButtonType.Reply, 0);
 			AddHtmlLocalized(50, 390, 150, 18, 1044150, LabelColor, false, false); // BACK
 
-			bool needsRecipe = (craftItem.Recipe != null && from is PlayerMobile && !((PlayerMobile)from).HasRecipe(craftItem.Recipe));
+			bool needsRecipe = craftItem.Recipe != null && from is PlayerMobile mobile && !mobile.HasRecipe(craftItem.Recipe);
 
 			if (needsRecipe)
 			{
@@ -103,17 +103,14 @@ namespace Server.Engines.Craft
 
 		}
 
-		private TextDefinition RequiredExpansionMessage(Expansion expansion)
+		private static TextDefinition RequiredExpansionMessage(Expansion expansion)
 		{
-			switch (expansion)
+			return expansion switch
 			{
-				case Expansion.SE:
-					return 1063363; // * Requires the "Samurai Empire" expansion
-				case Expansion.ML:
-					return 1072651; // * Requires the "Mondain's Legacy" expansion
-				default:
-					return string.Format("* Requires the \"{0}\" expansion", ExpansionInfo.GetInfo(expansion).Name);
-			}
+				Expansion.SE => (TextDefinition)1063363,// * Requires the "Samurai Empire" expansion
+				Expansion.ML => (TextDefinition)1072651,// * Requires the "Mondain's Legacy" expansion
+				_ => (TextDefinition)string.Format("* Requires the \"{0}\" expansion", ExpansionInfo.GetInfo(expansion).Name),
+			};
 		}
 
 		private bool m_ShowExceptionalChance;
@@ -136,7 +133,8 @@ namespace Server.Engines.Craft
 			for (int i = 0; i < m_CraftItem.Skills.Count; i++)
 			{
 				CraftSkill skill = m_CraftItem.Skills.GetAt(i);
-				double minSkill = skill.MinSkill, maxSkill = skill.MaxSkill;
+				double minSkill = skill.MinSkill;
+				_ = skill.MaxSkill;
 
 				if (minSkill < 0)
 					minSkill = 0;
@@ -145,7 +143,7 @@ namespace Server.Engines.Craft
 				AddLabel(430, 132 + (i * 20), LabelHue, string.Format("{0:F1}", minSkill));
 			}
 
-			CraftSubResCol res = (m_CraftItem.UseSubRes2 ? m_CraftSystem.CraftSubRes2 : m_CraftSystem.CraftSubRes);
+			CraftSubResCol res = m_CraftItem.UseSubRes2 ? m_CraftSystem.CraftSubRes2 : m_CraftSystem.CraftSubRes;
 			int resIndex = -1;
 
 			CraftContext context = m_CraftSystem.GetContext(m_From);
@@ -253,7 +251,7 @@ namespace Server.Engines.Craft
 			// Back Button
 			if (info.ButtonID == 0)
 			{
-				CraftGump craftGump = new CraftGump(m_From, m_CraftSystem, m_Tool, null);
+				CraftGump craftGump = new(m_From, m_CraftSystem, m_Tool, null);
 				m_From.SendGump(craftGump);
 			}
 			else // Make Button

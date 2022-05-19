@@ -103,7 +103,7 @@ namespace Server.Engines.TownHouses
 
 		private void AddBackgroundZero(int x, int y, int width, int height, int back, bool over)
 		{
-			BackgroundPlus plus = new BackgroundPlus(x, y, width, height, back, over);
+			BackgroundPlus plus = new(x, y, width, height, back, over);
 
 			Entries.Insert(0, plus);
 		}
@@ -115,7 +115,7 @@ namespace Server.Engines.TownHouses
 
 		private void AddBackground(int x, int y, int width, int height, int back, bool over)
 		{
-			BackgroundPlus plus = new BackgroundPlus(x, y, width, height, back, over);
+			BackgroundPlus plus = new(x, y, width, height, back, over);
 
 			Add(plus);
 		}
@@ -149,7 +149,7 @@ namespace Server.Engines.TownHouses
 		{
 			int id = UniqueButton();
 
-			ButtonPlus button = new ButtonPlus(x, y, up, down, id, name, callback);
+			ButtonPlus button = new(x, y, up, down, id, name, callback);
 
 			Add(button);
 
@@ -165,7 +165,7 @@ namespace Server.Engines.TownHouses
 		{
 			int id = UniqueButton();
 
-			ButtonPlus button = new ButtonPlus(x, y, up, down, id, name, callback, arg);
+			ButtonPlus button = new(x, y, up, down, id, name, callback, arg);
 
 			Add(button);
 
@@ -189,7 +189,7 @@ namespace Server.Engines.TownHouses
 
 		private void AddHtml(int x, int y, int width, int height, string text, bool back, bool scroll, bool over)
 		{
-			HtmlPlus html = new HtmlPlus(x, y, width, height, HTML.White + text, back, scroll, over);
+			HtmlPlus html = new(x, y, width, height, HTML.White + text, back, scroll, over);
 
 			Add(html);
 		}
@@ -241,7 +241,7 @@ namespace Server.Engines.TownHouses
 					OnClose();
 				}
 
-				if (c_Buttons[info.ButtonID] == null || !(c_Buttons[info.ButtonID] is ButtonPlus))
+				if (c_Buttons[info.ButtonID] == null || c_Buttons[info.ButtonID] is not ButtonPlus)
 				{
 					return;
 				}

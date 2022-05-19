@@ -28,13 +28,11 @@ namespace Server
 				{
 					if (Movable && !Deleted)
 					{
-						IPoint3D pt = obj as IPoint3D;
-
-						if (pt != null)
+						if (obj is IPoint3D pt)
 						{
 							SpellHelper.GetSurfaceTop(ref pt);
 
-							Point3D origin = new Point3D(pt);
+							Point3D origin = new(pt);
 							Map facet = from.Map;
 
 							if (facet != null && facet.CanFit(pt.X, pt.Y, pt.Z, 16, false, false, true))
@@ -60,7 +58,7 @@ namespace Server
 
 									Timer.DelayCall(TimeSpan.FromSeconds(1.0), delegate ()
 									{
-										List<Mobile> targets = new List<Mobile>();
+										List<Mobile> targets = new();
 
 										foreach (Mobile mob in facet.GetMobilesInRange(origin, 12))
 										{
@@ -123,8 +121,7 @@ namespace Server
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			_ = reader.ReadEncodedInt();
 		}
 	}
 }

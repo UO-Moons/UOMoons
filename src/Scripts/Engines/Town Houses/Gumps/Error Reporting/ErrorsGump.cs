@@ -40,7 +40,7 @@ namespace Server.Engines.TownHouses
 		private void Help()
 		{
 			NewGump();
-			new InfoGump(Owner, 300, 300, HTML.White + "     Errors reported by either the TownHouse system or other staff members!  Administrators have the power to clear this list.  All staff members can report an error using the [TownHouseErrors command.", true);
+			_ = new InfoGump(Owner, 300, 300, HTML.White + "     Errors reported by either the TownHouse system or other staff members!  Administrators have the power to clear this list.  All staff members can report an error using the [TownHouseErrors command.", true);
 		}
 
 		private void ClearLog()

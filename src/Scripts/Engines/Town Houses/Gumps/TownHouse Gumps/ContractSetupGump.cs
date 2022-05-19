@@ -278,8 +278,8 @@ namespace Server.Engines.TownHouses
 											"using the suggest button, a price will automatically be figured based on the following:<BR>",
 				c_Contract.PriceTypeShort);
 
-			helptext += string.Format("<CENTER>Volume: {0}<BR>", c_Contract.CalcVolume());
-			helptext += string.Format("Cost per unit: {0} gold</CENTER>", General.SuggestionFactor);
+			helptext += $"<CENTER>Volume: {c_Contract.CalcVolume()}<BR>";
+			helptext += $"Cost per unit: {General.SuggestionFactor} gold</CENTER>";
 			helptext += "<br>   You may also give this space away for free using the option above.";
 
 			AddHtml(10, y += 35, width - 20, 150, helptext, false, true);
@@ -361,7 +361,7 @@ namespace Server.Engines.TownHouses
 
 		private void ChangePage(object obj)
 		{
-			if (c_Contract == null || !(obj is int))
+			if (c_Contract == null || obj is not int)
 			{
 				return;
 			}

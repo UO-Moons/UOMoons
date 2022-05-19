@@ -53,8 +53,8 @@ namespace Server.Factions
 			Faction ourFaction = m_Faction;
 			Faction theirFaction = Faction.Find(m);
 
-			if (theirFaction == null && m is BaseFactionGuard)
-				theirFaction = ((BaseFactionGuard)m).Faction;
+			if (theirFaction == null && m is BaseFactionGuard guard)
+				theirFaction = guard.Faction;
 
 			if (ourFaction != null && theirFaction != null && ourFaction != theirFaction)
 			{
@@ -71,10 +71,8 @@ namespace Server.Factions
 					{
 						AggressorInfo ai = list[i];
 
-						if (ai.Defender is BaseFactionGuard)
+						if (ai.Defender is BaseFactionGuard bf)
 						{
-							BaseFactionGuard bf = (BaseFactionGuard)ai.Defender;
-
 							if (bf.Faction == ourFaction)
 								return true;
 						}
@@ -327,37 +325,37 @@ namespace Server.Factions
 			PackItem(Loot.Construct(m_WeakPotions));
 		}
 
-		public Item Immovable(Item item)
+		public static Item Immovable(Item item)
 		{
 			item.Movable = false;
 			return item;
 		}
 
-		public Item Newbied(Item item)
+		public static Item Newbied(Item item)
 		{
 			item.LootType = LootType.Newbied;
 			return item;
 		}
 
-		public Item Rehued(Item item, int hue)
+		public static Item Rehued(Item item, int hue)
 		{
 			item.Hue = hue;
 			return item;
 		}
 
-		public Item Layered(Item item, Layer layer)
+		public static Item Layered(Item item, Layer layer)
 		{
 			item.Layer = layer;
 			return item;
 		}
 
-		public Item Resourced(BaseWeapon weapon, CraftResource resource)
+		public static Item Resourced(BaseWeapon weapon, CraftResource resource)
 		{
 			weapon.Resource = resource;
 			return weapon;
 		}
 
-		public Item Resourced(BaseArmor armor, CraftResource resource)
+		public static Item Resourced(BaseArmor armor, CraftResource resource)
 		{
 			armor.Resource = resource;
 			return armor;
@@ -490,8 +488,7 @@ namespace Server.Factions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 
 			Rider = reader.ReadMobile();
 

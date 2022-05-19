@@ -41,8 +41,8 @@ namespace Server.Factions
 
 		public void Attach()
 		{
-			if (Item is IFactionItem)
-				((IFactionItem)Item).FactionItemState = this;
+			if (Item is IFactionItem item)
+				item.FactionItemState = this;
 
 			if (Faction != null)
 				Faction.State.FactionItems.Add(this);
@@ -50,8 +50,8 @@ namespace Server.Factions
 
 		public void Detach()
 		{
-			if (Item is IFactionItem)
-				((IFactionItem)Item).FactionItemState = null;
+			if (Item is IFactionItem item)
+				item.FactionItemState = null;
 
 			if (Faction != null && Faction.State.FactionItems.Contains(this))
 				Faction.State.FactionItems.Remove(this);
@@ -103,9 +103,9 @@ namespace Server.Factions
 
 		public static FactionItem Find(Item item)
 		{
-			if (item is IFactionItem)
+			if (item is IFactionItem item1)
 			{
-				FactionItem state = ((IFactionItem)item).FactionItemState;
+				FactionItem state = item1.FactionItemState;
 
 				if (state != null && state.HasExpired)
 				{
@@ -121,7 +121,7 @@ namespace Server.Factions
 
 		public static Item Imbue(Item item, Faction faction, bool expire, int hue)
 		{
-			if (!(item is IFactionItem))
+			if (item is not IFactionItem)
 				return item;
 
 			FactionItem state = Find(item);

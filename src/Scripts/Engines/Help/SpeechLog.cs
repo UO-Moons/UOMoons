@@ -10,14 +10,11 @@ namespace Server.Engines.Help
 {
 	public class SpeechLog : IEnumerable<SpeechLogEntry>
 	{
-		// Are speech logs enabled?
-		public const bool Enabled = true;
-
-		// How long should we maintain each speech entry?
-		public static readonly TimeSpan EntryDuration = TimeSpan.FromMinutes(20.0);
+		public static readonly bool Enabled = Settings.Configuration.Get<bool>("Speechlog", "Enabled");
+		public static readonly TimeSpan EntryDuration = TimeSpan.FromMinutes(Settings.Configuration.Get<double>("Speechlog", "EntryDuration"));
 
 		// What is the maximum number of entries a log can contain? (0 -> no limit)
-		public const int MaxLength = 0;
+		private static readonly int MaxLength = Settings.Configuration.Get<int>("Speechlog", "MaxLength");
 
 		public static void Initialize()
 		{
@@ -42,9 +39,7 @@ namespace Server.Engines.Help
 
 			protected override void OnTarget(Mobile from, object targeted)
 			{
-				PlayerMobile pm = targeted as PlayerMobile;
-
-				if (pm == null)
+				if (targeted is not PlayerMobile pm)
 				{
 					from.SendMessage("Speech logs aren't supported on that target.");
 				}

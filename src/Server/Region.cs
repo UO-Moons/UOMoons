@@ -1,7 +1,9 @@
+using Server.Items;
 using Server.Network;
 using Server.Targeting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 
 namespace Server
@@ -346,6 +348,11 @@ namespace Server
 			return (GetRegion(regionType) != null);
 		}
 
+		public bool IsPartOf<T>() where T : Region
+		{
+			return IsPartOf(typeof(T));
+		}
+
 		public bool IsPartOf(string regionName)
 		{
 			return (GetRegion(regionName) != null);
@@ -365,89 +372,192 @@ namespace Server
 			return false;
 		}
 
+		#region Entity Enumeration
 		public List<Mobile> GetPlayers()
 		{
-			List<Mobile> list = new();
+			return GetPlayers(null);
+		}
 
+		public List<Mobile> GetPlayers(Func<Mobile, bool> predicate)
+		{
+			return GetEnumeratedPlayers(predicate).ToList();
+		}
+
+		public IEnumerable<Mobile> GetEnumeratedPlayers()
+		{
+			return GetEnumeratedPlayers(null);
+		}
+
+		public IEnumerable<Mobile> GetEnumeratedPlayers(Func<Mobile, bool> predicate)
+		{
 			if (Sectors != null)
 			{
-				for (int i = 0; i < Sectors.Length; i++)
+				foreach (Sector s in Sectors)
 				{
-					Sector sector = Sectors[i];
-
-					foreach (Mobile player in sector.Players)
+					foreach (var o in GetDistinctEnumeration(s.Players, predicate))
 					{
-						if (player.Region.IsPartOf(this))
-							list.Add(player);
+						yield return o;
 					}
 				}
 			}
-
-			return list;
 		}
 
 		public int GetPlayerCount()
 		{
-			int count = 0;
+			return GetPlayerCount(null);
+		}
 
-			if (Sectors != null)
-			{
-				for (int i = 0; i < Sectors.Length; i++)
-				{
-					Sector sector = Sectors[i];
-
-					foreach (Mobile player in sector.Players)
-					{
-						if (player.Region.IsPartOf(this))
-							count++;
-					}
-				}
-			}
-
-			return count;
+		public int GetPlayerCount(Func<Mobile, bool> predicate)
+		{
+			return GetEnumeratedPlayers(predicate).Count();
 		}
 
 		public List<Mobile> GetMobiles()
 		{
-			List<Mobile> list = new();
+			return GetMobiles(null);
+		}
 
+		public List<Mobile> GetMobiles(Func<Mobile, bool> predicate)
+		{
+			return GetEnumeratedMobiles(predicate).ToList();
+		}
+
+		public IEnumerable<Mobile> GetEnumeratedMobiles()
+		{
+			return GetEnumeratedMobiles(null);
+		}
+
+		public IEnumerable<Mobile> GetEnumeratedMobiles(Func<Mobile, bool> predicate)
+		{
 			if (Sectors != null)
 			{
-				for (int i = 0; i < Sectors.Length; i++)
+				foreach (Sector s in Sectors)
 				{
-					Sector sector = Sectors[i];
-
-					foreach (Mobile mobile in sector.Mobiles)
+					foreach (var o in GetDistinctEnumeration(s.Mobiles, predicate))
 					{
-						if (mobile.Region.IsPartOf(this))
-							list.Add(mobile);
+						yield return o;
 					}
 				}
 			}
-
-			return list;
 		}
 
 		public int GetMobileCount()
 		{
-			int count = 0;
+			return GetMobileCount(null);
+		}
 
+		public int GetMobileCount(Func<Mobile, bool> predicate)
+		{
+			return GetEnumeratedMobiles(predicate).Count();
+		}
+
+		public List<Item> GetItems()
+		{
+			return GetItems(null);
+		}
+
+		public List<Item> GetItems(Func<Item, bool> predicate)
+		{
+			return GetEnumeratedItems(predicate).ToList();
+		}
+
+		public IEnumerable<Item> GetEnumeratedItems()
+		{
+			return GetEnumeratedItems(null);
+		}
+
+		public IEnumerable<Item> GetEnumeratedItems(Func<Item, bool> predicate)
+		{
 			if (Sectors != null)
 			{
-				for (int i = 0; i < Sectors.Length; i++)
+				foreach (Sector s in Sectors)
 				{
-					Sector sector = Sectors[i];
-
-					foreach (Mobile mobile in sector.Mobiles)
+					foreach (var o in GetDistinctEnumeration(s.Items, predicate))
 					{
-						if (mobile.Region.IsPartOf(this))
-							count++;
+						yield return o;
 					}
 				}
 			}
-
-			return count;
 		}
+
+		public int GetItemCount()
+		{
+			return GetItemCount(null);
+		}
+
+		public int GetItemCount(Func<Item, bool> predicate)
+		{
+			return GetEnumeratedItems(predicate).Count();
+		}
+
+		public List<BaseMulti> GetMultis()
+		{
+			return GetMultis(null);
+		}
+
+		public List<BaseMulti> GetMultis(Func<BaseMulti, bool> predicate)
+		{
+			return GetEnumeratedMultis(predicate).ToList();
+		}
+
+		public IEnumerable<BaseMulti> GetEnumeratedMultis()
+		{
+			return GetEnumeratedMultis(null);
+		}
+
+		public IEnumerable<BaseMulti> GetEnumeratedMultis(Func<BaseMulti, bool> predicate)
+		{
+			if (Sectors != null)
+			{
+				foreach (Sector s in Sectors)
+				{
+					foreach (var o in GetDistinctEnumeration(s.Multis, predicate))
+					{
+						yield return o;
+					}
+				}
+			}
+		}
+
+		public int GetMultiCount()
+		{
+			return GetMultiCount(null);
+		}
+
+		public int GetMultiCount(Func<BaseMulti, bool> predicate)
+		{
+			return GetEnumeratedMultis(predicate).Count();
+		}
+
+		private IEnumerable<T> GetDistinctEnumeration<T>(List<T> list, Func<T, bool> predicate)
+			where T : IEntity
+		{
+			return GetEnumeration(list, predicate).Distinct();
+		}
+
+		private IEnumerable<T> GetEnumeration<T>(List<T> list, Func<T, bool> predicate)
+			where T : IEntity
+		{
+			T e;
+
+			var i = list.Count;
+
+			while (--i >= 0)
+			{
+				if (i >= list.Count)
+				{
+					continue;
+				}
+
+				e = list[i];
+
+				if (e != null && e.Map == Map && Contains(e.Location) && (predicate == null || predicate(e)))
+				{
+					yield return e;
+				}
+			}
+		}
+		#endregion
 
 		public int CompareTo(Region other)
 		{
@@ -580,6 +690,17 @@ namespace Server
 				return Parent.AllowHousing(from, p);
 
 			return true;
+		}
+
+		public virtual bool BlockCharacterDeletion
+		{
+			get
+			{
+				if (Parent != null)
+					return Parent.BlockCharacterDeletion;
+
+				return false;
+			}
 		}
 
 		public virtual bool SendInaccessibleMessage(Item item, Mobile from)
