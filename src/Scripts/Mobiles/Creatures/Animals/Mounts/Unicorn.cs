@@ -103,8 +103,8 @@ namespace Server.Mobiles
 		{
 			base.OnDeath(c);
 
-			if (Utility.RandomDouble() < 0.35)
-				c.DropItem(new UnicornRibs());
+			//if (Utility.RandomDouble() < 0.35)
+			//	c.DropItem(new UnicornRibs());
 		}
 
 		public override OppositionGroup OppositionGroup => OppositionGroup.FeyAndUndead;

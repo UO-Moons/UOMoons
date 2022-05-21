@@ -17,7 +17,7 @@ namespace Server.Engines.BulkOrders
 
 		public override void OnClick()
 		{
-			if (BODSystem.Enabled && m_Vendor.SupportsBulkOrders(m_From))
+			if (BodSystem.Enabled && m_Vendor.SupportsBulkOrders(m_From))
 			{
 				TimeSpan ts = m_Vendor.GetNextBulkOrder(m_From);
 

@@ -47,13 +47,13 @@ namespace Server.Items
 
 		static SlayerGroup()
 		{
-			SlayerGroup humanoid = new SlayerGroup();
-			SlayerGroup undead = new SlayerGroup();
-			SlayerGroup elemental = new SlayerGroup();
-			SlayerGroup abyss = new SlayerGroup();
-			SlayerGroup arachnid = new SlayerGroup();
-			SlayerGroup reptilian = new SlayerGroup();
-			SlayerGroup fey = new SlayerGroup();
+			SlayerGroup humanoid = new();
+			SlayerGroup undead = new();
+			SlayerGroup elemental = new();
+			SlayerGroup abyss = new();
+			SlayerGroup arachnid = new();
+			SlayerGroup reptilian = new();
+			SlayerGroup fey = new();
 
 			humanoid.Opposition = new SlayerGroup[] { undead };
 			humanoid.FoundOn = new Type[] { typeof(BoneKnight), typeof(Lich), typeof(LichLord) };
@@ -167,6 +167,13 @@ namespace Server.Items
 			}
 
 			return entries;
+		}
+
+		public static SlayerName RandomSuperSlayerAOS(bool excludeFey = true)
+		{
+			int maxIndex = excludeFey ? 5 : 6;
+
+			return Groups[Utility.Random(maxIndex)].Super.Name;
 		}
 
 		public SlayerGroup[] Opposition { get; set; }

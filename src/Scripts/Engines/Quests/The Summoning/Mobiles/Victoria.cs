@@ -12,7 +12,7 @@ namespace Server.Engines.Quests.Doom
 
 		public override void InitSBInfo()
 		{
-			m_SBInfos.Add(new SBMage());
+			SBInfos.Add(new SBMage());
 		}
 
 		[Constructable]

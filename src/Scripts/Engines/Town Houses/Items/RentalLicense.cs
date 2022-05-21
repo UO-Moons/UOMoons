@@ -2,14 +2,14 @@ namespace Server.Engines.TownHouses
 {
 	public class RentalLicense : BaseItem
 	{
-		private Mobile c_Owner;
+		private Mobile m_COwner;
 
 		public Mobile Owner
 		{
-			get => c_Owner;
+			get => m_COwner;
 			set
 			{
-				c_Owner = value;
+				m_COwner = value;
 				InvalidateProperties();
 			}
 		}
@@ -20,9 +20,9 @@ namespace Server.Engines.TownHouses
 
 		public override void GetProperties(ObjectPropertyList list)
 		{
-			if (c_Owner != null)
+			if (m_COwner != null)
 			{
-				list.Add("a renter's license belonging to " + c_Owner.Name);
+				list.Add("a renter's license belonging to " + m_COwner.Name);
 			}
 			else
 			{
@@ -32,10 +32,7 @@ namespace Server.Engines.TownHouses
 
 		public override void OnDoubleClick(Mobile m)
 		{
-			if (c_Owner == null)
-			{
-				c_Owner = m;
-			}
+			m_COwner ??= m;
 		}
 
 		public RentalLicense(Serial serial) : base(serial)
@@ -48,7 +45,7 @@ namespace Server.Engines.TownHouses
 
 			writer.Write(0);
 
-			writer.Write(c_Owner);
+			writer.Write(m_COwner);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -56,7 +53,7 @@ namespace Server.Engines.TownHouses
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			c_Owner = reader.ReadMobile();
+			m_COwner = reader.ReadMobile();
 		}
 	}
 }

@@ -1263,6 +1263,21 @@ namespace Server
 			}
 		}
 
+		public static string FormatDelegate(Delegate callback)
+		{
+			if (callback == null)
+			{
+				return "null";
+			}
+
+			if (callback.Method.DeclaringType == null)
+			{
+				return callback.Method.Name;
+			}
+
+			return string.Format("{0}.{1}", callback.Method.DeclaringType.FullName, callback.Method.Name);
+		}
+
 		private static readonly Stack<ConsoleColor> m_ConsoleColors = new();
 
 		public static void WriteConsole(ConsoleColor color, string str)

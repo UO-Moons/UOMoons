@@ -94,10 +94,22 @@ namespace Server.Engines.Craft
 			return false;
 		}
 
+		public void AddContext(Mobile m, CraftContext c)
+		{
+			if (c == null || m == null || c.System != this)
+			{
+				return;
+			}
+
+			m_ContextTable[m] = c;
+		}
+
 		public CraftContext GetContext(Mobile m)
 		{
 			if (m == null)
+			{
 				return null;
+			}
 
 			if (m.Deleted)
 			{
@@ -108,7 +120,9 @@ namespace Server.Engines.Craft
 			m_ContextTable.TryGetValue(m, out CraftContext c);
 
 			if (c == null)
-				m_ContextTable[m] = c = new CraftContext();
+			{
+				m_ContextTable[m] = c = new CraftContext(m, this);
+			}
 
 			return c;
 		}
@@ -118,7 +132,9 @@ namespace Server.Engines.Craft
 			CraftContext c = GetContext(m);
 
 			if (c != null)
+			{
 				c.OnMade(item);
+			}
 		}
 
 		public static void OnRepair(Mobile m, BaseTool tool, Item deed, Item addon, IEntity e)

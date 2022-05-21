@@ -14,7 +14,10 @@ namespace Server.Misc
 		{
 			// Register our speech handler
 			if (Enabled)
+			{
+				AccountHandler.RestrictCharacterDeletion = false;
 				EventSink.OnSpeech += EventSink_Speech;
+			}
 		}
 
 		private static void EventSink_Speech(SpeechEventArgs args)

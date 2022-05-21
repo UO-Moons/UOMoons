@@ -11,6 +11,16 @@ using System.Reflection;
 
 namespace Server
 {
+	public class AccountDeleteEventArgs : EventArgs
+	{
+		public IAccount Account { get; set; }
+
+		public AccountDeleteEventArgs(IAccount a)
+		{
+			Account = a;
+		}
+	}
+
 	public class SpeechEventArgs : EventArgs
 	{
 		public Mobile Mobile { get; }
@@ -288,6 +298,18 @@ namespace Server
 	{
 		public AfterWorldSaveEventArgs()
 		{
+		}
+	}
+
+	public class MultiDesignQueryEventArgs : EventArgs
+	{
+		public NetState NetState { get; set; }
+		public BaseMulti Multi { get; set; }
+
+		public MultiDesignQueryEventArgs(NetState state, BaseMulti multi)
+		{
+			NetState = state;
+			Multi = multi;
 		}
 	}
 
@@ -583,6 +605,12 @@ namespace Server
 		}
 
 		//Misc
+		public static event Action<MultiDesignQueryEventArgs> OnMultiDesign;
+		public static void InvokeMultiDesignQuery(MultiDesignQueryEventArgs e)
+		{
+			OnMultiDesign?.Invoke(e);
+		}
+
 		public static event Action<MovementEventArgs> Movement;
 		public static void InvokeMovement(MovementEventArgs e)
 		{
@@ -605,6 +633,12 @@ namespace Server
 		public static void InvokeSpeech(SpeechEventArgs e)
 		{
 			OnSpeech?.Invoke(e);
+		}
+
+		public static event Action<AccountDeleteEventArgs> AccountDelete;
+		public static void InvokeAccountDelete(AccountDeleteEventArgs e)
+		{
+			AccountDelete?.Invoke(e);
 		}
 
 		public static event Action<Mobile> OnOpenDoorMacroUsed;

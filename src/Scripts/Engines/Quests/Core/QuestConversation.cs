@@ -131,7 +131,7 @@ namespace Server.Engines.Quests
 			{
 				QuestConversation qc = (QuestConversation)m_Conversations[i];
 
-				if (!qc.HasBeenRead)
+				if (qc != null && !qc.HasBeenRead)
 				{
 					qc.HasBeenRead = true;
 					qc.OnRead();

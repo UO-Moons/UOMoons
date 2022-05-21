@@ -50,8 +50,7 @@ namespace Server.Engines.Quests
 
 		public virtual void StopTimer()
 		{
-			if (m_Timer != null)
-				m_Timer.Stop();
+			m_Timer?.Stop();
 
 			m_Timer = null;
 		}
@@ -62,7 +61,7 @@ namespace Server.Engines.Quests
 			{
 				QuestObjective obj = (QuestObjective)Objectives[i];
 
-				if (obj.GetTimerEvent())
+				if (obj != null && obj.GetTimerEvent())
 					obj.CheckProgress();
 			}
 		}
@@ -73,7 +72,7 @@ namespace Server.Engines.Quests
 			{
 				QuestObjective obj = (QuestObjective)Objectives[i];
 
-				if (obj.GetKillEvent(creature, corpse))
+				if (obj != null && obj.GetKillEvent(creature, corpse))
 					obj.OnKill(creature, corpse);
 			}
 		}
@@ -84,7 +83,7 @@ namespace Server.Engines.Quests
 			{
 				QuestObjective obj = (QuestObjective)Objectives[i];
 
-				if (obj.IgnoreYoungProtection(from))
+				if (obj != null && obj.IgnoreYoungProtection(from))
 					return true;
 			}
 
@@ -222,37 +221,37 @@ namespace Server.Engines.Quests
 
 		public virtual void ShowQuestLog()
 		{
-			if (Objectives.Count > 0)
-			{
-				From.CloseGump(typeof(QuestItemInfoGump));
-				From.CloseGump(typeof(QuestLogUpdatedGump));
-				From.CloseGump(typeof(QuestObjectivesGump));
-				From.CloseGump(typeof(QuestConversationsGump));
+			if (Objectives.Count <= 0)
+				return;
 
-				From.SendGump(new QuestObjectivesGump(Objectives));
+			From.CloseGump(typeof(QuestItemInfoGump));
+			From.CloseGump(typeof(QuestLogUpdatedGump));
+			From.CloseGump(typeof(QuestObjectivesGump));
+			From.CloseGump(typeof(QuestConversationsGump));
 
-				QuestObjective last = (QuestObjective)Objectives[Objectives.Count - 1];
+			From.SendGump(new QuestObjectivesGump(Objectives));
 
-				if (last.Info != null)
-					From.SendGump(new QuestItemInfoGump(last.Info));
-			}
+			QuestObjective last = (QuestObjective)Objectives[Objectives.Count - 1];
+
+			if (last != null && last.Info != null)
+				From.SendGump(new QuestItemInfoGump(last.Info));
 		}
 
 		public virtual void ShowQuestConversation()
 		{
-			if (Conversations.Count > 0)
-			{
-				From.CloseGump(typeof(QuestItemInfoGump));
-				From.CloseGump(typeof(QuestObjectivesGump));
-				From.CloseGump(typeof(QuestConversationsGump));
+			if (Conversations.Count <= 0)
+				return;
 
-				From.SendGump(new QuestConversationsGump(Conversations));
+			From.CloseGump(typeof(QuestItemInfoGump));
+			From.CloseGump(typeof(QuestObjectivesGump));
+			From.CloseGump(typeof(QuestConversationsGump));
 
-				QuestConversation last = (QuestConversation)Conversations[Conversations.Count - 1];
+			From.SendGump(new QuestConversationsGump(Conversations));
 
-				if (last.Info != null)
-					From.SendGump(new QuestItemInfoGump(last.Info));
-			}
+			QuestConversation last = (QuestConversation)Conversations[Conversations.Count - 1];
+
+			if (last != null && last.Info != null)
+				From.SendGump(new QuestItemInfoGump(last.Info));
 		}
 
 		public virtual void BeginCancelQuest()
@@ -416,7 +415,7 @@ namespace Server.Engines.Quests
 							return false;
 						}
 
-						doneQuests.RemoveAt(i--);
+						doneQuests.RemoveAt(i);
 						return true;
 					}
 				}
@@ -642,15 +641,13 @@ namespace Server.Engines.Quests
 
 				AddHtml(x, y, width, height, Color(html, C16232(color)), back, scroll);
 			}
-			else if (message is int)
+			else if (message is int html)
 			{
-				int html = (int)message;
-
 				AddHtmlLocalized(x, y, width, height, html, C16216(color), back, scroll);
 			}
 		}
 
-		public BaseQuestGump(int x, int y) : base(x, y)
+		protected BaseQuestGump(int x, int y) : base(x, y)
 		{
 		}
 	}

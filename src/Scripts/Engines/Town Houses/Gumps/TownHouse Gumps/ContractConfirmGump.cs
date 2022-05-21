@@ -2,21 +2,21 @@ namespace Server.Engines.TownHouses
 {
 	public class ContractConfirmGump : GumpPlusLight
 	{
-		private readonly RentalContract c_Contract;
+		private readonly RentalContract m_CContract;
 
 		public ContractConfirmGump(Mobile m, RentalContract rc) : base(m, 100, 100)
 		{
 			m.CloseGump(typeof(ContractConfirmGump));
 
-			c_Contract = rc;
+			m_CContract = rc;
 		}
 
 		protected override void BuildGump()
 		{
 			const int width = 300;
-			int y = 0;
+			var y = 0;
 
-			if (c_Contract.RentalClient == null)
+			if (m_CContract.RentalClient == null)
 			{
 				AddHtml(0, y + 5, width, HTML.Black + "<CENTER>Rent this House?");
 			}
@@ -30,33 +30,33 @@ namespace Server.Engines.TownHouses
 				"I cannot pay this fee, the property will return to {1}.  I may cancel this agreement at any time by " +
 				"demolishing the property.  {1} may also cancel this agreement at any time by either demolishing their " +
 				"property or canceling the contract, in which case your security deposit will be returned.",
-				c_Contract.RentalClient == null ? "_____" : c_Contract.RentalClient.Name,
-				c_Contract.RentalMaster.Name,
-				c_Contract.Free ? 0 : c_Contract.Price,
-				c_Contract.PriceTypeShort.ToLower());
+				m_CContract.RentalClient == null ? "_____" : m_CContract.RentalClient.Name,
+				m_CContract.RentalMaster.Name,
+				m_CContract.Free ? 0 : m_CContract.Price,
+				m_CContract.PriceTypeShort.ToLower());
 
 			text += "<BR>   Here is some more info reguarding this property:<BR>";
 
-			text += $"<CENTER>Lockdowns: {c_Contract.Locks}<BR>";
-			text += $"Secures: {c_Contract.Secures}<BR>";
-			text += $"Floors: {((c_Contract.MaxZ - c_Contract.MinZ < 200) ? ((c_Contract.MaxZ - c_Contract.MinZ) / 20) + 1 : 1)}<BR>";
-			text += $"Space: {c_Contract.CalcVolume()} cubic units";
+			text += $"<CENTER>Lockdowns: {m_CContract.Locks}<BR>";
+			text += $"Secures: {m_CContract.Secures}<BR>";
+			text += $"Floors: {((m_CContract.MaxZ - m_CContract.MinZ < 200) ? ((m_CContract.MaxZ - m_CContract.MinZ) / 20) + 1 : 1)}<BR>";
+			text += $"Space: {m_CContract.CalcVolume()} cubic units";
 
 			AddHtml(40, y += 30, width - 60, 200, HTML.Black + text, false, true);
 
 			y += 200;
 
-			if (c_Contract.RentalClient == null)
+			if (m_CContract.RentalClient == null)
 			{
 				AddHtml(60, y += 20, 60, HTML.Black + "Preview");
-				AddButton(40, y + 3, 0x837, 0x838, "Preview", new GumpCallback(Preview));
+				AddButton(40, y + 3, 0x837, 0x838, "Preview", Preview);
 
-				bool locsec = c_Contract.ValidateLocSec();
+				var locsec = m_CContract.ValidateLocSec();
 
-				if (Owner != c_Contract.RentalMaster && locsec)
+				if (Owner != m_CContract.RentalMaster && locsec)
 				{
 					AddHtml(width - 100, y, 60, HTML.Black + "Accept");
-					AddButton(width - 60, y + 3, 0x232C, 0x232D, "Accept", new GumpCallback(Accept));
+					AddButton(width - 60, y + 3, 0x232C, 0x232D, "Accept", Accept);
 				}
 				else
 				{
@@ -65,15 +65,15 @@ namespace Server.Engines.TownHouses
 
 				if (!locsec)
 				{
-					Owner.SendMessage(Owner == c_Contract.RentalMaster ? "You don't have the lockdowns or secures available for this contract." : "The owner of this contract cannot rent this property at this time.");
+					Owner.SendMessage(Owner == m_CContract.RentalMaster ? "You don't have the lockdowns or secures available for this contract." : "The owner of this contract cannot rent this property at this time.");
 				}
 			}
 			else
 			{
-				if (Owner == c_Contract.RentalMaster)
+				if (Owner == m_CContract.RentalMaster)
 				{
 					AddHtml(60, y += 20, 100, HTML.Black + "Cancel Contract");
-					AddButton(40, y + 3, 0x837, 0x838, "Cancel Contract", new GumpCallback(CancelContract));
+					AddButton(40, y + 3, 0x837, 0x838, "Cancel Contract", CancelContract);
 				}
 				else
 				{
@@ -86,45 +86,45 @@ namespace Server.Engines.TownHouses
 
 		protected override void OnClose()
 		{
-			c_Contract.ClearPreview();
+			m_CContract.ClearPreview();
 		}
 
 		private void Preview()
 		{
-			c_Contract.ShowAreaPreview(Owner);
+			m_CContract.ShowAreaPreview(Owner);
 			NewGump();
 		}
 
 		private void CancelContract()
 		{
-			if (Owner == c_Contract.RentalClient)
+			if (Owner == m_CContract.RentalClient)
 			{
-				c_Contract.House.Delete();
+				m_CContract.House.Delete();
 			}
 			else
 			{
-				c_Contract.Delete();
+				m_CContract.Delete();
 			}
 		}
 
 		private void Accept()
 		{
-			if (!c_Contract.ValidateLocSec())
+			if (!m_CContract.ValidateLocSec())
 			{
 				Owner.SendMessage("The owner of this contract cannot rent this property at this time.");
 				return;
 			}
 
-			c_Contract.Purchase(Owner);
+			m_CContract.Purchase(Owner);
 
-			if (!c_Contract.Owned)
+			if (!m_CContract.Owned)
 			{
 				return;
 			}
 
-			c_Contract.Visible = true;
-			c_Contract.RentalClient = Owner;
-			c_Contract.RentalClient.AddToBackpack(new RentalContractCopy(c_Contract));
+			m_CContract.Visible = true;
+			m_CContract.RentalClient = Owner;
+			m_CContract.RentalClient.AddToBackpack(new RentalContractCopy(m_CContract));
 		}
 	}
 }

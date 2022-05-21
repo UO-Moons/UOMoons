@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Server.Items
 {
-	public class ChampionSkull : BaseItem
+	public sealed class ChampionSkull : BaseItem
 	{
 		public static readonly ChampionSkullType[] Types = //
 			Enum.GetValues(typeof(ChampionSkullType))
@@ -29,24 +29,15 @@ namespace Server.Items
 
 			LootType = LootType.Cursed;
 
-			switch (type)
+			Hue = type switch
 			{
-				case ChampionSkullType.Power:
-					Hue = 0x159;
-					break;
-				case ChampionSkullType.Venom:
-					Hue = 0x172;
-					break;
-				case ChampionSkullType.Greed:
-					Hue = 0x1EE;
-					break;
-				case ChampionSkullType.Death:
-					Hue = 0x025;
-					break;
-				case ChampionSkullType.Pain:
-					Hue = 0x035;
-					break;
-			}
+				ChampionSkullType.Power => 0x159,
+				ChampionSkullType.Venom => 0x172,
+				ChampionSkullType.Greed => 0x1EE,
+				ChampionSkullType.Death => 0x025,
+				ChampionSkullType.Pain => 0x035,
+				_ => Hue
+			};
 		}
 
 		public ChampionSkull(Serial serial)
@@ -56,7 +47,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public ChampionSkullType Type
 		{
-			get { return m_Type; }
+			get => m_Type;
 			set
 			{
 				m_Type = value;

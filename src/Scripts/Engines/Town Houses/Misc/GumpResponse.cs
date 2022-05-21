@@ -19,26 +19,26 @@ namespace Server.Engines.TownHouses
 
 		private static void DisplayGumpResponse(NetState state, PacketReader pvSrc)
 		{
-			int serial = pvSrc.ReadInt32();
-			int typeID = pvSrc.ReadInt32();
-			int buttonID = pvSrc.ReadInt32();
+			var serial = pvSrc.ReadInt32();
+			var typeId = pvSrc.ReadInt32();
+			var buttonId = pvSrc.ReadInt32();
 
 			var gumps = state.Gumps.ToList();
 
-			for (int i = 0; i < gumps.Count; ++i)
+			for (var i = 0; i < gumps.Count; ++i)
 			{
-				Gump gump = gumps[i];
+				var gump = gumps[i];
 				if (gump == null)
 				{
 					continue;
 				}
 
-				if (gump.Serial != serial || gump.TypeID != typeID)
+				if (gump.Serial != serial || gump.TypeID != typeId)
 				{
 					continue;
 				}
 
-				int switchCount = pvSrc.ReadInt32();
+				var switchCount = pvSrc.ReadInt32();
 
 				if (switchCount < 0)
 				{
@@ -54,7 +54,7 @@ namespace Server.Engines.TownHouses
 					switches[j] = pvSrc.ReadInt32();
 				}
 
-				int textCount = pvSrc.ReadInt32();
+				var textCount = pvSrc.ReadInt32();
 
 				if (textCount < 0)
 				{
@@ -65,9 +65,9 @@ namespace Server.Engines.TownHouses
 
 				var textEntries = new TextRelay[textCount];
 
-				for (int j = 0; j < textEntries.Length; ++j)
+				for (var j = 0; j < textEntries.Length; ++j)
 				{
-					int entryID = pvSrc.ReadUInt16();
+					int entryId = pvSrc.ReadUInt16();
 					int textLength = pvSrc.ReadUInt16();
 
 					if (textLength > 239)
@@ -76,28 +76,28 @@ namespace Server.Engines.TownHouses
 					}
 
 					string text = pvSrc.ReadUnicodeStringSafe(textLength);
-					textEntries[j] = new TextRelay(entryID, text);
+					textEntries[j] = new TextRelay(entryId, text);
 				}
 
 				state.RemoveGump(i);
 
-				if (!CheckResponse(gump, state.Mobile, buttonID))
+				if (!CheckResponse(gump, state.Mobile, buttonId))
 				{
 					return;
 				}
 
-				gump.OnResponse(state, new RelayInfo(buttonID, switches, textEntries));
+				gump.OnResponse(state, new RelayInfo(buttonId, switches, textEntries));
 
 				return;
 			}
 
-			if (typeID == 461) // Virtue gump
+			if (typeId == 461) // Virtue gump
 			{
-				int switchCount = pvSrc.ReadInt32();
+				var switchCount = pvSrc.ReadInt32();
 
-				if (buttonID == 1 && switchCount > 0)
+				if (buttonId == 1 && switchCount > 0)
 				{
-					Mobile beheld = World.FindMobile(pvSrc.ReadInt32());
+					var beheld = World.FindMobile(pvSrc.ReadInt32());
 
 					if (beheld != null)
 					{
@@ -106,11 +106,11 @@ namespace Server.Engines.TownHouses
 				}
 				else
 				{
-					Mobile beheld = World.FindMobile(serial);
+					var beheld = World.FindMobile(serial);
 
 					if (beheld != null)
 					{
-						EventSink.InvokeVirtueItemRequest(state.Mobile, beheld, buttonID);
+						EventSink.InvokeVirtueItemRequest(state.Mobile, beheld, buttonId);
 					}
 				}
 			}
@@ -118,31 +118,31 @@ namespace Server.Engines.TownHouses
 
 		private static bool CheckResponse(Gump gump, Mobile m, int id)
 		{
-			if (m == null || !m.Player)
+			if (m is not {Player: true})
 			{
 				return true;
 			}
 
 			var list = m.GetItemsInRange(20).OfType<TownHouse>().Cast<Item>().ToList();
 
-			TownHouse th = list.Cast<TownHouse>().FirstOrDefault(t => t != null && t.Owner == m);
+			var th = list.Cast<TownHouse>().FirstOrDefault(t => t != null && t.Owner == m);
 
-			if (th == null || th.ForSaleSign == null)
+			if (th?.ForSaleSign == null)
 			{
 				return true;
 			}
 
 			if (gump is HouseGumpAOS)
 			{
-				int val = id - 1;
+				var val = id - 1;
 
 				if (val < 0)
 				{
 					return true;
 				}
 
-				int type = val % 15;
-				int index = val / 15;
+				var type = val % 15;
+				var index = val / 15;
 
 				if (th.ForSaleSign.ForcePublic && type == 3 && index == 12 && th.Public)
 				{

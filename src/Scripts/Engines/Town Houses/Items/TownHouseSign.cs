@@ -20,43 +20,43 @@ namespace Server.Engines.TownHouses
 	[Flipable(0xC0B, 0xC0C)]
 	public class TownHouseSign : BaseItem
 	{
-		public static List<TownHouseSign> AllSigns { get; } = new List<TownHouseSign>();
+		public static List<TownHouseSign> AllSigns { get; } = new();
 
-		private Point3D c_BanLoc, c_SignLoc;
+		private Point3D m_CBanLoc, m_CSignLoc;
 
-		private int c_Locks,
-			c_Secures,
-			c_Price,
-			c_MinZ,
-			c_MaxZ,
-			c_MinTotalSkill,
-			c_MaxTotalSkill,
-			c_ItemsPrice,
-			c_RTOPayments;
+		private int m_CLocks,
+			m_CSecures,
+			m_CPrice,
+			m_CMinZ,
+			m_CMaxZ,
+			m_CMinTotalSkill,
+			m_CMaxTotalSkill,
+			m_CItemsPrice,
+			m_CRtoPayments;
 
-		private bool c_YoungOnly,
-			c_RecurRent, c_KeepItems,
-			c_LeaveItems,
-			c_RentToOwn,
-			c_Free,
-			c_ForcePrivate,
-			c_ForcePublic, c_NoBanning;
+		private bool m_CYoungOnly,
+			m_CRecurRent, m_CKeepItems,
+			m_CLeaveItems,
+			m_CRentToOwn,
+			m_CFree,
+			m_CForcePrivate,
+			m_CForcePublic, m_CNoBanning;
 
-		private string c_Skill;
-		private double c_SkillReq;
-		private List<DecoreItemInfo> c_DecoreItemInfos;
-		private List<Item> c_PreviewItems;
-		private Timer c_RentTimer, c_PreviewTimer;
-		private DateTime c_RentTime;
-		private TimeSpan c_RentByTime, c_OriginalRentTime;
-		private Intu c_Murderers;
+		private string m_CSkill;
+		private double m_CSkillReq;
+		private List<DecoreItemInfo> m_CDecoreItemInfos;
+		private List<Item> m_CPreviewItems;
+		private Timer m_CRentTimer, m_CPreviewTimer;
+		private DateTime m_CRentTime;
+		private TimeSpan m_CRentByTime, m_COriginalRentTime;
+		private Intu m_CMurderers;
 
 		public Point3D BanLoc
 		{
-			get => c_BanLoc;
+			get => m_CBanLoc;
 			set
 			{
-				c_BanLoc = value;
+				m_CBanLoc = value;
 				InvalidateProperties();
 				if (Owned)
 				{
@@ -67,10 +67,10 @@ namespace Server.Engines.TownHouses
 
 		public Point3D SignLoc
 		{
-			get => c_SignLoc;
+			get => m_CSignLoc;
 			set
 			{
-				c_SignLoc = value;
+				m_CSignLoc = value;
 				InvalidateProperties();
 
 				if (!Owned)
@@ -84,10 +84,10 @@ namespace Server.Engines.TownHouses
 
 		public int Locks
 		{
-			get => c_Locks;
+			get => m_CLocks;
 			set
 			{
-				c_Locks = value;
+				m_CLocks = value;
 				InvalidateProperties();
 				if (Owned)
 				{
@@ -98,10 +98,10 @@ namespace Server.Engines.TownHouses
 
 		public int Secures
 		{
-			get => c_Secures;
+			get => m_CSecures;
 			set
 			{
-				c_Secures = value;
+				m_CSecures = value;
 				InvalidateProperties();
 				if (Owned)
 				{
@@ -112,25 +112,25 @@ namespace Server.Engines.TownHouses
 
 		public int Price
 		{
-			get => c_Price;
+			get => m_CPrice;
 			set
 			{
-				c_Price = value;
+				m_CPrice = value;
 				InvalidateProperties();
 			}
 		}
 
 		public int MinZ
 		{
-			get => c_MinZ;
+			get => m_CMinZ;
 			set
 			{
-				if (value > c_MaxZ)
+				if (value > m_CMaxZ)
 				{
-					c_MaxZ = value + 1;
+					m_CMaxZ = value + 1;
 				}
 
-				c_MinZ = value;
+				m_CMinZ = value;
 				if (Owned)
 				{
 					VersionCommand.UpdateRegion(this);
@@ -140,15 +140,15 @@ namespace Server.Engines.TownHouses
 
 		public int MaxZ
 		{
-			get => c_MaxZ;
+			get => m_CMaxZ;
 			set
 			{
-				if (value < c_MinZ)
+				if (value < m_CMinZ)
 				{
-					value = c_MinZ;
+					value = m_CMinZ;
 				}
 
-				c_MaxZ = value;
+				m_CMaxZ = value;
 				if (Owned)
 				{
 					VersionCommand.UpdateRegion(this);
@@ -158,15 +158,15 @@ namespace Server.Engines.TownHouses
 
 		public int MinTotalSkill
 		{
-			get => c_MinTotalSkill;
+			get => m_CMinTotalSkill;
 			set
 			{
-				if (value > c_MaxTotalSkill)
+				if (value > m_CMaxTotalSkill)
 				{
-					value = c_MaxTotalSkill;
+					value = m_CMaxTotalSkill;
 				}
 
-				c_MinTotalSkill = value;
+				m_CMinTotalSkill = value;
 				ValidateOwnership();
 				InvalidateProperties();
 			}
@@ -174,15 +174,15 @@ namespace Server.Engines.TownHouses
 
 		public int MaxTotalSkill
 		{
-			get => c_MaxTotalSkill;
+			get => m_CMaxTotalSkill;
 			set
 			{
-				if (value < c_MinTotalSkill)
+				if (value < m_CMinTotalSkill)
 				{
-					value = c_MinTotalSkill;
+					value = m_CMinTotalSkill;
 				}
 
-				c_MaxTotalSkill = value;
+				m_CMaxTotalSkill = value;
 				ValidateOwnership();
 				InvalidateProperties();
 			}
@@ -190,14 +190,14 @@ namespace Server.Engines.TownHouses
 
 		public bool YoungOnly
 		{
-			get => c_YoungOnly;
+			get => m_CYoungOnly;
 			set
 			{
-				c_YoungOnly = value;
+				m_CYoungOnly = value;
 
-				if (c_YoungOnly)
+				if (m_CYoungOnly)
 				{
-					c_Murderers = Intu.Neither;
+					m_CMurderers = Intu.Neither;
 				}
 
 				ValidateOwnership();
@@ -207,11 +207,11 @@ namespace Server.Engines.TownHouses
 
 		public TimeSpan RentByTime
 		{
-			get => c_RentByTime;
+			get => m_CRentByTime;
 			set
 			{
-				c_RentByTime = value;
-				c_OriginalRentTime = value;
+				m_CRentByTime = value;
+				m_COriginalRentTime = value;
 
 				if (value == TimeSpan.Zero)
 				{
@@ -229,14 +229,14 @@ namespace Server.Engines.TownHouses
 
 		public bool RecurRent
 		{
-			get => c_RecurRent;
+			get => m_CRecurRent;
 			set
 			{
-				c_RecurRent = value;
+				m_CRecurRent = value;
 
 				if (!value)
 				{
-					c_RentToOwn = value;
+					m_CRentToOwn = false;
 				}
 
 				InvalidateProperties();
@@ -245,32 +245,32 @@ namespace Server.Engines.TownHouses
 
 		public bool KeepItems
 		{
-			get => c_KeepItems;
+			get => m_CKeepItems;
 			set
 			{
-				c_LeaveItems = false;
-				c_KeepItems = value;
+				m_CLeaveItems = false;
+				m_CKeepItems = value;
 				InvalidateProperties();
 			}
 		}
 
 		public bool Free
 		{
-			get => c_Free;
+			get => m_CFree;
 			set
 			{
-				c_Free = value;
-				c_Price = 1;
+				m_CFree = value;
+				m_CPrice = 1;
 				InvalidateProperties();
 			}
 		}
 
 		public Intu Murderers
 		{
-			get => c_Murderers;
+			get => m_CMurderers;
 			set
 			{
-				c_Murderers = value;
+				m_CMurderers = value;
 
 				ValidateOwnership();
 				InvalidateProperties();
@@ -279,14 +279,14 @@ namespace Server.Engines.TownHouses
 
 		public bool ForcePrivate
 		{
-			get => c_ForcePrivate;
+			get => m_CForcePrivate;
 			set
 			{
-				c_ForcePrivate = value;
+				m_CForcePrivate = value;
 
 				if (value)
 				{
-					c_ForcePublic = false;
+					m_CForcePublic = false;
 
 					if (House != null)
 					{
@@ -298,14 +298,14 @@ namespace Server.Engines.TownHouses
 
 		public bool ForcePublic
 		{
-			get => c_ForcePublic;
+			get => m_CForcePublic;
 			set
 			{
-				c_ForcePublic = value;
+				m_CForcePublic = value;
 
 				if (value)
 				{
-					c_ForcePrivate = false;
+					m_CForcePrivate = false;
 
 					if (House != null)
 					{
@@ -317,10 +317,10 @@ namespace Server.Engines.TownHouses
 
 		public bool NoBanning
 		{
-			get => c_NoBanning;
+			get => m_CNoBanning;
 			set
 			{
-				c_NoBanning = value;
+				m_CNoBanning = value;
 
 				if (value && House != null)
 				{
@@ -336,10 +336,10 @@ namespace Server.Engines.TownHouses
 
 		public string Skill
 		{
-			get => c_Skill;
+			get => m_CSkill;
 			set
 			{
-				c_Skill = value;
+				m_CSkill = value;
 				ValidateOwnership();
 				InvalidateProperties();
 			}
@@ -347,10 +347,10 @@ namespace Server.Engines.TownHouses
 
 		public double SkillReq
 		{
-			get => c_SkillReq;
+			get => m_CSkillReq;
 			set
 			{
-				c_SkillReq = value;
+				m_CSkillReq = value;
 				ValidateOwnership();
 				InvalidateProperties();
 			}
@@ -358,20 +358,20 @@ namespace Server.Engines.TownHouses
 
 		public bool LeaveItems
 		{
-			get => c_LeaveItems;
+			get => m_CLeaveItems;
 			set
 			{
-				c_LeaveItems = value;
+				m_CLeaveItems = value;
 				InvalidateProperties();
 			}
 		}
 
 		public bool RentToOwn
 		{
-			get => c_RentToOwn;
+			get => m_CRentToOwn;
 			set
 			{
-				c_RentToOwn = value;
+				m_CRentToOwn = value;
 				InvalidateProperties();
 			}
 		}
@@ -382,10 +382,10 @@ namespace Server.Engines.TownHouses
 
 		public int ItemsPrice
 		{
-			get => c_ItemsPrice;
+			get => m_CItemsPrice;
 			set
 			{
-				c_ItemsPrice = value;
+				m_CItemsPrice = value;
 				InvalidateProperties();
 			}
 		}
@@ -396,9 +396,9 @@ namespace Server.Engines.TownHouses
 
 		protected DateTime DemolishTime { get; private set; }
 
-		public bool Owned => House != null && !House.Deleted;
+		public bool Owned => House is {Deleted: false};
 
-		public int Floors => (c_MaxZ - c_MinZ) / 20 + 1;
+		public int Floors => (m_CMaxZ - m_CMinZ) / 20 + 1;
 
 		public bool BlocksReady => Blocks.Count != 0;
 
@@ -420,19 +420,19 @@ namespace Server.Engines.TownHouses
 		{
 			get
 			{
-				if (c_RentByTime == TimeSpan.Zero)
+				if (m_CRentByTime == TimeSpan.Zero)
 				{
 					return "Sale";
 				}
-				if (c_RentByTime == TimeSpan.FromDays(1))
+				if (m_CRentByTime == TimeSpan.FromDays(1))
 				{
 					return "Daily";
 				}
-				if (c_RentByTime == TimeSpan.FromDays(7))
+				if (m_CRentByTime == TimeSpan.FromDays(7))
 				{
 					return "Weekly";
 				}
-				return c_RentByTime == TimeSpan.FromDays(30) ? "Monthly" : "Sale";
+				return m_CRentByTime == TimeSpan.FromDays(30) ? "Monthly" : "Sale";
 			}
 		}
 
@@ -440,19 +440,19 @@ namespace Server.Engines.TownHouses
 		{
 			get
 			{
-				if (c_RentByTime == TimeSpan.Zero)
+				if (m_CRentByTime == TimeSpan.Zero)
 				{
 					return "Sale";
 				}
-				if (c_RentByTime == TimeSpan.FromDays(1))
+				if (m_CRentByTime == TimeSpan.FromDays(1))
 				{
 					return "Day";
 				}
-				if (c_RentByTime == TimeSpan.FromDays(7))
+				if (m_CRentByTime == TimeSpan.FromDays(7))
 				{
 					return "Week";
 				}
-				return c_RentByTime == TimeSpan.FromDays(30) ? "Month" : "Sale";
+				return m_CRentByTime == TimeSpan.FromDays(30) ? "Month" : "Sale";
 			}
 		}
 
@@ -462,19 +462,19 @@ namespace Server.Engines.TownHouses
 			Name = "This building is for sale or rent!";
 			Movable = false;
 
-			c_BanLoc = Point3D.Zero;
-			c_SignLoc = Point3D.Zero;
-			c_Skill = "";
+			m_CBanLoc = Point3D.Zero;
+			m_CSignLoc = Point3D.Zero;
+			m_CSkill = "";
 			Blocks = new List<Rectangle2D>();
-			c_DecoreItemInfos = new List<DecoreItemInfo>();
-			c_PreviewItems = new List<Item>();
+			m_CDecoreItemInfos = new List<DecoreItemInfo>();
+			m_CPreviewItems = new List<Item>();
 			DemolishTime = DateTime.UtcNow;
-			c_RentTime = DateTime.UtcNow;
-			c_RentByTime = TimeSpan.Zero;
-			c_RecurRent = true;
+			m_CRentTime = DateTime.UtcNow;
+			m_CRentByTime = TimeSpan.Zero;
+			m_CRecurRent = true;
 
-			c_MinZ = short.MinValue;
-			c_MaxZ = short.MaxValue;
+			m_CMinZ = short.MinValue;
+			m_CMaxZ = short.MaxValue;
 
 			AllSigns.Add(this);
 		}
@@ -508,16 +508,15 @@ namespace Server.Engines.TownHouses
 		{
 			ClearPreview();
 
-			Point2D point = Point2D.Zero;
 			ArrayList blocks = new();
 
-			foreach (Rectangle2D rect in Blocks)
+			foreach (var rect in Blocks)
 			{
-				for (int x = rect.Start.X; x < rect.End.X; ++x)
+				for (var x = rect.Start.X; x < rect.End.X; ++x)
 				{
-					for (int y = rect.Start.Y; y < rect.End.Y; ++y)
+					for (var y = rect.Start.Y; y < rect.End.Y; ++y)
 					{
-						point = new Point2D(x, y);
+						var point = new Point2D(x, y);
 						if (!blocks.Contains(point))
 						{
 							blocks.Add(point);
@@ -532,20 +531,20 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			foreach (Item item in from Point2D p in blocks
+			foreach (var item in from Point2D p in blocks
 								  let avgz = Map.GetAverageZ(p.X, p.Y)
 								  select new Item(0x1766)
 								  {
 									  Name = "Area Preview",
 									  Movable = false,
-									  Location = new Point3D(p.X, p.Y, (avgz <= m.Z ? m.Z + 2 : avgz + 2)),
+									  Location = new Point3D(p.X, p.Y, avgz <= m.Z ? m.Z + 2 : avgz + 2),
 									  Map = Map
 								  })
 			{
-				c_PreviewItems.Add(item);
+				m_CPreviewItems.Add(item);
 			}
 
-			c_PreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
+			m_CPreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
 		}
 
 		public void ShowSignPreview()
@@ -554,13 +553,13 @@ namespace Server.Engines.TownHouses
 
 			Item sign = new(0xBD2) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
 
-			c_PreviewItems.Add(sign);
+			m_CPreviewItems.Add(sign);
 
 			sign = new Item(0xB98) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
 
-			c_PreviewItems.Add(sign);
+			m_CPreviewItems.Add(sign);
 
-			c_PreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
+			m_CPreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
 		}
 
 		public void ShowBanPreview()
@@ -569,9 +568,9 @@ namespace Server.Engines.TownHouses
 
 			Item ban = new(0x17EE) { Name = "Ban Loc Preview", Movable = false, Location = BanLoc, Map = Map };
 
-			c_PreviewItems.Add(ban);
+			m_CPreviewItems.Add(ban);
 
-			c_PreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
+			m_CPreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
 		}
 
 		public void ShowFloorsPreview(Mobile m)
@@ -583,40 +582,37 @@ namespace Server.Engines.TownHouses
 				Name = "Bottom Floor Preview",
 				Movable = false,
 				Location = m.Location,
-				Z = c_MinZ,
+				Z = m_CMinZ,
 				Map = Map
 			};
 
-			c_PreviewItems.Add(item);
+			m_CPreviewItems.Add(item);
 
 			item = new Item(0x7BD)
 			{
 				Name = "Top Floor Preview",
 				Movable = false,
 				Location = m.Location,
-				Z = c_MaxZ,
+				Z = m_CMaxZ,
 				Map = Map
 			};
 
-			c_PreviewItems.Add(item);
+			m_CPreviewItems.Add(item);
 
-			c_PreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
+			m_CPreviewTimer = Timer.DelayCall(TimeSpan.FromSeconds(100), ClearPreview);
 		}
 
 		public void ClearPreview()
 		{
-			foreach (Item item in new ArrayList(c_PreviewItems))
+			foreach (Item item in new ArrayList(m_CPreviewItems))
 			{
-				c_PreviewItems.Remove(item);
+				m_CPreviewItems.Remove(item);
 				item.Delete();
 			}
 
-			if (c_PreviewTimer != null)
-			{
-				c_PreviewTimer.Stop();
-			}
+			m_CPreviewTimer?.Stop();
 
-			c_PreviewTimer = null;
+			m_CPreviewTimer = null;
 		}
 		public void Purchase(Mobile m)
 		{
@@ -639,9 +635,9 @@ namespace Server.Engines.TownHouses
 					return;
 				}
 
-				int price = c_Price + (sellitems ? c_ItemsPrice : 0);
+				int price = m_CPrice + (sellitems ? m_CItemsPrice : 0);
 
-				if (c_Free)
+				if (m_CFree)
 				{
 					price = 0;
 				}
@@ -693,23 +689,23 @@ namespace Server.Engines.TownHouses
 					}
 				}
 
-				House = new TownHouse(m, this, c_Locks, c_Secures);
+				House = new TownHouse(m, this, m_CLocks, m_CSecures);
 
 				House.Components.Resize(maxX - minX, maxY - minY);
 				House.Components.Add(0x520, House.Components.Width - 1, House.Components.Height - 1, -5);
 
 				House.Location = new Point3D(minX, minY, Map.GetAverageZ(minX, minY));
 				House.Map = Map;
-				House.Region.GoLocation = c_BanLoc;
-				House.Sign.Location = c_SignLoc;
-				House.Hanger = new Item(0xB98) { Location = c_SignLoc, Map = Map, Movable = false };
+				House.Region.GoLocation = m_CBanLoc;
+				House.Sign.Location = m_CSignLoc;
+				House.Hanger = new Item(0xB98) { Location = m_CSignLoc, Map = Map, Movable = false };
 
-				if (c_ForcePublic)
+				if (m_CForcePublic)
 				{
 					House.Public = true;
 				}
 
-				House.Price = (RentByTime == TimeSpan.FromDays(0) ? c_Price : 1);
+				House.Price = (RentByTime == TimeSpan.FromDays(0) ? m_CPrice : 1);
 
 				VersionCommand.UpdateRegion(this);
 
@@ -718,23 +714,23 @@ namespace Server.Engines.TownHouses
 					House.Price = 1;
 				}
 
-				if (c_RentByTime != TimeSpan.Zero)
+				if (m_CRentByTime != TimeSpan.Zero)
 				{
-					BeginRentTimer(c_RentByTime);
+					BeginRentTimer(m_CRentByTime);
 				}
 
-				c_RTOPayments = 1;
+				m_CRtoPayments = 1;
 
 				HideOtherSigns();
 
-				c_DecoreItemInfos = new List<DecoreItemInfo>();
+				m_CDecoreItemInfos = new List<DecoreItemInfo>();
 
 				ConvertItems(sellitems);
 			}
 			catch (Exception e)
 			{
 				Errors.Report(
-					string.Format("An error occurred during home purchasing.  More information available on the console."));
+					"An error occurred during home purchasing.  More information available on the console.");
 				Console.WriteLine(e.Message);
 				Console.WriteLine(e.Source);
 				Console.WriteLine(e.StackTrace);
@@ -743,13 +739,15 @@ namespace Server.Engines.TownHouses
 
 		private void HideOtherSigns()
 		{
-			foreach (Item item in House.Sign.GetItemsInRange(0).Where(item => item is not HouseSign).Where(item => item != null && (item.ItemID == 0xB95
-																													|| item.ItemID == 0xB96
-																													|| item.ItemID == 0xC43
-																													|| item.ItemID == 0xC44
-																													|| (item.ItemID > 0xBA3 && item.ItemID < 0xC0E))))
+			foreach (var item in House.Sign.GetItemsInRange(0))
 			{
-				item.Visible = false;
+				if (item is HouseSign)
+					continue;
+
+				if (item != null && (item.ItemID is 0xB95 or 0xB96 or 0xC43 or 0xC44 || (item.ItemID > 0xBA3 && item.ItemID < 0xC0E)))
+				{
+					item.Visible = false;
+				}
 			}
 		}
 
@@ -766,18 +764,18 @@ namespace Server.Engines.TownHouses
 				items.Add(item);
 			}
 
-			foreach (Item item in items.Where(item => item is not HouseSign && item is not BaseMulti && item is not BaseAddon && item is not AddonComponent && item != House.Hanger && item.Visible && !item.IsLockedDown && !item.IsSecure && !item.Movable && !c_PreviewItems.Contains(item)))
+			foreach (Item item in items.Where(item => item is not HouseSign && item is not BaseMulti && item is not BaseAddon && item is not AddonComponent && item != House.Hanger && item.Visible && !item.IsLockedDown && !item.IsSecure && !item.Movable && !m_CPreviewItems.Contains(item)))
 			{
 				if (item is BaseDoor door)
 				{
 					ConvertDoor(door);
 				}
-				else if (!c_LeaveItems)
+				else if (!m_CLeaveItems)
 				{
-					c_DecoreItemInfos.Add(new DecoreItemInfo(item.GetType().ToString(), item.Name, item.ItemID, item.Hue,
+					m_CDecoreItemInfos.Add(new DecoreItemInfo(item.GetType().ToString(), item.Name, item.ItemID, item.Hue,
 						item.Location, item.Map));
 
-					if (!c_KeepItems || !keep)
+					if (!m_CKeepItems || !keep)
 					{
 						item.Delete();
 					}
@@ -868,12 +866,12 @@ namespace Server.Engines.TownHouses
 
 		private void RecreateItems()
 		{
-			foreach (DecoreItemInfo info in c_DecoreItemInfos)
+			foreach (DecoreItemInfo info in m_CDecoreItemInfos)
 			{
 				Item item;
 				if (info.TypeString.ToLower().IndexOf("static", StringComparison.Ordinal) != -1)
 				{
-					item = new Static(info.ItemID);
+					item = new Static(info.ItemId);
 				}
 				else
 				{
@@ -892,7 +890,7 @@ namespace Server.Engines.TownHouses
 					continue;
 				}
 
-				item.ItemID = info.ItemID;
+				item.ItemID = info.ItemId;
 				item.Name = info.Name;
 				item.Hue = info.Hue;
 				item.Location = info.Location;
@@ -911,9 +909,9 @@ namespace Server.Engines.TownHouses
 			House = null;
 			Visible = true;
 
-			if (c_RentToOwn)
+			if (m_CRentToOwn)
 			{
-				c_RentByTime = c_OriginalRentTime;
+				m_CRentByTime = m_COriginalRentTime;
 			}
 		}
 
@@ -948,9 +946,9 @@ namespace Server.Engines.TownHouses
 		public int CalcVolume()
 		{
 			int floors = 1;
-			if (c_MaxZ - c_MinZ < 100)
+			if (m_CMaxZ - m_CMinZ < 100)
 			{
-				floors = 1 + Math.Abs((c_MaxZ - c_MinZ) / 20);
+				floors = 1 + Math.Abs((m_CMaxZ - m_CMinZ) / 20);
 			}
 
 			List<Point3D> blocks = new();
@@ -981,9 +979,9 @@ namespace Server.Engines.TownHouses
 			{
 				BeginDemolishTimer(DemolishTime - DateTime.UtcNow);
 			}
-			else if (c_RentByTime != TimeSpan.Zero)
+			else if (m_CRentByTime != TimeSpan.Zero)
 			{
-				BeginRentTimer(c_RentByTime);
+				BeginRentTimer(m_CRentByTime);
 			}
 		}
 
@@ -1106,13 +1104,13 @@ namespace Server.Engines.TownHouses
 
 		protected void ClearRentTimer()
 		{
-			if (c_RentTimer != null)
+			if (m_CRentTimer != null)
 			{
-				c_RentTimer.Stop();
-				c_RentTimer = null;
+				m_CRentTimer.Stop();
+				m_CRentTimer = null;
 			}
 
-			c_RentTime = DateTime.UtcNow;
+			m_CRentTime = DateTime.UtcNow;
 		}
 		/*
 		private void BeginRentTimer()
@@ -1127,20 +1125,20 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			c_RentTimer = Timer.DelayCall(time, RentDue);
-			c_RentTime = DateTime.UtcNow + time;
+			m_CRentTimer = Timer.DelayCall(time, RentDue);
+			m_CRentTime = DateTime.UtcNow + time;
 		}
 
 		public void CheckRentTimer()
 		{
-			if (c_RentTimer == null || !Owned)
+			if (m_CRentTimer == null || !Owned)
 			{
 				return;
 			}
 
-			House.Owner.SendMessage("This rent cycle ends in {0} days, {1}:{2}:{3}.", (c_RentTime - DateTime.UtcNow).Days,
-				(c_RentTime - DateTime.UtcNow).Hours, (c_RentTime - DateTime.UtcNow).Minutes,
-				(c_RentTime - DateTime.UtcNow).Seconds);
+			House.Owner.SendMessage("This rent cycle ends in {0} days, {1}:{2}:{3}.", (m_CRentTime - DateTime.UtcNow).Days,
+				(m_CRentTime - DateTime.UtcNow).Hours, (m_CRentTime - DateTime.UtcNow).Minutes,
+				(m_CRentTime - DateTime.UtcNow).Seconds);
 		}
 
 		private void RentDue()
@@ -1150,7 +1148,7 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (!c_RecurRent)
+			if (!m_CRecurRent)
 			{
 				House.Owner.SendMessage(
 					"Your town house rental contract has expired, and the bank has once again taken possession.");
@@ -1158,53 +1156,53 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (!c_Free && House.Owner.AccessLevel == AccessLevel.Player && !Banker.Withdraw(House.Owner, c_Price))
+			if (!m_CFree && House.Owner.AccessLevel == AccessLevel.Player && !Banker.Withdraw(House.Owner, m_CPrice))
 			{
 				House.Owner.SendMessage("Since you can not afford the rent, the bank has reclaimed your town house.");
 				PackUpHouse();
 				return;
 			}
 
-			if (!c_Free)
+			if (!m_CFree)
 			{
-				House.Owner.SendMessage("The bank has withdrawn {0} gold rent for your town house.", c_Price);
+				House.Owner.SendMessage("The bank has withdrawn {0} gold rent for your town house.", m_CPrice);
 			}
 
 			OnRentPaid();
 
-			if (c_RentToOwn)
+			if (m_CRentToOwn)
 			{
-				c_RTOPayments++;
+				m_CRtoPayments++;
 
 				bool complete = false;
 
-				if (c_RentByTime == TimeSpan.FromDays(1) && c_RTOPayments >= 60)
+				if (m_CRentByTime == TimeSpan.FromDays(1) && m_CRtoPayments >= 60)
 				{
 					complete = true;
-					House.Price = c_Price * 60;
+					House.Price = m_CPrice * 60;
 				}
 
-				if (c_RentByTime == TimeSpan.FromDays(7) && c_RTOPayments >= 9)
+				if (m_CRentByTime == TimeSpan.FromDays(7) && m_CRtoPayments >= 9)
 				{
 					complete = true;
-					House.Price = c_Price * 9;
+					House.Price = m_CPrice * 9;
 				}
 
-				if (c_RentByTime == TimeSpan.FromDays(30) && c_RTOPayments >= 2)
+				if (m_CRentByTime == TimeSpan.FromDays(30) && m_CRtoPayments >= 2)
 				{
 					complete = true;
-					House.Price = c_Price * 2;
+					House.Price = m_CPrice * 2;
 				}
 
 				if (complete)
 				{
 					House.Owner.SendMessage("You now own your rental home.");
-					c_RentByTime = TimeSpan.FromDays(0);
+					m_CRentByTime = TimeSpan.FromDays(0);
 					return;
 				}
 			}
 
-			BeginRentTimer(c_RentByTime);
+			BeginRentTimer(m_CRentByTime);
 		}
 
 		protected virtual void OnRentPaid()
@@ -1213,15 +1211,15 @@ namespace Server.Engines.TownHouses
 
 		public void NextPriceType()
 		{
-			if (c_RentByTime == TimeSpan.Zero)
+			if (m_CRentByTime == TimeSpan.Zero)
 			{
 				RentByTime = TimeSpan.FromDays(1);
 			}
-			else if (c_RentByTime == TimeSpan.FromDays(1))
+			else if (m_CRentByTime == TimeSpan.FromDays(1))
 			{
 				RentByTime = TimeSpan.FromDays(7);
 			}
-			else if (c_RentByTime == TimeSpan.FromDays(7))
+			else if (m_CRentByTime == TimeSpan.FromDays(7))
 			{
 				RentByTime = TimeSpan.FromDays(30);
 			}
@@ -1233,15 +1231,15 @@ namespace Server.Engines.TownHouses
 
 		public void PrevPriceType()
 		{
-			if (c_RentByTime == TimeSpan.Zero)
+			if (m_CRentByTime == TimeSpan.Zero)
 			{
 				RentByTime = TimeSpan.FromDays(30);
 			}
-			else if (c_RentByTime == TimeSpan.FromDays(30))
+			else if (m_CRentByTime == TimeSpan.FromDays(30))
 			{
 				RentByTime = TimeSpan.FromDays(7);
 			}
-			else if (c_RentByTime == TimeSpan.FromDays(7))
+			else if (m_CRentByTime == TimeSpan.FromDays(7))
 			{
 				RentByTime = TimeSpan.FromDays(1);
 			}
@@ -1255,12 +1253,12 @@ namespace Server.Engines.TownHouses
 
 		private bool CanBuyHouse(Mobile m)
 		{
-			if (c_Skill != "")
+			if (m_CSkill != "")
 			{
 				try
 				{
-					SkillName index = (SkillName)Enum.Parse(typeof(SkillName), c_Skill, true);
-					if (m.Skills[index].Value < c_SkillReq)
+					SkillName index = (SkillName)Enum.Parse(typeof(SkillName), m_CSkill, true);
+					if (m.Skills[index].Value < m_CSkillReq)
 					{
 						return false;
 					}
@@ -1271,27 +1269,27 @@ namespace Server.Engines.TownHouses
 				}
 			}
 
-			if (c_MinTotalSkill != 0 && m.SkillsTotal / 10 < c_MinTotalSkill)
+			if (m_CMinTotalSkill != 0 && m.SkillsTotal / 10 < m_CMinTotalSkill)
 			{
 				return false;
 			}
 
-			if (c_MaxTotalSkill != 0 && m.SkillsTotal / 10 > c_MaxTotalSkill)
+			if (m_CMaxTotalSkill != 0 && m.SkillsTotal / 10 > m_CMaxTotalSkill)
 			{
 				return false;
 			}
 
-			if (c_YoungOnly && m.Player && !((PlayerMobile)m).Young)
+			if (m_CYoungOnly && m.Player && !((PlayerMobile)m).Young)
 			{
 				return false;
 			}
 
-			if (c_Murderers == Intu.Yes && m.Kills < 5)
+			if (m_CMurderers == Intu.Yes && m.Kills < 5)
 			{
 				return false;
 			}
 
-			return c_Murderers != Intu.No || m.Kills < 5;
+			return m_CMurderers != Intu.No || m.Kills < 5;
 		}
 
 		public override void OnDoubleClick(Mobile m)
@@ -1334,48 +1332,48 @@ namespace Server.Engines.TownHouses
 		{
 			base.GetProperties(list);
 
-			if (c_Free)
+			if (m_CFree)
 			{
 				list.Add(1060658, "Price\tFree");
 			}
-			else if (c_RentByTime == TimeSpan.Zero)
+			else if (m_CRentByTime == TimeSpan.Zero)
 			{
-				list.Add(1060658, "Price\t{0}{1}", c_Price, c_KeepItems ? " (+" + c_ItemsPrice + " for the items)" : "");
+				list.Add(1060658, "Price\t{0}{1}", m_CPrice, m_CKeepItems ? " (+" + m_CItemsPrice + " for the items)" : "");
 			}
-			else if (c_RecurRent)
+			else if (m_CRecurRent)
 			{
-				list.Add(1060658, "{0}\t{1}\r{2}", PriceType + (c_RentToOwn ? " Rent-to-Own" : " Recurring"), c_Price,
-					c_KeepItems ? " (+" + c_ItemsPrice + " for the items)" : "");
+				list.Add(1060658, "{0}\t{1}\r{2}", PriceType + (m_CRentToOwn ? " Rent-to-Own" : " Recurring"), m_CPrice,
+					m_CKeepItems ? " (+" + m_CItemsPrice + " for the items)" : "");
 			}
 			else
 			{
-				list.Add(1060658, "One {0}\t{1}{2}", PriceTypeShort, c_Price,
-					c_KeepItems ? " (+" + c_ItemsPrice + " for the items)" : "");
+				list.Add(1060658, "One {0}\t{1}{2}", PriceTypeShort, m_CPrice,
+					m_CKeepItems ? " (+" + m_CItemsPrice + " for the items)" : "");
 			}
 
-			list.Add(1060659, "Lockdowns\t{0}", c_Locks);
-			list.Add(1060660, "Secures\t{0}", c_Secures);
+			list.Add(1060659, "Lockdowns\t{0}", m_CLocks);
+			list.Add(1060660, "Secures\t{0}", m_CSecures);
 
-			if (c_SkillReq != 0.0)
+			if (m_CSkillReq != 0.0)
 			{
-				list.Add(1060661, "Requires\t{0}", c_SkillReq + " in " + c_Skill);
+				list.Add(1060661, "Requires\t{0}", m_CSkillReq + " in " + m_CSkill);
 			}
-			if (c_MinTotalSkill != 0)
+			if (m_CMinTotalSkill != 0)
 			{
-				list.Add(1060662, "Requires more than\t{0} total skills", c_MinTotalSkill);
+				list.Add(1060662, "Requires more than\t{0} total skills", m_CMinTotalSkill);
 			}
-			if (c_MaxTotalSkill != 0)
+			if (m_CMaxTotalSkill != 0)
 			{
-				list.Add(1060663, "Requires less than\t{0} total skills", c_MaxTotalSkill);
+				list.Add(1060663, "Requires less than\t{0} total skills", m_CMaxTotalSkill);
 			}
 
-			if (c_YoungOnly)
+			if (m_CYoungOnly)
 			{
 				list.Add(1063483, "Must be\tYoung");
 			}
 			else
 			{
-				switch (c_Murderers)
+				switch (m_CMurderers)
 				{
 					case Intu.Yes:
 						list.Add(1063483, "Must be\ta murderer");
@@ -1399,42 +1397,42 @@ namespace Server.Engines.TownHouses
 
 			// Version 13
 
-			writer.Write(c_ForcePrivate);
-			writer.Write(c_ForcePublic);
+			writer.Write(m_CForcePrivate);
+			writer.Write(m_CForcePublic);
 			writer.Write(NoHouseTrade);
 
 			// Version 12
 
-			writer.Write(c_Free);
+			writer.Write(m_CFree);
 
 			// Version 11
 
-			writer.Write((int)c_Murderers);
+			writer.Write((int)m_CMurderers);
 
 			// Version 10
 
-			writer.Write(c_LeaveItems);
+			writer.Write(m_CLeaveItems);
 
 			// Version 9
-			writer.Write(c_RentToOwn);
-			writer.Write(c_OriginalRentTime);
-			writer.Write(c_RTOPayments);
+			writer.Write(m_CRentToOwn);
+			writer.Write(m_COriginalRentTime);
+			writer.Write(m_CRtoPayments);
 
 			// Version 7
 			//writer.WriteItemList( c_PreviewItems, true );
-			writer.Write(c_PreviewItems.Count);
-			foreach (Item item in c_PreviewItems)
+			writer.Write(m_CPreviewItems.Count);
+			foreach (Item item in m_CPreviewItems)
 			{
 				writer.Write(item);
 			}
 
 			// Version 6
-			writer.Write(c_ItemsPrice);
-			writer.Write(c_KeepItems);
+			writer.Write(m_CItemsPrice);
+			writer.Write(m_CKeepItems);
 
 			// Version 5
-			writer.Write(c_DecoreItemInfos.Count);
-			foreach (DecoreItemInfo info in c_DecoreItemInfos)
+			writer.Write(m_CDecoreItemInfos.Count);
+			foreach (DecoreItemInfo info in m_CDecoreItemInfos)
 			{
 				info.Save(writer);
 			}
@@ -1442,29 +1440,29 @@ namespace Server.Engines.TownHouses
 			writer.Write(Relock);
 
 			// Version 4
-			writer.Write(c_RecurRent);
-			writer.Write(c_RentByTime);
-			writer.Write(c_RentTime);
+			writer.Write(m_CRecurRent);
+			writer.Write(m_CRentByTime);
+			writer.Write(m_CRentTime);
 			writer.Write(DemolishTime);
-			writer.Write(c_YoungOnly);
-			writer.Write(c_MinTotalSkill);
-			writer.Write(c_MaxTotalSkill);
+			writer.Write(m_CYoungOnly);
+			writer.Write(m_CMinTotalSkill);
+			writer.Write(m_CMaxTotalSkill);
 
 			// Version 3
-			writer.Write(c_MinZ);
-			writer.Write(c_MaxZ);
+			writer.Write(m_CMinZ);
+			writer.Write(m_CMaxZ);
 
 			// Version 2
 			writer.Write(House);
 
 			// Version 1
-			writer.Write(c_Price);
-			writer.Write(c_Locks);
-			writer.Write(c_Secures);
-			writer.Write(c_BanLoc);
-			writer.Write(c_SignLoc);
-			writer.Write(c_Skill);
-			writer.Write(c_SkillReq);
+			writer.Write(m_CPrice);
+			writer.Write(m_CLocks);
+			writer.Write(m_CSecures);
+			writer.Write(m_CBanLoc);
+			writer.Write(m_CSignLoc);
+			writer.Write(m_CSkill);
+			writer.Write(m_CSkillReq);
 			writer.Write(Blocks.Count);
 			foreach (Rectangle2D rect in Blocks)
 			{
@@ -1480,60 +1478,59 @@ namespace Server.Engines.TownHouses
 
 			if (version >= 13)
 			{
-				c_ForcePrivate = reader.ReadBool();
-				c_ForcePublic = reader.ReadBool();
+				m_CForcePrivate = reader.ReadBool();
+				m_CForcePublic = reader.ReadBool();
 				NoHouseTrade = reader.ReadBool();
 			}
 
 			if (version >= 12)
 			{
-				c_Free = reader.ReadBool();
+				m_CFree = reader.ReadBool();
 			}
 
 			if (version >= 11)
 			{
-				c_Murderers = (Intu)reader.ReadInt();
+				m_CMurderers = (Intu)reader.ReadInt();
 			}
 
 			if (version >= 10)
 			{
-				c_LeaveItems = reader.ReadBool();
+				m_CLeaveItems = reader.ReadBool();
 			}
 
 			if (version >= 9)
 			{
-				c_RentToOwn = reader.ReadBool();
-				c_OriginalRentTime = reader.ReadTimeSpan();
-				c_RTOPayments = reader.ReadInt();
+				m_CRentToOwn = reader.ReadBool();
+				m_COriginalRentTime = reader.ReadTimeSpan();
+				m_CRtoPayments = reader.ReadInt();
 			}
 
-			c_PreviewItems = new List<Item>();
+			m_CPreviewItems = new List<Item>();
 			if (version >= 7)
 			{
-				int previewcount = reader.ReadInt();
-				for (int i = 0; i < previewcount; ++i)
+				var previewcount = reader.ReadInt();
+				for (var i = 0; i < previewcount; ++i)
 				{
-					Item item = reader.ReadItem();
-					c_PreviewItems.Add(item);
+					var item = reader.ReadItem();
+					m_CPreviewItems.Add(item);
 				}
 			}
 
 			if (version >= 6)
 			{
-				c_ItemsPrice = reader.ReadInt();
-				c_KeepItems = reader.ReadBool();
+				m_CItemsPrice = reader.ReadInt();
+				m_CKeepItems = reader.ReadBool();
 			}
 
-			c_DecoreItemInfos = new List<DecoreItemInfo>();
+			m_CDecoreItemInfos = new List<DecoreItemInfo>();
 			if (version >= 5)
 			{
-				int decorecount = reader.ReadInt();
-				DecoreItemInfo info;
-				for (int i = 0; i < decorecount; ++i)
+				var decorecount = reader.ReadInt();
+				for (var i = 0; i < decorecount; ++i)
 				{
-					info = new DecoreItemInfo();
+					var info = new DecoreItemInfo();
 					info.Load(reader);
-					c_DecoreItemInfos.Add(info);
+					m_CDecoreItemInfos.Add(info);
 				}
 
 				Relock = reader.ReadBool();
@@ -1541,19 +1538,19 @@ namespace Server.Engines.TownHouses
 
 			if (version >= 4)
 			{
-				c_RecurRent = reader.ReadBool();
-				c_RentByTime = reader.ReadTimeSpan();
-				c_RentTime = reader.ReadDateTime();
+				m_CRecurRent = reader.ReadBool();
+				m_CRentByTime = reader.ReadTimeSpan();
+				m_CRentTime = reader.ReadDateTime();
 				DemolishTime = reader.ReadDateTime();
-				c_YoungOnly = reader.ReadBool();
-				c_MinTotalSkill = reader.ReadInt();
-				c_MaxTotalSkill = reader.ReadInt();
+				m_CYoungOnly = reader.ReadBool();
+				m_CMinTotalSkill = reader.ReadInt();
+				m_CMaxTotalSkill = reader.ReadInt();
 			}
 
 			if (version >= 3)
 			{
-				c_MinZ = reader.ReadInt();
-				c_MaxZ = reader.ReadInt();
+				m_CMinZ = reader.ReadInt();
+				m_CMaxZ = reader.ReadInt();
 			}
 
 			if (version >= 2)
@@ -1561,24 +1558,24 @@ namespace Server.Engines.TownHouses
 				House = (TownHouse)reader.ReadItem();
 			}
 
-			c_Price = reader.ReadInt();
-			c_Locks = reader.ReadInt();
-			c_Secures = reader.ReadInt();
-			c_BanLoc = reader.ReadPoint3D();
-			c_SignLoc = reader.ReadPoint3D();
-			c_Skill = reader.ReadString();
-			c_SkillReq = reader.ReadDouble();
+			m_CPrice = reader.ReadInt();
+			m_CLocks = reader.ReadInt();
+			m_CSecures = reader.ReadInt();
+			m_CBanLoc = reader.ReadPoint3D();
+			m_CSignLoc = reader.ReadPoint3D();
+			m_CSkill = reader.ReadString();
+			m_CSkillReq = reader.ReadDouble();
 
 			Blocks = new List<Rectangle2D>();
-			int count = reader.ReadInt();
-			for (int i = 0; i < count; ++i)
+			var count = reader.ReadInt();
+			for (var i = 0; i < count; ++i)
 			{
 				Blocks.Add(reader.ReadRect2D());
 			}
 
-			if (c_RentTime > DateTime.UtcNow)
+			if (m_CRentTime > DateTime.UtcNow)
 			{
-				BeginRentTimer(c_RentTime - DateTime.UtcNow);
+				BeginRentTimer(m_CRentTime - DateTime.UtcNow);
 			}
 
 			Timer.DelayCall(TimeSpan.Zero, StartTimers);

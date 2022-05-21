@@ -2,7 +2,7 @@ using System;
 
 namespace Server.Items
 {
-	public class StarRoomGate : Moongate
+	public sealed class StarRoomGate : Moongate
 	{
 		private bool m_Decays;
 		private DateTime m_DecayTime;
@@ -28,14 +28,14 @@ namespace Server.Items
 			Dispellable = false;
 			ItemID = 0x1FD4;
 
-			if (decays)
-			{
-				m_Decays = true;
-				m_DecayTime = DateTime.UtcNow + TimeSpan.FromMinutes(2.0);
+			if (!decays)
+				return;
 
-				m_Timer = new InternalTimer(this, m_DecayTime);
-				m_Timer.Start();
-			}
+			m_Decays = true;
+			m_DecayTime = DateTime.UtcNow + TimeSpan.FromMinutes(2.0);
+
+			m_Timer = new InternalTimer(this, m_DecayTime);
+			m_Timer.Start();
 		}
 
 		public StarRoomGate(Serial serial)
@@ -46,8 +46,7 @@ namespace Server.Items
 		public override int LabelNumber => 1049498;// dark moongate
 		public override void OnAfterDelete()
 		{
-			if (m_Timer != null)
-				m_Timer.Stop();
+			m_Timer?.Stop();
 
 			base.OnAfterDelete();
 		}

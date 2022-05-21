@@ -755,9 +755,8 @@ namespace Server.Engines.Craft
 
 			if (from.Talisman is BaseTalisman talisman)
 			{
-				if (talisman.Skill == system.MainSkill)
+				if (talisman.CheckSkill(system))
 				{
-					chance -= talisman.SuccessBonus / 100.0;
 					bonus = talisman.ExceptionalBonus / 100.0;
 				}
 			}
@@ -839,10 +838,14 @@ namespace Server.Engines.Craft
 			else
 				chance = 0.0;
 
-			if (allRequiredSkills && from.Talisman is BaseTalisman talisman)
+			if (allRequiredSkills && from.Talisman is BaseTalisman)
 			{
-				if (talisman.Skill == craftSystem.MainSkill)
+				BaseTalisman talisman = (BaseTalisman)from.Talisman;
+
+				if (talisman.CheckSkill(craftSystem))
+				{
 					chance += talisman.SuccessBonus / 100.0;
+				}
 			}
 
 			if (allRequiredSkills && valMainSkill == maxMainSkill)

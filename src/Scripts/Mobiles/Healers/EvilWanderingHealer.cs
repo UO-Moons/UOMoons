@@ -49,8 +49,8 @@ namespace Server.Mobiles
 		{
 			base.OnDeath(c);
 
-			if (Utility.RandomDouble() < 0.5)
-				c.DropItem(new FragmentOfAMap());
+			//if (Utility.RandomDouble() < 0.5)
+			//	c.DropItem(new FragmentOfAMap());
 		}
 
 		public EvilWanderingHealer(Serial serial) : base(serial)

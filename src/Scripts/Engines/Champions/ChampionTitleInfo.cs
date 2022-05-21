@@ -64,8 +64,7 @@ namespace Server.Engines.Champions
 			if (m_Values == null || index < 0 || index >= m_Values.Length)
 				return 0;
 
-			if (m_Values[index] == null)
-				m_Values[index] = new TitleInfo();
+			m_Values[index] ??= new TitleInfo();
 
 			return m_Values[index].Value;
 		}
@@ -75,16 +74,14 @@ namespace Server.Engines.Champions
 			if (m_Values == null || index < 0 || index >= m_Values.Length)
 				return DateTime.MinValue;
 
-			if (m_Values[index] == null)
-				m_Values[index] = new TitleInfo();
+			m_Values[index] ??= new TitleInfo();
 
 			return m_Values[index].LastDecay;
 		}
 
 		public void SetValue(int index, int value)
 		{
-			if (m_Values == null)
-				m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+			m_Values ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
 			if (value < 0)
 				value = 0;
@@ -92,40 +89,35 @@ namespace Server.Engines.Champions
 			if (index < 0 || index >= m_Values.Length)
 				return;
 
-			if (m_Values[index] == null)
-				m_Values[index] = new TitleInfo();
+			m_Values[index] ??= new TitleInfo();
 
 			m_Values[index].Value = value;
 		}
 
 		public void Award(int index, int value)
 		{
-			if (m_Values == null)
-				m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+			m_Values ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
 			if (index < 0 || index >= m_Values.Length || value <= 0)
 				return;
 
-			if (m_Values[index] == null)
-				m_Values[index] = new TitleInfo();
+			m_Values[index] ??= new TitleInfo();
 
 			m_Values[index].Value += value;
 		}
 
 		public void Atrophy(int index, int value)
 		{
-			if (m_Values == null)
-				m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+			m_Values ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
 			if (index < 0 || index >= m_Values.Length || value <= 0)
 				return;
 
-			if (m_Values[index] == null)
-				m_Values[index] = new TitleInfo();
+			m_Values[index] ??= new TitleInfo();
 
-			int before = m_Values[index].Value;
+			var before = m_Values[index].Value;
 
-			if ((m_Values[index].Value - value) < 0)
+			if (m_Values[index].Value - value < 0)
 				m_Values[index].Value = 0;
 			else
 				m_Values[index].Value -= value;
@@ -172,7 +164,7 @@ namespace Server.Engines.Champions
 
 		public ChampionTitleInfo(GenericReader reader)
 		{
-			int version = reader.ReadEncodedInt();
+			var version = reader.ReadEncodedInt();
 
 			switch (version)
 			{
@@ -209,13 +201,12 @@ namespace Server.Engines.Champions
 
 			writer.WriteEncodedInt(titles.Harrower);
 
-			int length = titles.m_Values.Length;
+			var length = titles.m_Values.Length;
 			writer.WriteEncodedInt(length);
 
-			for (int i = 0; i < length; i++)
+			for (var i = 0; i < length; i++)
 			{
-				if (titles.m_Values[i] == null)
-					titles.m_Values[i] = new TitleInfo();
+				titles.m_Values[i] ??= new TitleInfo();
 
 				TitleInfo.Serialize(writer, titles.m_Values[i]);
 			}
@@ -223,16 +214,15 @@ namespace Server.Engines.Champions
 
 		public static void CheckAtrophy(PlayerMobile pm)
 		{
-			ChampionTitleInfo t = pm.ChampionTitles;
+			var t = pm.ChampionTitles;
 			if (t == null)
 				return;
 
-			if (t.m_Values == null)
-				t.m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+			t.m_Values ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
-			for (int i = 0; i < t.m_Values.Length; i++)
+			for (var i = 0; i < t.m_Values.Length; i++)
 			{
-				if ((t.GetLastDecay(i) + LossDelay) < DateTime.UtcNow)
+				if (t.GetLastDecay(i) + LossDelay < DateTime.UtcNow)
 				{
 					t.Atrophy(i, LossAmount);
 				}
@@ -241,16 +231,15 @@ namespace Server.Engines.Champions
 
 		public static void AwardHarrowerTitle(PlayerMobile pm)  //Called when killing a harrower.  Will give a minimum of 1 point.
 		{
-			ChampionTitleInfo t = pm.ChampionTitles;
+			var t = pm.ChampionTitles;
 			if (t == null)
 				return;
 
-			if (t.m_Values == null)
-				t.m_Values = new TitleInfo[ChampionSpawnInfo.Table.Length];
+			t.m_Values ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
-			int count = 1;
+			var count = 1;
 
-			for (int i = 0; i < t.m_Values.Length; i++)
+			for (var i = 0; i < t.m_Values.Length; i++)
 			{
 				if (t.m_Values[i].Value > 900)
 					count++;

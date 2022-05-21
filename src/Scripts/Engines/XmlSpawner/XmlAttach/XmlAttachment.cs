@@ -105,9 +105,6 @@ namespace Server.Engines.XmlSpawner2
 		// ----------------------------------------------
 		// Private fields
 		// ----------------------------------------------
-		private ASerial m_Serial;
-
-		private string m_Name;
 
 		private object m_AttachedTo;
 
@@ -121,24 +118,21 @@ namespace Server.Engines.XmlSpawner2
 
 		private TimeSpan m_Expiration = TimeSpan.Zero;     // no expiration by default
 
-		private DateTime m_ExpirationEnd;
-
-		private DateTime m_CreationTime;                   // when the attachment was made
-
 		// ----------------------------------------------
 		// Public properties
 		// ----------------------------------------------
 		[CommandProperty(AccessLevel.GameMaster)]
-		public DateTime CreationTime => m_CreationTime;
+		public DateTime CreationTime { get; private set; }
 
 		public bool Deleted => m_Deleted;
 
-		public bool DoDelete { get { return false; } set { if (value == true) Delete(); } }
+		public bool DoDelete { get => false;
+			set { if (value) Delete(); } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public int SerialValue => m_Serial.Value;
+		public int SerialValue => Serial.Value;
 
-		public ASerial Serial { get { return m_Serial; } set { m_Serial = value; } }
+		public ASerial Serial { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TimeSpan Expiration
@@ -148,10 +142,10 @@ namespace Server.Engines.XmlSpawner2
 				// if the expiration timer is running then return the remaining time
 				if (m_ExpirationTimer != null)
 				{
-					return m_ExpirationEnd - DateTime.UtcNow;
+					return ExpirationEnd - DateTime.UtcNow;
 				}
-				else
-					return m_Expiration;
+
+				return m_Expiration;
 			}
 			set
 			{
@@ -164,7 +158,7 @@ namespace Server.Engines.XmlSpawner2
 			}
 		}
 
-		public DateTime ExpirationEnd => m_ExpirationEnd;
+		public DateTime ExpirationEnd { get; private set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual bool CanActivateInBackpack => true;
@@ -193,17 +187,21 @@ namespace Server.Engines.XmlSpawner2
 		*/
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public virtual string Name { get { return m_Name; } set { m_Name = value; } }
+		public virtual string Name { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual object Attached => m_AttachedTo;
 
-		public virtual object AttachedTo { get { return m_AttachedTo; } set { m_AttachedTo = value; } }
+		public virtual object AttachedTo { get => m_AttachedTo;
+			set => m_AttachedTo = value;
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual string AttachedBy => m_AttachedBy;
 
-		public virtual object OwnedBy { get { return m_OwnedBy; } set { m_OwnedBy = value; } }
+		public virtual object OwnedBy { get => m_OwnedBy;
+			set => m_OwnedBy = value;
+		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public virtual object Owner => m_OwnedBy;
@@ -213,7 +211,7 @@ namespace Server.Engines.XmlSpawner2
 		// ----------------------------------------------
 		private void DoTimer(TimeSpan delay)
 		{
-			m_ExpirationEnd = DateTime.UtcNow + delay;
+			ExpirationEnd = DateTime.UtcNow + delay;
 
 			if (m_ExpirationTimer != null)
 				m_ExpirationTimer.Stop();
@@ -244,21 +242,21 @@ namespace Server.Engines.XmlSpawner2
 		// ----------------------------------------------
 		// Constructors
 		// ----------------------------------------------
-		public XmlAttachment()
+		protected XmlAttachment()
 		{
-			m_CreationTime = DateTime.UtcNow;
+			CreationTime = DateTime.UtcNow;
 
 			// get the next unique serial id
-			m_Serial = ASerial.NewSerial();
+			Serial = ASerial.NewSerial();
 
 			// register the attachment in the serial keyed dictionary
-			XmlAttach.HashSerial(m_Serial, this);
+			XmlAttach.HashSerial(Serial, this);
 		}
 
 		// needed for deserialization
-		public XmlAttachment(ASerial serial)
+		protected XmlAttachment(ASerial serial)
 		{
-			m_Serial = serial;
+			Serial = serial;
 		}
 
 		// ----------------------------------------------
@@ -463,13 +461,13 @@ namespace Server.Engines.XmlSpawner2
 			writer.Write(m_Expiration);
 			if (m_ExpirationTimer != null)
 			{
-				writer.Write(m_ExpirationEnd - DateTime.UtcNow);
+				writer.Write(ExpirationEnd - DateTime.UtcNow);
 			}
 			else
 			{
 				writer.Write(TimeSpan.Zero);
 			}
-			writer.Write(m_CreationTime);
+			writer.Write(CreationTime);
 		}
 
 		public virtual void Deserialize(GenericReader reader)
@@ -505,7 +503,7 @@ namespace Server.Engines.XmlSpawner2
 					if (remaining > TimeSpan.Zero)
 						DoTimer(remaining);
 
-					m_CreationTime = reader.ReadDateTime();
+					CreationTime = reader.ReadDateTime();
 					break;
 			}
 		}

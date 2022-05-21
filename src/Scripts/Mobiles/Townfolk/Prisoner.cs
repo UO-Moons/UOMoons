@@ -1,4 +1,3 @@
-﻿using Server.Engines.MLQuests;
 using Server.Items;
 
 namespace Server.Mobiles.Townfolk
@@ -36,20 +35,6 @@ namespace Server.Mobiles.Townfolk
 
 			Utility.AssignRandomHair(this);
 			Utility.AssignRandomFacialHair(this, HairHue);
-		}
-
-		public override void Shout(PlayerMobile pm)
-		{
-			/*
-			 * 502261 - HELP!
-			 * 502262 - Help me!
-			 * 502263 - Canst thou aid me?!
-			 * 502264 - Help a poor prisoner!
-			 * 502265 - Help! Please!
-			 * 502266 - Aaah! Help me!
-			 * 502267 - Go and get some help!
-			 */
-			MLQuestSystem.Tell(this, pm, Utility.Random(502261, 7));
 		}
 
 		public override void OnMovement(Mobile m, Point3D oldLocation)

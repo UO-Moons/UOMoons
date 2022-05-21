@@ -61,8 +61,8 @@ namespace Server.Mobiles
 			base.OnDeath(c);
 
 			// TODO: Check drop rate
-			if (Utility.RandomDouble() < 0.05)
-				c.DropItem(new StoutWhip());
+			//if (Utility.RandomDouble() < 0.05)
+			//	c.DropItem(new StoutWhip());
 		}
 
 		public override void GenerateLoot()

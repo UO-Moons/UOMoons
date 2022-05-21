@@ -8,17 +8,17 @@ namespace Server.Engines.TownHouses
 {
 	public class TownHouse : VersionHouse
 	{
-		public static List<TownHouse> AllTownHouses { get; } = new List<TownHouse>();
+		public static List<TownHouse> AllTownHouses { get; } = new();
 
-		private Item c_Hanger;
-		private readonly List<Sector> c_Sectors = new();
+		private Item m_CHanger;
+		private readonly List<Sector> m_CSectors = new();
 
 		public TownHouseSign ForSaleSign { get; private set; }
 
 		public Item Hanger
 		{
-			get => c_Hanger ??= new Item(0xB98) { Movable = false, Location = Sign.Location, Map = Sign.Map };
-			set => c_Hanger = value;
+			get => m_CHanger ??= new Item(0xB98) { Movable = false, Location = Sign.Location, Map = Sign.Map };
+			set => m_CHanger = value;
 		}
 
 		public TownHouse(Mobile m, TownHouseSign sign, int locks, int secures)
@@ -63,24 +63,24 @@ namespace Server.Engines.TownHouses
 				}
 			}
 
-			foreach (Sector sector in c_Sectors)
+			foreach (Sector sector in m_CSectors)
 			{
 				sector.OnMultiLeave(this);
 			}
 
-			c_Sectors.Clear();
+			m_CSectors.Clear();
 			for (int x = minX; x < maxX; ++x)
 			{
 				for (int y = minY; y < maxY; ++y)
 				{
-					if (!c_Sectors.Contains(Map.GetSector(new Point2D(x, y))))
+					if (!m_CSectors.Contains(Map.GetSector(new Point2D(x, y))))
 					{
-						c_Sectors.Add(Map.GetSector(new Point2D(x, y)));
+						m_CSectors.Add(Map.GetSector(new Point2D(x, y)));
 					}
 				}
 			}
 
-			foreach (Sector sector in c_Sectors)
+			foreach (Sector sector in m_CSectors)
 			{
 				sector.OnMultiEnter(this);
 			}
@@ -134,10 +134,8 @@ namespace Server.Engines.TownHouses
 				sector = Map.GetSector(p);
 
 				return !sector.Multis.Any(m => m != null &&
-											   m != this
-											   && m is TownHouse house
-											   && house.ForSaleSign is RentalContract
-											   && house.IsInside(p, height)) && Region.Contains(p);
+				                               m != this
+				                               && m is TownHouse {ForSaleSign: RentalContract} house && house.IsInside(p, height)) && Region.Contains(p);
 			}
 			catch (Exception e)
 			{
@@ -169,9 +167,9 @@ namespace Server.Engines.TownHouses
 		{
 			base.OnMapChange();
 
-			if (c_Hanger != null)
+			if (m_CHanger != null)
 			{
-				c_Hanger.Map = Map;
+				m_CHanger.Map = Map;
 			}
 		}
 
@@ -179,9 +177,9 @@ namespace Server.Engines.TownHouses
 		{
 			base.OnLocationChange(oldLocation);
 
-			if (c_Hanger != null)
+			if (m_CHanger != null)
 			{
-				c_Hanger.Location = Sign.Location;
+				m_CHanger.Location = Sign.Location;
 			}
 		}
 
@@ -202,25 +200,25 @@ namespace Server.Engines.TownHouses
 
 		private void AfterSpeech(object o)
 		{
-			if (o is not Mobile)
+			if (o is not Mobile mobile)
 			{
 				return;
 			}
 
-			if (((Mobile)o).Target is not HouseBanTarget || ForSaleSign == null || !ForSaleSign.NoBanning)
+			if (mobile.Target is not HouseBanTarget || ForSaleSign is not {NoBanning: true})
 			{
 				return;
 			}
 
-			((Mobile)o).Target.Cancel((Mobile)o, TargetCancelType.Canceled);
-			((Mobile)o).SendMessage(0x161, "You cannot ban people from this house.");
+			mobile.Target.Cancel(mobile, TargetCancelType.Canceled);
+			mobile.SendMessage(0x161, "You cannot ban people from this house.");
 		}
 
 		public override void OnDelete()
 		{
-			if (c_Hanger != null)
+			if (m_CHanger != null)
 			{
-				c_Hanger.Delete();
+				m_CHanger.Delete();
 			}
 
 			foreach (Item item in Sign.GetItemsInRange(0).Where(item => item != null && item != Sign))
@@ -250,7 +248,7 @@ namespace Server.Engines.TownHouses
 
 			// Version 2
 
-			writer.Write(c_Hanger);
+			writer.Write(m_CHanger);
 
 			// Version 1
 
@@ -261,19 +259,19 @@ namespace Server.Engines.TownHouses
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			var version = reader.ReadInt();
 
 			if (version >= 2)
 			{
-				c_Hanger = reader.ReadItem();
+				m_CHanger = reader.ReadItem();
 			}
 
 			ForSaleSign = (TownHouseSign)reader.ReadItem();
 
 			if (version <= 2)
 			{
-				int count = reader.ReadInt();
-				for (int i = 0; i < count; ++i)
+				var count = reader.ReadInt();
+				for (var i = 0; i < count; ++i)
 				{
 					reader.ReadRect2D();
 				}

@@ -1,5 +1,4 @@
 using Server.ContextMenus;
-using Server.Engines.MLQuests;
 using Server.Engines.PartySystem;
 using Server.Engines.Quests;
 using Server.Factions;
@@ -158,7 +157,7 @@ namespace Server.Mobiles
 		}
 	}
 
-	public partial class BaseCreature : BaseMobile, IHonorTarget, IQuestGiver
+	public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		public const int MaxLoyalty = 100;
 
@@ -212,6 +211,8 @@ namespace Server.Mobiles
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool SeeksHome { get; set; }
 
+		public virtual bool ForceStayHome => false;
+
 		public int FollowRange { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -241,74 +242,6 @@ namespace Server.Mobiles
 
 		public virtual Faction FactionAllegiance => null;
 		public virtual int FactionSilverWorth => 30;
-
-		#region ML Quest System
-
-		private List<MLQuest> m_MLQuests;
-
-		public List<MLQuest> MLQuests
-		{
-			get
-			{
-				if (m_MLQuests == null)
-				{
-					if (StaticMLQuester)
-						m_MLQuests = MLQuestSystem.FindQuestList(GetType());
-					else
-						m_MLQuests = ConstructQuestList();
-
-					if (m_MLQuests == null)
-						return MLQuestSystem.EmptyList; // return EmptyList, but don't cache it (run construction again next time)
-				}
-
-				return m_MLQuests;
-			}
-		}
-
-		public virtual bool CanGiveMLQuest => (MLQuests.Count != 0);
-		public virtual bool StaticMLQuester => true;
-
-		protected virtual List<MLQuest> ConstructQuestList()
-		{
-			return null;
-		}
-
-		public virtual bool CanShout => false;
-
-		public const int ShoutRange = 8;
-		public static readonly TimeSpan ShoutDelay = TimeSpan.FromMinutes(1);
-
-		private DateTime m_MLNextShout;
-
-		private void CheckShout(PlayerMobile pm, Point3D oldLocation)
-		{
-			if (m_MLNextShout > DateTime.UtcNow || pm.Hidden || !pm.Alive)
-				return;
-
-			int shoutRange = ShoutRange;
-
-			if (!InRange(pm.Location, shoutRange) || InRange(oldLocation, shoutRange) || !CanSee(pm) || !InLOS(pm))
-				return;
-
-			MLQuestContext context = MLQuestSystem.GetContext(pm);
-
-			if (context != null && context.IsFull)
-				return;
-
-			MLQuest quest = MLQuestSystem.RandomStarterQuest(this, pm, context);
-
-			if (quest == null || !quest.Activated || (context != null && context.IsDoingQuest(quest)))
-				return;
-
-			Shout(pm);
-			m_MLNextShout = DateTime.UtcNow + ShoutDelay;
-		}
-
-		public virtual void Shout(PlayerMobile pm)
-		{
-		}
-
-		#endregion
 
 		#region Bonding
 		private static readonly bool m_BondingEnabled = Settings.Configuration.Get<bool>("Mobiles", "BondingEnabled", true);
@@ -530,6 +463,23 @@ namespace Server.Mobiles
 
 		public virtual void SetToChampionSpawn()
 		{
+		}
+
+		public virtual void SetWearable(Item item, int hue = -1, double dropChance = 100.0)
+		{
+			if (hue > -1)
+				item.Hue = hue;
+
+			item.Movable = dropChance > Utility.RandomDouble();
+
+			if (!CheckEquip(item) || !OnEquip(item) || !item.OnEquip(this))
+			{
+				PackItem(item);
+			}
+			else
+			{
+				AddItem(item);
+			}
 		}
 
 		public virtual bool HasManaOveride => false;
@@ -2147,14 +2097,6 @@ namespace Server.Mobiles
 			else if (CheckGold(from, dropped))
 				return true;
 
-			// Note: Yes, this happens for all questers (regardless of type, e.g. escorts),
-			// even if they can't offer you anything at the moment
-			if (MLQuestSystem.Enabled && CanGiveMLQuest && from is PlayerMobile pm)
-			{
-				MLQuestSystem.Tell(this, pm, 1074893); // You need to mark your quest items so I don't take the wrong object.  Then speak to me.
-				return false;
-			}
-
 			return base.OnDragDrop(from, dropped);
 		}
 
@@ -2562,9 +2504,6 @@ namespace Server.Mobiles
 
 			if (IsAnimatedDead)
 				AnimateDeadSpell.Unregister(m_SummonMaster, this);
-
-			if (MLQuestSystem.Enabled)
-				MLQuestSystem.HandleDeletion(this);
 
 			base.OnAfterDelete();
 		}
@@ -3241,9 +3180,6 @@ namespace Server.Mobiles
 				}
 			}
 			/* End notice sound */
-
-			if (MLQuestSystem.Enabled && CanShout && m is PlayerMobile pm)
-				CheckShout(pm, oldLocation);
 
 			if (m_NoDupeGuards == m)
 				return;
@@ -4014,9 +3950,6 @@ namespace Server.Mobiles
 				}
 			}
 
-			if (MLQuestSystem.Enabled && CanGiveMLQuest && from is PlayerMobile pm)
-				MLQuestSystem.OnDoubleClick(this, pm);
-
 			base.OnDoubleClick(from);
 		}
 
@@ -4053,9 +3986,6 @@ namespace Server.Mobiles
 		public override void AddNameProperties(ObjectPropertyList list)
 		{
 			base.AddNameProperties(list);
-
-			if (MLQuestSystem.Enabled && CanGiveMLQuest)
-				list.Add(1072269); // Quest Giver
 
 			if (Core.ML)
 			{
@@ -4530,14 +4460,6 @@ namespace Server.Mobiles
 
 						if (ds.m_Mobile is PlayerMobile pm)
 						{
-							if (MLQuestSystem.Enabled)
-							{
-								MLQuestSystem.HandleKill(pm, this);
-
-								// Kills are given to *everyone* with looting right in the ML quest system
-								//givenQuestKill = true;
-							}
-
 							if (givenQuestKill)
 								continue;
 

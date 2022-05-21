@@ -1,6 +1,6 @@
 namespace Server.Engines.BulkOrders
 {
-	public class BODSystem
+	public class BodSystem
 	{
 		public static bool Enabled => Settings.Configuration.Get<bool>("Misc", "BODEnabled");
 

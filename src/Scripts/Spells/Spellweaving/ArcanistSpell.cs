@@ -1,4 +1,3 @@
-using Server.Engines.MLQuests;
 using Server.Items;
 using Server.Mobiles;
 
@@ -11,7 +10,6 @@ namespace Server.Spells.Spellweaving
 
 		public override SkillName CastSkill => SkillName.Spellweaving;
 		public override SkillName DamageSkill => SkillName.Spellweaving;
-
 		public override bool ClearHandsOnCast => false;
 
 		private int m_CastTimeFocusLevel;
@@ -68,15 +66,16 @@ namespace Server.Spells.Spellweaving
 				return false;
 			}
 
-			if (caster is PlayerMobile)
+			if (!MondainsLegacy.Spellweaving)
 			{
-				MLQuestContext context = MLQuestSystem.GetContext((PlayerMobile)caster);
+				Caster.SendLocalizedMessage(1042753, "Spellweaving"); // ~1_SOMETHING~ has been temporarily disabled.
+				return false;
+			}
 
-				if (context == null || !context.Spellweaving)
-				{
-					caster.SendLocalizedMessage(1073220); // You must have completed the epic arcanist quest to use this ability.
-					return false;
-				}
+			if (Caster is PlayerMobile && !((PlayerMobile)Caster).Spellweaving)
+			{
+				Caster.SendLocalizedMessage(1073220); // You must have completed the epic arcanist quest to use this ability.
+				return false;
 			}
 
 			int mana = ScaleMana(RequiredMana);
@@ -148,7 +147,7 @@ namespace Server.Spells.Spellweaving
 			if (percent >= 1.0)
 				return true;
 
-			return (percent >= Utility.RandomDouble());
+			return percent >= Utility.RandomDouble();
 		}
 	}
 }

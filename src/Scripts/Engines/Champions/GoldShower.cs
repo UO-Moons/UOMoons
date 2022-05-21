@@ -1,5 +1,6 @@
 using Server.Items;
 using System;
+using System.Linq;
 
 namespace Server.Engines.Champions
 {
@@ -23,7 +24,7 @@ namespace Server.Engines.Champions
 			private readonly Map m_Map;
 			private readonly Point3D m_Location;
 			private readonly int m_PilesMax;
-			private int m_PilesDone = 0;
+			private int m_PilesDone;
 			private readonly int m_MinAmount;
 			private readonly int m_MaxAmount;
 			public GoodiesTimer(Point3D center, Map map, int piles, int minAmount, int maxAmount)
@@ -44,7 +45,7 @@ namespace Server.Engines.Champions
 					return;
 				}
 
-				Point3D p = FindGoldLocation(m_Map, m_Location, m_PilesMax / 8);
+				var p = FindGoldLocation(m_Map, m_Location, m_PilesMax / 8);
 				Gold g = new(m_MinAmount, m_MaxAmount);
 				g.MoveToWorld(p, m_Map);
 
@@ -67,25 +68,21 @@ namespace Server.Engines.Champions
 
 			private static Point3D FindGoldLocation(Map map, Point3D center, int range)
 			{
-				int cx = center.X;
-				int cy = center.Y;
+				var cx = center.X;
+				var cy = center.Y;
 
-				for (int i = 0; i < 20; ++i)
+				for (var i = 0; i < 20; ++i)
 				{
-					int x = cx + Utility.Random(range * 2) - range;
-					int y = cy + Utility.Random(range * 2) - range;
+					var x = cx + Utility.Random(range * 2) - range;
+					var y = cy + Utility.Random(range * 2) - range;
 					if ((cx - x) * (cx - x) + (cy - y) * (cy - y) > range * range)
 						continue;
 
-					int z = map.GetAverageZ(x, y);
+					var z = map.GetAverageZ(x, y);
 					if (!map.CanFit(x, y, z, 6, false, false))
 						continue;
 
-					int topZ = z;
-					foreach (Item item in map.GetItemsInRange(new Point3D(x, y, z), 0))
-					{
-						topZ = Math.Max(topZ, item.Z + item.ItemData.CalcHeight);
-					}
+					var topZ = map.GetItemsInRange(new Point3D(x, y, z), 0).Select(item => item.Z + item.ItemData.CalcHeight).Prepend(z).Max();
 					return new Point3D(x, y, topZ);
 				}
 				return center;

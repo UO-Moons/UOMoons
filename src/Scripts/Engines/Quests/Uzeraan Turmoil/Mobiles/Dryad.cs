@@ -55,7 +55,7 @@ namespace Server.Engines.Quests.Haven
 
 		public override void InitSBInfo()
 		{
-			m_SBInfos.Add(new SBDryad());
+			SBInfos.Add(new SBDryad());
 		}
 
 		public override int GetAutoTalkRange(PlayerMobile pm)

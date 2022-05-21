@@ -2215,6 +2215,59 @@ namespace Server.Mobiles
 			}
 		}
 
+		public virtual bool MoveTo(IPoint3D p, bool run, int range)
+		{
+			if (m_Mobile.Deleted || m_Mobile.DisallowAllMoves || p == null || (p is Mobile && ((Mobile)p).Deleted))
+			{
+				return false;
+			}
+
+			if (!m_Mobile.Controlled && m_Mobile.ForceStayHome)
+			{
+				var rangeHome = Math.Min(10, m_Mobile.RangeHome);
+
+				if (!Utility.InRange(new Point3D(p), m_Mobile.Home, rangeHome) || 0.025 < Utility.RandomDouble())
+				{
+					return false;
+				}
+			}
+
+			if (m_Mobile.InRange(p, range))
+			{
+				m_Path = null;
+				return true;
+			}
+
+			if (m_Path != null && m_Path.Goal == p)
+			{
+				if (m_Path.Follow(run, 1))
+				{
+					m_Path = null;
+					return true;
+				}
+			}
+			else if (!DoMove(m_Mobile.GetDirectionTo(p), true))
+			{
+				m_Path = new PathFollower(m_Mobile, p)
+				{
+					Mover = DoMoveImpl
+				};
+
+				if (m_Path.Follow(run, 1))
+				{
+					m_Path = null;
+					return true;
+				}
+			}
+			else
+			{
+				m_Path = null;
+				return true;
+			}
+
+			return false;
+		}
+
 		public virtual bool MoveTo(Mobile m, bool run, int range)
 		{
 			if (m_Mobile.Deleted || m_Mobile.DisallowAllMoves || m == null || m.Deleted)

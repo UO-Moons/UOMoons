@@ -1,6 +1,6 @@
 namespace Server.Items
 {
-	public class HarrowerGate : Moongate
+	public sealed class HarrowerGate : Moongate
 	{
 		private Mobile m_Harrower;
 		public HarrowerGate(Mobile harrower, Point3D loc, Map map, Point3D targLoc, Map targMap)
@@ -34,7 +34,7 @@ namespace Server.Items
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			var version = reader.ReadInt();
 
 			switch (version)
 			{

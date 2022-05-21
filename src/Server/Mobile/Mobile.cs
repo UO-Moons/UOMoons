@@ -302,6 +302,22 @@ namespace Server
 
 		public virtual double RacialSkillBonus => 0;
 
+		public virtual double GetRacialSkillBonus(SkillName skill)
+		{
+			return RacialSkillBonus;
+		}
+
+		public virtual void MutateSkill(SkillName skill, ref double value)
+		{ }
+
+		protected List<string> m_SlayerVulnerabilities = new List<string>();
+		protected bool m_SpecialSlayerMechanics = false;
+
+		public List<string> SlayerVulnerabilities => m_SlayerVulnerabilities;
+
+		[CommandProperty(AccessLevel.Decorator)]
+		public bool SpecialSlayerMechanics => m_SpecialSlayerMechanics;
+
 		public int[] Resistances { get; private set; }
 
 		public virtual int BasePhysicalResistance => 0;
@@ -410,6 +426,7 @@ namespace Server
 			UpdateResistances();
 		}
 
+		public static int MinPlayerResistance { get; set; } = -70;
 		public static int MaxPlayerResistance { get; set; } = 70;
 
 		public virtual void ComputeResistances()
@@ -466,15 +483,22 @@ namespace Server
 
 		public virtual int GetMinResistance(ResistanceType type)
 		{
-			return int.MinValue;
+			if (m_Player)
+			{
+				return MinPlayerResistance;
+			}
+
+			return -100;
 		}
 
 		public virtual int GetMaxResistance(ResistanceType type)
 		{
 			if (m_Player)
+			{
 				return MaxPlayerResistance;
+			}
 
-			return int.MaxValue;
+			return 100;
 		}
 
 		public int GetAOSStatus(int index)
@@ -3393,6 +3417,7 @@ namespace Server
 						else
 						{
 							item.SetLastMoved();
+							var itemGrid = item.GridLocation;
 
 							if (item.Spawner != null)
 							{
@@ -3407,10 +3432,16 @@ namespace Server
 								amount = item.Amount;
 
 							int oldAmount = item.Amount;
-							//item.Amount = amount; //Set in LiftItemDupe
+							Item oldStack = null;
 
 							if (amount < oldAmount)
-								_ = LiftItemDupe(item, amount);
+							{
+								oldStack = LiftItemDupe(item, amount);
+							}
+							//item.Amount = amount; //Set in LiftItemDupe
+
+							//if (amount < oldAmount)
+								//_ = LiftItemDupe(item, amount);
 							//item.Dupe( oldAmount - amount );
 
 							Map map = from.Map;
@@ -3447,13 +3478,20 @@ namespace Server
 
 							Point3D fixLoc = item.Location;
 							Map fixMap = item.Map;
-							bool shouldFix = (item.Parent == null);
+							bool shouldFix = item.Parent == null;
 
-							item.RecordBounce();
+							item.RecordBounce(this, oldStack);
 							item.OnItemLifted(from, item);
 							item.Internalize();
 
 							from.Holding = item;
+
+							item.GridLocation = 0;
+
+							if (oldStack != null)
+							{
+								oldStack.GridLocation = itemGrid;
+							}
 
 							int liftSound = item.GetLiftSound(from);
 
@@ -5373,6 +5411,26 @@ namespace Server
 		public void SayTo(Mobile to, int number, string args)
 		{
 			_ = to.Send(new MessageLocalized(Serial, Body, MessageType.Regular, SpeechHue, 3, number, Name, args));
+		}
+
+		public void SayTo(Mobile to, int number, int hue)
+		{
+			PrivateOverheadMessage(MessageType.Regular, hue, number, to.NetState);
+		}
+
+		public void SayTo(Mobile to, int number, string args, int hue)
+		{
+			PrivateOverheadMessage(MessageType.Regular, hue, number, args, to.NetState);
+		}
+
+		public void SayTo(Mobile to, int hue, string text, string args)
+		{
+			SayTo(to, text, args, hue, false);
+		}
+
+		public void SayTo(Mobile to, int hue, string text, string args, bool ascii)
+		{
+			PrivateOverheadMessage(MessageType.Regular, hue, ascii, string.Format(text, args), to.NetState);
 		}
 
 		public void Say(bool ascii, string text)
@@ -8204,7 +8262,9 @@ namespace Server
 			get
 			{
 				if (m_Backpack != null && !m_Backpack.Deleted && m_Backpack.Parent == this)
+				{
 					return m_Backpack;
+				}
 
 				return (m_Backpack = (FindItemOnLayer(Layer.Backpack) as Container));
 			}

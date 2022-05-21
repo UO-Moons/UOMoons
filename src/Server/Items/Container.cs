@@ -3,16 +3,80 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Server.Items
 {
 	public delegate void OnItemConsumed(Item item, int amount);
 	public delegate int CheckItemGroup(Item a, Item b);
-
+	public delegate bool ResValidator(Item item);
 	public delegate void ContainerSnoopHandler(Container cont, Mobile from);
 
 	public class Container : Item
 	{
+		#region Enhanced Client Support
+		public virtual void ValidateGridLocation(Item item)
+		{
+			var pos = item.GridLocation;
+
+			if (!IsFreePosition(pos))
+			{
+				item.GridLocation = GetNewPosition(pos);
+			}
+		}
+
+		public virtual bool IsFreePosition(byte pos)
+		{
+			if (pos < 0 || pos > 0x7C)
+			{
+				return false;
+			}
+
+			return Items.All(i => i.GridLocation != pos);
+		}
+
+		public virtual byte GetNewPosition(byte current)
+		{
+			int index = 0;
+			byte next = (byte)(current + 1);
+
+			while (++index < 0x7D)
+			{
+				if (!IsFreePosition(next))
+				{
+					if (next == 0x7C)
+					{
+						next = 0;
+
+						if (IsFreePosition(next))
+						{
+							return next;
+						}
+					}
+				}
+				else
+				{
+					return next;
+				}
+
+				next++;
+			}
+
+			return 0;
+		}
+
+		public virtual void ValidatePositions()
+		{
+			foreach (var item in Items)
+			{
+				if (IsFreePosition(item.GridLocation))
+				{
+					item.GridLocation = GetNewPosition(item.GridLocation);
+				}
+			}
+		}
+		#endregion
+
 		public static ContainerSnoopHandler SnoopHandler { get; set; }
 
 		private ContainerData m_ContainerData;
@@ -121,7 +185,7 @@ namespace Server.Items
 
 		public override bool CheckLift(Mobile from, Item item, ref LRReason reject)
 		{
-			if (from.AccessLevel < AccessLevel.GameMaster && IsDecoContainer)
+			if (!from.IsStaff() && IsDecoContainer)
 			{
 				reject = LRReason.CannotLift;
 				return false;
@@ -132,7 +196,7 @@ namespace Server.Items
 
 		public override bool CheckItemUse(Mobile from, Item item)
 		{
-			if (item != this && from.AccessLevel < AccessLevel.GameMaster && IsDecoContainer)
+			if (item != this && !from.IsStaff() && IsDecoContainer)
 			{
 				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that.
 				return false;
@@ -153,7 +217,7 @@ namespace Server.Items
 
 		public virtual bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
 		{
-			if (m.AccessLevel < AccessLevel.GameMaster)
+			if (!m.IsStaff())
 			{
 				if (IsDecoContainer)
 				{
@@ -203,12 +267,12 @@ namespace Server.Items
 
 		public virtual void SendFullItemsMessage(Mobile to, Item item)
 		{
-			to.SendMessage("That container cannot hold more items.");
+			to.SendLocalizedMessage(1080017); // That container cannot hold more items.
 		}
 
 		public virtual void SendFullWeightMessage(Mobile to, Item item)
 		{
-			to.SendMessage("That container cannot hold more weight.");
+			to.SendLocalizedMessage(1080016); // That container cannot hold more weight.
 		}
 
 		public virtual void SendCantStoreMessage(Mobile to, Item item)
@@ -248,34 +312,51 @@ namespace Server.Items
 		}
 
 		#region Consume[...]
-
 		public bool ConsumeTotalGrouped(Type type, int amount, bool recurse, OnItemConsumed callback, CheckItemGroup grouper)
 		{
+			return ConsumeTotalGrouped(type, amount, recurse, null, callback, grouper);
+		}
+
+		public bool ConsumeTotalGrouped(Type type, int amount, bool recurse, ResValidator validator, OnItemConsumed callback, CheckItemGroup grouper)
+		{
 			if (grouper == null)
+			{
 				throw new ArgumentNullException();
+			}
 
-			Item[] typedItems = FindItemsByType(type, recurse);
+			var typedItems = FindItemsByType(type, recurse);
 
-			List<List<Item>> groups = new();
+			var groups = new List<List<Item>>();
 			int idx = 0;
 
 			while (idx < typedItems.Length)
 			{
 				Item a = typedItems[idx++];
-				List<Item> group = new()
-				{
-					a
-				};
+
+				if (validator != null && !validator(a))
+					continue;
+
+				var group = new List<Item>();
+
+				group.Add(a);
 
 				while (idx < typedItems.Length)
 				{
 					Item b = typedItems[idx];
+
+					if (validator != null && !validator(b))
+						continue;
+
 					int v = grouper(a, b);
 
 					if (v == 0)
+					{
 						group.Add(b);
+					}
 					else
+					{
 						break;
+					}
 
 					++idx;
 				}
@@ -283,8 +364,8 @@ namespace Server.Items
 				groups.Add(group);
 			}
 
-			Item[][] items = new Item[groups.Count][];
-			int[] totals = new int[groups.Count];
+			var items = new Item[groups.Count][];
+			var totals = new int[groups.Count];
 
 			bool hasEnough = false;
 
@@ -294,14 +375,20 @@ namespace Server.Items
 				//items[i] = (Item[])(((ArrayList)groups[i]).ToArray( typeof( Item ) ));
 
 				for (int j = 0; j < items[i].Length; ++j)
+				{
 					totals[i] += items[i][j].Amount;
+				}
 
 				if (totals[i] >= amount)
+				{
 					hasEnough = true;
+				}
 			}
 
 			if (!hasEnough)
+			{
 				return false;
+			}
 
 			for (int i = 0; i < items.Length; ++i)
 			{
@@ -317,14 +404,20 @@ namespace Server.Items
 
 						if (theirAmount < need)
 						{
-							callback?.Invoke(item, theirAmount);
+							if (callback != null)
+							{
+								callback(item, theirAmount);
+							}
 
 							item.Delete();
 							need -= theirAmount;
 						}
 						else
 						{
-							callback?.Invoke(item, need);
+							if (callback != null)
+							{
+								callback(item, need);
+							}
 
 							item.Consume(need);
 							break;
@@ -338,40 +431,62 @@ namespace Server.Items
 			return true;
 		}
 
-		public int ConsumeTotalGrouped(Type[] types, int[] amounts, bool recurse, OnItemConsumed callback, CheckItemGroup grouper)
+		public int ConsumeTotalGrouped(
+			Type[] types, int[] amounts, bool recurse, OnItemConsumed callback, CheckItemGroup grouper)
+		{
+			return ConsumeTotalGrouped(types, amounts, recurse, null, callback, grouper);
+		}
+
+		public int ConsumeTotalGrouped(
+			Type[] types, int[] amounts, bool recurse, ResValidator validator, OnItemConsumed callback, CheckItemGroup grouper)
 		{
 			if (types.Length != amounts.Length)
+			{
 				throw new ArgumentException();
+			}
 			else if (grouper == null)
+			{
 				throw new ArgumentNullException();
+			}
 
-			Item[][][] items = new Item[types.Length][][];
-			int[][] totals = new int[types.Length][];
+			var items = new Item[types.Length][][];
+			var totals = new int[types.Length][];
 
 			for (int i = 0; i < types.Length; ++i)
 			{
-				Item[] typedItems = FindItemsByType(types[i], recurse);
+				var typedItems = FindItemsByType(types[i], recurse);
 
-				List<List<Item>> groups = new();
+				var groups = new List<List<Item>>();
 				int idx = 0;
 
 				while (idx < typedItems.Length)
 				{
 					Item a = typedItems[idx++];
-					List<Item> group = new()
-					{
-						a
-					};
+
+					if (validator != null && !validator(a))
+						continue;
+
+					var group = new List<Item>();
+
+					group.Add(a);
 
 					while (idx < typedItems.Length)
 					{
 						Item b = typedItems[idx];
+
+						if (validator != null && !validator(b))
+							continue;
+
 						int v = grouper(a, b);
 
 						if (v == 0)
+						{
 							group.Add(b);
+						}
 						else
+						{
 							break;
+						}
 
 						++idx;
 					}
@@ -390,14 +505,20 @@ namespace Server.Items
 					//items[i][j] = (Item[])(((ArrayList)groups[j]).ToArray( typeof( Item ) ));
 
 					for (int k = 0; k < items[i][j].Length; ++k)
+					{
 						totals[i][j] += items[i][j][k].Amount;
+					}
 
 					if (totals[i][j] >= amounts[i])
+					{
 						hasEnough = true;
+					}
 				}
 
 				if (!hasEnough)
+				{
 					return i;
+				}
 			}
 
 			for (int i = 0; i < items.Length; ++i)
@@ -416,14 +537,20 @@ namespace Server.Items
 
 							if (theirAmount < need)
 							{
-								callback?.Invoke(item, theirAmount);
+								if (callback != null)
+								{
+									callback(item, theirAmount);
+								}
 
 								item.Delete();
 								need -= theirAmount;
 							}
 							else
 							{
-								callback?.Invoke(item, need);
+								if (callback != null)
+								{
+									callback(item, need);
+								}
 
 								item.Consume(need);
 								break;
@@ -438,40 +565,62 @@ namespace Server.Items
 			return -1;
 		}
 
-		public int ConsumeTotalGrouped(Type[][] types, int[] amounts, bool recurse, OnItemConsumed callback, CheckItemGroup grouper)
+		public int ConsumeTotalGrouped(
+			Type[][] types, int[] amounts, bool recurse, OnItemConsumed callback, CheckItemGroup grouper)
+		{
+			return ConsumeTotalGrouped(types, amounts, recurse, null, callback, grouper);
+		}
+
+		public int ConsumeTotalGrouped(
+			Type[][] types, int[] amounts, bool recurse, ResValidator validator, OnItemConsumed callback, CheckItemGroup grouper)
 		{
 			if (types.Length != amounts.Length)
+			{
 				throw new ArgumentException();
+			}
 			else if (grouper == null)
+			{
 				throw new ArgumentNullException();
+			}
 
-			Item[][][] items = new Item[types.Length][][];
-			int[][] totals = new int[types.Length][];
+			var items = new Item[types.Length][][];
+			var totals = new int[types.Length][];
 
 			for (int i = 0; i < types.Length; ++i)
 			{
-				Item[] typedItems = FindItemsByType(types[i], recurse);
+				var typedItems = FindItemsByType(types[i], recurse);
 
-				List<List<Item>> groups = new();
+				var groups = new List<List<Item>>();
 				int idx = 0;
 
 				while (idx < typedItems.Length)
 				{
 					Item a = typedItems[idx++];
-					List<Item> group = new()
-					{
-						a
-					};
+
+					if (validator != null && !validator(a))
+						continue;
+
+					var group = new List<Item>();
+
+					group.Add(a);
 
 					while (idx < typedItems.Length)
 					{
 						Item b = typedItems[idx];
+
+						if (validator != null && !validator(b))
+							continue;
+
 						int v = grouper(a, b);
 
 						if (v == 0)
+						{
 							group.Add(b);
+						}
 						else
+						{
 							break;
+						}
 
 						++idx;
 					}
@@ -489,14 +638,20 @@ namespace Server.Items
 					items[i][j] = groups[j].ToArray();
 
 					for (int k = 0; k < items[i][j].Length; ++k)
+					{
 						totals[i][j] += items[i][j][k].Amount;
+					}
 
 					if (totals[i][j] >= amounts[i])
+					{
 						hasEnough = true;
+					}
 				}
 
 				if (!hasEnough)
+				{
 					return i;
+				}
 			}
 
 			for (int i = 0; i < items.Length; ++i)
@@ -515,14 +670,20 @@ namespace Server.Items
 
 							if (theirAmount < need)
 							{
-								callback?.Invoke(item, theirAmount);
+								if (callback != null)
+								{
+									callback(item, theirAmount);
+								}
 
 								item.Delete();
 								need -= theirAmount;
 							}
 							else
 							{
-								callback?.Invoke(item, need);
+								if (callback != null)
+								{
+									callback(item, need);
+								}
 
 								item.Consume(need);
 								break;
@@ -550,20 +711,26 @@ namespace Server.Items
 		public int ConsumeTotal(Type[][] types, int[] amounts, bool recurse, OnItemConsumed callback)
 		{
 			if (types.Length != amounts.Length)
+			{
 				throw new ArgumentException();
+			}
 
-			Item[][] items = new Item[types.Length][];
-			int[] totals = new int[types.Length];
+			var items = new Item[types.Length][];
+			var totals = new int[types.Length];
 
 			for (int i = 0; i < types.Length; ++i)
 			{
 				items[i] = FindItemsByType(types[i], recurse);
 
 				for (int j = 0; j < items[i].Length; ++j)
+				{
 					totals[i] += items[i][j].Amount;
+				}
 
 				if (totals[i] < amounts[i])
+				{
 					return i;
+				}
 			}
 
 			for (int i = 0; i < types.Length; ++i)
@@ -578,14 +745,20 @@ namespace Server.Items
 
 					if (theirAmount < need)
 					{
-						callback?.Invoke(item, theirAmount);
+						if (callback != null)
+						{
+							callback(item, theirAmount);
+						}
 
 						item.Delete();
 						need -= theirAmount;
 					}
 					else
 					{
-						callback?.Invoke(item, need);
+						if (callback != null)
+						{
+							callback(item, need);
+						}
 
 						item.Consume(need);
 						break;
@@ -609,20 +782,26 @@ namespace Server.Items
 		public int ConsumeTotal(Type[] types, int[] amounts, bool recurse, OnItemConsumed callback)
 		{
 			if (types.Length != amounts.Length)
+			{
 				throw new ArgumentException();
+			}
 
-			Item[][] items = new Item[types.Length][];
-			int[] totals = new int[types.Length];
+			var items = new Item[types.Length][];
+			var totals = new int[types.Length];
 
 			for (int i = 0; i < types.Length; ++i)
 			{
 				items[i] = FindItemsByType(types[i], recurse);
 
 				for (int j = 0; j < items[i].Length; ++j)
+				{
 					totals[i] += items[i][j].Amount;
+				}
 
 				if (totals[i] < amounts[i])
+				{
 					return i;
+				}
 			}
 
 			for (int i = 0; i < types.Length; ++i)
@@ -637,14 +816,20 @@ namespace Server.Items
 
 					if (theirAmount < need)
 					{
-						callback?.Invoke(item, theirAmount);
+						if (callback != null)
+						{
+							callback(item, theirAmount);
+						}
 
 						item.Delete();
 						need -= theirAmount;
 					}
 					else
 					{
-						callback?.Invoke(item, need);
+						if (callback != null)
+						{
+							callback(item, need);
+						}
 
 						item.Consume(need);
 						break;
@@ -667,13 +852,15 @@ namespace Server.Items
 
 		public bool ConsumeTotal(Type type, int amount, bool recurse, OnItemConsumed callback)
 		{
-			Item[] items = FindItemsByType(type, recurse);
+			var items = FindItemsByType(type, recurse);
 
 			// First pass, compute total
 			int total = 0;
 
 			for (int i = 0; i < items.Length; ++i)
+			{
 				total += items[i].Amount;
+			}
 
 			if (total >= amount)
 			{
@@ -689,14 +876,20 @@ namespace Server.Items
 
 					if (theirAmount < need)
 					{
-						callback?.Invoke(item, theirAmount);
+						if (callback != null)
+						{
+							callback(item, theirAmount);
+						}
 
 						item.Delete();
 						need -= theirAmount;
 					}
 					else
 					{
-						callback?.Invoke(item, need);
+						if (callback != null)
+						{
+							callback(item, need);
+						}
 
 						item.Consume(need);
 
@@ -717,21 +910,24 @@ namespace Server.Items
 		{
 			int consumed = 0;
 
-			Queue<Item> toDelete = new();
+			var toDelete = new Queue<Item>();
 
 			RecurseConsumeUpTo(this, type, amount, recurse, ref consumed, toDelete);
 
 			while (toDelete.Count > 0)
+			{
 				toDelete.Dequeue().Delete();
+			}
 
 			return consumed;
 		}
 
-		private static void RecurseConsumeUpTo(Item current, Type type, int amount, bool recurse, ref int consumed, Queue<Item> toDelete)
+		private static void RecurseConsumeUpTo(
+			Item current, Type type, int amount, bool recurse, ref int consumed, Queue<Item> toDelete)
 		{
 			if (current != null && current.Items.Count > 0)
 			{
-				List<Item> list = current.Items;
+				var list = current.Items;
 
 				for (int i = 0; i < list.Count; ++i)
 				{
@@ -762,7 +958,6 @@ namespace Server.Items
 				}
 			}
 		}
-
 		#endregion
 
 		#region Get[BestGroup]Amount
@@ -1230,7 +1425,8 @@ namespace Server.Items
 			MaxItems = 0x00000001,
 			GumpID = 0x00000002,
 			DropSound = 0x00000004,
-			LiftOverride = 0x00000008
+			LiftOverride = 0x00000008,
+			GridPositions = 0x00000010
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -1439,6 +1635,13 @@ namespace Server.Items
 			Delete();
 		}
 
+		public override void AddItem(Item item)
+		{
+			ValidateGridLocation(item);
+
+			base.AddItem(item);
+		}
+
 		public virtual void DropItem(Item dropped)
 		{
 			if (dropped == null)
@@ -1503,7 +1706,7 @@ namespace Server.Items
 
 			object root = RootParent;
 
-			if (root == null || root is Item || root == from || from.AccessLevel > AccessLevel.Player)
+			if (root == null || root is Item || root == from || from.IsStaff())
 				return true;
 
 			return false;
@@ -1537,6 +1740,8 @@ namespace Server.Items
 
 			if (ns == null)
 				return;
+
+			ValidatePositions();
 
 			if (ns.HighSeas)
 				to.Send(new ContainerDisplayHS(this));
@@ -1626,7 +1831,7 @@ namespace Server.Items
 
 		public override void OnDoubleClick(Mobile from)
 		{
-			if (from.AccessLevel > AccessLevel.Player || from.InRange(GetWorldLocation(), 2))
+			if (from.IsStaff() || from.InRange(GetWorldLocation(), 2))
 				DisplayTo(from);
 			else
 				from.SendLocalizedMessage(500446); // That is too far away.
@@ -1717,7 +1922,6 @@ namespace Server.Items
 		private static readonly Dictionary<int, ContainerData> m_Table;
 
 		public static ContainerData Default { get; set; }
-
 		public static ContainerData GetData(int itemID)
 		{
 			m_Table.TryGetValue(itemID, out ContainerData data);

@@ -63,10 +63,7 @@ namespace Server.Engines.Quests
 					{
 						string fullName = reader.ReadString();
 
-						if (fullName == null)
-							return null;
-
-						return Assembler.FindTypeByFullName(fullName, false);
+						return fullName == null ? null : Assembler.FindTypeByFullName(fullName, false);
 					}
 			}
 		}
@@ -88,8 +85,7 @@ namespace Server.Engines.Quests
 
 						QuestSystem qs = Construct(type) as QuestSystem;
 
-						if (qs != null)
-							qs.BaseDeserialize(reader);
+						qs?.BaseDeserialize(reader);
 
 						return qs;
 					}
@@ -129,8 +125,7 @@ namespace Server.Engines.Quests
 
 						QuestObjective obj = Construct(type) as QuestObjective;
 
-						if (obj != null)
-							obj.BaseDeserialize(reader);
+						obj?.BaseDeserialize(reader);
 
 						return obj;
 					}
@@ -170,8 +165,7 @@ namespace Server.Engines.Quests
 
 						QuestConversation conv = Construct(type) as QuestConversation;
 
-						if (conv != null)
-							conv.BaseDeserialize(reader);
+						conv?.BaseDeserialize(reader);
 
 						return conv;
 					}

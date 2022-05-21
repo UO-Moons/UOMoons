@@ -2,7 +2,6 @@ using Server.Commands;
 using Server.Gumps;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Xml;
 
@@ -10,16 +9,15 @@ namespace Server.Engines.Champions
 {
 	public class ChampionSystem
 	{
-		private static bool m_Enabled = false;
-		private static bool m_Initialized = false;
-		private static readonly string m_Path = Path.Combine("Saves", "Champions", "ChampionSystem.bin");
-		private static readonly string m_ConfigPath = Path.Combine("Data", "ChampionSpawns.xml");
-		private static DateTime m_LastRotate;
-		private static TimeSpan m_RotateDelay;
-		private static InternalTimer m_Timer;
-		private static readonly int[] m_Rank = new int[16];
-		private static readonly int[] m_MaxKill = new int[4];
-		private static readonly bool m_ForceGenerate = false;
+		private static bool _enabled;
+		private static bool _initialized;
+		private static readonly string Path = System.IO.Path.Combine("Saves", "Champions", "ChampionSystem.bin");
+		private static readonly string ConfigPath = System.IO.Path.Combine("Data", "ChampionSpawns.xml");
+		private static DateTime _lastRotate;
+		private static TimeSpan _rotateDelay;
+		private static readonly int[] Rank = new int[16];
+		private static readonly int[] MaxKill = new int[4];
+		private const bool ForceGenerate = false;
 
 		public static int GoldShowerPiles { get; private set; }
 		public static int GoldShowerMinAmount { get; private set; }
@@ -36,13 +34,11 @@ namespace Server.Engines.Champions
 		{
 			if (l < 0)
 				return 0;
-			if (l >= m_Rank.Length)
-				return 3;
-			return m_Rank[l];
+			return l >= Rank.Length ? 3 : Rank[l];
 		}
 		public static int MaxKillsForLevel(int l)
 		{
-			return m_MaxKill[RankForLevel(l)];
+			return MaxKill[RankForLevel(l)];
 		}
 		public static double SpawnRadiusModForLevel(int l)
 		{
@@ -59,8 +55,8 @@ namespace Server.Engines.Champions
 
 		public static void Configure()
 		{
-			m_Enabled = true;
-			m_RotateDelay = TimeSpan.FromDays(1.0);
+			_enabled = true;
+			_rotateDelay = TimeSpan.FromDays(1.0);
 			GoldShowerPiles = 50;
 			GoldShowerMinAmount = 4000;
 			GoldShowerMaxAmount = 5500;
@@ -71,36 +67,34 @@ namespace Server.Engines.Champions
 			StatScrollAmount = 16;
 			ScrollChance = 0.1d / 100.0d;
 			TranscendenceChance = 50.0d / 100.0d;
-			int rank2 = 5;
-			int rank3 = 10;
-			int rank4 = 10;
-			for (int i = 0; i < m_Rank.Length; ++i)
+			const int rank2 = 5;
+			const int rank3 = 10;
+			//const int rank4 = 10;
+			for (var i = 0; i < Rank.Length; ++i)
 			{
-				if (i < rank2)
-					m_Rank[i] = 0;
-				else if (i < rank3)
-					m_Rank[i] = 1;
-				else if (i < rank4)
-					m_Rank[i] = 2;
-				else
-					m_Rank[i] = 3;
+				Rank[i] = i switch
+				{
+					< rank2 => 0,
+					< rank3 => 1,
+					_ => 3
+				};
 			}
-			m_MaxKill[0] = 256;
-			m_MaxKill[1] = 128;
-			m_MaxKill[2] = 64;
-			m_MaxKill[3] = 32;
+			MaxKill[0] = 256;
+			MaxKill[1] = 128;
+			MaxKill[2] = 64;
+			MaxKill[3] = 32;
 			EventSink.OnWorldLoad += EventSink_WorldLoad;
 			EventSink.OnWorldSave += EventSink_WorldSave;
 		}
 		private static void EventSink_WorldSave()
 		{
 			Persistence.Serialize(
-				m_Path,
+				Path,
 				writer =>
 				{
 					writer.Write(1); // Version
-					writer.Write(m_Initialized);
-					writer.Write(m_LastRotate);
+					writer.Write(_initialized);
+					writer.Write(_lastRotate);
 					writer.WriteItemList(AllSpawns, true);
 				});
 		}
@@ -108,13 +102,13 @@ namespace Server.Engines.Champions
 		private static void EventSink_WorldLoad()
 		{
 			Persistence.Deserialize(
-				m_Path,
+				Path,
 				reader =>
 				{
-					int version = reader.ReadInt();
+					var version = reader.ReadInt();
 
-					m_Initialized = reader.ReadBool();
-					m_LastRotate = reader.ReadDateTime();
+					_initialized = reader.ReadBool();
+					_lastRotate = reader.ReadDateTime();
 					AllSpawns.AddRange(reader.ReadItemList().Cast<ChampionSpawn>());
 
 					if (version == 0)
@@ -129,13 +123,13 @@ namespace Server.Engines.Champions
 			CommandSystem.Register("GenChampSpawns", AccessLevel.GameMaster, GenSpawns_OnCommand);
 			CommandSystem.Register("DelChampSpawns", AccessLevel.GameMaster, DelSpawns_OnCommand);
 
-			CommandSystem.Register("ChampionInfo", AccessLevel.GameMaster, new CommandEventHandler(ChampionInfo_OnCommand));
+			CommandSystem.Register("ChampionInfo", AccessLevel.GameMaster, ChampionInfo_OnCommand);
 
-			if (!m_Enabled || m_ForceGenerate)
+			if (!_enabled || ForceGenerate)
 			{
-				m_Initialized = false;
+				_initialized = false;
 
-				if (m_Enabled)
+				if (_enabled)
 				{
 					LoadSpawns();
 				}
@@ -145,10 +139,10 @@ namespace Server.Engines.Champions
 				}
 			}
 
-			if (m_Enabled)
-			{
-				m_Timer = new InternalTimer();
-			}
+			if (!_enabled)
+				return;
+			var internalTimer = new InternalTimer();
+			if (internalTimer == null) throw new ArgumentNullException(nameof(internalTimer));
 		}
 
 		public static void GenSpawns_OnCommand(CommandEventArgs e)
@@ -165,7 +159,7 @@ namespace Server.Engines.Champions
 
 		public static void LoadSpawns()
 		{
-			if (m_Initialized)
+			if (_initialized)
 				return;
 
 			RemoveSpawns();
@@ -174,15 +168,16 @@ namespace Server.Engines.Champions
 			Console.WriteLine("Generating Champion Spawns");
 			Utility.PopColor();
 
-			ChampionSpawn spawn;
-
 			XmlDocument doc = new();
-			doc.Load(m_ConfigPath);
-			foreach (XmlNode node in doc.GetElementsByTagName("championSystem")[0].ChildNodes)
-			{
-				if (node.Name.Equals("spawn"))
+			doc.Load(ConfigPath);
+			var xmlNodeList = doc.GetElementsByTagName("championSystem")[0]?.ChildNodes;
+			if (xmlNodeList != null)
+				foreach (XmlNode node in xmlNodeList)
 				{
-					spawn = new ChampionSpawn
+					if (!node.Name.Equals("spawn"))
+						continue;
+
+					var spawn = new ChampionSpawn
 					{
 						SpawnName = GetAttr(node, "name", "Unamed Spawner")
 					};
@@ -191,7 +186,7 @@ namespace Server.Engines.Champions
 					if (value == null)
 						spawn.RandomizeType = true;
 					else
-						spawn.Type = (ChampionSpawnType)Enum.Parse(typeof(ChampionSpawnType), value);
+						spawn.Type = (ChampionSpawnType) Enum.Parse(typeof(ChampionSpawnType), value);
 
 					value = GetAttr(node, "spawnMod", "1.0");
 					spawn.SpawnMod = XmlConvert.ToDouble(value);
@@ -200,18 +195,18 @@ namespace Server.Engines.Champions
 
 					foreach (XmlNode child in node.ChildNodes)
 					{
-						if (child.Name.Equals("location"))
-						{
-							int x = XmlConvert.ToInt32(GetAttr(child, "x", "0"));
-							int y = XmlConvert.ToInt32(GetAttr(child, "y", "0"));
-							int z = XmlConvert.ToInt32(GetAttr(child, "z", "0"));
-							int r = XmlConvert.ToInt32(GetAttr(child, "radius", "0"));
-							string mapName = GetAttr(child, "map", "Felucca");
-							Map map = Map.Parse(mapName);
+						if (!child.Name.Equals("location"))
+							continue;
 
-							spawn.SpawnRadius = r;
-							spawn.MoveToWorld(new Point3D(x, y, z), map);
-						}
+						var x = XmlConvert.ToInt32(GetAttr(child, "x", "0"));
+						var y = XmlConvert.ToInt32(GetAttr(child, "y", "0"));
+						var z = XmlConvert.ToInt32(GetAttr(child, "z", "0"));
+						var r = XmlConvert.ToInt32(GetAttr(child, "radius", "0"));
+						var mapName = GetAttr(child, "map", "Felucca");
+						var map = Map.Parse(mapName);
+
+						spawn.SpawnRadius = r;
+						spawn.MoveToWorld(new Point3D(x, y, z), map);
 					}
 
 					spawn.GroupName = GetAttr(node, "group", null);
@@ -222,39 +217,36 @@ namespace Server.Engines.Champions
 					//	PrimevalLichPuzzle.GenLichPuzzle(null);
 					//}
 				}
-			}
 
 			Rotate();
 
-			m_Initialized = true;
+			_initialized = true;
 		}
 
 		public static void RemoveSpawns()
 		{
-			if (AllSpawns != null && AllSpawns.Count > 0)
-			{
-				foreach (ChampionSpawn s in AllSpawns.Where(sp => sp != null && !sp.Deleted))
-				{
-					s.Delete();
-				}
+			if (AllSpawns == null || AllSpawns.Count <= 0)
+				return;
 
-				AllSpawns.Clear();
+			foreach (var s in AllSpawns.Where(sp => sp is {Deleted: false}))
+			{
+				s.Delete();
 			}
+
+			AllSpawns.Clear();
 		}
 
 		private static string GetAttr(XmlNode node, string name, string def)
 		{
-			XmlAttribute attr = node.Attributes[name];
-			if (attr != null)
-				return attr.Value;
-			return def;
+			var attr = node.Attributes?[name];
+			return attr != null ? attr.Value : def;
 		}
 
 		[Usage("ChampionInfo")]
 		[Description("Opens a UI that displays information about the champion system")]
 		private static void ChampionInfo_OnCommand(CommandEventArgs e)
 		{
-			if (!m_Enabled)
+			if (!_enabled)
 			{
 				e.Mobile.SendMessage("The champion system is not enabled.");
 				return;
@@ -270,9 +262,9 @@ namespace Server.Engines.Champions
 		private static void Rotate()
 		{
 			Dictionary<string, List<ChampionSpawn>> groups = new();
-			m_LastRotate = DateTime.UtcNow;
+			_lastRotate = DateTime.UtcNow;
 
-			foreach (ChampionSpawn spawn in AllSpawns.Where(spawn => spawn != null && !spawn.Deleted))
+			foreach (var spawn in AllSpawns.Where(spawn => spawn is {Deleted: false}))
 			{
 				if (spawn.GroupName == null)
 				{
@@ -281,7 +273,7 @@ namespace Server.Engines.Champions
 						spawn.Active = true;
 					continue;
 				}
-				if (!groups.TryGetValue(spawn.GroupName, out List<ChampionSpawn> group))
+				if (!groups.TryGetValue(spawn.GroupName, out var group))
 				{
 					group = new List<ChampionSpawn>();
 					groups.Add(spawn.GroupName, group);
@@ -289,14 +281,14 @@ namespace Server.Engines.Champions
 				group.Add(spawn);
 			}
 
-			foreach (string key in groups.Keys)
+			foreach (var key in groups.Keys)
 			{
-				List<ChampionSpawn> group = groups[key];
-				foreach (ChampionSpawn spawn in group)
+				var group = groups[key];
+				foreach (var spawn in group)
 				{
 					spawn.AutoRestart = false;
 				}
-				ChampionSpawn s = group[Utility.Random(group.Count)];
+				var s = group[Utility.Random(group.Count)];
 				s.AutoRestart = true;
 				if (!s.Active)
 					s.Active = true;
@@ -305,7 +297,7 @@ namespace Server.Engines.Champions
 
 		private static void OnSlice()
 		{
-			if (DateTime.UtcNow > m_LastRotate + m_RotateDelay)
+			if (DateTime.UtcNow > _lastRotate + _rotateDelay)
 				Rotate();
 		}
 
@@ -325,64 +317,64 @@ namespace Server.Engines.Champions
 
 		private class ChampionSystemGump : Gump
 		{
-			private const int gBoarder = 20;
-			private const int gRowHeight = 25;
-			private const int gFontHue = 0;
-			private static readonly int[] gWidths = { 20, 100, 100, 40, 40, 40, 80, 60, 50, 50, 50, 20 };
-			private static readonly int[] gTab;
-			private static readonly int gWidth;
+			private const int GBoarder = 20;
+			private const int GRowHeight = 25;
+			private const int GFontHue = 0;
+			private static readonly int[] GWidths = { 20, 100, 100, 40, 40, 40, 80, 60, 50, 50, 50, 20 };
+			private static readonly int[] GTab;
+			private static readonly int GWidth;
 
-			public List<ChampionSpawn> Spawners { get; set; }
+			private List<ChampionSpawn> Spawners { get; }
 
 			static ChampionSystemGump()
 			{
-				gWidth = gWidths.Sum();
-				int tab = 0;
-				gTab = new int[gWidths.Length];
-				for (int i = 0; i < gWidths.Length; ++i)
+				GWidth = GWidths.Sum();
+				var tab = 0;
+				GTab = new int[GWidths.Length];
+				for (var i = 0; i < GWidths.Length; ++i)
 				{
-					gTab[i] = tab;
-					tab += gWidths[i];
+					GTab[i] = tab;
+					tab += GWidths[i];
 				}
 			}
 
 			public ChampionSystemGump()
 				: base(40, 40)
 			{
-				Spawners = AllSpawns.Where(spawn => spawn != null && !spawn.Deleted).ToList();
+				Spawners = AllSpawns.Where(spawn => spawn is {Deleted: false}).ToList();
 
-				AddBackground(0, 0, gWidth, gBoarder * 2 + Spawners.Count * gRowHeight + gRowHeight * 2, 0x13BE);
+				AddBackground(0, 0, GWidth, GBoarder * 2 + Spawners.Count * GRowHeight + GRowHeight * 2, 0x13BE);
 
-				int top = gBoarder;
-				AddLabel(gBoarder, top, gFontHue, "Champion Spawn System Gump");
-				top += gRowHeight;
+				var top = GBoarder;
+				AddLabel(GBoarder, top, GFontHue, "Champion Spawn System Gump");
+				top += GRowHeight;
 
-				AddLabel(gTab[1], top, gFontHue, "Spawn Name");
-				AddLabel(gTab[2], top, gFontHue, "Spawn Group");
-				AddLabel(gTab[3], top, gFontHue, "X");
-				AddLabel(gTab[4], top, gFontHue, "Y");
-				AddLabel(gTab[5], top, gFontHue, "Z");
-				AddLabel(gTab[6], top, gFontHue, "Map");
-				AddLabel(gTab[7], top, gFontHue, "Active");
-				AddLabel(gTab[8], top, gFontHue, "Auto");
-				AddLabel(gTab[9], top, gFontHue, "Go");
-				AddLabel(gTab[10], top, gFontHue, "Info");
-				top += gRowHeight;
+				AddLabel(GTab[1], top, GFontHue, "Spawn Name");
+				AddLabel(GTab[2], top, GFontHue, "Spawn Group");
+				AddLabel(GTab[3], top, GFontHue, "X");
+				AddLabel(GTab[4], top, GFontHue, "Y");
+				AddLabel(GTab[5], top, GFontHue, "Z");
+				AddLabel(GTab[6], top, GFontHue, "Map");
+				AddLabel(GTab[7], top, GFontHue, "Active");
+				AddLabel(GTab[8], top, GFontHue, "Auto");
+				AddLabel(GTab[9], top, GFontHue, "Go");
+				AddLabel(GTab[10], top, GFontHue, "Info");
+				top += GRowHeight;
 
 				for (int i = 0; i < Spawners.Count; i++)
 				{
 					ChampionSpawn spawn = Spawners[i];
-					AddLabel(gTab[1], top, gFontHue, spawn.SpawnName);
-					AddLabel(gTab[2], top, gFontHue, spawn.GroupName ?? "None");
-					AddLabel(gTab[3], top, gFontHue, spawn.X.ToString());
-					AddLabel(gTab[4], top, gFontHue, spawn.Y.ToString());
-					AddLabel(gTab[5], top, gFontHue, spawn.Z.ToString());
-					AddLabel(gTab[6], top, gFontHue, spawn.Map == null ? "null" : spawn.Map.ToString());
-					AddLabel(gTab[7], top, gFontHue, spawn.Active ? "Y" : "N");
-					AddLabel(gTab[8], top, gFontHue, spawn.AutoRestart ? "Y" : "N");
-					AddButton(gTab[9], top, 0xFA5, 0xFA7, 1 + i, GumpButtonType.Reply, 0);
-					AddButton(gTab[10], top, 0xFA5, 0xFA7, 1001 + i, GumpButtonType.Reply, 0);
-					top += gRowHeight;
+					AddLabel(GTab[1], top, GFontHue, spawn.SpawnName);
+					AddLabel(GTab[2], top, GFontHue, spawn.GroupName ?? "None");
+					AddLabel(GTab[3], top, GFontHue, spawn.X.ToString());
+					AddLabel(GTab[4], top, GFontHue, spawn.Y.ToString());
+					AddLabel(GTab[5], top, GFontHue, spawn.Z.ToString());
+					AddLabel(GTab[6], top, GFontHue, spawn.Map == null ? "null" : spawn.Map.ToString());
+					AddLabel(GTab[7], top, GFontHue, spawn.Active ? "Y" : "N");
+					AddLabel(GTab[8], top, GFontHue, spawn.AutoRestart ? "Y" : "N");
+					AddButton(GTab[9], top, 0xFA5, 0xFA7, 1 + i, GumpButtonType.Reply, 0);
+					AddButton(GTab[10], top, 0xFA5, 0xFA7, 1001 + i, GumpButtonType.Reply, 0);
+					top += GRowHeight;
 				}
 			}
 
@@ -391,22 +383,27 @@ namespace Server.Engines.Champions
 				ChampionSpawn spawn;
 				int idx;
 
-				if (info.ButtonID > 0 && info.ButtonID <= 1000)
+				switch (info.ButtonID)
 				{
-					idx = info.ButtonID - 1;
-					if (idx < 0 || idx >= Spawners.Count)
-						return;
-					spawn = Spawners[idx];
-					sender.Mobile.MoveToWorld(spawn.Location, spawn.Map);
-					sender.Mobile.SendGump(this);
-				}
-				else if (info.ButtonID > 1000)
-				{
-					idx = info.ButtonID - 1001;
-					if (idx < 0 || idx > Spawners.Count)
-						return;
-					spawn = Spawners[idx];
-					spawn.SendGump(sender.Mobile);
+					case > 0 and <= 1000:
+					{
+						idx = info.ButtonID - 1;
+						if (idx < 0 || idx >= Spawners.Count)
+							return;
+						spawn = Spawners[idx];
+						sender.Mobile.MoveToWorld(spawn.Location, spawn.Map);
+						sender.Mobile.SendGump(this);
+						break;
+					}
+					case > 1000:
+					{
+						idx = info.ButtonID - 1001;
+						if (idx < 0 || idx > Spawners.Count)
+							return;
+						spawn = Spawners[idx];
+						spawn.SendGump(sender.Mobile);
+						break;
+					}
 				}
 			}
 		}

@@ -21,22 +21,43 @@ namespace Server.Multis
 		ElvenGrey,
 		ElvenNatural,
 		Crystal,
-		Shadow
+		Shadow,
+		SimpleMarble,
+		PlainMarble,
+		OrnateMarble,
+		GargishGreenMarble,
+		GargishTwoToneStone,
+		Gothic,
+		Brick1,
+		Brick2
 	}
 
 	public class HouseFoundation : BaseHouse
 	{
 		private DesignState m_Current; // State which is currently visible.
 		private DesignState m_Design;  // State of current design.
-		private DesignState m_Backup;  // State at last user backup.
+		private DesignState m_Backup;  // State at last user backup.        
 
-		public FoundationType Type { get; set; }  // Graphic type of this foundation.
-		public int LastRevision { get; set; }   // Latest revision number.
-		public List<Item> Fixtures { get; private set; }    // List of fixtures (teleporters and doors) associated with this house.
-		public Item SignHanger { get; private set; }    // Item hanging the sign.
-		public Item Signpost { get; private set; }  // Item supporting the hanger.
-		public int SignpostGraphic { get; set; }    // ItemID number of the chosen signpost.
-		public Mobile Customizer { get; set; }  // Who is currently customizing this -or- null if not customizing.
+		// Graphic type of this foundation.
+		public FoundationType Type { get; set; }
+
+		// Latest revision number.
+		public int LastRevision { get; set; }
+
+		// List of fixtures (teleporters and doors) associated with this house.
+		public List<Item> Fixtures { get; set; }
+
+		// Item hanging the sign.
+		public Item SignHanger { get; set; }
+
+		// Item supporting the hanger.
+		public Item Signpost { get; set; }
+
+		// ItemID number of the chosen signpost.
+		public int SignpostGraphic { get; set; }
+
+		// Who is currently customizing this -or- null if not customizing.
+		public Mobile Customizer { get; set; }
 
 		public override bool IsAosRules => true;
 
@@ -60,41 +81,49 @@ namespace Server.Multis
 			}
 		}
 
-		public override int GetMaxUpdateRange()
-		{
-			return 24;
-		}
-
-		public override int GetUpdateRange(Mobile m)
-		{
-			int w = CurrentState.Components.Width;
-			int h = CurrentState.Components.Height - 1;
-			int v = 18 + ((w > h ? w : h) / 2);
-
-			if (v > 24)
-				v = 24;
-			else if (v < 18)
-				v = 18;
-
-			return v;
-		}
-
 		public DesignState CurrentState
 		{
-			get { if (m_Current == null) SetInitialState(); return m_Current; }
-			set => m_Current = value;
+			get
+			{
+				if (m_Current == null)
+					SetInitialState();
+
+				return m_Current;
+			}
+			set
+			{
+				m_Current = value;
+			}
 		}
 
 		public DesignState DesignState
 		{
-			get { if (m_Design == null) SetInitialState(); return m_Design; }
-			set => m_Design = value;
+			get
+			{
+				if (m_Design == null)
+					SetInitialState();
+
+				return m_Design;
+			}
+			set
+			{
+				m_Design = value;
+			}
 		}
 
 		public DesignState BackupState
 		{
-			get { if (m_Backup == null) SetInitialState(); return m_Backup; }
-			set => m_Backup = value;
+			get
+			{
+				if (m_Backup == null)
+					SetInitialState();
+
+				return m_Backup;
+			}
+			set
+			{
+				m_Backup = value;
+			}
 		}
 
 		public void SetInitialState()
@@ -195,8 +224,6 @@ namespace Server.Multis
 			if (Fixtures == null)
 				Fixtures = new List<Item>();
 
-			uint keyValue = 0;
-
 			for (int i = 0; i < list.Length; ++i)
 			{
 				MultiTileEntry mte = list[i];
@@ -210,187 +237,10 @@ namespace Server.Multis
 				}
 				else
 				{
-					BaseDoor door = null;
-
-					if (itemID >= 0x675 && itemID < 0x6F5)
-					{
-						int type = (itemID - 0x675) / 16;
-						DoorFacing facing = (DoorFacing)(((itemID - 0x675) / 2) % 8);
-
-						switch (type)
-						{
-							case 0: door = new GenericHouseDoor(facing, 0x675, 0xEC, 0xF3); break;
-							case 1: door = new GenericHouseDoor(facing, 0x685, 0xEC, 0xF3); break;
-							case 2: door = new GenericHouseDoor(facing, 0x695, 0xEB, 0xF2); break;
-							case 3: door = new GenericHouseDoor(facing, 0x6A5, 0xEA, 0xF1); break;
-							case 4: door = new GenericHouseDoor(facing, 0x6B5, 0xEA, 0xF1); break;
-							case 5: door = new GenericHouseDoor(facing, 0x6C5, 0xEC, 0xF3); break;
-							case 6: door = new GenericHouseDoor(facing, 0x6D5, 0xEA, 0xF1); break;
-							case 7: door = new GenericHouseDoor(facing, 0x6E5, 0xEA, 0xF1); break;
-						}
-					}
-					else if (itemID >= 0x314 && itemID < 0x364)
-					{
-						int type = (itemID - 0x314) / 16;
-						DoorFacing facing = (DoorFacing)(((itemID - 0x314) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x314 + (type * 16), 0xED, 0xF4);
-					}
-					else if (itemID >= 0x824 && itemID < 0x834)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0x824) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x824, 0xEC, 0xF3);
-					}
-					else if (itemID >= 0x839 && itemID < 0x849)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0x839) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x839, 0xEB, 0xF2);
-					}
-					else if (itemID >= 0x84C && itemID < 0x85C)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0x84C) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x84C, 0xEC, 0xF3);
-					}
-					else if (itemID >= 0x866 && itemID < 0x876)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0x866) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x866, 0xEB, 0xF2);
-					}
-					else if (itemID >= 0xE8 && itemID < 0xF8)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0xE8) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0xE8, 0xED, 0xF4);
-					}
-					else if (itemID >= 0x1FED && itemID < 0x1FFD)
-					{
-						DoorFacing facing = (DoorFacing)(((itemID - 0x1FED) / 2) % 8);
-						door = new GenericHouseDoor(facing, 0x1FED, 0xEC, 0xF3);
-					}
-					else if (itemID >= 0x241F && itemID < 0x2421)
-					{
-						//DoorFacing facing = (DoorFacing)(((itemID - 0x241F) / 2) % 8);
-						door = new GenericHouseDoor(DoorFacing.NorthCCW, 0x2415, -1, -1);
-					}
-					else if (itemID >= 0x2423 && itemID < 0x2425)
-					{
-						//DoorFacing facing = (DoorFacing)(((itemID - 0x241F) / 2) % 8);
-						//This one and the above one are 'special' cases, ie: OSI had the ItemID pattern discombobulated for these
-						door = new GenericHouseDoor(DoorFacing.WestCW, 0x2423, -1, -1);
-					}
-					else if (itemID >= 0x2A05 && itemID < 0x2A1D)
-					{
-						DoorFacing facing = (DoorFacing)((((itemID - 0x2A05) / 2) % 4) + 8);
-
-						int sound = (itemID >= 0x2A0D && itemID < 0x2a15) ? 0x539 : -1;
-
-						door = new GenericHouseDoor(facing, 0x29F5 + (8 * ((itemID - 0x2A05) / 8)), sound, sound);
-					}
-					else if (itemID == 0x2D46)
-					{
-						door = new GenericHouseDoor(DoorFacing.NorthCW, 0x2D46, 0xEA, 0xF1, false);
-					}
-					else if (itemID == 0x2D48 || itemID == 0x2FE2)
-					{
-						door = new GenericHouseDoor(DoorFacing.SouthCCW, itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x2D63 && itemID < 0x2D70)
-					{
-						int mod = (itemID - 0x2D63) / 2 % 2;
-						DoorFacing facing = ((mod == 0) ? DoorFacing.SouthCCW : DoorFacing.WestCCW);
-
-						int type = (itemID - 0x2D63) / 4;
-
-						door = new GenericHouseDoor(facing, 0x2D63 + 4 * type + mod * 2, 0xEA, 0xF1, false);
-					}
-					else if (itemID == 0x2FE4 || itemID == 0x31AE)
-					{
-						door = new GenericHouseDoor(DoorFacing.WestCCW, itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x319C && itemID < 0x31AE)
-					{
-						//special case for 0x31aa <-> 0x31a8 (a9)
-
-						int mod = (itemID - 0x319C) / 2 % 2;
-
-						bool specialCase = (itemID == 0x31AA || itemID == 0x31A8);
-
-						DoorFacing facing;
-
-						if (itemID == 0x31AA || itemID == 0x31A8)
-							facing = ((mod == 0) ? DoorFacing.NorthCW : DoorFacing.EastCW);
-						else
-							facing = ((mod == 0) ? DoorFacing.EastCW : DoorFacing.NorthCW);
-
-						int type = (itemID - 0x319C) / 4;
-
-						door = new GenericHouseDoor(facing, 0x319C + 4 * type + mod * 2, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x367B && itemID < 0x369B)
-					{
-						int type = (itemID - 0x367B) / 16;
-						DoorFacing facing = (DoorFacing)(((itemID - 0x367B) / 2) % 8);
-
-						switch (type)
-						{
-							case 0: door = new GenericHouseDoor(facing, 0x367B, 0xED, 0xF4); break; //crystal
-							case 1: door = new GenericHouseDoor(facing, 0x368B, 0xEC, 0x3E7); break;    //shadow
-						}
-					}
-					else if (itemID >= 0x409B && itemID < 0x40A3)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x409B), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x410C && itemID < 0x4114)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x410C), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x41C2 && itemID < 0x41CA)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x41C2), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x41CF && itemID < 0x41D7)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x41CF), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x436E && itemID < 0x437E)
-					{
-						/* These ones had to be different...
-						 * Offset		0	2	4	6	8	10	12	14
-						 * DoorFacing	2	3	2	3	6	7	6	7
-						 */
-						int offset = itemID - 0x436E;
-						DoorFacing facing = (DoorFacing)((offset / 2 + 2 * ((1 + offset / 4) % 2)) % 8);
-						door = new GenericHouseDoor(facing, itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x46DD && itemID < 0x46E5)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x46DD), itemID, 0xEB, 0xF2, false);
-					}
-					else if (itemID >= 0x4D22 && itemID < 0x4D2A)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x4D22), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x50C8 && itemID < 0x50D0)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x50C8), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x50D0 && itemID < 0x50D8)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x50D0), itemID, 0xEA, 0xF1, false);
-					}
-					else if (itemID >= 0x5142 && itemID < 0x514A)
-					{
-						door = new GenericHouseDoor(GetSADoorFacing(itemID - 0x5142), itemID, 0xF0, 0xEF, false);
-					}
+					BaseDoor door = AddDoor(from, itemID, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
 
 					if (door != null)
 					{
-						if (keyValue == 0)
-							keyValue = CreateKeys(from);
-
-						door.Locked = true;
-						door.KeyValue = keyValue;
-
-						AddDoor(door, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
 						Fixtures.Add(door);
 					}
 				}
@@ -428,18 +278,66 @@ namespace Server.Multis
 					switch (door.Facing)
 					{
 						default:
-						case DoorFacing.WestCW: linkFacing = DoorFacing.EastCCW; xOffset = 1; yOffset = 0; break;
-						case DoorFacing.EastCCW: linkFacing = DoorFacing.WestCW; xOffset = -1; yOffset = 0; break;
-						case DoorFacing.WestCCW: linkFacing = DoorFacing.EastCW; xOffset = 1; yOffset = 0; break;
-						case DoorFacing.EastCW: linkFacing = DoorFacing.WestCCW; xOffset = -1; yOffset = 0; break;
-						case DoorFacing.SouthCW: linkFacing = DoorFacing.NorthCCW; xOffset = 0; yOffset = -1; break;
-						case DoorFacing.NorthCCW: linkFacing = DoorFacing.SouthCW; xOffset = 0; yOffset = 1; break;
-						case DoorFacing.SouthCCW: linkFacing = DoorFacing.NorthCW; xOffset = 0; yOffset = -1; break;
-						case DoorFacing.NorthCW: linkFacing = DoorFacing.SouthCCW; xOffset = 0; yOffset = 1; break;
-						case DoorFacing.SouthSW: linkFacing = DoorFacing.SouthSE; xOffset = 1; yOffset = 0; break;
-						case DoorFacing.SouthSE: linkFacing = DoorFacing.SouthSW; xOffset = -1; yOffset = 0; break;
-						case DoorFacing.WestSN: linkFacing = DoorFacing.WestSS; xOffset = 0; yOffset = 1; break;
-						case DoorFacing.WestSS: linkFacing = DoorFacing.WestSN; xOffset = 0; yOffset = -1; break;
+						case DoorFacing.WestCW:
+							linkFacing = DoorFacing.EastCCW;
+							xOffset = 1;
+							yOffset = 0;
+							break;
+						case DoorFacing.EastCCW:
+							linkFacing = DoorFacing.WestCW;
+							xOffset = -1;
+							yOffset = 0;
+							break;
+						case DoorFacing.WestCCW:
+							linkFacing = DoorFacing.EastCW;
+							xOffset = 1;
+							yOffset = 0;
+							break;
+						case DoorFacing.EastCW:
+							linkFacing = DoorFacing.WestCCW;
+							xOffset = -1;
+							yOffset = 0;
+							break;
+						case DoorFacing.SouthCW:
+							linkFacing = DoorFacing.NorthCCW;
+							xOffset = 0;
+							yOffset = -1;
+							break;
+						case DoorFacing.NorthCCW:
+							linkFacing = DoorFacing.SouthCW;
+							xOffset = 0;
+							yOffset = 1;
+							break;
+						case DoorFacing.SouthCCW:
+							linkFacing = DoorFacing.NorthCW;
+							xOffset = 0;
+							yOffset = -1;
+							break;
+						case DoorFacing.NorthCW:
+							linkFacing = DoorFacing.SouthCCW;
+							xOffset = 0;
+							yOffset = 1;
+							break;
+						case DoorFacing.SouthSW:
+							linkFacing = DoorFacing.SouthSE;
+							xOffset = 1;
+							yOffset = 0;
+							break;
+						case DoorFacing.SouthSE:
+							linkFacing = DoorFacing.SouthSW;
+							xOffset = -1;
+							yOffset = 0;
+							break;
+						case DoorFacing.WestSN:
+							linkFacing = DoorFacing.WestSS;
+							xOffset = 0;
+							yOffset = 1;
+							break;
+						case DoorFacing.WestSS:
+							linkFacing = DoorFacing.WestSN;
+							xOffset = 0;
+							yOffset = -1;
+							break;
 					}
 
 					for (int j = i + 1; j < Fixtures.Count; ++j)
@@ -457,14 +355,6 @@ namespace Server.Multis
 			}
 		}
 
-		private static DoorFacing GetSADoorFacing(int offset)
-		{
-			/* Offset		0	2	4	6
-			 * DoorFacing	2	3	6	7
-			 */
-			return (DoorFacing)((offset / 2 + 2 * (1 + offset / 4)) % 8);
-		}
-
 		public void AddFixture(Item item, MultiTileEntry mte)
 		{
 			Fixtures.Add(item);
@@ -476,23 +366,116 @@ namespace Server.Multis
 			switch (type)
 			{
 				default:
-				case FoundationType.DarkWood: corner = 0x0014; east = 0x0015; south = 0x0016; post = 0x0017; break;
-				case FoundationType.LightWood: corner = 0x00BD; east = 0x00BE; south = 0x00BF; post = 0x00C0; break;
-				case FoundationType.Dungeon: corner = 0x02FD; east = 0x02FF; south = 0x02FE; post = 0x0300; break;
-				case FoundationType.Brick: corner = 0x0041; east = 0x0043; south = 0x0042; post = 0x0044; break;
-				case FoundationType.Stone: corner = 0x0065; east = 0x0064; south = 0x0063; post = 0x0066; break;
-
-				case FoundationType.ElvenGrey: corner = 0x2DF7; east = 0x2DF9; south = 0x2DFA; post = 0x2DF8; break;
-				case FoundationType.ElvenNatural: corner = 0x2DFB; east = 0x2DFD; south = 0x2DFE; post = 0x2DFC; break;
-
-				case FoundationType.Crystal: corner = 0x3672; east = 0x3671; south = 0x3670; post = 0x3673; break;
-				case FoundationType.Shadow: corner = 0x3676; east = 0x3675; south = 0x3674; post = 0x3677; break;
+				case FoundationType.DarkWood:
+					corner = 0x0014;
+					east = 0x0015;
+					south = 0x0016;
+					post = 0x0017;
+					break;
+				case FoundationType.LightWood:
+					corner = 0x00BD;
+					east = 0x00BE;
+					south = 0x00BF;
+					post = 0x00C0;
+					break;
+				case FoundationType.Dungeon:
+					corner = 0x02FD;
+					east = 0x02FF;
+					south = 0x02FE;
+					post = 0x0300;
+					break;
+				case FoundationType.Brick:
+					corner = 0x0041;
+					east = 0x0043;
+					south = 0x0042;
+					post = 0x0044;
+					break;
+				case FoundationType.Stone:
+					corner = 0x0065;
+					east = 0x0064;
+					south = 0x0063;
+					post = 0x0066;
+					break;
+				case FoundationType.ElvenGrey:
+					corner = 0x2DF7;
+					east = 0x2DF9;
+					south = 0x2DFA;
+					post = 0x2DF8;
+					break;
+				case FoundationType.ElvenNatural:
+					corner = 0x2DFB;
+					east = 0x2DFD;
+					south = 0x2DFE;
+					post = 0x2DFC;
+					break;
+				case FoundationType.Crystal:
+					corner = 0x3672;
+					east = 0x3671;
+					south = 0x3670;
+					post = 0x3673;
+					break;
+				case FoundationType.Shadow:
+					corner = 0x3676;
+					east = 0x3675;
+					south = 0x3674;
+					post = 0x3677;
+					break;
+				case FoundationType.SimpleMarble:
+					corner = 0x2BC7;
+					east = 0x2CEF;
+					south = 0x2CF0;
+					post = 0x2BC8;
+					break;
+				case FoundationType.PlainMarble:
+					corner = 0x2DC3;
+					east = 0x2DCF;
+					south = 0x2DD0;
+					post = 0x2DC6;
+					break;
+				case FoundationType.OrnateMarble:
+					corner = 0x2BAD;
+					east = 0x2BB9;
+					south = 0x2BBA;
+					post = 0x2BB0;
+					break;
+				case FoundationType.GargishGreenMarble:
+					corner = 0x41A6;
+					east = 0x41A8;
+					south = 0x41A7;
+					post = 0x419E;
+					break;
+				case FoundationType.GargishTwoToneStone:
+					corner = 0x415C;
+					east = 0x4166;
+					south = 0x4167;
+					post = 0x415F;
+					break;
+				case FoundationType.Gothic:
+					corner = 0x4B08;
+					east = 0x4B00;
+					south = 0x4AFA;
+					post = 0x4B06;
+					break;
+				case FoundationType.Brick1:
+					corner = 0x9ABE;
+					east = 0x9AC0;
+					south = 0x9ABF;
+					post = 0x9AC1;
+					break;
+				case FoundationType.Brick2:
+					corner = 0x9BD0;
+					east = 0x9BD2;
+					south = 0x9BD1;
+					post = 0x9BD3;
+					break;
 			}
 		}
 
 		public static void ApplyFoundation(FoundationType type, MultiComponentList mcl)
 		{
-			GetFoundationGraphics(type, out int east, out int south, out int post, out int corner);
+			int east, south, post, corner;
+
+			GetFoundationGraphics(type, out east, out south, out post, out corner);
 
 			int xCenter = mcl.Center.X;
 			int yCenter = mcl.Center.Y;
@@ -641,7 +624,7 @@ namespace Server.Multis
 			}
 			else if (SpellHelper.CheckCombat(m))
 			{
-				m.SendLocalizedMessage(1005564, 0x22); // Wouldst thou flee during the heat of battle??
+				m.SendLocalizedMessage(1005564, "", 0x22); // Wouldst thou flee during the heat of battle??
 				return;
 			}
 
@@ -654,14 +637,23 @@ namespace Server.Multis
 
 			foreach (Mobile mobile in GetMobiles())
 			{
+				//if (mobile is Mannequin || mobile is Steward)
+				//{
+				//	Mannequin.ForceRedeed(mobile, this);
+				//}
+				//else
 				if (mobile != m)
+				{
 					mobile.Location = BanLocation;
+				}
 			}
 
 			DesignContext.Add(m, this);
+
 			m.Send(new BeginHouseCustomization(this));
 
 			NetState ns = m.NetState;
+
 			if (ns != null)
 				SendInfoTo(ns);
 
@@ -685,7 +677,7 @@ namespace Server.Multis
 
 		public override void Serialize(GenericWriter writer)
 		{
-			writer.Write(0); // version
+			writer.Write(5); // version
 
 			writer.Write(Signpost);
 			writer.Write(SignpostGraphic);
@@ -704,20 +696,50 @@ namespace Server.Multis
 			base.Serialize(writer);
 		}
 
+		private int m_DefaultPrice;
+
+		public override int DefaultPrice => m_DefaultPrice;
+
 		public override void Deserialize(GenericReader reader)
 		{
 			int version = reader.ReadInt();
 
 			switch (version)
 			{
-				case 0:
+				case 5:
+				case 4:
 					{
 						Signpost = reader.ReadItem();
 						SignpostGraphic = reader.ReadInt();
 
+						goto case 3;
+					}
+				case 3:
+					{
 						Type = (FoundationType)reader.ReadInt();
 
+						goto case 2;
+					}
+				case 2:
+					{
 						SignHanger = reader.ReadItem();
+
+						goto case 1;
+					}
+				case 1:
+					{
+						if (version < 5)
+							m_DefaultPrice = reader.ReadInt();
+
+						goto case 0;
+					}
+				case 0:
+					{
+						if (version < 3)
+							Type = FoundationType.Stone;
+
+						if (version < 4)
+							SignpostGraphic = 9;
 
 						LastRevision = reader.ReadInt();
 						Fixtures = reader.ReadStrongItemList();
@@ -730,16 +752,35 @@ namespace Server.Multis
 					}
 			}
 
+			if (LastRevision == 0)
+			{
+				OnPlacement();
+			}
+
 			base.Deserialize(reader);
 		}
 
-		public bool IsHiddenToCustomizer(Item item)
+		public bool IsHiddenToCustomizer(Mobile m, Item item)
 		{
-			return (item == Signpost || item == SignHanger || item == Sign || IsFixture(item));
+			// Always visible if *this* house, equipped, or contained.
+			if (item == this || item.Parent != null)
+				return false;
+
+			// Always hidden if uneditable fixture.
+			if (item == Signpost || item == SignHanger || item == Sign || IsFixture(item))
+				return true;
+
+			// Always hidden if *not* contained within *this* house region.
+			// Note: Will hide other houses and their contents.
+			if (Region != null && !Region.Contains(item.Location))
+				return true;
+
+			return false;
 		}
 
 		public static void Initialize()
 		{
+			//EventSink.OnMultiDesign += (new QueryDesignDetails(NetState));
 			PacketHandlers.RegisterExtended(0x1E, true, new OnPacketReceive(QueryDesignDetails));
 
 			PacketHandlers.RegisterEncoded(0x02, true, new OnEncodedPacketReceive(Designer_Backup));
@@ -747,9 +788,11 @@ namespace Server.Multis
 			PacketHandlers.RegisterEncoded(0x04, true, new OnEncodedPacketReceive(Designer_Commit));
 			PacketHandlers.RegisterEncoded(0x05, true, new OnEncodedPacketReceive(Designer_Delete));
 			PacketHandlers.RegisterEncoded(0x06, true, new OnEncodedPacketReceive(Designer_Build));
+			PacketHandlers.RegisterEncoded(0x0A, true, new OnEncodedPacketReceive(Designer_Action)); // WTF does this do?
 			PacketHandlers.RegisterEncoded(0x0C, true, new OnEncodedPacketReceive(Designer_Close));
 			PacketHandlers.RegisterEncoded(0x0D, true, new OnEncodedPacketReceive(Designer_Stairs));
 			PacketHandlers.RegisterEncoded(0x0E, true, new OnEncodedPacketReceive(Designer_Sync));
+			PacketHandlers.RegisterEncoded(0x0F, true, new OnEncodedPacketReceive(Designer_Action)); // WTF does this do?
 			PacketHandlers.RegisterEncoded(0x10, true, new OnEncodedPacketReceive(Designer_Clear));
 			PacketHandlers.RegisterEncoded(0x12, true, new OnEncodedPacketReceive(Designer_Level));
 
@@ -778,14 +821,19 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client requested state synchronization
-				 *  - Resend full house state
-				 */
-
+                *  - Resend full house state
+                */
 				DesignState design = context.Foundation.DesignState;
 
 				// Resend full house state
 				design.SendDetailedInfoTo(state);
 			}
+		}
+
+		public static void Designer_Action(NetState state, IEntity e, EncodedReader pvSrc)
+		{
+			// pvSrc.Trace(state);
+			// TODO: What does this do?
 		}
 
 		public static void Designer_Clear(NetState state, IEntity e, EncodedReader pvSrc)
@@ -796,13 +844,12 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to clear the design
-				 *  - Restore empty foundation
-				 *     - Construct new design state from empty foundation
-				 *     - Assign constructed state to foundation
-				 *  - Update revision
-				 *  - Update client with new state
-				 */
-
+                *  - Restore empty foundation
+                *     - Construct new design state from empty foundation
+                *     - Assign constructed state to foundation
+                *  - Update revision
+                *  - Update client with new state
+                */
 				// Restore empty foundation : Construct new design state from empty foundation
 				DesignState newDesign = new DesignState(context.Foundation, context.Foundation.GetEmptyFoundation());
 
@@ -826,13 +873,12 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to restore design to the last backup state
-				 *  - Restore backup
-				 *     - Construct new design state from backup state
-				 *     - Assign constructed state to foundation
-				 *  - Update revision
-				 *  - Update client with new state
-				 */
-
+                *  - Restore backup
+                *     - Construct new design state from backup state
+                *     - Assign constructed state to foundation
+                *  - Update revision
+                *  - Update client with new state
+                */
 				// Restore backup : Construct new design state from backup state
 				DesignState backupDesign = new DesignState(context.Foundation.BackupState);
 
@@ -856,10 +902,9 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to backup design state
-				 *  - Construct a copy of the current design state
-				 *  - Assign constructed state to backup state field
-				 */
-
+                *  - Construct a copy of the current design state
+                *  - Assign constructed state to backup state field
+                */
 				// Construct a copy of the current design state
 				DesignState copyState = new DesignState(context.Foundation.DesignState);
 
@@ -876,15 +921,14 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to revert design state to currently visible state
-				 *  - Revert design state
-				 *     - Construct a copy of the current visible state
-				 *     - Freeze fixtures in constructed state
-				 *     - Assign constructed state to foundation
-				 *     - If a signpost is needed, add it
-				 *  - Update revision
-				 *  - Update client with new state
-				 */
-
+                *  - Revert design state
+                *     - Construct a copy of the current visible state
+                *     - Freeze fixtures in constructed state
+                *     - Assign constructed state to foundation
+                *     - If a signpost is needed, add it
+                *  - Update revision
+                *  - Update client with new state
+                */
 				// Revert design state : Construct a copy of the current visible state
 				DesignState copyState = new DesignState(context.Foundation.CurrentState);
 
@@ -906,14 +950,35 @@ namespace Server.Multis
 			}
 		}
 
+		#region Enhanced Client
+		/// <summary>
+		/// for EC, the details cache gets fucked up when prior to MoveToWorld (null map).
+		/// So, we clear the cache on the current design state AFTER MoveToWorld, which at this point, is the only
+		/// state. We still need to send details, regardless of client type, so the cache is set correctly for EC
+		/// </summary>
+		/// <param name="from"></param>
+		public void OnPlacement()
+		{
+			if (Deleted)
+				return;
+
+			DesignState designState = CurrentState;
+			designState.OnRevised();
+
+			Delta(ItemDelta.Update);
+		}
+		#endregion
+
 		public void EndConfirmCommit(Mobile from)
 		{
 			int oldPrice = Price;
 			int newPrice = oldPrice + CustomizationCost + ((DesignState.Components.List.Length - (CurrentState.Components.List.Length + CurrentState.Fixtures.Length)) * 500);
 			int cost = newPrice - oldPrice;
 
+
 			if (!Deleted)
-			{ // Temporary Fix. We should be booting a client out of customization mode in the delete handler.
+			{
+				// Temporary Fix. We should be booting a client out of customization mode in the delete handler.
 				if (from.AccessLevel >= AccessLevel.GameMaster && cost != 0)
 				{
 					from.SendMessage("{0} gold would have been {1} your bank if you were not a GM.", cost.ToString(), ((cost > 0) ? "withdrawn from" : "deposited into"));
@@ -943,20 +1008,20 @@ namespace Server.Multis
 			}
 
 			/* Client chose to commit current design state
-				 *  - Commit design state
-				 *     - Construct a copy of the current design state
-				 *     - Clear visible fixtures
-				 *     - Melt fixtures from constructed state
-				 *     - Add melted fixtures from constructed state
-				 *     - Assign constructed state to foundation
-				 *  - Update house price
-				 *  - Remove design context
-				 *  - Notify the client that customization has ended
-				 *  - Notify the core that the foundation has changed and should be resent to all clients
-				 *  - If a signpost is needed, add it
-				 *  - Eject all from house
-				 *  - Restore relocated entities
-				 */
+            *  - Commit design state
+            *     - Construct a copy of the current design state
+            *     - Clear visible fixtures
+            *     - Melt fixtures from constructed state
+            *     - Add melted fixtures from constructed state
+            *     - Assign constructed state to foundation
+            *  - Update house price
+            *  - Remove design context
+            *  - Notify the client that customization has ended
+            *  - Notify the core that the foundation has changed and should be resent to all clients
+            *  - If a signpost is needed, add it
+            *  - Eject all from house
+            *  - Restore relocated entities
+            */
 
 			// Commit design state : Construct a copy of the current design state
 			DesignState copyState = new DesignState(DesignState);
@@ -985,7 +1050,7 @@ namespace Server.Multis
 			// Notify the core that the foundation has changed and should be resent to all clients
 			Delta(ItemDelta.Update);
 			ProcessDelta();
-			CurrentState.SendDetailedInfoTo(from.NetState);
+			CurrentState.SendDetailedInfoTo(from.NetState, false);
 
 			// If a signpost is needed, add it
 			CheckSignpost();
@@ -1037,17 +1102,6 @@ namespace Server.Multis
 				level = 1;
 
 			return (level - 1) * 20 + 7;
-
-			/*
-			switch( level )
-			{
-				default:
-				case 1: return 07;
-				case 2: return 27;
-				case 3: return 47;
-				case 4: return 67;
-			}
-			 * */
 		}
 
 		public static int GetZLevel(int z, HouseFoundation house)
@@ -1090,45 +1144,47 @@ namespace Server.Multis
 			return Verification.IsItemValid(itemID);
 		}
 
-		public static readonly bool AllowStairSectioning = true;
-
 		/* Stair block IDs
-		 * (sorted ascending)
-		 */
+        * (sorted ascending)
+        */
 		private static readonly int[] m_BlockIDs = new int[]
-			{
-				0x3EE, 0x709, 0x71E, 0x721,
-				0x738, 0x750, 0x76C, 0x788,
-				0x7A3, 0x7BA, 0x35D2, 0x3609,
-				0x4317, 0x4318, 0x4B07, 0x7807
-			};
+		{
+			0x3EE, 0x709, 0x71E, 0x721,
+			0x738, 0x750, 0x76C, 0x788,
+			0x7A3, 0x7BA, 0x35D2, 0x3609,
+			0x4317, 0x4318, 0x4B07, 0x7807,
+			0x9AEA, 0x9B4F
+		};
 
 		/* Stair sequence IDs
-		 * (sorted ascending)
-		 * Use this for stairs in the proper N,W,S,E sequence
-		 */
+        * (sorted ascending)
+        * Use this for stairs in the proper N,W,S,E sequence
+        */
 		private static readonly int[] m_StairSeqs = new int[]
-			{
-				0x3EF, 0x70A, 0x722, 0x739,
-				0x751, 0x76D, 0x789, 0x7A4
-			};
+		{
+			0x3EF, 0x70A, 0x722, 0x739,
+			0x751, 0x76D, 0x789, 0x7A4,
+			0x9B50, 0x9AEB
+		};
 
 		/* Other stair IDs
-		 * Listed in order: north, west, south, east
-		 * Use this for stairs not in the proper sequence
-		 */
+        * Listed in order: north, west, south, east
+        * Use this for stairs not in the proper sequence
+        */
 		private static readonly int[] m_StairIDs = new int[]
-			{
-				0x71F, 0x736, 0x737, 0x749,
-				0x35D4, 0x35D3, 0x35D6, 0x35D5,
-				0x360B, 0x360A, 0x360D, 0x360C,
-				0x4360, 0x435E, 0x435F, 0x4361,
-				0x435C, 0x435A, 0x435B, 0x435D,
-				0x4364, 0x4362, 0x4363, 0x4365,
-				0x4B05, 0x4B04, 0x4B34, 0x4B33,
-				0x7809, 0x7808, 0x780A, 0x780B,
-				0x7BB, 0x7BC
-			};
+		{
+			0x71F, 0x736, 0x737, 0x749,
+			0x35D4, 0x35D3, 0x35D6, 0x35D5,
+			0x360B, 0x360A, 0x360D, 0x360C,
+			0x4360, 0x435E, 0x435F, 0x4361,
+			0x435C, 0x435A, 0x435B, 0x435D,
+			0x4364, 0x4362, 0x4363, 0x4365,
+			0x4B05, 0x4B04, 0x4B34, 0x4B33,
+			0x7809, 0x7808, 0x780A, 0x780B,
+			0x7BB,  0x7BC,  0x9AEB, 0x9AEC,
+			0x9AED, 0x9B50, 0x9AEE, 0x9B51,
+			0x9B52, 0x9B53
+		};
 
 		public static bool IsStairBlock(int id)
 		{
@@ -1197,9 +1253,6 @@ namespace Server.Multis
 
 			if (!IsStair(id, ref dir))
 				return false;
-
-			if (AllowStairSectioning)
-				return true; // skip deletion
 
 			int height = ((z - 7) % 20) / 5;
 
@@ -1281,13 +1334,12 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to delete a component
-				 *  - Read data detailing which component to delete
-				 *  - Verify component is deletable
-				 *  - Remove the component
-				 *  - If needed, replace removed component with a dirt tile
-				 *  - Update revision
-				 */
-
+                *  - Read data detailing which component to delete
+                *  - Verify component is deletable
+                *  - Remove the component
+                *  - If needed, replace removed component with a dirt tile
+                *  - Update revision
+                */
 				// Read data detailing which component to delete
 				int itemID = pvSrc.ReadInt32();
 				int x = pvSrc.ReadInt32();
@@ -1304,29 +1356,18 @@ namespace Server.Multis
 				if (z == 0 && ax >= 0 && ax < mcl.Width && ay >= 0 && ay < (mcl.Height - 1))
 				{
 					/* Component is not deletable
-					 *  - Resend design state
-					 *  - Return without further processing
-					 */
-
+                    *  - Resend design state
+                    *  - Return without further processing
+                    */
 					design.SendDetailedInfoTo(state);
 					return;
 				}
 
-				bool fixState = false;
+				bool deleteStairs = DeleteStairs(mcl, itemID, x, y, z);
 
 				// Remove the component
-				if (AllowStairSectioning)
-				{
-					if (DeleteStairs(mcl, itemID, x, y, z))
-						fixState = true; // The client removes the entire set of stairs locally, resend state
-
+				if (!deleteStairs)
 					mcl.Remove(itemID, x, y, z);
-				}
-				else
-				{
-					if (!DeleteStairs(mcl, itemID, x, y, z))
-						mcl.Remove(itemID, x, y, z);
-				}
 
 				// If needed, replace removed component with a dirt tile
 				if (ax >= 1 && ax < mcl.Width && ay >= 1 && ay < mcl.Height - 1)
@@ -1349,7 +1390,7 @@ namespace Server.Multis
 				design.OnRevised();
 
 				// Resend design state
-				if (fixState)
+				if (deleteStairs)
 					design.SendDetailedInfoTo(state);
 			}
 		}
@@ -1362,14 +1403,13 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to add stairs
-				 *  - Read data detailing stair type and location
-				 *  - Validate stair multi ID
-				 *  - Add the stairs
-				 *     - Load data describing the stair components
-				 *     - Insert described components
-				 *  - Update revision
-				 */
-
+                *  - Read data detailing stair type and location
+                *  - Validate stair multi ID
+                *  - Add the stairs
+                *     - Load data describing the stair components
+                *     - Insert described components
+                *  - Update revision
+                */
 				// Read data detailing stair type and location
 				int itemID = pvSrc.ReadInt32();
 				int x = pvSrc.ReadInt32();
@@ -1381,10 +1421,9 @@ namespace Server.Multis
 				if (!Verification.IsMultiValid(itemID))
 				{
 					/* Specified multi ID is not a stair
-					 *  - Resend design state
-					 *  - Return without further processing
-					 */
-
+                    *  - Resend design state
+                    *  - Return without further processing
+                    */
 					TraceValidity(state, itemID);
 					design.SendDetailedInfoTo(state);
 					return;
@@ -1399,18 +1438,110 @@ namespace Server.Multis
 				// Add the stairs : Insert described components
 				int z = GetLevelZ(context.Level, context.Foundation);
 
-				for (int i = 0; i < stairs.List.Length; ++i)
+				if (itemID >= 7668 && itemID <= 7675)
 				{
-					MultiTileEntry entry = stairs.List[i];
+					int idOffset = itemID <= 7671 ? 101 : 0;
+					int[][] list = new int[][] { };
 
-					if (entry.m_ItemID != 1)
-						mcl.Add(entry.m_ItemID, x + entry.m_OffsetX, y + entry.m_OffsetY, z + entry.m_OffsetZ);
+					switch (itemID)
+					{
+						case 7668: list = _StairsSouth; break;
+						case 7669: list = _StairsWest; break;
+						case 7670: list = _StairsNorth; break;
+						case 7671: list = _StairsEast; break;
+						case 7672: list = _StairsSouth; break;
+						case 7673: list = _StairsWest; break;
+						case 7674: list = _StairsNorth; break;
+						case 7675: list = _StairsEast; break;
+					}
+
+					for (int i = 0; i < list.Length; i++)
+					{
+						if (list[i][0] != 1)
+						{
+							mcl.Add(list[i][0] - idOffset, x + list[i][1], y + list[i][2], z + list[i][3]);
+						}
+					}
+				}
+				else
+				{
+					for (int i = 0; i < stairs.List.Length; ++i)
+					{
+						MultiTileEntry entry = stairs.List[i];
+
+						if (entry.m_ItemID != 1)
+						{
+							mcl.Add(entry.m_ItemID, x + entry.m_OffsetX, y + entry.m_OffsetY, z + entry.m_OffsetZ);
+						}
+					}
 				}
 
 				// Update revision
 				design.OnRevised();
 			}
 		}
+
+		#region TOL Stair Components cannot be found in MultiData
+		private static int[][] _StairsSouth =
+		{
+			new int[] { 0x9B4F, 0,  -3, 0,  },
+			new int[] { 0x9B4F, 0,  -3, 5,  },
+			new int[] { 0x9B4F, 0,  -3, 10, },
+			new int[] { 0x9B50, 0,  -3, 15, },
+			new int[] { 0x9B4F, 0,  -2, 0,  },
+			new int[] { 0x9B4F, 0,  -2, 5,  },
+			new int[] { 0x9B50, 0,  -2, 10, },
+			new int[] { 0x9B4F, 0,  -1, 0,  },
+			new int[] { 0x9B50, 0,  -1, 5,  },
+			new int[] { 0x0001, 0 , 0, 0,  },
+			new int[] { 0x9B50, 0 , 0, 0,  },
+		};
+
+		private static int[][] _StairsWest =
+		{
+			new int[] { 0x0001, 0,  0, 0,  },
+			new int[] { 0x9B53, 0,  0, 0,  },
+			new int[] { 0x9B4F, 1,  0, 0,  },
+			new int[] { 0x9B53, 1,  0, 5,  },
+			new int[] { 0x9B4F, 2,  0, 0,  },
+			new int[] { 0x9B4F, 2,  0, 5,  },
+			new int[] { 0x9B53, 2,  0, 10, },
+			new int[] { 0x9B4F, 3,  0, 0,  },
+			new int[] { 0x9B4F, 3,  0, 5,  },
+			new int[] { 0x9B4F, 3, 0, 10, },
+			new int[] { 0x9B53, 3 , 0, 15, },
+		};
+
+		private static int[][] _StairsNorth =
+		{
+			new int[] { 0x0001, 0,  0, 0,  },
+			new int[] { 0x9B52, 0,  0, 0,  },
+			new int[] { 0x9B4F, 0,  1, 0,  },
+			new int[] { 0x9B52, 0,  1, 5,  },
+			new int[] { 0x9B4F, 0,  2, 0,  },
+			new int[] { 0x9B4F, 0,  2, 5,  },
+			new int[] { 0x9B52, 0,  2, 10, },
+			new int[] { 0x9B4F, 0,  3, 0,  },
+			new int[] { 0x9B4F, 0,  3, 5,  },
+			new int[] { 0x9B4F, 0,  3, 10,  },
+			new int[] { 0x9B52, 0,  3, 15,  },
+		};
+
+		private static int[][] _StairsEast =
+		{
+			new int[] { 0x9B4F, -3, 0, 0  },
+			new int[] { 0x9B4F, -3, 0, 5  },
+			new int[] { 0x9B4F, -3, 0, 10 },
+			new int[] { 0x9B51, -3, 0, 15 },
+			new int[] { 0x9B4F, -2, 0, 0  },
+			new int[] { 0x9B4F, -2, 0, 5  },
+			new int[] { 0x9B51, -2, 0, 10 },
+			new int[] { 0x9B4F, -1, 0, 0  },
+			new int[] { 0x9B51, -1, 0, 5  },
+			new int[] { 0x0001, 0, 0, 0  },
+			new int[] { 0x9B51, 0, 0, 0  },
+		};
+		#endregion
 
 		private static void TraceValidity(NetState state, int itemID)
 		{
@@ -1432,11 +1563,10 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client chose to add a component
-				 *  - Read data detailing component graphic and location
-				 *  - Add component
-				 *  - Update revision
-				 */
-
+                *  - Read data detailing component graphic and location
+                *  - Add component
+                *  - Update revision
+                */
 				// Read data detailing component graphic and location
 				int itemID = pvSrc.ReadInt32();
 				int x = pvSrc.ReadInt32();
@@ -1474,14 +1604,13 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client closed his house design window
-				 *  - Remove design context
-				 *  - Notify the client that customization has ended
-				 *  - Refresh client with current visible design state
-				 *  - If a signpost is needed, add it
-				 *  - Eject all from house
-				 *  - Restore relocated entities
-				 */
-
+                *  - Remove design context
+                *  - Notify the client that customization has ended
+                *  - Refresh client with current visible design state
+                *  - If a signpost is needed, add it
+                *  - Eject all from house
+                *  - Restore relocated entities
+                */
 				// Remove design context
 				DesignContext.Remove(from);
 
@@ -1490,7 +1619,7 @@ namespace Server.Multis
 
 				// Refresh client with current visible design state
 				context.Foundation.SendInfoTo(state);
-				context.Foundation.CurrentState.SendDetailedInfoTo(state);
+				context.Foundation.CurrentState.SendDetailedInfoTo(state, false);
 
 				// If a signpost is needed, add it
 				context.Foundation.CheckSignpost();
@@ -1517,14 +1646,13 @@ namespace Server.Multis
 			if (context != null)
 			{
 				/* Client is moving to a new floor level
-				 *  - Read data detailing the target level
-				 *  - Validate target level
-				 *  - Update design context with new level
-				 *  - Teleport mobile to new level
-				 *  - Update client
-				 *
-				 */
-
+                *  - Read data detailing the target level
+                *  - Validate target level
+                *  - Update design context with new level
+                *  - Teleport mobile to new level
+                *  - Update client
+                *
+                */
 				// Read data detailing the target level
 				int newLevel = pvSrc.ReadInt32();
 
@@ -1545,21 +1673,41 @@ namespace Server.Multis
 
 		public static void QueryDesignDetails(NetState state, PacketReader pvSrc)
 		{
+			var multi = World.FindItem(pvSrc.ReadInt32()) as BaseMulti;
+
+			if (multi != null)
+			{
+				EventSink.InvokeMultiDesignQuery(new MultiDesignQueryEventArgs(state, multi));
+			}
+		}
+
+		public static void MultiDesignQueryEventArgs(MultiDesignQueryEventArgs e)
+		{
+			QueryDesignDetails(e.NetState, e.Multi);
+		}
+
+		public static void QueryDesignDetails(NetState state, BaseMulti multi)
+		{
 			Mobile from = state.Mobile;
 			DesignContext context = DesignContext.Find(from);
 
-			HouseFoundation foundation = World.FindItem(pvSrc.ReadInt32()) as HouseFoundation;
+			HouseFoundation foundation = multi as HouseFoundation;
 
-			if (foundation != null && from.Map == foundation.Map && from.InRange(foundation.GetWorldLocation(), 24) && from.CanSee(foundation))
+			if (foundation != null && from.Map == foundation.Map)
 			{
-				DesignState stateToSend;
+				var range = foundation.GetUpdateRange(from);
 
-				if (context != null && context.Foundation == foundation)
-					stateToSend = foundation.DesignState;
-				else
-					stateToSend = foundation.CurrentState;
+				if (Utility.InRange(from.Location, foundation.GetWorldLocation(), range) && from.CanSee(foundation))
+				{
+					DesignState stateToSend;
 
-				stateToSend.SendDetailedInfoTo(state);
+					if (context != null && context.Foundation == foundation)
+						stateToSend = foundation.DesignState;
+					else
+						stateToSend = foundation.CurrentState;
+
+					stateToSend.SendDetailedInfoTo(state);
+				}
 			}
 		}
 
@@ -1636,17 +1784,23 @@ namespace Server.Multis
 				design.OnRevised();
 			}
 		}
-
-
 	}
 
-	public class DesignState
+	public interface IDesignState
+	{
+		Packet PacketCache { get; set; }
+		int Revision { get; set; }
+		MultiComponentList Components { get; set; }
+		MultiTileEntry[] Fixtures { get; set; }
+	}
+
+	public class DesignState : IDesignState
 	{
 		private Packet m_PacketCache;
 
 		public Packet PacketCache
 		{
-			get => m_PacketCache;
+			get { return m_PacketCache; }
 			set
 			{
 				if (m_PacketCache == value)
@@ -1659,16 +1813,16 @@ namespace Server.Multis
 			}
 		}
 
-		public HouseFoundation Foundation { get; }
-		public MultiComponentList Components { get; }
-		public MultiTileEntry[] Fixtures { get; private set; }
+		public HouseFoundation Foundation { get; set; }
+		public MultiComponentList Components { get; set; }
+		public MultiTileEntry[] Fixtures { get; set; }
 		public int Revision { get; set; }
 
 		public DesignState(HouseFoundation foundation, MultiComponentList components)
 		{
 			Foundation = foundation;
 			Components = components;
-			Fixtures = Array.Empty<MultiTileEntry>();
+			Fixtures = new MultiTileEntry[0];
 		}
 
 		public DesignState(DesignState toCopy)
@@ -1690,6 +1844,7 @@ namespace Server.Multis
 
 			switch (version)
 			{
+				case 1:
 				case 0:
 					{
 						Components = new MultiComponentList(reader);
@@ -1704,7 +1859,11 @@ namespace Server.Multis
 							Fixtures[i].m_OffsetX = reader.ReadShort();
 							Fixtures[i].m_OffsetY = reader.ReadShort();
 							Fixtures[i].m_OffsetZ = reader.ReadShort();
-							Fixtures[i].m_Flags = reader.ReadInt();
+
+							if (version > 0)
+								Fixtures[i].m_Flags = (TileFlag)reader.ReadULong();
+							else
+								Fixtures[i].m_Flags = (TileFlag)reader.ReadUInt();
 						}
 
 						Revision = reader.ReadInt();
@@ -1716,7 +1875,7 @@ namespace Server.Multis
 
 		public void Serialize(GenericWriter writer)
 		{
-			writer.Write(0); // version
+			writer.Write(1); // version
 
 			Components.Serialize(writer);
 
@@ -1730,7 +1889,8 @@ namespace Server.Multis
 				writer.Write(ent.m_OffsetX);
 				writer.Write(ent.m_OffsetY);
 				writer.Write(ent.m_OffsetZ);
-				writer.Write(ent.m_Flags);
+
+				writer.Write((ulong)ent.m_Flags);
 			}
 
 			writer.Write(Revision);
@@ -1755,14 +1915,14 @@ namespace Server.Multis
 				state.Send(new DesignStateGeneral(Foundation, this));
 		}
 
-		public void SendDetailedInfoTo(NetState state)
+		public void SendDetailedInfoTo(NetState state, bool response = true)
 		{
 			if (state != null)
 			{
 				lock (this)
 				{
 					if (m_PacketCache == null)
-						DesignStateDetailed.SendDetails(state, Foundation, this);
+						DesignStateDetailed.SendDetails(state, Foundation, this, response);
 					else
 						state.Send(m_PacketCache);
 				}
@@ -1780,7 +1940,7 @@ namespace Server.Multis
 				Components.Add(mte.m_ItemID, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
 			}
 
-			Fixtures = Array.Empty<MultiTileEntry>();
+			Fixtures = new MultiTileEntry[0];
 		}
 
 		public void MeltFixtures()
@@ -1937,8 +2097,10 @@ namespace Server.Multis
 
 	public class DesignContext
 	{
-		public HouseFoundation Foundation { get; }
+		public HouseFoundation Foundation { get; set; }
+
 		public int Level { get; set; }
+
 		public int MaxLevels => Foundation.MaxLevels;
 
 		public DesignContext(HouseFoundation foundation)
@@ -1947,14 +2109,15 @@ namespace Server.Multis
 			Level = 1;
 		}
 
-		public static Dictionary<Mobile, DesignContext> Table { get; } = new Dictionary<Mobile, DesignContext>();
+		private static readonly Dictionary<Mobile, DesignContext> Table = new Dictionary<Mobile, DesignContext>();
 
 		public static DesignContext Find(Mobile from)
 		{
 			if (from == null)
 				return null;
 
-			Table.TryGetValue(from, out DesignContext d);
+			DesignContext d;
+			Table.TryGetValue(from, out d);
 
 			return d;
 		}
@@ -1992,14 +2155,7 @@ namespace Server.Multis
 			if (state == null)
 				return;
 
-			List<Item> fixtures = foundation.Fixtures;
-
-			for (int i = 0; fixtures != null && i < fixtures.Count; ++i)
-			{
-				Item item = fixtures[i];
-
-				state.Send(item.RemovePacket);
-			}
+			foundation.Fixtures.ForEach(x => state.Send(x.RemovePacket));
 
 			if (foundation.Signpost != null)
 				state.Send(foundation.Signpost.RemovePacket);
@@ -2033,14 +2189,7 @@ namespace Server.Multis
 			if (state == null)
 				return;
 
-			List<Item> fixtures = context.Foundation.Fixtures;
-
-			for (int i = 0; fixtures != null && i < fixtures.Count; ++i)
-			{
-				Item item = fixtures[i];
-
-				item.SendInfoTo(state);
-			}
+			context.Foundation.Fixtures.ForEach(x => x.SendInfoTo(state));
 
 			if (context.Foundation.Signpost != null)
 				context.Foundation.Signpost.SendInfoTo(state);
@@ -2089,13 +2238,13 @@ namespace Server.Multis
 
 	public sealed class DesignStateGeneral : Packet
 	{
-		public DesignStateGeneral(HouseFoundation house, DesignState state)
+		public DesignStateGeneral(BaseMulti multi, IDesignState state)
 			: base(0xBF)
 		{
 			EnsureCapacity(13);
 
 			m_Stream.Write((short)0x1D);
-			m_Stream.Write(house.Serial);
+			m_Stream.Write(multi.Serial);
 			m_Stream.Write(state.Revision);
 		}
 	}
@@ -2104,15 +2253,15 @@ namespace Server.Multis
 	{
 		public const int MaxItemsPerStairBuffer = 750;
 
-		private static readonly BufferPool m_PlaneBufferPool = new BufferPool("Housing Plane Buffers", 9, 0x400);
-		private static readonly BufferPool m_StairBufferPool = new BufferPool("Housing Stair Buffers", 6, MaxItemsPerStairBuffer * 5);
-		private static readonly BufferPool m_DeflatedBufferPool = new BufferPool("Housing Deflated Buffers", 1, 0x2000);
+		private static BufferPool m_PlaneBufferPool = new BufferPool("Housing Plane Buffers", 9, 0x2000);
+		private static BufferPool m_StairBufferPool = new BufferPool("Housing Stair Buffers", 6, MaxItemsPerStairBuffer * 5);
+		private static BufferPool m_DeflatedBufferPool = new BufferPool("Housing Deflated Buffers", 1, 0x2000);
 
-		private readonly byte[][] m_PlaneBuffers;
-		private readonly byte[][] m_StairBuffers;
+		private byte[][] m_PlaneBuffers;
+		private byte[][] m_StairBuffers;
 
-		private readonly bool[] m_PlaneUsed = new bool[9];
-		private readonly byte[] m_PrimBuffer = new byte[4];
+		private bool[] m_PlaneUsed = new bool[9];
+		private byte[] m_PrimBuffer = new byte[4];
 
 		public void Write(int value)
 		{
@@ -2148,16 +2297,16 @@ namespace Server.Multis
 				buffer[i] = 0;
 		}
 
-		public DesignStateDetailed(int serial, int revision, int xMin, int yMin, int xMax, int yMax, MultiTileEntry[] tiles)
+		public DesignStateDetailed(int serial, int revision, bool response, int xMin, int yMin, int xMax, int yMax, MultiTileEntry[] tiles)
 			: base(0xD8)
 		{
 			EnsureCapacity(17 + (tiles.Length * 5));
 
 			Write((byte)0x03); // Compression Type
-			Write((byte)0x00); // Unknown
-			Write(serial);
-			Write(revision);
-			Write((short)tiles.Length);
+			Write((byte)(response ? 0x01 : 0x00)); // Enable Response (0x00 or 0x01)
+			Write(serial); // Serial
+			Write(revision); // Revision Number
+			Write((short)tiles.Length); // Tile Length
 			Write((short)0); // Buffer length : reserved
 			Write((byte)0); // Plane count : reserved
 
@@ -2363,34 +2512,36 @@ namespace Server.Multis
 
 		private class SendQueueEntry
 		{
-			public NetState m_NetState;
-			public int m_Serial, m_Revision;
-			public int m_xMin, m_yMin, m_xMax, m_yMax;
-			public DesignState m_Root;
-			public MultiTileEntry[] m_Tiles;
+			public NetState State;
+			public int Serial, Revision;
+			public int xMin, yMin, xMax, yMax;
+			public IDesignState Root;
+			public MultiTileEntry[] Tiles;
+			public bool EnableResponse;
 
-			public SendQueueEntry(NetState ns, HouseFoundation foundation, DesignState state)
+			public SendQueueEntry(NetState ns, BaseMulti multi, IDesignState state, bool response)
 			{
-				m_NetState = ns;
-				m_Serial = foundation.Serial;
-				m_Revision = state.Revision;
-				m_Root = state;
+				State = ns;
+				Serial = multi.Serial;
+				Revision = state.Revision;
+				Root = state;
+				EnableResponse = response;
 
 				MultiComponentList mcl = state.Components;
 
-				m_xMin = mcl.Min.X;
-				m_yMin = mcl.Min.Y;
-				m_xMax = mcl.Max.X;
-				m_yMax = mcl.Max.Y;
+				xMin = mcl.Min.X;
+				yMin = mcl.Min.Y;
+				xMax = mcl.Max.X;
+				yMax = mcl.Max.Y;
 
-				m_Tiles = mcl.List;
+				Tiles = mcl.List;
 			}
 		}
 
-		private static readonly Queue<SendQueueEntry> m_SendQueue;
-		private static readonly object m_SendQueueSyncRoot;
-		private static readonly AutoResetEvent m_Sync;
-		private static readonly Thread m_Thread;
+		private static Queue<SendQueueEntry> m_SendQueue;
+		private static object m_SendQueueSyncRoot;
+		private static AutoResetEvent m_Sync;
+		private static Thread m_Thread;
 
 		static DesignStateDetailed()
 		{
@@ -2398,10 +2549,8 @@ namespace Server.Multis
 			m_SendQueueSyncRoot = ((ICollection)m_SendQueue).SyncRoot;
 			m_Sync = new AutoResetEvent(false);
 
-			m_Thread = new Thread(new ThreadStart(CompressionThread))
-			{
-				Name = "Housing Compression Thread"
-			};
+			m_Thread = new Thread(new ThreadStart(CompressionThread));
+			m_Thread.Name = "Housing Compression Thread";
 			m_Thread.Start();
 		}
 
@@ -2427,22 +2576,22 @@ namespace Server.Multis
 					{
 						Packet p = null;
 
-						lock (sqe.m_Root)
-							p = sqe.m_Root.PacketCache;
+						lock (sqe.Root)
+							p = sqe.Root.PacketCache;
 
 						if (p == null)
 						{
-							p = new DesignStateDetailed(sqe.m_Serial, sqe.m_Revision, sqe.m_xMin, sqe.m_yMin, sqe.m_xMax, sqe.m_yMax, sqe.m_Tiles);
+							p = new DesignStateDetailed(sqe.Serial, sqe.Revision, sqe.EnableResponse, sqe.xMin, sqe.yMin, sqe.xMax, sqe.yMax, sqe.Tiles);
 							p.SetStatic();
 
-							lock (sqe.m_Root)
+							lock (sqe.Root)
 							{
-								if (sqe.m_Revision == sqe.m_Root.Revision)
-									sqe.m_Root.PacketCache = p;
+								if (sqe.Revision == sqe.Root.Revision)
+									sqe.Root.PacketCache = p;
 							}
 						}
 
-						sqe.m_NetState.Send(p);
+						sqe.State.Send(p);
 					}
 					catch (Exception e)
 					{
@@ -2462,16 +2611,14 @@ namespace Server.Multis
 						lock (m_SendQueueSyncRoot)
 							count = m_SendQueue.Count;
 					}
-
-					//sqe.m_NetState.Send( new DesignStateDetailed( sqe.m_Serial, sqe.m_Revision, sqe.m_xMin, sqe.m_yMin, sqe.m_xMax, sqe.m_yMax, sqe.m_Tiles ) );
 				}
 			}
 		}
 
-		public static void SendDetails(NetState ns, HouseFoundation house, DesignState state)
+		public static void SendDetails(NetState ns, BaseMulti multi, IDesignState state, bool response)
 		{
 			lock (m_SendQueueSyncRoot)
-				m_SendQueue.Enqueue(new SendQueueEntry(ns, house, state));
+				m_SendQueue.Enqueue(new SendQueueEntry(ns, multi, state, response));
 			m_Sync.Set();
 		}
 	}

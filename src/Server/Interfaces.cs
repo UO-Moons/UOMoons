@@ -93,4 +93,9 @@ namespace Server
 
 		ISpawner Spawner { get; set; }
 	}
+
+	public interface IArtifact
+	{
+		int ArtifactRarity { get; }
+	}
 }

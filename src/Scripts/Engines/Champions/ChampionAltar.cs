@@ -2,7 +2,7 @@ using Server.Items;
 
 namespace Server.Engines.Champions
 {
-	public class ChampionAltar : PentagramAddon
+	public sealed class ChampionAltar : PentagramAddon
 	{
 		private ChampionSpawn m_Spawn;
 		public ChampionAltar(ChampionSpawn spawn)
@@ -19,9 +19,7 @@ namespace Server.Engines.Champions
 		public override void OnAfterDelete()
 		{
 			base.OnAfterDelete();
-
-			if (m_Spawn != null)
-				m_Spawn.Delete();
+			m_Spawn?.Delete();
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -34,7 +32,7 @@ namespace Server.Engines.Champions
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			var version = reader.ReadInt();
 
 			switch (version)
 			{

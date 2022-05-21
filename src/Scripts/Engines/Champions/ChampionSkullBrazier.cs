@@ -4,7 +4,7 @@ using Server.Targeting;
 
 namespace Server.Engines.Champions
 {
-	public class ChampionSkullBrazier : AddonComponent
+	public sealed class ChampionSkullBrazier : AddonComponent
 	{
 		private ChampionSkullPlatform m_Platform;
 		private ChampionSkullType m_Type;
@@ -43,15 +43,13 @@ namespace Server.Engines.Champions
 			set
 			{
 				m_Skull = value;
-				if (m_Platform != null)
-					m_Platform.Validate();
+				m_Platform?.Validate();
 			}
 		}
 		public override int LabelNumber => 1049489 + (int)m_Type;
 		public override void OnDoubleClick(Mobile from)
 		{
-			if (m_Platform != null)
-				m_Platform.Validate();
+			m_Platform?.Validate();
 
 			BeginSacrifice(from);
 		}
@@ -61,7 +59,7 @@ namespace Server.Engines.Champions
 			if (Deleted)
 				return;
 
-			if (m_Skull != null && m_Skull.Deleted)
+			if (m_Skull is {Deleted: true})
 				Skull = null;
 
 			if (from.Map != Map || !from.InRange(GetWorldLocation(), 3))
@@ -88,7 +86,7 @@ namespace Server.Engines.Champions
 			if (Deleted)
 				return;
 
-			if (m_Skull != null && m_Skull.Deleted)
+			if (m_Skull is {Deleted: true})
 				Skull = null;
 
 			if (from.Map != Map || !from.InRange(GetWorldLocation(), 3))

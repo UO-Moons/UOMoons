@@ -4,7 +4,6 @@ using Server.Engines.Champions;
 using Server.Engines.ConPVP;
 using Server.Engines.Craft;
 using Server.Engines.Help;
-using Server.Engines.MLQuests;
 using Server.Engines.PartySystem;
 using Server.Engines.Quests;
 using Server.Factions;
@@ -41,13 +40,16 @@ namespace Server.Mobiles
 		KarmaLocked = 0x00000020,
 		AutoRenewInsurance = 0x00000040,
 		UseOwnFilter = 0x00000080,
-		Unused = 0x00000100,
+		Uused = 0x00000100,
 		PagingSquelched = 0x00000200,
 		Young = 0x00000400,
 		AcceptGuildInvites = 0x00000800,
 		DisplayChampionTitle = 0x00001000,
 		HasStatReward = 0x00002000,
-		RefuseTrades = 0x00004000
+		RefuseTrades = 0x00004000,
+		Bedlam = 0x00006000,
+		LibraryFriend = 0x00008000,
+		Spellweaving = 0x00010000
 	}
 
 	public enum NpcGuild
@@ -411,6 +413,17 @@ namespace Server.Mobiles
 			}
 		}
 
+		#endregion
+
+		#region Mondain's Legacy
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Bedlam { get => GetFlag(PlayerFlag.Bedlam); set => SetFlag(PlayerFlag.Bedlam, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool LibraryFriend { get => GetFlag(PlayerFlag.LibraryFriend); set => SetFlag(PlayerFlag.LibraryFriend, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Spellweaving { get => GetFlag(PlayerFlag.Spellweaving); set => SetFlag(PlayerFlag.Spellweaving, value); }
 		#endregion
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -1031,6 +1044,10 @@ namespace Server.Mobiles
 				if (pm.Quest != null)
 					pm.Quest.StartTimer();
 
+				#region Mondain's Legacy
+				QuestHelper.StartTimer(pm);
+				#endregion
+
 				pm.BedrollLogout = false;
 				pm.LastOnline = DateTime.UtcNow;
 			}
@@ -1081,6 +1098,10 @@ namespace Server.Mobiles
 
 				if (pm.Quest != null)
 					pm.Quest.StopTimer();
+
+				#region Mondain's Legacy
+				QuestHelper.StopTimer(pm);
+				#endregion
 
 				pm.SpeechLog = null;
 				pm.LastOnline = DateTime.UtcNow;
@@ -1472,8 +1493,20 @@ namespace Server.Mobiles
 						}
 					}
 
-					if (MLQuestSystem.Enabled)
-						list.Add(new CallbackEntry(6169, new ContextCallback(ToggleQuestItem))); // Toggle Quest Item
+					if (Core.ML)
+					{
+						QuestHelper.GetContextMenuEntries(list);
+
+						if (!Core.SA && RewardTitles.Count > 0)
+						{
+							list.Add(new CallbackEntry(6229, ShowChangeTitle));
+						}
+
+						if (Quest != null)
+						{
+							Quest.GetContextMenuEntries(list);
+						}
+					}
 				}
 
 				BaseHouse house = BaseHouse.FindHouseAt(this);
@@ -1991,60 +2024,6 @@ namespace Server.Mobiles
 
 		#endregion
 
-		#region Toggle Quest Item
-
-		private void ToggleQuestItem()
-		{
-			if (!CheckAlive())
-				return;
-
-			ToggleQuestItemTarget();
-		}
-
-		private void ToggleQuestItemTarget()
-		{
-			Server.Engines.MLQuests.Gumps.BaseQuestGump.CloseOtherGumps(this);
-			CloseGump(typeof(Server.Engines.MLQuests.Gumps.QuestLogDetailedGump));
-			CloseGump(typeof(Server.Engines.MLQuests.Gumps.QuestLogGump));
-			CloseGump(typeof(Server.Engines.MLQuests.Gumps.QuestOfferGump));
-			//CloseGump( typeof( UnknownGump802 ) );
-			//CloseGump( typeof( UnknownGump804 ) );
-
-			BeginTarget(-1, false, TargetFlags.None, new TargetCallback(ToggleQuestItem_Callback));
-			SendLocalizedMessage(1072352); // Target the item you wish to toggle Quest Item status on <ESC> to cancel
-		}
-
-		private void ToggleQuestItem_Callback(Mobile from, object obj)
-		{
-			if (!CheckAlive())
-				return;
-
-			if (obj is not Item item)
-				return;
-
-			if (from.Backpack == null || item.Parent != from.Backpack)
-			{
-				SendLocalizedMessage(1074769); // An item must be in your backpack (and not in a container within) to be toggled as a quest item.
-			}
-			else if (item.QuestItem)
-			{
-				item.QuestItem = false;
-				SendLocalizedMessage(1072354); // You remove Quest Item status from the item
-			}
-			else if (MLQuestSystem.MarkQuestItem(this, item))
-			{
-				SendLocalizedMessage(1072353); // You set the item to Quest Item status
-			}
-			else
-			{
-				SendLocalizedMessage(1072355, 0x23); // That item does not match any of your quest criteria
-			}
-
-			ToggleQuestItemTarget();
-		}
-
-		#endregion
-
 		private void ToggleTrades()
 		{
 			RefuseTrades = !RefuseTrades;
@@ -2191,6 +2170,19 @@ namespace Server.Mobiles
 			}
 
 			return true;
+		}
+
+		public override bool OnDragLift(Item item)
+		{
+			if (item is IPromotionalToken && ((IPromotionalToken)item).GumpType != null)
+			{
+				Type t = ((IPromotionalToken)item).GumpType;
+
+				if (HasGump(t))
+					CloseGump(t);
+			}
+
+			return base.OnDragLift(item);
 		}
 
 		public override bool CheckTrade(Mobile to, Item item, SecureTradeContainer cont, bool message, bool checkItems, int plusItems, int plusWeight)
@@ -2626,7 +2618,9 @@ namespace Server.Mobiles
 			PolymorphSpell.StopTimer(this);
 			IncognitoSpell.StopTimer(this);
 			DisguiseTimers.RemoveTimer(this);
-
+			//WeakenSpell.RemoveEffects(this);
+			//ClumsySpell.RemoveEffects(this);
+			//FeeblemindSpell.RemoveEffects(this);
 			EndAction(typeof(PolymorphSpell));
 			EndAction(typeof(IncognitoSpell));
 
@@ -2711,9 +2705,7 @@ namespace Server.Mobiles
 			if (DuelContext == null || !DuelContext.Registered || !DuelContext.Started || m_DuelPlayer == null || m_DuelPlayer.Eliminated)
 				Faction.HandleDeath(this, killer);
 
-			Server.Guilds.Guild.HandleDeath(this, killer);
-
-			MLQuestSystem.HandleDeath(this);
+			Guilds.Guild.HandleDeath(this, killer);
 
 			#region Dueling
 			if (DuelContext != null)
@@ -2857,6 +2849,13 @@ namespace Server.Mobiles
 			PermaFlags = new List<Mobile>();
 			m_AntiMacroTable = new Hashtable();
 			RecentlyReported = new List<Mobile>();
+
+			#region Mondain's Legacy Quests
+			DoneQuests = new List<QuestRestartInfo>();
+			Collections = new Dictionary<Collection, int>();
+			RewardTitles = new List<object>();
+			PeacedUntil = DateTime.UtcNow;
+			#endregion
 
 			BOBFilter = new Engines.BulkOrders.BOBFilter();
 
@@ -3113,6 +3112,21 @@ namespace Server.Mobiles
 			{
 				case 0:
 					{
+						Collections = new Dictionary<Collection, int>();
+						RewardTitles = new List<object>();
+
+						for (int i = reader.ReadInt(); i > 0; i--)
+						{
+							Collections.Add((Collection)reader.ReadInt(), reader.ReadInt());
+						}
+
+						for (int i = reader.ReadInt(); i > 0; i--)
+						{
+							RewardTitles.Add(QuestReader.Object(reader));
+						}
+
+						SelectedTitle = reader.ReadInt();
+
 						if (reader.ReadBool())
 						{
 							m_StuckMenuUses = new DateTime[reader.ReadInt()];
@@ -3277,6 +3291,23 @@ namespace Server.Mobiles
 				}
 			}
 
+			#region Mondain's Legacy
+			if (DoneQuests == null)
+			{
+				DoneQuests = new List<QuestRestartInfo>();
+			}
+
+			if (Collections == null)
+			{
+				Collections = new Dictionary<Collection, int>();
+			}
+
+			if (RewardTitles == null)
+			{
+				RewardTitles = new List<object>();
+			}
+			#endregion
+
 			CheckAtrophies(this);
 
 			if (Hidden) //Hiding is the only buff where it has an effect that's serialized.
@@ -3306,6 +3337,40 @@ namespace Server.Mobiles
 			base.Serialize(writer);
 
 			writer.Write(0); // version
+
+			#region Mondain's Legacy
+
+			if (Collections == null)
+			{
+				writer.Write(0);
+			}
+			else
+			{
+				writer.Write(Collections.Count);
+
+				foreach (var pair in Collections)
+				{
+					writer.Write((int)pair.Key);
+					writer.Write(pair.Value);
+				}
+			}
+
+			if (RewardTitles == null)
+			{
+				writer.Write(0);
+			}
+			else
+			{
+				writer.Write(RewardTitles.Count);
+
+				for (int i = 0; i < RewardTitles.Count; i++)
+				{
+					QuestWriter.Object(writer, RewardTitles[i]);
+				}
+			}
+
+			writer.Write(SelectedTitle);
+			#endregion
 
 			if (m_StuckMenuUses != null)
 			{
@@ -3477,6 +3542,9 @@ namespace Server.Mobiles
 
 		public override bool CanSee(Mobile m)
 		{
+			if (m is IConditionalVisibility && !((IConditionalVisibility)m).CanBeSeenBy(this))
+				return false;
+
 			if (m is CharacterStatue statue)
 				statue.OnRequestedAnimation(this);
 
@@ -3519,8 +3587,22 @@ namespace Server.Mobiles
 
 		public override bool CanSee(Item item)
 		{
-			if (DesignContext != null && DesignContext.Foundation.IsHiddenToCustomizer(item))
+			if (item is IConditionalVisibility && !((IConditionalVisibility)item).CanBeSeenBy(this))
 				return false;
+
+			if (DesignContext != null && DesignContext.Foundation.IsHiddenToCustomizer(this, item))
+			{
+				return false;
+			}
+			else if (AccessLevel == AccessLevel.Player)
+			{
+				Region r = item.GetRegion();
+
+				if (r is BaseRegion && !((BaseRegion)r).CanSee(this, item))
+				{
+					return false;
+				}
+			}
 
 			return base.CanSee(item);
 		}
@@ -3534,8 +3616,6 @@ namespace Server.Mobiles
 			if (faction != null)
 				faction.RemoveMember(this);
 
-			MLQuestSystem.HandleDeletion(this);
-
 			BaseHouse.HandleDeletion(this);
 
 			DisguiseTimers.RemoveTimer(this);
@@ -3546,6 +3626,30 @@ namespace Server.Mobiles
 		public override void GetProperties(ObjectPropertyList list)
 		{
 			base.GetProperties(list);
+
+			#region Mondain's Legacy Titles
+			if (Core.ML && RewardTitles != null && SelectedTitle > -1)
+			{
+				if (SelectedTitle < RewardTitles.Count)
+				{
+					if (RewardTitles[SelectedTitle] is int)
+					{
+						string cust = null;
+
+						//if ((int)RewardTitles[SelectedTitle] == 1154017 && CityLoyaltySystem.HasCustomTitle(this, out cust))
+						//{
+						//	list.Add(1154017, cust); // ~1_TITLE~ of ~2_CITY~
+						//}
+						//else
+							list.Add((int)RewardTitles[SelectedTitle]);
+					}
+					else if (RewardTitles[SelectedTitle] is string)
+					{
+						list.Add(1070722, (string)RewardTitles[SelectedTitle]);
+					}
+				}
+			}
+			#endregion
 
 			if (Map == Faction.Facet)
 			{
@@ -3732,6 +3836,142 @@ namespace Server.Mobiles
 		public SolenFriendship SolenFriendship { get; set; }
 		#endregion
 
+		#region Mondain's Legacy Quests
+		public List<BaseQuest> Quests => MondainQuestData.GetQuests(this);
+
+		public Dictionary<QuestChain, BaseChain> Chains => MondainQuestData.GetChains(this);
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Peaced
+		{
+			get
+			{
+				if (PeacedUntil > DateTime.UtcNow)
+				{
+					return true;
+				}
+
+				return false;
+			}
+		}
+
+		public Dictionary<Collection, int> Collections { get; private set; }
+
+		public List<object> RewardTitles { get; private set; }
+
+		public int SelectedTitle { get; private set; }
+
+		public bool RemoveRewardTitle(object o, bool silent)
+		{
+			if (RewardTitles.Contains(o))
+			{
+				int i = RewardTitles.IndexOf(o);
+
+				if (i == SelectedTitle)
+					SelectRewardTitle(-1, silent);
+				else if (i > SelectedTitle)
+					SelectRewardTitle(SelectedTitle - 1, silent);
+
+				RewardTitles.Remove(o);
+
+				return true;
+			}
+
+			return false;
+		}
+
+		public int GetCollectionPoints(Collection collection)
+		{
+			if (Collections == null)
+			{
+				Collections = new Dictionary<Collection, int>();
+			}
+
+			int points = 0;
+
+			if (Collections.ContainsKey(collection))
+			{
+				Collections.TryGetValue(collection, out points);
+			}
+
+			return points;
+		}
+
+		public void AddCollectionPoints(Collection collection, int points)
+		{
+			if (Collections == null)
+			{
+				Collections = new Dictionary<Collection, int>();
+			}
+
+			if (Collections.ContainsKey(collection))
+			{
+				Collections[collection] += points;
+			}
+			else
+			{
+				Collections.Add(collection, points);
+			}
+		}
+
+		public void SelectRewardTitle(int num, bool silent = false)
+		{
+			if (num == -1)
+			{
+				SelectedTitle = num;
+
+				if (!silent)
+					SendLocalizedMessage(1074010); // You elect to hide your Reward Title.
+			}
+			else if (num < RewardTitles.Count && num >= -1)
+			{
+				if (SelectedTitle != num)
+				{
+					SelectedTitle = num;
+
+					if (RewardTitles[num] is int && !silent)
+					{
+						SendLocalizedMessage(1074008, "#" + (int)RewardTitles[num]);
+						// You change your Reward Title to "~1_TITLE~".
+					}
+					else if (RewardTitles[num] is string && !silent)
+					{
+						SendLocalizedMessage(1074008, (string)RewardTitles[num]); // You change your Reward Title to "~1_TITLE~".
+					}
+				}
+				else if (!silent)
+				{
+					SendLocalizedMessage(1074009); // You decide to leave your title as it is.
+				}
+			}
+
+			InvalidateProperties();
+		}
+
+		public bool AddRewardTitle(object title)
+		{
+			if (RewardTitles == null)
+			{
+				RewardTitles = new List<object>();
+			}
+
+			if (title != null && !RewardTitles.Contains(title))
+			{
+				RewardTitles.Add(title);
+
+				InvalidateProperties();
+				return true;
+			}
+
+			return false;
+		}
+
+		public void ShowChangeTitle()
+		{
+			SendGump(new SelectTitleGump(this, SelectedTitle));
+		}
+		#endregion
+
 		public override void OnKillsChange(int oldValue)
 		{
 			if (Young && Kills > oldValue)
@@ -3769,19 +4009,24 @@ namespace Server.Mobiles
 
 		public override void OnSkillChange(SkillName skill, double oldBase)
 		{
-			if (Young && SkillsTotal >= 4500)
+			if (Young)
 			{
-				if (Account is Account acc)
-					acc.RemoveYoungStatus(1019036); // You have successfully obtained a respectable skill level, and have outgrown your status as a young player!
-			}
+				if (SkillsTotal >= 4500 && (!Core.AOS && Skills[skill].Base >= 80.0))
+				{
+					Account acc = Account as Account;
 
-			if (MLQuestSystem.Enabled)
-				MLQuestSystem.HandleSkillGain(this, skill);
+					if (acc != null)
+					{
+						acc.RemoveYoungStatus(1019036);
+						// You have successfully obtained a respectable skill level, and have outgrown your status as a young player!
+					}
+				}
+			}
 		}
 
 		public override void OnAccessLevelChanged(AccessLevel oldLevel)
 		{
-			if (AccessLevel == AccessLevel.Player)
+			if (IsPlayer())
 				IgnoreMobiles = false;
 			else
 				IgnoreMobiles = true;

@@ -1,6 +1,6 @@
 namespace Server.Engines.TownHouses
 {
-	public class RentalContractCopy : BaseItem
+	public sealed class RentalContractCopy : BaseItem
 	{
 		private readonly RentalContract c_Contract;
 

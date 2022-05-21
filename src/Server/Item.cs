@@ -3,6 +3,7 @@ using Server.Items;
 using Server.Network;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -449,13 +450,19 @@ namespace Server
 		public Map m_Map;
 		public Point3D m_Location, m_WorldLoc;
 		public IEntity m_Parent;
+		public object m_ParentStack;
+		public byte m_GridLocation;
+		public Mobile m_Mobile;
 
-		public BounceInfo(Item item)
+		public BounceInfo(Mobile from, Item item)
 		{
 			m_Map = item.Map;
 			m_Location = item.Location;
 			m_WorldLoc = item.GetWorldLocation();
 			m_Parent = item.Parent;
+			m_ParentStack = null;
+			m_GridLocation = item.GridLocation;
+			m_Mobile = from;
 		}
 
 		private BounceInfo(Map map, Point3D loc, Point3D worldLoc, IEntity parent)
@@ -464,6 +471,7 @@ namespace Server
 			m_Location = loc;
 			m_WorldLoc = worldLoc;
 			m_Parent = parent;
+			m_ParentStack = null;
 		}
 
 		public static BounceInfo Deserialize(GenericReader reader)
@@ -664,6 +672,34 @@ namespace Server
 					VerifyCompactInfo();
 			}
 		}
+		/// <summary>
+		/// The is the gridlocation for Enahanced Client.
+		/// </summary>
+		private byte m_GridLocation = 0;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public byte GridLocation
+		{
+			get => m_GridLocation;
+			set
+			{
+				if (Parent is Container)
+				{
+					if (value < 0 || value > 0x7C || !((Container)Parent).IsFreePosition(value))
+					{
+						m_GridLocation = ((Container)Parent).GetNewPosition(0);
+					}
+					else
+					{
+						m_GridLocation = value;
+					}
+				}
+				else
+				{
+					m_GridLocation = value;
+				}
+			}
+		}
 
 		[Flags]
 		private enum ImplFlag : byte
@@ -810,6 +846,44 @@ namespace Server
 			return info.m_Items;
 		}
 
+		#region Mondain's Legacy
+		public static Bitmap GetBitmap(int itemID)
+		{
+			try
+			{
+				return ArtData.GetStatic(itemID);
+			}
+			catch
+			{
+				if (Core.Debug)
+				{
+					Utility.PushColor(ConsoleColor.Red);
+					Console.WriteLine("Art Data: Unable to read client files.");
+					Utility.PopColor();
+				}
+			}
+
+			return null;
+		}
+
+		public static void Measure(Bitmap bmp, out int xMin, out int yMin, out int xMax, out int yMax)
+		{
+			ArtData.Measure(bmp, out xMin, out yMin, out xMax, out yMax);
+		}
+
+		public static Rectangle MeasureBound(Bitmap bmp)
+		{
+			Measure(bmp, out int xMin, out int yMin, out int xMax, out int yMax);
+			return new Rectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+		}
+
+		public static Size MeasureSize(Bitmap bmp)
+		{
+			Measure(bmp, out int xMin, out int yMin, out int xMax, out int yMax);
+			return new Size(xMax - xMin, yMax - yMin);
+		}
+		#endregion
+
 		private void SetFlag(ImplFlag flag, bool value)
 		{
 			if (value)
@@ -828,16 +902,19 @@ namespace Server
 			CompactInfo info = LookupCompactInfo();
 
 			if (info != null)
+			{
 				return info.m_Bounce;
+			}
 
 			return null;
 		}
 
-		public void RecordBounce()
+		public void RecordBounce(Mobile from, Item parentstack = null)
 		{
 			CompactInfo info = AcquireCompactInfo();
 
-			info.m_Bounce = new BounceInfo(this);
+			info.m_Bounce = new BounceInfo(from, this);
+			info.m_Bounce.m_ParentStack = parentstack;
 		}
 
 		public void ClearBounce()
@@ -852,15 +929,23 @@ namespace Server
 				{
 					info.m_Bounce = null;
 
-					if (bounce.m_Parent is Item parentItem)
+					if (bounce.m_Parent is Item)
 					{
-						if (!parentItem.Deleted)
-							parentItem.OnItemBounceCleared(this);
+						Item parent = (Item)bounce.m_Parent;
+
+						if (!parent.Deleted)
+						{
+							parent.OnItemBounceCleared(this);
+						}
 					}
-					else if (bounce.m_Parent is Mobile parentMob)
+					else if (bounce.m_Parent is Mobile)
 					{
-						if (!parentMob.Deleted)
-							parentMob.OnItemBounceCleared(this);
+						Mobile parent = (Mobile)bounce.m_Parent;
+
+						if (!parent.Deleted)
+						{
+							parent.OnItemBounceCleared(this);
+						}
 					}
 
 					VerifyCompactInfo();
@@ -1524,6 +1609,12 @@ namespace Server
 				}
 			}
 		}
+
+		/// <summary>
+		///		If true the item should be considered an artifact
+		/// </summary>
+		[CommandProperty(AccessLevel.GameMaster)]
+		public virtual bool IsArtifact => this is IArtifact && ((IArtifact)this).ArtifactRarity > 0;
 
 		public static TimeSpan DefaultDecayTime { get; set; } = TimeSpan.FromMinutes(Settings.Configuration.Get<int>("Items", "DefaultDecayTime", 60));
 
@@ -3230,6 +3321,39 @@ namespace Server
 
 				eable.Free();
 			}
+		}
+
+		public Region GetRegion()
+		{
+			return Region.Find(GetWorldLocation(), Map);
+		}
+
+		public double GetDistanceToSqrt(IPoint3D p)
+		{
+			Point3D loc = GetWorldLocation();
+
+			int xDelta = loc.X - p.X;
+			int yDelta = loc.Y - p.Y;
+
+			return Math.Sqrt((xDelta * xDelta) + (yDelta * yDelta));
+		}
+
+		public bool InRange(IPoint3D p, int range)
+		{
+			Point3D loc = GetWorldLocation();
+
+			return (p.X >= (loc.X - range))
+				&& (p.X <= (loc.X + range))
+				&& (p.Y >= (loc.Y - range))
+				&& (p.Y <= (loc.Y + range));
+		}
+
+		public bool InLOS(Point3D target)
+		{
+			if (Deleted || Map == null || Parent != null)
+				return false;
+
+			return Map.LineOfSight(this, target);
 		}
 
 		public virtual void OnAfterDelete()

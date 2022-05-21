@@ -1173,7 +1173,7 @@ namespace Server.Mobiles
 
 				seller.PlaySound(0x0037);//Gold dropping sound
 
-				if (BODSystem.Enabled && SupportsBulkOrders(seller))
+				if (BodSystem.Enabled && SupportsBulkOrders(seller))
 				{
 					Item bulkOrder = CreateBulkOrder(seller, false);
 
@@ -1297,7 +1297,7 @@ namespace Server.Mobiles
 		{
 			if (from.Alive && IsActiveVendor)
 			{
-				if (BODSystem.Enabled && SupportsBulkOrders(from))
+				if (BodSystem.Enabled && SupportsBulkOrders(from))
 					list.Add(new BulkOrderInfoEntry(from, this));
 
 				if (IsActiveSeller)

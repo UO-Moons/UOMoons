@@ -1,113 +1,167 @@
-using Server.Mobiles;
 using System;
 using System.Collections.Generic;
+using Server.Mobiles;
 
 namespace Server.Items
 {
-	public enum TalismanSlayerName
-	{
-		None,
-		Bear,
-		Vermin,
-		Bat,
-		Mage,
-		Beetle,
-		Bird,
-		Ice,
-		Flame,
-		Bovine
-	}
+    public enum TalismanSlayerName
+    {
+        None,
+        Bear,
+        Vermin,
+        Bat,
+        Mage,
+        Beetle,
+        Bird,
+        Ice,
+        Flame,
+        Bovine,
+        Wolf,
+        Undead,
+        Goblin,
+        Repond,
+        Elemental,
+        Demon,
+        Arachnid,
+        Reptile,
+        Fey,
+    }
 
-	public static class TalismanSlayer
-	{
-		private static readonly Dictionary<TalismanSlayerName, Type[]> m_Table = new Dictionary<TalismanSlayerName, Type[]>();
+    public static class TalismanSlayer
+    {
+        private static readonly Dictionary<TalismanSlayerName, Type[]> m_Table = new Dictionary<TalismanSlayerName, Type[]>();
+        public static void Initialize()
+        {
+            m_Table[TalismanSlayerName.Bear] = new Type[]
+                {
+                    typeof(GrizzlyBear),        typeof(BlackBear),
+                    typeof(BrownBear),          typeof(PolarBear),
+                    typeof(Grobu),              typeof(GrizzlyBear),
+                    typeof(RagingGrizzlyBear)
+                };
 
-		public static void Initialize()
-		{
-			m_Table[TalismanSlayerName.Bear] = new Type[]
-			{
-				typeof( GrizzlyBear ), typeof( BlackBear ), typeof( BrownBear ), typeof( PolarBear ) //, typeof( Grobu )
-			};
+            m_Table[TalismanSlayerName.Vermin] = new Type[]
+                {
+                    typeof(RatmanMage),     typeof(RatmanMage),
+                    typeof(RatmanArcher),   typeof(Barracoon),
+                    typeof(Ratman),         typeof(Sewerrat),
+                    typeof(Rat),            typeof(GiantRat),
+                    typeof(Chiikkaha)
+                };
 
-			m_Table[TalismanSlayerName.Vermin] = new Type[]
-			{
-				typeof( RatmanMage ), typeof( RatmanMage ), typeof( RatmanArcher ), typeof( Barracoon),
-				typeof( Ratman ), typeof( Sewerrat ), typeof( Rat ), typeof( GiantRat ) //, typeof( Chiikkaha )
-			};
+            m_Table[TalismanSlayerName.Bat] = new Type[]
+                {
+                    typeof(Mongbat),    typeof(StrongMongbat),
+                    typeof(VampireBat)
+                };
 
-			m_Table[TalismanSlayerName.Bat] = new Type[]
-			{
-				typeof( Mongbat ), typeof( StrongMongbat ), typeof( VampireBat )
-			};
+            m_Table[TalismanSlayerName.Mage] = new Type[]
+                {
+                    typeof(EvilMage),           typeof(EvilMageLord),
+                    typeof(AncientLich),        typeof(Lich),
+                    typeof(LichLord),           typeof(SkeletalMage),
+                    typeof(BoneMagi),           typeof(OrcishMage),
+                    typeof(KhaldunZealot),      typeof(JukaMage),
+                    typeof(KhaldunSummoner),    typeof(MasterTheophilus),
+                    typeof(MeerMage)
+                };
 
-			m_Table[TalismanSlayerName.Mage] = new Type[]
-			{
-				typeof( EvilMage ), typeof( EvilMageLord ), typeof( AncientLich ), typeof( Lich ), typeof( LichLord ),
-				typeof( SkeletalMage ), typeof( BoneMagi ), typeof( OrcishMage ), typeof( KhaldunZealot ), typeof( JukaMage ),
-			};
+            m_Table[TalismanSlayerName.Beetle] = new Type[]
+                {
+                    typeof(Beetle),                     typeof(RuneBeetle),
+                    typeof(FireBeetle),                 typeof(DeathwatchBeetle),
+                    typeof(DeathwatchBeetleHatchling)
+                };
 
-			m_Table[TalismanSlayerName.Beetle] = new Type[]
-			{
-				typeof( Beetle ), typeof( RuneBeetle ), typeof( FireBeetle ), typeof( DeathwatchBeetle ),
-				typeof( DeathwatchBeetleHatchling )
-			};
+            m_Table[TalismanSlayerName.Bird] = new Type[]
+                {
+                    typeof(Bird),           typeof(TropicalBird),
+                    typeof(Chicken),        typeof(Crane),
+                    typeof(DesertOstard),   typeof(Eagle),
+                    typeof(ForestOstard),   typeof(FrenziedOstard),
+                    typeof(Phoenix),        typeof(Pyre),
+                    typeof(Swoop),          typeof(Saliva)
+                };
 
-			m_Table[TalismanSlayerName.Bird] = new Type[]
-			{
-				typeof( Bird ), typeof( TropicalBird ), typeof( Chicken ), typeof( Crane ),
-				typeof( DesertOstard ), typeof( Eagle ), typeof( ForestOstard ), typeof( FrenziedOstard ),
-				typeof( Phoenix ), /*typeof( Pyre ), typeof( Swoop ), typeof( Saliva ),*/ typeof( Harpy ),
-				typeof( StoneHarpy ) // ?????
-			};
+            m_Table[TalismanSlayerName.Ice] = new Type[]
+                {
+                    typeof(ArcticOgreLord),     typeof(IceElemental),
+                    typeof(SnowElemental),      typeof(FrostOoze),
+                    typeof(IceFiend),           typeof(UnfrozenMummy),
+                    typeof(FrostSpider),        typeof(LadyOfTheSnow),
+                    typeof(FrostTroll),         typeof(IceSnake),
+                    typeof(SnowLeopard),        typeof(PolarBear),
+                    typeof(IceSerpent),         typeof(GiantIceWorm)
+                };
 
-			m_Table[TalismanSlayerName.Ice] = new Type[]
-			{
-				typeof( ArcticOgreLord ), typeof( IceElemental ), typeof( SnowElemental ), typeof( FrostOoze ),
-				typeof( IceFiend ), /*typeof( UnfrozenMummy ),*/ typeof( FrostSpider ), typeof( LadyOfTheSnow ),
-				typeof( FrostTroll ),
+            m_Table[TalismanSlayerName.Flame] = new Type[]
+                {
+                    typeof(FireBeetle),         typeof(HellHound),
+                    typeof(LavaSerpent),        typeof(FireElemental),
+                    typeof(PredatorHellCat),    typeof(Phoenix),
+                    typeof(FireGargoyle),       typeof(HellCat),
+                    typeof(Pyre),               typeof(FireSteed),
+                    typeof(LavaLizard),         typeof(LavaSnake)
+                };
 
-				  // TODO WinterReaper, check
-				typeof( IceSnake ), typeof( SnowLeopard ), typeof( PolarBear ),  typeof( IceSerpent ), typeof( GiantIceWorm )
-			};
+            m_Table[TalismanSlayerName.Bovine] = new Type[]
+                {
+                    typeof(Cow),                typeof(Bull),
+                    typeof(Gaman),              typeof(MinotaurCaptain),
+                    typeof(MinotaurScout),      typeof(Minotaur),
+                    typeof(TormentedMinotaur),
+                    typeof(Meraktus)
+                };
 
-			m_Table[TalismanSlayerName.Flame] = new Type[]
-			{
-				typeof( FireBeetle ), typeof( HellHound ), typeof( LavaSerpent ), typeof( FireElemental ),
-				typeof( PredatorHellCat ), typeof( Phoenix ), typeof( FireGargoyle ), typeof( HellCat ),
-				/*typeof( Pyre ),*/ typeof( FireSteed ), typeof( LavaLizard ),
+            m_Table[TalismanSlayerName.Wolf] = new Type[]
+                {
+                    typeof(CuSidhe),        typeof(Gnaw),
+                    typeof(TimberWolf),     typeof(DireWolf),
+                    typeof(GreyWolf),       typeof(TsukiWolf),
+                    typeof(Dog),            typeof(HellHound),
+					typeof(WhiteWolf),
+                    typeof(BakeKitsune),
+                    typeof(CuSidhe)
+                };
 
-				// TODO check
-				typeof( LavaSnake ),
-			};
+            m_Table[TalismanSlayerName.Repond] = SlayerGroup.Groups[0].Super.Types;
+            m_Table[TalismanSlayerName.Undead] = SlayerGroup.Groups[1].Super.Types;
+            m_Table[TalismanSlayerName.Elemental] = SlayerGroup.Groups[2].Super.Types;
+            m_Table[TalismanSlayerName.Demon] = SlayerGroup.Groups[3].Super.Types;
+            m_Table[TalismanSlayerName.Arachnid] = SlayerGroup.Groups[4].Super.Types;
+            m_Table[TalismanSlayerName.Reptile] = SlayerGroup.Groups[5].Super.Types;
+            m_Table[TalismanSlayerName.Fey] = SlayerGroup.Groups[6].Super.Types;
+        }
 
-			m_Table[TalismanSlayerName.Bovine] = new Type[]
-			{
-				typeof( Cow ), typeof( Bull ), typeof( Gaman ) /*, typeof( MinotaurCaptain ),
-				typeof( MinotaurScout ), typeof( Minotaur )*/
+        public static bool Slays(TalismanSlayerName name, Mobile m)
+        {
 
-				// TODO TormentedMinotaur
-			};
-		}
+            if (m.SpecialSlayerMechanics)
+            {
+                if (m.SlayerVulnerabilities.Contains(name.ToString()))
+                    return true;
+                else
+                    return false;
 
-		public static bool Slays(TalismanSlayerName name, Mobile m)
-		{
-			if (!m_Table.ContainsKey(name))
-				return false;
+            }
 
-			Type[] types = m_Table[name];
+            if (!m_Table.ContainsKey(name))
+                return false;
 
-			if (types == null || m == null)
-				return false;
+            Type[] types = m_Table[name];
 
-			Type type = m.GetType();
+            if (types == null || m == null)
+                return false;
 
-			for (int i = 0; i < types.Length; i++)
-			{
-				if (types[i].IsAssignableFrom(type))
-					return true;
-			}
+            Type type = m.GetType();
 
-			return false;
-		}
-	}
+            for (int i = 0; i < types.Length; i++)
+            {
+                if (types[i].IsAssignableFrom(type))
+                    return true;
+            }
+
+            return false;
+        }
+    }
 }

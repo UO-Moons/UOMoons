@@ -548,5 +548,15 @@ namespace Server.Regions
 				}
 			}
 		}
+
+		public virtual bool CheckTravel(Mobile traveller, Point3D p, Server.Spells.TravelCheckType type)
+		{
+			return true;
+		}
+
+		public virtual bool CanSee(Mobile m, IEntity e)
+		{
+			return true;
+		}
 	}
 }

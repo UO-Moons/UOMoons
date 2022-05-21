@@ -1,4 +1,6 @@
 using Server.Commands;
+using Server.Engines.Craft;
+using Server.Factions;
 using Server.Mobiles;
 using Server.Spells.Fifth;
 using Server.Spells.First;
@@ -19,8 +21,24 @@ namespace Server.Items
 		Wildfire = 2843
 	}
 
-	public class BaseTalisman : BaseEquipment
+	public enum TalismanSkill
 	{
+		Alchemy,
+		Blacksmithy,
+		Fletching,
+		Carpentry,
+		Cartography,
+		Cooking,
+		Glassblowing,
+		Inscription,
+		Masonry,
+		Tailoring,
+		Tinkering
+	}
+
+	public class BaseTalisman : BaseEquipment, IWearableDurability, ITalismanProtection, ITalismanKiller, IFactionItem, IArtifact
+	{
+
 		public static void Initialize()
 		{
 			CommandSystem.Register("RandomTalisman", AccessLevel.GameMaster, new CommandEventHandler(RandomTalisman_OnCommand));
@@ -35,12 +53,57 @@ namespace Server.Items
 
 			for (int i = 0; i < count; i++)
 			{
-				_ = m.AddToBackpack(Loot.RandomTalisman());
+				m.AddToBackpack(Loot.RandomTalisman());
 			}
 		}
 
-		public override int LabelNumber => 1071023;  // Talisman
-		public virtual bool ForceShowName => false;  // used to override default summoner/removal name
+		#region Factions
+		private FactionItem m_FactionState;
+
+		public FactionItem FactionItemState
+		{
+			get => m_FactionState;
+			set
+			{
+				m_FactionState = value;
+
+				LootType = m_FactionState == null ? LootType.Regular : LootType.Blessed;
+			}
+		}
+		#endregion
+
+		private Mobile _Owner;
+		private string _OwnerName;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Mobile Owner
+		{
+			get { return _Owner; }
+			set { _Owner = value; if (_Owner != null) _OwnerName = _Owner.Name; InvalidateProperties(); }
+		}
+
+		public virtual string OwnerName
+		{
+			get { return _OwnerName; }
+			set { _OwnerName = value; InvalidateProperties(); }
+		}
+
+		public override int LabelNumber => 1071023;// Talisman
+
+		public override bool DisplayWeight
+		{
+			get
+			{
+				return base.DisplayWeight;
+			}
+		}
+
+		public virtual bool ForceShowName => false;// used to override default summoner/removal name
+
+		public virtual int ArtifactRarity => 0;
+
+		private int m_MaxHitPoints;
+		private int m_HitPoints;
 
 		private int m_MaxCharges;
 		private int m_Charges;
@@ -51,14 +114,24 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxCharges
 		{
-			get => m_MaxCharges;
-			set { m_MaxCharges = value; InvalidateProperties(); }
+			get
+			{
+				return m_MaxCharges;
+			}
+			set
+			{
+				m_MaxCharges = value;
+				InvalidateProperties();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int Charges
 		{
-			get => m_Charges;
+			get
+			{
+				return m_Charges;
+			}
 			set
 			{
 				m_Charges = value;
@@ -73,22 +146,92 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxChargeTime
 		{
-			get => m_MaxChargeTime;
-			set { m_MaxChargeTime = value; InvalidateProperties(); }
+			get
+			{
+				return m_MaxChargeTime;
+			}
+			set
+			{
+				m_MaxChargeTime = value;
+				InvalidateProperties();
+			}
 		}
 
+		[CommandProperty(AccessLevel.GameMaster)]
 		public int ChargeTime
 		{
-			get => m_ChargeTime;
-			set { m_ChargeTime = value; InvalidateProperties(); }
+			get
+			{
+				return m_ChargeTime;
+			}
+			set
+			{
+				m_ChargeTime = value;
+				InvalidateProperties();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Blessed
 		{
-			get => m_Blessed;
-			set { m_Blessed = value; InvalidateProperties(); }
+			get
+			{
+				return m_Blessed;
+			}
+			set
+			{
+				m_Blessed = value;
+				InvalidateProperties();
+			}
 		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int MaxHitPoints
+		{
+			get
+			{
+				return m_MaxHitPoints;
+			}
+			set
+			{
+				m_MaxHitPoints = value;
+
+				if (m_MaxHitPoints > 255)
+					m_MaxHitPoints = 255;
+
+				InvalidateProperties();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int HitPoints
+		{
+			get
+			{
+				return m_HitPoints;
+			}
+			set
+			{
+				if (value != m_HitPoints && MaxHitPoints > 0)
+				{
+					m_HitPoints = value;
+
+					if (m_HitPoints < 0)
+						Delete();
+					else if (m_HitPoints > MaxHitPoints)
+						m_HitPoints = MaxHitPoints;
+
+					InvalidateProperties();
+				}
+			}
+		}
+
+		public virtual int InitMinHits => 0;
+
+		public virtual int InitMaxHits => 0;
+
+		public virtual bool CanRepair => true;
+		public virtual bool CanFortify => true;
 
 		#region Slayer
 		private TalismanSlayerName m_Slayer;
@@ -96,8 +239,15 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanSlayerName Slayer
 		{
-			get => m_Slayer;
-			set { m_Slayer = value; InvalidateProperties(); }
+			get
+			{
+				return m_Slayer;
+			}
+			set
+			{
+				m_Slayer = value;
+				InvalidateProperties();
+			}
 		}
 		#endregion
 
@@ -109,15 +259,29 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Summoner
 		{
-			get => m_Summoner;
-			set { m_Summoner = value; InvalidateProperties(); }
+			get
+			{
+				return m_Summoner;
+			}
+			set
+			{
+				m_Summoner = value;
+				InvalidateProperties();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanRemoval Removal
 		{
-			get => m_Removal;
-			set { m_Removal = value; InvalidateProperties(); }
+			get
+			{
+				return m_Removal;
+			}
+			set
+			{
+				m_Removal = value;
+				InvalidateProperties();
+			}
 		}
 		#endregion
 
@@ -128,55 +292,125 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Protection
 		{
-			get => m_Protection;
-			set { m_Protection = value; InvalidateProperties(); }
+			get
+			{
+				return m_Protection;
+			}
+			set
+			{
+				m_Protection = value;
+				InvalidateProperties();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Killer
 		{
-			get => m_Killer;
-			set { m_Killer = value; InvalidateProperties(); }
+			get
+			{
+				return m_Killer;
+			}
+			set
+			{
+				m_Killer = value;
+				InvalidateProperties();
+			}
 		}
 		#endregion
 
 		#region Craft bonuses
-		private SkillName m_Skill;
+		private TalismanSkill m_Skill;
 		private int m_SuccessBonus;
 		private int m_ExceptionalBonus;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public SkillName Skill
+		public TalismanSkill Skill
 		{
-			get => m_Skill;
-			set { m_Skill = value; InvalidateProperties(); }
+			get
+			{
+				return m_Skill;
+			}
+			set
+			{
+				m_Skill = value;
+				InvalidateProperties();
+			}
 		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public SkillName CraftSkill => GetMainSkill();
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int SuccessBonus
 		{
-			get => m_SuccessBonus;
-			set { m_SuccessBonus = value; InvalidateProperties(); }
+			get
+			{
+				return m_SuccessBonus;
+			}
+			set
+			{
+				m_SuccessBonus = value;
+				InvalidateProperties();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ExceptionalBonus
 		{
-			get => m_ExceptionalBonus;
-			set { m_ExceptionalBonus = value; InvalidateProperties(); }
+			get
+			{
+				return m_ExceptionalBonus;
+			}
+			set
+			{
+				m_ExceptionalBonus = value;
+				InvalidateProperties();
+			}
 		}
 		#endregion
 
 		#region AOS bonuses
 		private AosSkillBonuses m_AosSkillBonuses;
+		//private NegativeAttributes m_NegativeAttributes;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public AosSkillBonuses SkillBonuses
 		{
-			get => m_AosSkillBonuses;
-			set { }
+			get
+			{
+				return m_AosSkillBonuses;
+			}
+			set
+			{
+			}
 		}
+
+		/*[CommandProperty(AccessLevel.GameMaster)]
+		public NegativeAttributes NegativeAttributes
+		{
+			get
+			{
+				return m_NegativeAttributes;
+			}
+			set
+			{
+			}
+		}*/
 		#endregion
+
+		/*private SAAbsorptionAttributes m_SAAbsorptionAttributes;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public SAAbsorptionAttributes SAAbsorptionAttributes
+		{
+			get
+			{
+				return m_SAAbsorptionAttributes;
+			}
+			set
+			{
+			}
+		}*/
 
 		public BaseTalisman()
 			: this(GetRandomItemID())
@@ -189,10 +423,14 @@ namespace Server.Items
 			Layer = Layer.Talisman;
 			Weight = 1.0;
 
+			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+
 			m_Protection = new TalismanAttribute();
 			m_Killer = new TalismanAttribute();
 			m_Summoner = new TalismanAttribute();
 			m_AosSkillBonuses = new AosSkillBonuses(this);
+			//m_SAAbsorptionAttributes = new SAAbsorptionAttributes(this);
+			//m_NegativeAttributes = new NegativeAttributes(this);
 		}
 
 		public BaseTalisman(Serial serial)
@@ -200,21 +438,80 @@ namespace Server.Items
 		{
 		}
 
+		public virtual int OnHit(BaseWeapon weap, int damage)
+		{
+			if (m_MaxHitPoints == 0)
+				return damage;
+
+			int chance = 25;
+			if (chance > Utility.Random(100)) // 25% chance to lower durability
+			{
+				if (m_HitPoints >= 1)
+				{
+					HitPoints--;
+				}
+				else if (m_MaxHitPoints > 0)
+				{
+					MaxHitPoints--;
+
+					if (Parent is Mobile)
+						((Mobile)Parent).LocalOverheadMessage(Server.Network.MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
+
+					if (m_MaxHitPoints == 0)
+					{
+						Delete();
+					}
+				}
+			}
+
+			return damage;
+		}
+
+		public virtual void UnscaleDurability()
+		{
+		}
+
+		public virtual void ScaleDurability()
+		{
+		}
+
 		public override void OnAfterDuped(Item newItem)
 		{
-			base.OnAfterDuped(newItem);
+			if (newItem is not BaseTalisman talisman)
+				return;
 
-			if (newItem != null && newItem is BaseTalisman talisman)
-			{
-				talisman.m_Summoner = new TalismanAttribute(m_Summoner);
-				talisman.m_Protection = new TalismanAttribute(m_Protection);
-				talisman.m_Killer = new TalismanAttribute(m_Killer);
-				talisman.m_AosSkillBonuses = new AosSkillBonuses(newItem, m_AosSkillBonuses);
-			}
+			talisman.m_Summoner = new TalismanAttribute(m_Summoner);
+			talisman.m_Protection = new TalismanAttribute(m_Protection);
+			talisman.m_Killer = new TalismanAttribute(m_Killer);
+			talisman.m_AosSkillBonuses = new AosSkillBonuses(newItem, m_AosSkillBonuses);
+			//talisman.m_SAAbsorptionAttributes = new SAAbsorptionAttributes(newItem, m_SAAbsorptionAttributes);
+			//talisman.m_NegativeAttributes = new NegativeAttributes(newItem, m_NegativeAttributes);
+
+			base.OnAfterDuped(newItem);
 		}
 
 		public override bool CanEquip(Mobile from)
 		{
+			if (from.IsPlayer())
+			{
+				if (_Owner != null && _Owner != from)
+				{
+					from.SendLocalizedMessage(501023); // You must be the owner to use this item.
+					return false;
+				}
+
+				if (this is IAccountRestricted && ((IAccountRestricted)this).Account != null)
+				{
+					Accounting.Account acct = from.Account as Accounting.Account;
+
+					if (acct == null || acct.Username != ((IAccountRestricted)this).Account)
+					{
+						from.SendLocalizedMessage(1071296); // This item is Account Bound and your character is not bound to it. You cannot use this item.
+						return false;
+					}
+				}
+			}
+
 			if (BlessedFor != null && BlessedFor != from)
 			{
 				from.SendLocalizedMessage(1010437); // You are not the owner.
@@ -229,7 +526,6 @@ namespace Server.Items
 			if (parent is Mobile from)
 			{
 				m_AosSkillBonuses.AddTo(from);
-				Attributes.AddStatBonuses(from);
 
 				if (m_Blessed && BlessedFor == null)
 				{
@@ -252,7 +548,6 @@ namespace Server.Items
 			if (parent is Mobile from)
 			{
 				m_AosSkillBonuses.Remove();
-				Attributes.RemoveStatBonuses(from);
 
 				if (m_Creature != null && !m_Creature.Deleted)
 				{
@@ -260,6 +555,7 @@ namespace Server.Items
 					Effects.PlaySound(m_Creature, m_Creature.Map, 0x201);
 
 					m_Creature.Delete();
+					m_Creature = null;
 				}
 
 				StopTimer();
@@ -287,11 +583,18 @@ namespace Server.Items
 				{
 					object obj;
 
-					try { obj = Activator.CreateInstance(type); }
-					catch { obj = null; }
-
-					if (obj is Item item)
+					try
 					{
+						obj = Activator.CreateInstance(type);
+					}
+					catch
+					{
+						obj = null;
+					}
+
+					if (obj is Item)
+					{
+						Item item = (Item)obj;
 						int count = 1;
 
 						if (m_Summoner != null && m_Summoner.Amount > 1)
@@ -303,16 +606,17 @@ namespace Server.Items
 						}
 
 						if (from.Backpack == null || count * item.Weight > from.Backpack.MaxWeight ||
-							 from.Backpack.Items.Count + count > from.Backpack.MaxItems)
+							from.Backpack.Items.Count + count > from.Backpack.MaxItems)
 						{
 							from.SendLocalizedMessage(500720); // You don't have enough room in your backpack!
 							item.Delete();
+							item = null;
 							return;
 						}
 
 						for (int i = 0; i < count; i++)
 						{
-							_ = from.PlaceInBackpack(item);
+							from.PlaceInBackpack(item);
 
 							if (i + 1 < count)
 								item = Activator.CreateInstance(type) as Item;
@@ -327,8 +631,10 @@ namespace Server.Items
 						else if (m_Summoner != null && m_Summoner.Name != null)
 							from.SendLocalizedMessage(1074853, m_Summoner.Name.ToString()); // You have been given ~1_name~
 					}
-					else if (obj is BaseCreature mob)
+					else if (obj is BaseCreature)
 					{
+						BaseCreature mob = (BaseCreature)obj;
+
 						if ((m_Creature != null && !m_Creature.Deleted) || from.Followers + mob.ControlSlots > from.FollowersMax)
 						{
 							from.SendLocalizedMessage(1074270); // You have too many followers to summon another one.
@@ -336,7 +642,7 @@ namespace Server.Items
 							return;
 						}
 
-						_ = BaseCreature.Summon(mob, from, from.Location, mob.BaseSoundID, TimeSpan.FromMinutes(10));
+						BaseCreature.Summon(mob, from, from.Location, mob.BaseSoundID, TimeSpan.FromMinutes(10));
 						Effects.SendLocationParticles(EffectItem.Create(mob.Location, mob.Map, EffectItem.DefaultDuration), 0x3728, 1, 10, 0x26B6);
 
 						mob.Summoned = false;
@@ -367,17 +673,22 @@ namespace Server.Items
 				base.AddNameProperty(list);
 		}
 
+		public override void AddWeightProperty(ObjectPropertyList list)
+		{
+			if (OwnerName != null)
+				list.Add(1153213, OwnerName);
+
+			base.AddWeightProperty(list);
+		}
+
 		public override void GetProperties(ObjectPropertyList list)
 		{
 			base.GetProperties(list);
 
-			if (Blessed)
-			{
-				if (BlessedFor != null)
-					list.Add(1072304, !string.IsNullOrEmpty(BlessedFor.Name) ? BlessedFor.Name : "Unnamed Warrior"); // Owned by ~1_name~
-				else
-					list.Add(1072304, "Nobody"); // Owned by ~1_name~
-			}
+			#region Factions
+			if (m_FactionState != null)
+				list.Add(1041350); // faction item
+			#endregion    
 
 			if (Parent is Mobile && m_MaxChargeTime > 0)
 			{
@@ -387,7 +698,10 @@ namespace Server.Items
 					list.Add(1074883); // Fully Charged
 			}
 
-			list.Add(1075085); // Requirement: Mondain's Legacy
+			if (ArtifactRarity > 0)
+			{
+				list.Add(1061078, ArtifactRarity.ToString()); // artifact rarity ~1_val~
+			}
 
 			if (m_Killer != null && !m_Killer.IsEmpty && m_Killer.Amount > 0)
 				list.Add(1072388, "{0}\t{1}", m_Killer.Name != null ? m_Killer.Name.ToString() : "Unknown", m_Killer.Amount); // ~1_NAME~ Killer: +~2_val~%
@@ -396,20 +710,36 @@ namespace Server.Items
 				list.Add(1072387, "{0}\t{1}", m_Protection.Name != null ? m_Protection.Name.ToString() : "Unknown", m_Protection.Amount); // ~1_NAME~ Protection: +~2_val~%
 
 			if (m_ExceptionalBonus != 0)
-				list.Add(1072395, "#{0}\t{1}", AosSkillBonuses.GetLabel(m_Skill), m_ExceptionalBonus); // ~1_NAME~ Exceptional Bonus: ~2_val~%
+				list.Add(1072395, "#{0}\t{1}", GetSkillLabel(), m_ExceptionalBonus); // ~1_NAME~ Exceptional Bonus: ~2_val~%
 
 			if (m_SuccessBonus != 0)
-				list.Add(1072394, "#{0}\t{1}", AosSkillBonuses.GetLabel(m_Skill), m_SuccessBonus); // ~1_NAME~ Bonus: ~2_val~%
+				list.Add(1072394, "#{0}\t{1}", GetSkillLabel(), m_SuccessBonus); // ~1_NAME~ Bonus: ~2_val~%
 
 			m_AosSkillBonuses.GetProperties(list);
 
 			int prop;
 
-			if ((prop = Attributes.WeaponDamage) != 0)
-				list.Add(1060401, prop.ToString()); // damage increase ~1_val~%
-
-			if ((prop = Attributes.DefendChance) != 0)
-				list.Add(1060408, prop.ToString()); // defense chance increase ~1_val~%
+			if (m_Slayer != TalismanSlayerName.None)
+			{
+				if (m_Slayer == TalismanSlayerName.Goblin)
+					list.Add(1095010);
+				else if (m_Slayer == TalismanSlayerName.Undead)
+					list.Add(1060479);
+				else if (m_Slayer <= TalismanSlayerName.Wolf)
+					list.Add(1072503 + (int)m_Slayer);
+				else
+				{
+					switch (m_Slayer)
+					{
+						case TalismanSlayerName.Repond: list.Add(1079750); break;
+						case TalismanSlayerName.Elemental: list.Add(1079749); break;
+						case TalismanSlayerName.Demon: list.Add(1079748); break;
+						case TalismanSlayerName.Arachnid: list.Add(1079747); break;
+						case TalismanSlayerName.Reptile: list.Add(1079751); break;
+						case TalismanSlayerName.Fey: list.Add(1154652); break;
+					}
+				}
+			}
 
 			if ((prop = Attributes.BonusDex) != 0)
 				list.Add(1060409, prop.ToString()); // dexterity bonus ~1_val~
@@ -423,65 +753,86 @@ namespace Server.Items
 			if ((prop = Attributes.CastSpeed) != 0)
 				list.Add(1060413, prop.ToString()); // faster casting ~1_val~
 
-			if ((prop = Attributes.AttackChance) != 0)
-				list.Add(1060415, prop.ToString()); // hit chance increase ~1_val~%
-
 			if ((prop = Attributes.BonusHits) != 0)
 				list.Add(1060431, prop.ToString()); // hit point increase ~1_val~
 
 			if ((prop = Attributes.BonusInt) != 0)
-				list.Add(1060432, prop.ToString()); // intelligence bonus ~1_val~
-
-			if ((prop = Attributes.LowerManaCost) != 0)
-				list.Add(1060433, prop.ToString()); // lower mana cost ~1_val~%
-
-			if ((prop = Attributes.LowerRegCost) != 0)
-				list.Add(1060434, prop.ToString()); // lower reagent cost ~1_val~%
-
-			if ((prop = Attributes.Luck) != 0)
-				list.Add(1060436, prop.ToString()); // luck ~1_val~
+				list.Add(1060432, prop.ToString()); // intelligence bonus ~1_val~                                
 
 			if ((prop = Attributes.BonusMana) != 0)
-				list.Add(1060439, prop.ToString()); // mana increase ~1_val~
+				list.Add(1060439, prop.ToString()); // mana increase ~1_val~           
 
-			if ((prop = Attributes.RegenMana) != 0)
-				list.Add(1060440, prop.ToString()); // mana regeneration ~1_val~
-
-			if ((_ = Attributes.NightSight) != 0)
+			if ((prop = Attributes.NightSight) != 0)
 				list.Add(1060441); // night sight
 
 			if ((prop = Attributes.ReflectPhysical) != 0)
 				list.Add(1060442, prop.ToString()); // reflect physical damage ~1_val~%
 
-			if ((prop = Attributes.RegenStam) != 0)
-				list.Add(1060443, prop.ToString()); // stamina regeneration ~1_val~
+			if ((prop = Attributes.BonusStr) != 0)
+				list.Add(1060485, prop.ToString()); // strength bonus ~1_val~
 
 			if ((prop = Attributes.RegenHits) != 0)
 				list.Add(1060444, prop.ToString()); // hit point regeneration ~1_val~
 
-			if ((_ = Attributes.SpellChanneling) != 0)
-				list.Add(1060482); // spell channeling
+			if ((prop = Attributes.RegenStam) != 0)
+				list.Add(1060443, prop.ToString()); // stamina regeneration ~1_val~
+
+			if ((prop = Attributes.RegenMana) != 0)
+				list.Add(1060440, prop.ToString()); // mana regeneration ~1_val~
+
+			if ((prop = Attributes.Luck) != 0)
+				list.Add(1060436, prop.ToString()); // luck ~1_val~
+
+			if ((prop = Attributes.AttackChance) != 0)
+				list.Add(1060415, prop.ToString()); // hit chance increase ~1_val~%
+
+			if ((prop = Attributes.LowerManaCost) != 0)
+				list.Add(1060433, prop.ToString()); // lower mana cost ~1_val~%
 
 			if ((prop = Attributes.SpellDamage) != 0)
 				list.Add(1060483, prop.ToString()); // spell damage increase ~1_val~%
 
-			if ((prop = Attributes.BonusStam) != 0)
-				list.Add(1060484, prop.ToString()); // stamina increase ~1_val~
+			if ((prop = Attributes.LowerRegCost) != 0)
+				list.Add(1060434, prop.ToString()); // lower reagent cost ~1_val~%
 
-			if ((prop = Attributes.BonusStr) != 0)
-				list.Add(1060485, prop.ToString()); // strength bonus ~1_val~
+			if ((prop = Attributes.DefendChance) != 0)
+				list.Add(1060408, prop.ToString()); // defense chance increase ~1_val~%        
+
+			if ((prop = Attributes.BonusStam) != 0)
+				list.Add(1060484, prop.ToString()); // stamina increase ~1_val~          
 
 			if ((prop = Attributes.WeaponSpeed) != 0)
 				list.Add(1060486, prop.ToString()); // swing speed increase ~1_val~%
 
-			if (Core.ML && (prop = Attributes.IncreasedKarmaLoss) != 0)
-				list.Add(1075210, prop.ToString()); // Increased Karma Loss ~1val~%
+			if ((prop = Attributes.WeaponDamage) != 0)
+				list.Add(1060401, prop.ToString()); // damage increase ~1_val~%
 
-			if (m_MaxCharges > 0)
-				list.Add(1060741, m_Charges.ToString()); // charges: ~1_val~
+			if ((prop = Attributes.IncreasedKarmaLoss) != 0)
+				list.Add(1075210, prop.ToString()); // Increased Karma Loss ~1val~%                
 
-			if (m_Slayer != TalismanSlayerName.None)
-				list.Add(1072503 + (int)m_Slayer);
+			base.AddResistanceProperties(list);
+
+			if (Blessed)
+			{
+				if (BlessedFor != null)
+					list.Add(1072304, !string.IsNullOrEmpty(BlessedFor.Name) ? BlessedFor.Name : "Unnamed Warrior"); // Owned by ~1_name~
+				else
+					list.Add(1072304, "Nobody"); // Owned by ~1_name~
+			}
+
+			if (m_MaxHitPoints > 0)
+				list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
+		}
+
+		private static void SetSaveFlag(ref SaveFlag flags, SaveFlag toSet, bool setIf)
+		{
+			if (setIf)
+				flags |= toSet;
+		}
+
+		private static bool GetSaveFlag(SaveFlag flags, SaveFlag toGet)
+		{
+			return ((flags & toGet) != 0);
 		}
 
 		[Flags]
@@ -504,7 +855,7 @@ namespace Server.Items
 			MaxChargeTime = 0x00002000,
 			ChargeTime = 0x00004000,
 			Blessed = 0x00008000,
-			Slayer = 0x00010000,
+			Slayer = 0x00010000
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -513,62 +864,70 @@ namespace Server.Items
 
 			writer.Write(0); // version
 
+			writer.Write(m_Creature);
+
+			writer.Write(_Owner);
+			writer.Write(_OwnerName);
+
+			writer.Write(m_MaxHitPoints);
+			writer.Write(m_HitPoints);
+
 			SaveFlag flags = SaveFlag.None;
 
-			Utility.SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !m_AosSkillBonuses.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Protection, m_Protection != null && !m_Protection.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Killer, m_Killer != null && !m_Killer.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Summoner, m_Summoner != null && !m_Summoner.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Removal, m_Removal != TalismanRemoval.None);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Skill, m_Skill != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.SuccessBonus, m_SuccessBonus != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.ExceptionalBonus, m_ExceptionalBonus != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.MaxCharges, m_MaxCharges != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Charges, m_Charges != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.MaxChargeTime, m_MaxChargeTime != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.ChargeTime, m_ChargeTime != 0);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Blessed, m_Blessed);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Slayer, m_Slayer != TalismanSlayerName.None);
+			SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !m_AosSkillBonuses.IsEmpty);
+			SetSaveFlag(ref flags, SaveFlag.Protection, m_Protection != null && !m_Protection.IsEmpty);
+			SetSaveFlag(ref flags, SaveFlag.Killer, m_Killer != null && !m_Killer.IsEmpty);
+			SetSaveFlag(ref flags, SaveFlag.Summoner, m_Summoner != null && !m_Summoner.IsEmpty);
+			SetSaveFlag(ref flags, SaveFlag.Removal, m_Removal != TalismanRemoval.None);
+			SetSaveFlag(ref flags, SaveFlag.Skill, m_Skill != 0);
+			SetSaveFlag(ref flags, SaveFlag.SuccessBonus, m_SuccessBonus != 0);
+			SetSaveFlag(ref flags, SaveFlag.ExceptionalBonus, m_ExceptionalBonus != 0);
+			SetSaveFlag(ref flags, SaveFlag.MaxCharges, m_MaxCharges != 0);
+			SetSaveFlag(ref flags, SaveFlag.Charges, m_Charges != 0);
+			SetSaveFlag(ref flags, SaveFlag.MaxChargeTime, m_MaxChargeTime != 0);
+			SetSaveFlag(ref flags, SaveFlag.ChargeTime, m_ChargeTime != 0);
+			SetSaveFlag(ref flags, SaveFlag.Blessed, m_Blessed);
+			SetSaveFlag(ref flags, SaveFlag.Slayer, m_Slayer != TalismanSlayerName.None);
 
 			writer.WriteEncodedInt((int)flags);
 
-			if (flags.HasFlag(SaveFlag.SkillBonuses))
+			if (GetSaveFlag(flags, SaveFlag.SkillBonuses))
 				m_AosSkillBonuses.Serialize(writer);
 
-			if (flags.HasFlag(SaveFlag.Protection))
+			if (GetSaveFlag(flags, SaveFlag.Protection))
 				m_Protection.Serialize(writer);
 
-			if (flags.HasFlag(SaveFlag.Killer))
+			if (GetSaveFlag(flags, SaveFlag.Killer))
 				m_Killer.Serialize(writer);
 
-			if (flags.HasFlag(SaveFlag.Summoner))
+			if (GetSaveFlag(flags, SaveFlag.Summoner))
 				m_Summoner.Serialize(writer);
 
-			if (flags.HasFlag(SaveFlag.Removal))
+			if (GetSaveFlag(flags, SaveFlag.Removal))
 				writer.WriteEncodedInt((int)m_Removal);
 
-			if (flags.HasFlag(SaveFlag.Skill))
+			if (GetSaveFlag(flags, SaveFlag.Skill))
 				writer.WriteEncodedInt((int)m_Skill);
 
-			if (flags.HasFlag(SaveFlag.SuccessBonus))
+			if (GetSaveFlag(flags, SaveFlag.SuccessBonus))
 				writer.WriteEncodedInt(m_SuccessBonus);
 
-			if (flags.HasFlag(SaveFlag.ExceptionalBonus))
+			if (GetSaveFlag(flags, SaveFlag.ExceptionalBonus))
 				writer.WriteEncodedInt(m_ExceptionalBonus);
 
-			if (flags.HasFlag(SaveFlag.MaxCharges))
+			if (GetSaveFlag(flags, SaveFlag.MaxCharges))
 				writer.WriteEncodedInt(m_MaxCharges);
 
-			if (flags.HasFlag(SaveFlag.Charges))
+			if (GetSaveFlag(flags, SaveFlag.Charges))
 				writer.WriteEncodedInt(m_Charges);
 
-			if (flags.HasFlag(SaveFlag.MaxChargeTime))
+			if (GetSaveFlag(flags, SaveFlag.MaxChargeTime))
 				writer.WriteEncodedInt(m_MaxChargeTime);
 
-			if (flags.HasFlag(SaveFlag.ChargeTime))
+			if (GetSaveFlag(flags, SaveFlag.ChargeTime))
 				writer.WriteEncodedInt(m_ChargeTime);
 
-			if (flags.HasFlag(SaveFlag.Slayer))
+			if (GetSaveFlag(flags, SaveFlag.Slayer))
 				writer.WriteEncodedInt((int)m_Slayer);
 		}
 
@@ -582,71 +941,76 @@ namespace Server.Items
 			{
 				case 0:
 					{
+						m_Creature = reader.ReadMobile();
+						_Owner = reader.ReadMobile();
+						_OwnerName = reader.ReadString();
+						m_MaxHitPoints = reader.ReadInt();
+						m_HitPoints = reader.ReadInt();
+
 						SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.SkillBonuses))
+						if (GetSaveFlag(flags, SaveFlag.SkillBonuses))
 							m_AosSkillBonuses = new AosSkillBonuses(this, reader);
 						else
 							m_AosSkillBonuses = new AosSkillBonuses(this);
 
 						// Backward compatibility
-						if (flags.HasFlag(SaveFlag.Owner))
+						if (GetSaveFlag(flags, SaveFlag.Owner))
 							BlessedFor = reader.ReadMobile();
 
-						if (flags.HasFlag(SaveFlag.Protection))
+						if (GetSaveFlag(flags, SaveFlag.Protection))
 							m_Protection = new TalismanAttribute(reader);
 						else
 							m_Protection = new TalismanAttribute();
 
-						if (flags.HasFlag(SaveFlag.Killer))
+						if (GetSaveFlag(flags, SaveFlag.Killer))
 							m_Killer = new TalismanAttribute(reader);
 						else
 							m_Killer = new TalismanAttribute();
 
-						if (flags.HasFlag(SaveFlag.Summoner))
+						if (GetSaveFlag(flags, SaveFlag.Summoner))
 							m_Summoner = new TalismanAttribute(reader);
 						else
 							m_Summoner = new TalismanAttribute();
 
-						if (flags.HasFlag(SaveFlag.Removal))
+						if (GetSaveFlag(flags, SaveFlag.Removal))
 							m_Removal = (TalismanRemoval)reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.OldKarmaLoss))
-							Attributes.IncreasedKarmaLoss = reader.ReadEncodedInt();
+						if (GetSaveFlag(flags, SaveFlag.Skill))
+						{
+							m_Skill = (TalismanSkill)reader.ReadEncodedInt();
+						}
 
-						if (flags.HasFlag(SaveFlag.Skill))
-							m_Skill = (SkillName)reader.ReadEncodedInt();
-
-						if (flags.HasFlag(SaveFlag.SuccessBonus))
+						if (GetSaveFlag(flags, SaveFlag.SuccessBonus))
 							m_SuccessBonus = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.ExceptionalBonus))
+						if (GetSaveFlag(flags, SaveFlag.ExceptionalBonus))
 							m_ExceptionalBonus = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.MaxCharges))
+						if (GetSaveFlag(flags, SaveFlag.MaxCharges))
 							m_MaxCharges = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.Charges))
+						if (GetSaveFlag(flags, SaveFlag.Charges))
 							m_Charges = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.MaxChargeTime))
+						if (GetSaveFlag(flags, SaveFlag.MaxChargeTime))
 							m_MaxChargeTime = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.ChargeTime))
+						if (GetSaveFlag(flags, SaveFlag.ChargeTime))
 							m_ChargeTime = reader.ReadEncodedInt();
 
-						if (flags.HasFlag(SaveFlag.Slayer))
+						if (GetSaveFlag(flags, SaveFlag.Slayer))
 							m_Slayer = (TalismanSlayerName)reader.ReadEncodedInt();
 
-						m_Blessed = flags.HasFlag(SaveFlag.Blessed);
-
+						m_Blessed = GetSaveFlag(flags, SaveFlag.Blessed);
 						break;
 					}
 			}
 
-			if (Parent is Mobile m)
+			if (Parent is Mobile)
 			{
-				Attributes.AddStatBonuses(m);
+				Mobile m = (Mobile)Parent;
+
 				m_AosSkillBonuses.AddTo(m);
 
 				if (m_ChargeTime > 0)
@@ -717,6 +1081,7 @@ namespace Server.Items
 
 			InvalidateProperties();
 		}
+
 		#endregion
 
 		#region Randomize
@@ -730,55 +1095,56 @@ namespace Server.Items
 			return Utility.RandomList(m_ItemIDs);
 		}
 
+		public static Type[] Summons => m_Summons;
 		private static readonly Type[] m_Summons = new Type[]
 		{
-			typeof( SummonedAntLion ),
-			typeof( SummonedCow ),
-			typeof( SummonedLavaSerpent ),
-			typeof( SummonedOrcBrute ),
-			typeof( SummonedFrostSpider ),
-			typeof( SummonedPanther ),
-			typeof( SummonedDoppleganger ),
-			typeof( SummonedGreatHart ),
-			typeof( SummonedBullFrog ),
-			typeof( SummonedArcticOgreLord ),
-			typeof( SummonedBogling ),
-			typeof( SummonedBakeKitsune ),
-			typeof( SummonedSheep ),
-			typeof( SummonedSkeletalKnight ),
-			typeof( SummonedWailingBanshee ),
-			typeof( SummonedChicken ),
-			typeof( SummonedVorpalBunny ),
-
-			typeof( Board ),
-			typeof( IronIngot ),
-			typeof( Bandage ),
+			typeof(SummonedAntLion),
+			typeof(SummonedCow),
+			typeof(SummonedLavaSerpent),
+			typeof(SummonedOrcBrute),
+			typeof(SummonedFrostSpider),
+			typeof(SummonedPanther),
+			typeof(SummonedDoppleganger),
+			typeof(SummonedGreatHart),
+			typeof(SummonedBullFrog),
+			typeof(SummonedArcticOgreLord),
+			typeof(SummonedBogling),
+			typeof(SummonedBakeKitsune),
+			typeof(SummonedSheep),
+			typeof(SummonedSkeletalKnight),
+			typeof(SummonedWailingBanshee),
+			typeof(SummonedChicken),
+			typeof(SummonedVorpalBunny),
+			typeof(Board),
+			typeof(IronIngot),
+			typeof(Bandage),
 		};
 
+		public static int[] SummonLabels => m_SummonLabels;
 		private static readonly int[] m_SummonLabels = new int[]
 		{
 			1075211, // Ant Lion
-			1072494, // Cow
-			1072434, // Lava Serpent
-			1072414, // Orc Brute
-			1072476, // Frost Spider
-			1029653, // Panther
-			1029741, // Doppleganger
-			1018292, // great hart
-			1028496, // bullfrog
-			1018227, // arctic ogre lord
-			1029735, // Bogling
-			1030083, // bake-kitsune
-			1018285, // sheep
-			1018239, // skeletal knight
-			1072399, // Wailing Banshee
-			1072459, // Chicken
-			1072401, // Vorpal Bunny
+            1072494, // Cow
+            1072434, // Lava Serpent
+            1072414, // Orc Brute
+            1072476, // Frost Spider
+            1029653, // Panther
+            1029741, // Doppleganger
+            1018292, // great hart
+            1028496, // bullfrog
+            1018227, // arctic ogre lord
+            1029735, // Bogling
+            1030083, // bake-kitsune
+            1018285, // sheep
+            1018239, // skeletal knight
+            1072399, // Wailing Banshee
+            1072459, // Chicken
+            1072401, // Vorpal Bunny
 
-			1015101, // Boards
-			1044036, // Ingots
-			1023817, // clean bandage
-		};
+            1015101, // Boards
+            1044036, // Ingots
+            1023817, // clean bandage
+        };
 
 		public static Type GetRandomSummonType()
 		{
@@ -808,24 +1174,26 @@ namespace Server.Items
 			return TalismanRemoval.None;
 		}
 
+		public static Type[] Killers => m_Killers;
 		private static readonly Type[] m_Killers = new Type[]
 		{
-			typeof( OrcBomber ),    typeof( OrcBrute ),                 typeof( Sewerrat ),         typeof( Rat ),              typeof( GiantRat ),
-			typeof( Ratman ),       typeof( RatmanArcher ),             typeof( GiantSpider ),      typeof( FrostSpider ),      typeof( GiantBlackWidow ),
-			typeof( DreadSpider ),  typeof( SilverSerpent ),            typeof( DeepSeaSerpent ),   typeof( GiantSerpent ),     typeof( Snake ),
-			typeof( IceSnake ),     typeof( IceSerpent ),               typeof( LavaSerpent ),      typeof( LavaSnake ),        typeof( Yamandon ),
-			typeof( StrongMongbat ),typeof( Mongbat ),                  typeof( VampireBat ),       typeof( Lich ),             typeof( EvilMage ),
-			typeof( LichLord ),     typeof( EvilMageLord ),             typeof( SkeletalMage ),     typeof( KhaldunZealot ),    typeof( AncientLich ),
-			typeof( JukaMage ),     typeof( MeerMage ),                 typeof( Beetle ),           typeof( DeathwatchBeetle ), typeof( RuneBeetle ),
-			typeof( FireBeetle ),   typeof( DeathwatchBeetleHatchling), typeof( Bird ),             typeof( Chicken ),          typeof( Eagle ),
-			typeof( TropicalBird ), typeof( Phoenix ),                  typeof( DesertOstard ),     typeof( FrenziedOstard ),   typeof( ForestOstard ),
-			typeof( Crane ),        typeof( SnowLeopard ),              typeof( IceFiend ),         typeof( FrostOoze ),        typeof( FrostTroll ),
-			typeof( IceElemental ), typeof( SnowElemental ),            typeof( GiantIceWorm ),     typeof( LadyOfTheSnow ),    typeof( FireElemental ),
-			typeof( FireSteed ),    typeof( HellHound ),                typeof( HellCat ),          typeof( PredatorHellCat ),  typeof( LavaLizard ),
-			typeof( FireBeetle ),   typeof( Cow ),                      typeof( Bull ),             typeof( Gaman )//,			typeof( Minotaur)
-			// TODO Meraktus, Tormented Minotaur, Minotaur
-		};
+			typeof(OrcBomber), typeof(OrcBrute), typeof(Sewerrat), typeof(Rat), typeof(GiantRat),
+			typeof(Ratman), typeof(RatmanArcher), typeof(GiantSpider), typeof(FrostSpider), typeof(GiantBlackWidow),
+			typeof(DreadSpider), typeof(SilverSerpent), typeof(DeepSeaSerpent), typeof(GiantSerpent), typeof(Snake),
+			typeof(IceSnake), typeof(IceSerpent), typeof(LavaSerpent), typeof(LavaSnake), typeof(Yamandon),
+			typeof(StrongMongbat), typeof(Mongbat), typeof(VampireBat), typeof(Lich), typeof(EvilMage),
+			typeof(LichLord), typeof(EvilMageLord), typeof(SkeletalMage), typeof(KhaldunZealot), typeof(AncientLich),
+			typeof(JukaMage), typeof(MeerMage), typeof(Beetle), typeof(DeathwatchBeetle), typeof(RuneBeetle),
+			typeof(FireBeetle), typeof(DeathwatchBeetleHatchling), typeof(Bird), typeof(Chicken), typeof(Eagle),
+			typeof(TropicalBird), typeof(Phoenix), typeof(DesertOstard), typeof(FrenziedOstard), typeof(ForestOstard),
+			typeof(Crane), typeof(SnowLeopard), typeof(IceFiend), typeof(FrostOoze), typeof(FrostTroll),
+			typeof(IceElemental), typeof(SnowElemental), typeof(GiantIceWorm), typeof(LadyOfTheSnow), typeof(FireElemental),
+			typeof(FireSteed), typeof(HellHound), typeof(HellCat), typeof(PredatorHellCat), typeof(LavaLizard),
+			typeof(FireBeetle), typeof(Cow), typeof(Bull), typeof(Gaman)//,			typeof( Minotaur)
+            // TODO Meraktus, Tormented Minotaur, Minotaur
+        };
 
+		public static int[] KillerLabels => m_KillerLabels;
 		private static readonly int[] m_KillerLabels = new int[]
 		{
 			1072413, 1072414, 1072418, 1072419, 1072420,
@@ -873,7 +1241,8 @@ namespace Server.Items
 			return new TalismanAttribute(m_Killers[num], m_KillerLabels[num], Utility.RandomMinMax(5, 60));
 		}
 
-		private static readonly SkillName[] m_Skills = new SkillName[]
+		public static SkillName[] SkillsOld => m_SkillsOld;
+		private static readonly SkillName[] m_SkillsOld = new SkillName[]
 		{
 			SkillName.Alchemy,
 			SkillName.Blacksmith,
@@ -886,7 +1255,23 @@ namespace Server.Items
 			SkillName.Tinkering,
 		};
 
-		public static SkillName GetRandomSkill()
+		public static TalismanSkill[] Skills => m_Skills;
+		private static readonly TalismanSkill[] m_Skills = new TalismanSkill[]
+		{
+			TalismanSkill.Alchemy,
+			TalismanSkill.Blacksmithy,
+			TalismanSkill.Fletching,
+			TalismanSkill.Carpentry,
+			TalismanSkill.Cartography,
+			TalismanSkill.Cooking,
+			TalismanSkill.Glassblowing,
+			TalismanSkill.Inscription,
+			TalismanSkill.Masonry,
+			TalismanSkill.Tailoring,
+			TalismanSkill.Tinkering,
+		};
+
+		public static TalismanSkill GetRandomSkill()
 		{
 			return m_Skills[Utility.Random(m_Skills.Length)];
 		}
@@ -938,6 +1323,67 @@ namespace Server.Items
 
 			return 0;
 		}
+
+		#endregion
+
+		#region Crafting Bonuses
+		/// <summary>
+		/// This should only be called for version 4 conversion from SkillName to CraftSystem
+		/// </summary>
+		/// <param name="skill"></param>
+		/// <returns></returns>
+		public TalismanSkill GetTalismanSkill(SkillName skill)
+		{
+			switch (skill)
+			{
+				default:
+				case SkillName.Alchemy: return TalismanSkill.Alchemy;
+				case SkillName.Blacksmith: return TalismanSkill.Blacksmithy;
+				case SkillName.Carpentry: return TalismanSkill.Carpentry;
+				case SkillName.Cartography: return TalismanSkill.Cartography;
+				case SkillName.Cooking: return TalismanSkill.Cooking;
+				case SkillName.Fletching: return TalismanSkill.Fletching;
+				case SkillName.Inscribe: return TalismanSkill.Inscription;
+				case SkillName.Tailoring: return TalismanSkill.Tailoring;
+				case SkillName.Tinkering: return TalismanSkill.Tinkering;
+			}
+		}
+
+		public SkillName GetMainSkill()
+		{
+			switch (m_Skill)
+			{
+				default:
+				case TalismanSkill.Alchemy: return SkillName.Alchemy;
+				case TalismanSkill.Blacksmithy: return SkillName.Blacksmith;
+				case TalismanSkill.Fletching: return SkillName.Fletching;
+				case TalismanSkill.Carpentry: return SkillName.Carpentry;
+				case TalismanSkill.Cartography: return SkillName.Cartography;
+				case TalismanSkill.Cooking: return SkillName.Cooking;
+				case TalismanSkill.Glassblowing: return SkillName.Alchemy;
+				case TalismanSkill.Inscription: return SkillName.Inscribe;
+				case TalismanSkill.Masonry: return SkillName.Carpentry;
+				case TalismanSkill.Tailoring: return SkillName.Tailoring;
+				case TalismanSkill.Tinkering: return SkillName.Tinkering;
+			}
+		}
+
+		public int GetSkillLabel()
+		{
+			switch (m_Skill)
+			{
+				case TalismanSkill.Glassblowing: return 1072393;
+				case TalismanSkill.Masonry: return 1072392;
+				default: return AosSkillBonuses.GetLabel(GetMainSkill());
+			}
+		}
+
+		public bool CheckSkill(CraftSystem system)
+		{
+			int idx = (int)m_Skill;
+
+			return idx >= 0 && idx < CraftContext.Systems.Length && CraftContext.Systems[idx] == system;
+		}
 		#endregion
 
 		private class TalismanTarget : Target
@@ -955,9 +1401,11 @@ namespace Server.Items
 				if (m_Talisman == null || m_Talisman.Deleted)
 					return;
 
+				Mobile target = o as Mobile;
+
 				if (from.Talisman != m_Talisman)
 					from.SendLocalizedMessage(502641); // You must equip this item to use it.
-				else if (o is not Mobile target)
+				else if (target == null)
 					from.SendLocalizedMessage(1046439); // That is not a valid target.
 				else if (m_Talisman.ChargeTime > 0)
 					from.SendLocalizedMessage(1074882, m_Talisman.ChargeTime.ToString()); // You must wait ~1_val~ seconds for this to recharge.
@@ -976,30 +1424,18 @@ namespace Server.Items
 							IEntity mto = new Entity(Serial.Zero, new Point3D(target.X, target.Y, target.Z + 50), from.Map);
 							Effects.SendMovingParticles(mfrom, mto, 0x2255, 1, 0, false, false, 13, 3, 9501, 1, 0, EffectLayer.Head, 0x100);
 
-							StatMod mod;
-
-							mod = target.GetStatMod("[Magic] Str Offset");
-							if (mod != null && mod.Offset < 0)
-								_ = target.RemoveStatMod("[Magic] Str Offset");
-
-							mod = target.GetStatMod("[Magic] Dex Offset");
-							if (mod != null && mod.Offset < 0)
-								_ = target.RemoveStatMod("[Magic] Dex Offset");
-
-							mod = target.GetStatMod("[Magic] Int Offset");
-							if (mod != null && mod.Offset < 0)
-								_ = target.RemoveStatMod("[Magic] Int Offset");
+							//WeakenSpell.RemoveEffects(target);
+							//FeeblemindSpell.RemoveEffects(target);
+							//ClumsySpell.RemoveEffects(target);
+							CurseSpell.RemoveEffect(target);
 
 							target.Paralyzed = false;
 
-							_ = EvilOmenSpell.TryEndEffect(target);
-							_ = StrangleSpell.RemoveCurse(target);
-							_ = CorpseSkinSpell.RemoveCurse(target);
+							EvilOmenSpell.TryEndEffect(target);
+							StrangleSpell.RemoveCurse(target);
+							CorpseSkinSpell.RemoveCurse(target);
 							CurseSpell.RemoveEffect(target);
 
-							BuffInfo.RemoveBuff(target, BuffIcon.Clumsy);
-							BuffInfo.RemoveBuff(target, BuffIcon.FeebleMind);
-							BuffInfo.RemoveBuff(target, BuffIcon.Weaken);
 							BuffInfo.RemoveBuff(target, BuffIcon.MassCurse);
 
 							target.SendLocalizedMessage(1072408); // Any curses on you have been lifted

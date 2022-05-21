@@ -5,7 +5,7 @@ using Server.Accounting;
 namespace Server.Items
 {
     [TypeAlias("Server.Items.ScrollofTranscendence")]
-    public class ScrollOfTranscendence : SpecialScroll, IAccountRestricted
+    public sealed class ScrollOfTranscendence : SpecialScroll, IAccountRestricted
     {
         public override int LabelNumber => 1094934;// Scroll of Transcendence
 
@@ -13,7 +13,8 @@ namespace Server.Items
         *level in that skill by the amount of points displayed on the scroll.
         *As you may not gain skills beyond your maximum skill cap, any excess points will be lost.*/
 
-        public override string DefaultTitle => string.Format("<basefont color=#FFFFFF>Scroll of Transcendence ({0} Skill):</basefont>", Value);
+        public override string DefaultTitle =>
+	        $"<basefont color=#FFFFFF>Scroll of Transcendence ({Value} Skill):</basefont>";
 
         public static ScrollOfTranscendence CreateRandom(int min, int max)
         {
@@ -70,16 +71,15 @@ namespace Server.Items
             }
             #endregion
 
-            if (!string.IsNullOrEmpty(Account))
-            {
-				if (pm.Account is not Account acct || acct.Username != Account)
-				{
-					from.SendLocalizedMessage(1151920); // This item is Account Bound, you are not permitted to take this action.
-					return false;
-				}
-			}
+            if (string.IsNullOrEmpty(Account))
+	            return true;
 
-            return true;
+            if (pm.Account is Account acct && acct.Username == Account)
+	            return true;
+
+            from.SendLocalizedMessage(1151920); // This item is Account Bound, you are not permitted to take this action.
+            return false;
+
         }
 
         public override void Use(Mobile from)
@@ -87,30 +87,30 @@ namespace Server.Items
             if (!CanUse(from))
                 return;
 
-            double tskill = from.Skills[Skill].Base; // value of skill without item bonuses etc
-            double tcap = from.Skills[Skill].Cap; // maximum value permitted
-            bool canGain = false;
+            var tskill = from.Skills[Skill].Base; // value of skill without item bonuses etc
+            var tcap = from.Skills[Skill].Cap; // maximum value permitted
+            var canGain = false;
 
-            double newValue = Value;
+            var newValue = Value;
 
             if ((tskill + newValue) > tcap)
                 newValue = tcap - tskill;
 
             if (tskill < tcap && from.Skills[Skill].Lock == SkillLock.Up)
             {
-                if ((from.SkillsTotal + newValue * 10) > from.SkillsCap)
+                if (from.SkillsTotal + newValue * 10 > from.SkillsCap)
                 {
-                    int ns = from.Skills.Length; // number of items in from.Skills[]
+                    var ns = from.Skills.Length; // number of items in from.Skills[]
 
-                    for (int i = 0; i < ns; i++)
+                    for (var i = 0; i < ns; i++)
                     {
-                        // skill must point down and its value must be enough
-                        if (from.Skills[i].Lock == SkillLock.Down && from.Skills[i].Base >= newValue)
-                        {
-                            from.Skills[i].Base -= newValue;
-                            canGain = true;
-                            break;
-                        }
+	                    // skill must point down and its value must be enough
+	                    if (from.Skills[i].Lock != SkillLock.Down || !(from.Skills[i].Base >= newValue))
+		                    continue;
+
+	                    from.Skills[i].Base -= newValue;
+                        canGain = true;
+                        break;
                     }
                 }
                 else
@@ -148,7 +148,7 @@ namespace Server.Items
         {
             base.Deserialize(reader);
 
-            int version = reader.ReadInt();
+            var version = reader.ReadInt();
 
             if (version > 0)
                 Account = reader.ReadString();

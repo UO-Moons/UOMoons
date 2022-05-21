@@ -7,22 +7,22 @@ namespace Server.Engines.TownHouses
 {
 	public class VersionCommand
 	{
-		private static readonly Hashtable s_Commands = new();
+		private static readonly Hashtable SCommands = new();
 
 		public static void AddCommand(string com, AccessLevel acc, TownHouseCommandHandler cch)
 		{
-			s_Commands[com.ToLower()] = cch;
+			SCommands[com.ToLower()] = cch;
 			CommandSystem.Register(com, acc, OnCommand);
 		}
 
 		private static void OnCommand(CommandEventArgs e)
 		{
-			if (s_Commands[e.Command.ToLower()] == null)
+			if (SCommands[e.Command.ToLower()] == null)
 			{
 				return;
 			}
 
-			((TownHouseCommandHandler)s_Commands[e.Command.ToLower()])(new CommandInfo(e.Mobile, e.Command, e.ArgString,
+			((TownHouseCommandHandler)SCommands[e.Command.ToLower()])?.Invoke(new CommandInfo(e.Mobile, e.Command, e.ArgString,
 				e.Arguments));
 		}
 
@@ -36,7 +36,7 @@ namespace Server.Engines.TownHouses
 			sign.House.UpdateRegion();
 			Rectangle3D rect = new(Point3D.Zero, Point3D.Zero);
 
-			for (int i = 0; i < sign.House.Region.Area.Length; ++i)
+			for (var i = 0; i < sign.House.Region.Area.Length; ++i)
 			{
 				rect = sign.House.Region.Area[i];
 				rect = new Rectangle3D(
@@ -68,15 +68,9 @@ namespace Server.Engines.TownHouses
 		{
 		}
 
-		public override Rectangle2D[] Area
-		{
-			get { return new Rectangle2D[5]; }
-		}
+		public override Rectangle2D[] Area => new Rectangle2D[5];
 
-		public override Point3D BaseBanLocation
-		{
-			get { return Point3D.Zero; }
-		}
+		public override Point3D BaseBanLocation => Point3D.Zero;
 
 		public VersionHouse(Serial serial)
 			: base(serial)

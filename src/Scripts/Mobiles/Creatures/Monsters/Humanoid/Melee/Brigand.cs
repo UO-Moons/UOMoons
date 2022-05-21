@@ -64,8 +64,8 @@ namespace Server.Mobiles
 		{
 			base.OnDeath(c);
 
-			if (Utility.RandomDouble() < 0.9)
-				c.DropItem(new SeveredHumanEars());
+			//if (Utility.RandomDouble() < 0.9)
+			//	c.DropItem(new SeveredHumanEars());
 		}
 
 		public override void GenerateLoot()

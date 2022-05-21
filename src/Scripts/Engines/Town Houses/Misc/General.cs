@@ -1,10 +1,6 @@
-#region References
-
 using Server.Multis;
 using System.Collections.Generic;
 using System.Linq;
-
-#endregion
 
 namespace Server.Engines.TownHouses
 {
@@ -84,7 +80,7 @@ namespace Server.Engines.TownHouses
 				{
 					continue;
 				}
-				int count = 0;
+				var count = 0;
 
 				e.Mobile.SendMessage("You have {0} lockdowns and {1} secures available.", RemainingSecures(house),
 					RemainingLocks(house));
@@ -114,9 +110,9 @@ namespace Server.Engines.TownHouses
 
 			if (RequireRenterLicense)
 			{
-				RentalLicense lic = m.Backpack.FindItemByType(typeof(RentalLicense)) as RentalLicense;
+				var lic = m.Backpack.FindItemByType(typeof(RentalLicense)) as RentalLicense;
 
-				if (lic != null && lic.Owner == null)
+				if (lic is {Owner: null})
 				{
 					lic.Owner = m;
 				}
@@ -164,13 +160,13 @@ namespace Server.Engines.TownHouses
 					item => item is RentalContract contract && house == contract.ParentHouse)
 					.Any(item => ((RentalContract)item).EntireHouse);
 		}
-
+		/*
 		public static bool HasContract(BaseHouse house)
 		{
 			return
 				TownHouseSign.AllSigns.Any(
 					item => item is RentalContract contract && house == contract.ParentHouse);
-		}
+		}*/
 
 		public static bool HasOtherContract(BaseHouse house, RentalContract contract)
 		{
@@ -188,7 +184,7 @@ namespace Server.Engines.TownHouses
 
 
 			return (Core.AOS
-				? house.GetAosMaxSecures() - house.GetAosCurSecures(out int a, out int b, out int c, out int d)
+				? house.GetAosMaxSecures() - house.GetAosCurSecures(out var a, out var b, out var c, out var d)
 				: house.MaxSecures - house.SecureCount) - AllRentalSecures(house);
 		}
 

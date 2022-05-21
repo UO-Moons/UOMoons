@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Server.Engines.TownHouses
 {
-	public class RentalContract : TownHouseSign
+	public sealed class RentalContract : TownHouseSign
 	{
-		private Mobile c_RentalClient;
+		private Mobile m_CRentalClient;
 		public BaseHouse ParentHouse { get; private set; }
-		public Mobile RentalClient { get => c_RentalClient; set { c_RentalClient = value; InvalidateProperties(); } }
+		public Mobile RentalClient { get => m_CRentalClient; set { m_CRentalClient = value; InvalidateProperties(); } }
 		public Mobile RentalMaster { get; private set; }
 		public bool Completed { get; set; }
 		public bool EntireHouse { get; set; }
@@ -26,23 +26,24 @@ namespace Server.Engines.TownHouses
 
 		public bool HasContractedArea(Rectangle2D rect, int z)
 		{
-			foreach (TownHouseSign item in AllSigns)
+			foreach (var item in AllSigns)
 			{
-				if (item is RentalContract contract && item != this && item.Map == Map && ParentHouse == contract.ParentHouse)
+				if (item is not RentalContract contract || item == this || item.Map != Map ||
+				    ParentHouse != contract.ParentHouse)
+					continue;
+
+				foreach (var rect2 in contract.Blocks)
 				{
-					foreach (Rectangle2D rect2 in contract.Blocks)
+					for (var x = rect.Start.X; x < rect.End.X; ++x)
 					{
-						for (int x = rect.Start.X; x < rect.End.X; ++x)
+						for (var y = rect.Start.Y; y < rect.End.Y; ++y)
 						{
-							for (int y = rect.Start.Y; y < rect.End.Y; ++y)
+							if (!rect2.Contains(new Point2D(x, y)))
+								continue;
+
+							if (contract.MinZ <= z && contract.MaxZ >= z)
 							{
-								if (rect2.Contains(new Point2D(x, y)))
-								{
-									if (contract.MinZ <= z && contract.MaxZ >= z)
-									{
-										return true;
-									}
-								}
+								return true;
 							}
 						}
 					}
@@ -82,13 +83,13 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (c_RentalClient != null && (ParentHouse == null || ParentHouse.Deleted))
+			if (m_CRentalClient != null && (ParentHouse == null || ParentHouse.Deleted))
 			{
 				Delete();
 				return;
 			}
 
-			if (c_RentalClient != null && !Owned)
+			if (m_CRentalClient != null && !Owned)
 			{
 				Delete();
 				return;
@@ -114,13 +115,13 @@ namespace Server.Engines.TownHouses
 
 		protected override void DemolishAlert()
 		{
-			if (ParentHouse == null || RentalMaster == null || c_RentalClient == null)
+			if (ParentHouse == null || RentalMaster == null || m_CRentalClient == null)
 			{
 				return;
 			}
 
-			RentalMaster.SendMessage("You have begun to use lockdowns reserved for {0}, and their rental unit will collapse in {1}.", c_RentalClient.Name, Math.Round((DemolishTime - DateTime.UtcNow).TotalHours, 2));
-			c_RentalClient.SendMessage("Alert your land lord, {0}, they are using storage reserved for you.  They have violated the rental agreement, which will end in {1} if nothing is done.", RentalMaster.Name, Math.Round((DemolishTime - DateTime.UtcNow).TotalHours, 2));
+			RentalMaster.SendMessage("You have begun to use lockdowns reserved for {0}, and their rental unit will collapse in {1}.", m_CRentalClient.Name, Math.Round((DemolishTime - DateTime.UtcNow).TotalHours, 2));
+			m_CRentalClient.SendMessage("Alert your land lord, {0}, they are using storage reserved for you.  They have violated the rental agreement, which will end in {1} if nothing is done.", RentalMaster.Name, Math.Round((DemolishTime - DateTime.UtcNow).TotalHours, 2));
 		}
 
 		public void FixLocSec()
@@ -185,7 +186,7 @@ namespace Server.Engines.TownHouses
 
 		protected override void OnRentPaid()
 		{
-			if (RentalMaster == null || c_RentalClient == null)
+			if (RentalMaster == null || m_CRentalClient == null)
 			{
 				return;
 			}
@@ -196,7 +197,7 @@ namespace Server.Engines.TownHouses
 			}
 
 			RentalMaster.BankBox.DropItem(new Gold(Price));
-			RentalMaster.SendMessage("The bank has transfered your rent from {0}.", c_RentalClient.Name);
+			RentalMaster.SendMessage("The bank has transfered your rent from {0}.", m_CRentalClient.Name);
 		}
 
 		public override void ClearHouse()
@@ -218,17 +219,11 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (RentalMaster == null)
-			{
-				RentalMaster = m;
-			}
+			RentalMaster ??= m;
 
-			BaseHouse house = BaseHouse.FindHouseAt(m);
+			var house = BaseHouse.FindHouseAt(m);
 
-			if (ParentHouse == null)
-			{
-				ParentHouse = house;
-			}
+			ParentHouse ??= house;
 
 			if (house == null || (house != ParentHouse && house != House))
 			{
@@ -268,9 +263,9 @@ namespace Server.Engines.TownHouses
 
 		public override void GetProperties(ObjectPropertyList list)
 		{
-			if (c_RentalClient != null)
+			if (m_CRentalClient != null)
 			{
-				list.Add("a house rental contract with " + c_RentalClient.Name);
+				list.Add("a house rental contract with " + m_CRentalClient.Name);
 			}
 			else if (Completed)
 			{
@@ -290,34 +285,34 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			if (!Owned && !ParentHouse.IsFriend(c_RentalClient))
+			if (!Owned && !ParentHouse.IsFriend(m_CRentalClient))
 			{
-				if (c_RentalClient != null && RentalMaster != null)
+				if (m_CRentalClient != null && RentalMaster != null)
 				{
 					RentalMaster.SendMessage("{0} has ended your rental agreement.  Because you revoked their access, their last payment will be refunded.", RentalMaster.Name);
-					c_RentalClient.SendMessage("You have ended your rental agreement with {0}.  Because your access was revoked, your last payment is refunded.", c_RentalClient.Name);
+					m_CRentalClient.SendMessage("You have ended your rental agreement with {0}.  Because your access was revoked, your last payment is refunded.", m_CRentalClient.Name);
 				}
 
-				DepositTo(c_RentalClient);
+				DepositTo(m_CRentalClient);
 			}
 			else if (Owned)
 			{
-				if (c_RentalClient != null && RentalMaster != null)
+				if (m_CRentalClient != null && RentalMaster != null)
 				{
-					c_RentalClient.SendMessage("{0} has ended your rental agreement.  Since they broke the contract, your are refunded the last payment.", RentalMaster.Name);
-					RentalMaster.SendMessage("You have ended your rental agreement with {0}.  They will be refunded their last payment.", c_RentalClient.Name);
+					m_CRentalClient.SendMessage("{0} has ended your rental agreement.  Since they broke the contract, your are refunded the last payment.", RentalMaster.Name);
+					RentalMaster.SendMessage("You have ended your rental agreement with {0}.  They will be refunded their last payment.", m_CRentalClient.Name);
 				}
 
-				DepositTo(c_RentalClient);
+				DepositTo(m_CRentalClient);
 
 				PackUpHouse();
 			}
 			else
 			{
-				if (c_RentalClient != null && RentalMaster != null)
+				if (m_CRentalClient != null && RentalMaster != null)
 				{
-					RentalMaster.SendMessage("{0} has ended your rental agreement.", c_RentalClient.Name);
-					c_RentalClient.SendMessage("You have ended your rental agreement with {0}.", RentalMaster.Name);
+					RentalMaster.SendMessage("{0} has ended your rental agreement.", m_CRentalClient.Name);
+					m_CRentalClient.SendMessage("You have ended your rental agreement with {0}.", RentalMaster.Name);
 				}
 
 				DepositTo(RentalMaster);
@@ -343,7 +338,7 @@ namespace Server.Engines.TownHouses
 			writer.Write(EntireHouse);
 
 			writer.Write(RentalMaster);
-			writer.Write(c_RentalClient);
+			writer.Write(m_CRentalClient);
 			writer.Write(ParentHouse);
 			writer.Write(Completed);
 		}
@@ -360,7 +355,7 @@ namespace Server.Engines.TownHouses
 			}
 
 			RentalMaster = reader.ReadMobile();
-			c_RentalClient = reader.ReadMobile();
+			m_CRentalClient = reader.ReadMobile();
 			ParentHouse = reader.ReadItem() as BaseHouse;
 			Completed = reader.ReadBool();
 		}

@@ -27,8 +27,8 @@ namespace Server.Engines.TownHouses
 			_ = new TownHousesGump(info.Mobile);
 		}
 
-		private ListPage c_ListPage;
-		private int c_Page;
+		private ListPage m_CListPage;
+		private int m_CPage;
 
 		public TownHousesGump(Mobile m)
 			: base(m, 100, 100)
@@ -47,13 +47,13 @@ namespace Server.Engines.TownHouses
 
 			int pp = 10;
 
-			if (c_Page != 0)
+			if (m_CPage != 0)
 			{
 				AddButton(width / 2 - 10, y += 25, 0x25E4, 0x25E5, "Page Down", PageDown);
 			}
 
 			ArrayList list = new();
-			if (c_ListPage == ListPage.Town)
+			if (m_CListPage == ListPage.Town)
 			{
 				list = new ArrayList(TownHouseSign.AllSigns);
 			}
@@ -68,23 +68,23 @@ namespace Server.Engines.TownHouses
 			list.Sort(new InternalSort());
 
 			AddHtml(0, y += 20, width,
-				"<CENTER>" + (c_ListPage == ListPage.Town ? "TownHouses" : "Houses") + " Count: " + list.Count);
+				"<CENTER>" + (m_CListPage == ListPage.Town ? "TownHouses" : "Houses") + " Count: " + list.Count);
 			AddHtml(0, y += 25, width, "<CENTER>TownHouses / Houses");
-			AddButton(width / 2 - 100, y + 3, c_ListPage == ListPage.Town ? 0x939 : 0x2716, "Page", Page, ListPage.Town);
-			AddButton(width / 2 + 90, y + 3, c_ListPage == ListPage.House ? 0x939 : 0x2716, "Page", Page, ListPage.House);
+			AddButton(width / 2 - 100, y + 3, m_CListPage == ListPage.Town ? 0x939 : 0x2716, "Page", Page, ListPage.Town);
+			AddButton(width / 2 + 90, y + 3, m_CListPage == ListPage.House ? 0x939 : 0x2716, "Page", Page, ListPage.House);
 
 			y += 5;
 
-			for (int i = c_Page * pp; i < (c_Page + 1) * pp && i < list.Count; ++i)
+			for (int i = m_CPage * pp; i < (m_CPage + 1) * pp && i < list.Count; ++i)
 			{
-				if (c_ListPage == ListPage.Town)
+				if (m_CListPage == ListPage.Town)
 				{
 					TownHouseSign sign = (TownHouseSign)list[i];
 
 					AddHtml(30, y += 20, width / 2 - 20, "<DIV ALIGN=LEFT>" + sign.Name);
 					AddButton(15, y + 3, 0x2716, "TownHouse Menu", TownHouseMenu, sign);
 
-					if (sign.House == null || sign.House.Owner == null)
+					if (sign.House?.Owner == null)
 					{
 						continue;
 					}
@@ -93,7 +93,10 @@ namespace Server.Engines.TownHouses
 				}
 				else
 				{
-					BaseHouse house = (BaseHouse)list[i];
+					var house = (BaseHouse)list[i];
+
+					if (house == null)
+						continue;
 
 					AddHtml(30, y += 20, width / 2 - 20, "<DIV ALIGN=LEFT>" + house.Name);
 					AddButton(15, y + 3, 0x2716, "Goto", Goto, house);
@@ -102,17 +105,18 @@ namespace Server.Engines.TownHouses
 					{
 						continue;
 					}
+
 					AddHtml(width / 2, y, width / 2 - 40, "<DIV ALIGN=RIGHT>" + house.Owner.RawName);
 					AddButton(width - 30, y + 3, 0x2716, "House Menu", HouseMenu, house);
 				}
 			}
 
-			if (pp * (c_Page + 1) < list.Count)
+			if (pp * (m_CPage + 1) < list.Count)
 			{
 				AddButton(width / 2 - 10, y += 25, 0x25E8, 0x25E9, "Page Up", PageUp);
 			}
 
-			if (c_ListPage == ListPage.Town)
+			if (m_CListPage == ListPage.Town)
 			{
 				AddHtml(0, y += 35, width, "<CENTER>Add New TownHouse");
 				AddButton(width / 2 - 80, y + 3, 0x2716, "New", New);
@@ -124,45 +128,43 @@ namespace Server.Engines.TownHouses
 
 		private void TownHouseMenu(object obj)
 		{
-			if (obj is not TownHouseSign)
+			if (obj is not TownHouseSign sign)
 			{
 				return;
 			}
 
 			NewGump();
 
-			_ = new TownHouseSetupGump(Owner, (TownHouseSign)obj);
+			_ = new TownHouseSetupGump(Owner, sign);
 		}
 
 		private void Page(object obj)
 		{
-			c_ListPage = (ListPage)obj;
+			m_CListPage = (ListPage)obj;
 			NewGump();
 		}
 
 		private void Goto(object obj)
 		{
-			if (obj is not BaseHouse)
+			if (obj is not BaseHouse house)
 			{
 				return;
 			}
 
-			Owner.Location = ((BaseHouse)obj).BanLocation;
-			Owner.Map = ((BaseHouse)obj).Map;
+			Owner.Location = house.BanLocation;
+			Owner.Map = house.Map;
 
 			NewGump();
 		}
 
 		private void HouseMenu(object obj)
 		{
-			if (obj is not BaseHouse)
-			{
+			if (obj is not BaseHouse house)
 				return;
-			}
 
 			NewGump();
 
-			Owner.SendGump(new HouseGumpAOS(0, Owner, (BaseHouse)obj));
+			Owner.SendGump(new HouseGumpAOS(0, Owner, house));
 		}
 
 		private void New()
@@ -179,13 +181,13 @@ namespace Server.Engines.TownHouses
 
 		private void PageUp()
 		{
-			c_Page++;
+			m_CPage++;
 			NewGump();
 		}
 
 		private void PageDown()
 		{
-			c_Page--;
+			m_CPage--;
 			NewGump();
 		}
 
@@ -194,34 +196,39 @@ namespace Server.Engines.TownHouses
 		{
 			public int Compare(object x, object y)
 			{
-				if (x == null && y == null)
+				switch (x)
 				{
-					return 0;
-				}
-
-				if (x is TownHouseSign)
-				{
-					TownHouseSign a = (TownHouseSign)x;
-					TownHouseSign b = (TownHouseSign)y;
-
-					return Insensitive.Compare(a.Name, b.Name);
-				}
-				else
-				{
-					BaseHouse a = (BaseHouse)x;
-					BaseHouse b = (BaseHouse)y;
-
-					if (a != null && (a.Owner == null && b.Owner != null))
+					case null when y == null:
+						return 0;
+					case TownHouseSign a1:
 					{
-						return -1;
-					}
-					if (a != null && (a.Owner != null && b.Owner == null))
-					{
-						return 1;
-					}
+						var b = (TownHouseSign) y;
 
-					return Insensitive.Compare(a.Owner.RawName, b.Owner.RawName);
+						return Insensitive.Compare(a1.Name, b.Name);
+					}
+					default:
+					{
+						var a = (BaseHouse) x;
+						var b = (BaseHouse) y;
+
+						switch (a)
+						{
+							case {Owner: null} when b?.Owner != null:
+								return -1;
+							case {Owner: { }} when b?.Owner == null:
+								return 1;
+						}
+
+						if (a?.Owner == null)
+							return 0;
+
+						if (b?.Owner != null)
+							return Insensitive.Compare(a.Owner.RawName, b.Owner.RawName);
+						break;
+					}
 				}
+
+				return 0;
 			}
 		}
 	}

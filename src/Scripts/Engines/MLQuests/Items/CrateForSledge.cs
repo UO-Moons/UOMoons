@@ -1,41 +1,31 @@
-using System;
-
 namespace Server.Items
 {
-	public class CrateForSledge : TransientItem
-	{
-		public override int LabelNumber => 1074520;  // Crate for Sledge
+    public class CrateForSledge : BaseItem
+    {
+        [Constructable]
+        public CrateForSledge()
+            : base(0x1FFF)
+        {
+            Weight = 5.0;
+            LootType = LootType.Blessed;
+        }
 
-		public override bool Nontransferable => true;
+        public CrateForSledge(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void AddNameProperties(ObjectPropertyList list)
-		{
-			base.AddNameProperties(list);
-			AddQuestItemProperty(list);
-		}
+        public override int LabelNumber => 1074520;// Crate for Sledge
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-		[Constructable]
-		public CrateForSledge() : base(0x1FFF, TimeSpan.FromHours(1))
-		{
-			LootType = LootType.Blessed;
-		}
-
-		public CrateForSledge(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // Version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-	}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = reader.ReadInt();
+        }
+    }
 }

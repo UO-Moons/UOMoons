@@ -94,8 +94,8 @@ namespace Server.Mobiles
 		{
 			base.OnDeath(c);
 
-			if (Utility.RandomDouble() < 0.35)
-				c.DropItem(new KirinBrains());
+			//if (Utility.RandomDouble() < 0.35)
+			//	c.DropItem(new KirinBrains());
 		}
 
 		public override OppositionGroup OppositionGroup => OppositionGroup.FeyAndUndead;

@@ -63,36 +63,35 @@ namespace Server.Engines.Champions
 
 		public void Validate()
 		{
-			if (Validate(m_Power) && Validate(m_Enlightenment) && Validate(m_Venom) && Validate(m_Pain) && Validate(m_Greed) && Validate(m_Death))
-			{
-				Mobile harrower = Harrower.Spawn(new Point3D(X, Y, Z + 6), Map);
+			if (!Validate(m_Power) || !Validate(m_Enlightenment) || !Validate(m_Venom) || !Validate(m_Pain) || !Validate(m_Greed) || !Validate(m_Death))
+				return;
 
-				if (harrower == null)
-					return;
+			Mobile harrower = Harrower.Spawn(new Point3D(X, Y, Z + 6), Map);
 
-				Clear(m_Power);
-				Clear(m_Enlightenment);
-				Clear(m_Venom);
-				Clear(m_Pain);
-				Clear(m_Greed);
-				Clear(m_Death);
-			}
+			if (harrower == null)
+				return;
+
+			Clear(m_Power);
+			Clear(m_Enlightenment);
+			Clear(m_Venom);
+			Clear(m_Pain);
+			Clear(m_Greed);
+			Clear(m_Death);
 		}
 
 		public static void Clear(ChampionSkullBrazier brazier)
 		{
-			if (brazier != null)
-			{
-				Effects.SendBoltEffect(brazier);
+			if (brazier == null)
+				return;
 
-				if (brazier.Skull != null)
-					brazier.Skull.Delete();
-			}
+			Effects.SendBoltEffect(brazier);
+
+			brazier.Skull?.Delete();
 		}
 
 		public static bool Validate(ChampionSkullBrazier brazier)
 		{
-			return brazier != null && brazier.Skull != null && !brazier.Skull.Deleted;
+			return brazier?.Skull != null && !brazier.Skull.Deleted;
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -111,7 +110,7 @@ namespace Server.Engines.Champions
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			var version = reader.ReadInt();
 
 			switch (version)
 			{

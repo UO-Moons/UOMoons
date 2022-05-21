@@ -69,7 +69,7 @@ namespace Server.Engines.Quests
 			return false;
 		}
 
-		protected Item SetHue(Item item, int hue)
+		protected static Item SetHue(Item item, int hue)
 		{
 			item.Hue = hue;
 			return item;
@@ -79,20 +79,18 @@ namespace Server.Engines.Quests
 		{
 			base.AddCustomContextEntries(from, list);
 
-			if (from.Alive && from is PlayerMobile && TalkNumber > 0 && CanTalkTo((PlayerMobile)from))
+			if (from.Alive && from is PlayerMobile mobile && TalkNumber > 0 && CanTalkTo(mobile))
 				list.Add(new TalkEntry(this));
 		}
 
 		public override void OnMovement(Mobile m, Point3D oldLocation)
 		{
-			if (m.Alive && m is PlayerMobile)
+			if (m.Alive && m is PlayerMobile mobile)
 			{
-				PlayerMobile pm = (PlayerMobile)m;
+				var range = GetAutoTalkRange(mobile);
 
-				int range = GetAutoTalkRange(pm);
-
-				if (m.Alive && range >= 0 && InRange(m, range) && !InRange(oldLocation, range) && CanTalkTo(pm))
-					OnTalk(pm, false);
+				if (m.Alive && range >= 0 && InRange(m, range) && !InRange(oldLocation, range) && CanTalkTo(mobile))
+					OnTalk(mobile, false);
 			}
 		}
 

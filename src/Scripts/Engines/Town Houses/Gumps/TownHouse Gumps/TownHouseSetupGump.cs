@@ -65,20 +65,20 @@ namespace Server.Engines.TownHouses
 			BlockTwo
 		}
 
-		private readonly TownHouseSign c_Sign;
-		private Page c_Page;
-		private bool c_Quick;
+		private readonly TownHouseSign m_CSign;
+		private Page m_CPage;
+		private bool m_CQuick;
 
 		public TownHouseSetupGump(Mobile m, TownHouseSign sign) : base(m, 50, 50)
 		{
 			m.CloseGump(typeof(TownHouseSetupGump));
 
-			c_Sign = sign;
+			m_CSign = sign;
 		}
 
 		protected override void BuildGump()
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
@@ -86,13 +86,13 @@ namespace Server.Engines.TownHouses
 			const int width = 300;
 			int y = 0;
 
-			if (c_Quick)
+			if (m_CQuick)
 			{
 				QuickPage(width, ref y);
 			}
 			else
 			{
-				switch (c_Page)
+				switch (m_CPage)
 				{
 					case Page.Welcome:
 						WelcomePage(width, ref y);
@@ -137,7 +137,7 @@ namespace Server.Engines.TownHouses
 
 			AddBackgroundZero(0, 0, width, y += 30, 0x13BE);
 
-			if (!c_Sign.PriceReady || c_Sign.Owned)
+			if (!m_CSign.PriceReady || m_CSign.Owned)
 			{
 				return;
 			}
@@ -153,69 +153,69 @@ namespace Server.Engines.TownHouses
 			y += 30;
 
 			AddButton(x - 5, y - 3, 0x768, "Quick", Quick);
-			AddLabel(x, y - 3, c_Quick ? 0x34 : 0x47E, "Q");
+			AddLabel(x, y - 3, m_CQuick ? 0x34 : 0x47E, "Q");
 
-			AddButton(x += 20, y, c_Page == Page.Welcome ? 0x939 : 0x93A, "Welcome Page", ChangePage, 0);
-			AddButton(x += 20, y, c_Page == Page.Blocks ? 0x939 : 0x93A, "Blocks Page", ChangePage, 1);
+			AddButton(x += 20, y, m_CPage == Page.Welcome ? 0x939 : 0x93A, "Welcome Page", ChangePage, 0);
+			AddButton(x += 20, y, m_CPage == Page.Blocks ? 0x939 : 0x93A, "Blocks Page", ChangePage, 1);
 
-			if (c_Sign.BlocksReady)
+			if (m_CSign.BlocksReady)
 			{
-				AddButton(x += 20, y, c_Page == Page.Floors ? 0x939 : 0x93A, "Floors Page", ChangePage, 2);
+				AddButton(x += 20, y, m_CPage == Page.Floors ? 0x939 : 0x93A, "Floors Page", ChangePage, 2);
 			}
 
-			if (c_Sign.FloorsReady)
+			if (m_CSign.FloorsReady)
 			{
-				AddButton(x += 20, y, c_Page == Page.Sign ? 0x939 : 0x93A, "Sign Page", ChangePage, 3);
+				AddButton(x += 20, y, m_CPage == Page.Sign ? 0x939 : 0x93A, "Sign Page", ChangePage, 3);
 			}
 
-			if (c_Sign.SignReady)
+			if (m_CSign.SignReady)
 			{
-				AddButton(x += 20, y, c_Page == Page.Ban ? 0x939 : 0x93A, "Ban Page", ChangePage, 4);
+				AddButton(x += 20, y, m_CPage == Page.Ban ? 0x939 : 0x93A, "Ban Page", ChangePage, 4);
 			}
 
-			if (c_Sign.BanReady)
+			if (m_CSign.BanReady)
 			{
-				AddButton(x += 20, y, c_Page == Page.LocSec ? 0x939 : 0x93A, "LocSec Page", ChangePage, 5);
+				AddButton(x += 20, y, m_CPage == Page.LocSec ? 0x939 : 0x93A, "LocSec Page", ChangePage, 5);
 			}
 
-			if (c_Sign.LocSecReady)
+			if (m_CSign.LocSecReady)
 			{
-				AddButton(x += 20, y, c_Page == Page.Items ? 0x939 : 0x93A, "Items Page", ChangePage, 6);
+				AddButton(x += 20, y, m_CPage == Page.Items ? 0x939 : 0x93A, "Items Page", ChangePage, 6);
 
-				if (!c_Sign.Owned)
+				if (!m_CSign.Owned)
 				{
-					AddButton(x += 20, y, c_Page == Page.Length ? 0x939 : 0x93A, "Length Page", ChangePage, 7);
+					AddButton(x += 20, y, m_CPage == Page.Length ? 0x939 : 0x93A, "Length Page", ChangePage, 7);
 				}
 				else
 				{
 					x += 20;
 				}
 
-				AddButton(x += 20, y, c_Page == Page.Price ? 0x939 : 0x93A, "Price Page", ChangePage, 8);
+				AddButton(x += 20, y, m_CPage == Page.Price ? 0x939 : 0x93A, "Price Page", ChangePage, 8);
 			}
 
-			if (!c_Sign.PriceReady)
+			if (!m_CSign.PriceReady)
 			{
 				return;
 			}
-			AddButton(x += 20, y, c_Page == Page.Skills ? 0x939 : 0x93A, "Skills Page", ChangePage, 9);
-			AddButton(x += 20, y, c_Page == Page.Other ? 0x939 : 0x93A, "Other Page", ChangePage, 10);
-			AddButton(x += 20, y, c_Page == Page.Other2 ? 0x939 : 0x93A, "Other Page 2", ChangePage, 11);
+			AddButton(x += 20, y, m_CPage == Page.Skills ? 0x939 : 0x93A, "Skills Page", ChangePage, 9);
+			AddButton(x += 20, y, m_CPage == Page.Other ? 0x939 : 0x93A, "Other Page", ChangePage, 10);
+			AddButton(x + 20, y, m_CPage == Page.Other2 ? 0x939 : 0x93A, "Other Page 2", ChangePage, 11);
 		}
 
 		private void QuickPage(int width, ref int y)
 		{
-			c_Sign.ClearPreview();
+			m_CSign.ClearPreview();
 
 			AddHtml(0, y += 10, width, "<CENTER>Quick Setup");
 			AddImage(width / 2 - 100, y + 2, 0x39);
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddButton(5, 5, 0x768, "Quick", Quick);
-			AddLabel(10, 5, c_Quick ? 0x34 : 0x47E, "Q");
+			AddLabel(10, 5, m_CQuick ? 0x34 : 0x47E, "Q");
 
 			AddHtml(0, y += 25, width / 2 - 55, "<DIV ALIGN=RIGHT>Name");
-			AddTextField(width / 2 - 15, y, 100, 20, 0x480, 0xBBC, "Name", c_Sign.Name);
+			AddTextField(width / 2 - 15, y, 100, 20, 0x480, 0xBBC, "Name", m_CSign.Name);
 			AddButton(width / 2 - 40, y + 3, 0x2716, "Name", Name);
 
 			AddHtml(0, y += 25, width / 2, "<CENTER>Add Area");
@@ -226,11 +226,11 @@ namespace Server.Engines.TownHouses
 			AddButton(width / 4 * 3 - 50, y + 3, 0x2716, "ClearAll", ClearAll);
 			AddButton(width / 4 * 3 + 40, y + 3, 0x2716, "ClearAll", ClearAll);
 
-			AddHtml(0, y += 25, width, "<CENTER>Base Floor: " + c_Sign.MinZ);
+			AddHtml(0, y += 25, width, "<CENTER>Base Floor: " + m_CSign.MinZ);
 			AddButton(width / 2 - 80, y + 3, 0x2716, "Base Floor", MinZSelect);
 			AddButton(width / 2 + 70, y + 3, 0x2716, "Base Floor", MinZSelect);
 
-			AddHtml(0, y += 17, width, "<CENTER>Top Floor: " + c_Sign.MaxZ);
+			AddHtml(0, y += 17, width, "<CENTER>Top Floor: " + m_CSign.MaxZ);
 			AddButton(width / 2 - 80, y + 3, 0x2716, "Top Floor", MaxZSelect);
 			AddButton(width / 2 + 70, y + 3, 0x2716, "Top Floor", MaxZSelect);
 
@@ -247,61 +247,61 @@ namespace Server.Engines.TownHouses
 			AddButton(width / 2 + 60, y + 3, 0x2716, "Suggest LocSec", SuggestLocSec);
 
 			AddHtml(0, y += 20, width / 2 - 20, "<DIV ALIGN=RIGHT>Secures");
-			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Secures", c_Sign.Secures.ToString());
+			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Secures", m_CSign.Secures.ToString());
 			AddButton(width / 2 - 5, y + 3, 0x2716, "Secures", Secures);
 
 			AddHtml(0, y += 22, width / 2 - 20, "<DIV ALIGN=RIGHT>Lockdowns");
-			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Lockdowns", c_Sign.Locks.ToString());
+			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Lockdowns", m_CSign.Locks.ToString());
 			AddButton(width / 2 - 5, y + 3, 0x2716, "Lockdowns", Lockdowns);
 
 			AddHtml(0, y += 25, width, "<CENTER>Give buyer items in home");
-			AddButton(width / 2 - 110, y, c_Sign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
-			AddButton(width / 2 + 90, y, c_Sign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
+			AddButton(width / 2 - 110, y, m_CSign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
+			AddButton(width / 2 + 90, y, m_CSign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
 
-			if (c_Sign.KeepItems)
+			if (m_CSign.KeepItems)
 			{
 				AddHtml(0, y += 25, width / 2 - 25, "<DIV ALIGN=RIGHT>At cost");
-				AddTextField(width / 2 + 15, y, 70, 20, 0x480, 0xBBC, "ItemsPrice", c_Sign.ItemsPrice.ToString());
+				AddTextField(width / 2 + 15, y, 70, 20, 0x480, 0xBBC, "ItemsPrice", m_CSign.ItemsPrice.ToString());
 				AddButton(width / 2 - 10, y + 5, 0x2716, "ItemsPrice", ItemsPrice);
 			}
 			else
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Don't delete items");
-				AddButton(width / 2 - 110, y, c_Sign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
-				AddButton(width / 2 + 90, y, c_Sign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
+				AddButton(width / 2 - 110, y, m_CSign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
+				AddButton(width / 2 + 90, y, m_CSign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
 			}
 
-			if (!c_Sign.Owned)
+			if (!m_CSign.Owned)
 			{
-				AddHtml(120, y += 25, 50, c_Sign.PriceType);
+				AddHtml(120, y += 25, 50, m_CSign.PriceType);
 				AddButton(170, y + 8, 0x985, 0x985, "LengthUp", PriceUp);
 				AddButton(170, y - 2, 0x983, 0x983, "LengthDown", PriceDown);
 			}
 
-			if (c_Sign.RentByTime != TimeSpan.Zero)
+			if (m_CSign.RentByTime != TimeSpan.Zero)
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Recurring Rent");
-				AddButton(width / 2 - 80, y, c_Sign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
-				AddButton(width / 2 + 60, y, c_Sign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
+				AddButton(width / 2 - 80, y, m_CSign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
+				AddButton(width / 2 + 60, y, m_CSign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
 
-				if (c_Sign.RecurRent)
+				if (m_CSign.RecurRent)
 				{
 					AddHtml(0, y += 20, width, "<CENTER>Rent To Own");
-					AddButton(width / 2 - 80, y, c_Sign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
-					AddButton(width / 2 + 60, y, c_Sign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
+					AddButton(width / 2 - 80, y, m_CSign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
+					AddButton(width / 2 + 60, y, m_CSign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
 				}
 			}
 
 			AddHtml(0, y += 25, width, "<CENTER>Free");
-			AddButton(width / 2 - 80, y, c_Sign.Free ? 0xD3 : 0xD2, "Free", Free);
-			AddButton(width / 2 + 60, y, c_Sign.Free ? 0xD3 : 0xD2, "Free", Free);
+			AddButton(width / 2 - 80, y, m_CSign.Free ? 0xD3 : 0xD2, "Free", Free);
+			AddButton(width / 2 + 60, y, m_CSign.Free ? 0xD3 : 0xD2, "Free", Free);
 
-			if (c_Sign.Free)
+			if (m_CSign.Free)
 			{
 				return;
 			}
-			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>" + c_Sign.PriceType + " Price");
-			AddTextField(width / 2 + 20, y, 70, 20, 0x480, 0xBBC, "Price", c_Sign.Price.ToString());
+			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>" + m_CSign.PriceType + " Price");
+			AddTextField(width / 2 + 20, y, 70, 20, 0x480, 0xBBC, "Price", m_CSign.Price.ToString());
 			AddButton(width / 2 - 5, y + 5, 0x2716, "Price", Price);
 
 			AddHtml(0, y += 25, width, "<CENTER>Suggest Price");
@@ -315,27 +315,26 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 - 100, y + 2, 0x39);
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
-			string helptext = "";
+			var helptext = "";
 
 			AddHtml(0, y += 25, width / 2 - 55, "<DIV ALIGN=RIGHT>Name");
-			AddTextField(width / 2 - 15, y, 100, 20, 0x480, 0xBBC, "Name", c_Sign.Name);
+			AddTextField(width / 2 - 15, y, 100, 20, 0x480, 0xBBC, "Name", m_CSign.Name);
 			AddButton(width / 2 - 40, y + 3, 0x2716, "Name", Name);
 
-			if (c_Sign != null && c_Sign.Map != Map.Internal && c_Sign.RootParent == null)
+			if (m_CSign != null && m_CSign.Map != Map.Internal && m_CSign.RootParent == null)
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Goto");
 				AddButton(width / 2 - 50, y + 3, 0x2716, "Goto", Goto);
 				AddButton(width / 2 + 40, y + 3, 0x2716, "Goto", Goto);
 			}
 
-			if (c_Sign.Owned)
+			if (m_CSign.Owned)
 			{
-				helptext = string.Format("  This home is owned by {0}, so be aware that changing anything " +
-										 "through this menu will change the home itself!  You can add more area, change the ownership " +
-										 "rules, almost anything!  You cannot, however, change the rental status of the home, way too many " +
-										 "ways for things to go ill.  If you change the restrictions and the home owner no longer meets them, " +
-										 "they will receive the normal 24 hour demolish warning.",
-					c_Sign.House.Owner.Name);
+				helptext = $"  This home is owned by {m_CSign.House.Owner.Name}, so be aware that changing anything " +
+				           "through this menu will change the home itself!  You can add more area, change the ownership " +
+				           "rules, almost anything!  You cannot, however, change the rental status of the home, way too many " +
+				           "ways for things to go ill.  If you change the restrictions and the home owner no longer meets them, " +
+				           "they will receive the normal 24 hour demolish warning.";
 
 				AddHtml(10, y += 25, width - 20, 180, helptext, false, false);
 
@@ -354,17 +353,17 @@ namespace Server.Engines.TownHouses
 			}
 
 			AddHtml(width - 60, y += 15, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void BlocksPage(int width, ref int y)
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
 
-			c_Sign.ShowAreaPreview(Owner);
+			m_CSign.ShowAreaPreview(Owner);
 
 			AddHtml(0, y += 10, width, "<CENTER>Create the Area");
 			AddImage(width / 2 - 100, y + 2, 0x39);
@@ -388,29 +387,29 @@ namespace Server.Engines.TownHouses
 			y += 140;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.BlocksReady)
+			if (!m_CSign.BlocksReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void FloorsPage(int width, ref int y)
 		{
-			c_Sign.ShowFloorsPreview(Owner);
+			m_CSign.ShowFloorsPreview(Owner);
 
 			AddHtml(0, y += 10, width, "<CENTER>Floors");
 			AddImage(width / 2 - 100, y + 2, 0x39);
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
-			AddHtml(0, y += 25, width, "<CENTER>Base Floor: " + c_Sign.MinZ);
+			AddHtml(0, y += 25, width, "<CENTER>Base Floor: " + m_CSign.MinZ);
 			AddButton(width / 2 - 80, y + 3, 0x2716, "Base Floor", MinZSelect);
 			AddButton(width / 2 + 70, y + 3, 0x2716, "Base Floor", MinZSelect);
 
-			AddHtml(0, y += 20, width, "<CENTER>Top Floor: " + c_Sign.MaxZ);
+			AddHtml(0, y += 20, width, "<CENTER>Top Floor: " + m_CSign.MaxZ);
 			AddButton(width / 2 - 80, y + 3, 0x2716, "Top Floor", MaxZSelect);
 			AddButton(width / 2 + 70, y + 3, 0x2716, "Top Floor", MaxZSelect);
 
@@ -423,24 +422,24 @@ namespace Server.Engines.TownHouses
 			y += 110;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.FloorsReady)
+			if (!m_CSign.FloorsReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void SignPage(int width, ref int y)
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
 
-			c_Sign.ShowSignPreview();
+			m_CSign.ShowSignPreview();
 
 			AddHtml(0, y += 10, width, "<CENTER>Sign Location");
 			AddImage(width / 2 - 100, y + 2, 0x39);
@@ -460,24 +459,24 @@ namespace Server.Engines.TownHouses
 			y += 130;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.SignReady)
+			if (!m_CSign.SignReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void BanPage(int width, ref int y)
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
 
-			c_Sign.ShowBanPreview();
+			m_CSign.ShowBanPreview();
 
 			AddHtml(0, y += 10, width, "<CENTER>Ban Location");
 			AddImage(width / 2 - 100, y + 2, 0x39);
@@ -496,14 +495,14 @@ namespace Server.Engines.TownHouses
 			y += 100;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.BanReady)
+			if (!m_CSign.BanReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void LocSecPage(int width, ref int y)
@@ -517,11 +516,11 @@ namespace Server.Engines.TownHouses
 			AddButton(width / 2 + 40, y + 3, 0x2716, "Suggest LocSec", SuggestLocSec);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Secures");
-			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Secures", c_Sign.Secures.ToString());
+			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Secures", m_CSign.Secures.ToString());
 			AddButton(width / 2 - 5, y + 3, 0x2716, "Secures", Secures);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Lockdowns");
-			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Lockdowns", c_Sign.Locks.ToString());
+			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "Lockdowns", m_CSign.Locks.ToString());
 			AddButton(width / 2 - 5, y + 3, 0x2716, "Lockdowns", Lockdowns);
 
 			string helptext = string.Format("   With this step you'll set the amount of storage for the home, or let " +
@@ -533,14 +532,14 @@ namespace Server.Engines.TownHouses
 			y += 90;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.LocSecReady)
+			if (!m_CSign.LocSecReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void ItemsPage(int width, ref int y)
@@ -550,23 +549,23 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddHtml(0, y += 25, width, "<CENTER>Give buyer items in home");
-			AddButton(width / 2 - 110, y, c_Sign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
-			AddButton(width / 2 + 90, y, c_Sign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
+			AddButton(width / 2 - 110, y, m_CSign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
+			AddButton(width / 2 + 90, y, m_CSign.KeepItems ? 0xD3 : 0xD2, "Keep Items", KeepItems);
 
-			if (c_Sign.KeepItems)
+			if (m_CSign.KeepItems)
 			{
 				AddHtml(0, y += 25, width / 2 - 25, "<DIV ALIGN=RIGHT>At cost");
-				AddTextField(width / 2 + 15, y, 70, 20, 0x480, 0xBBC, "ItemsPrice", c_Sign.ItemsPrice.ToString());
+				AddTextField(width / 2 + 15, y, 70, 20, 0x480, 0xBBC, "ItemsPrice", m_CSign.ItemsPrice.ToString());
 				AddButton(width / 2 - 10, y + 5, 0x2716, "ItemsPrice", ItemsPrice);
 			}
 			else
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Don't delete items");
-				AddButton(width / 2 - 110, y, c_Sign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
-				AddButton(width / 2 + 90, y, c_Sign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
+				AddButton(width / 2 - 110, y, m_CSign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
+				AddButton(width / 2 + 90, y, m_CSign.LeaveItems ? 0xD3 : 0xD2, "LeaveItems", LeaveItems);
 			}
 
-			string helptext =
+			var helptext =
 				string.Format("   By default, the system will delete all items non-static items already " +
 							  "in the home at the time of purchase.  These items are commonly referred to as Decoration Items. " +
 							  "They do not include home addons, like forges and the like.  They do include containers.  You can " +
@@ -577,14 +576,14 @@ namespace Server.Engines.TownHouses
 			y += 160;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.ItemsReady)
+			if (!m_CSign.ItemsReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + (c_Sign.Owned ? 2 : 1));
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + (m_CSign.Owned ? 2 : 1));
 		}
 
 		private void LengthPage(int width, ref int y)
@@ -593,25 +592,25 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 - 100, y + 2, 0x39);
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
-			AddHtml(120, y += 25, 50, c_Sign.PriceType);
+			AddHtml(120, y += 25, 50, m_CSign.PriceType);
 			AddButton(170, y + 8, 0x985, 0x985, "LengthUp", PriceUp);
 			AddButton(170, y - 2, 0x983, 0x983, "LengthDown", PriceDown);
 
-			if (c_Sign.RentByTime != TimeSpan.Zero)
+			if (m_CSign.RentByTime != TimeSpan.Zero)
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Recurring Rent");
-				AddButton(width / 2 - 80, y, c_Sign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
-				AddButton(width / 2 + 60, y, c_Sign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
+				AddButton(width / 2 - 80, y, m_CSign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
+				AddButton(width / 2 + 60, y, m_CSign.RecurRent ? 0xD3 : 0xD2, "RecurRent", RecurRent);
 
-				if (c_Sign.RecurRent)
+				if (m_CSign.RecurRent)
 				{
 					AddHtml(0, y += 20, width, "<CENTER>Rent To Own");
-					AddButton(width / 2 - 80, y, c_Sign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
-					AddButton(width / 2 + 60, y, c_Sign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
+					AddButton(width / 2 - 80, y, m_CSign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
+					AddButton(width / 2 + 60, y, m_CSign.RentToOwn ? 0xD3 : 0xD2, "RentToOwn", RentToOwn);
 				}
 			}
 
-			string helptext =
+			var helptext =
 				string.Format("   Getting closer to completing the setup!  Now you get to specify whether " +
 							  "this is a purchase or rental property.  Simply use the arrows until you have the setting you desire.  For " +
 							  "rental property, you can also make the purchase non-recuring, meaning after the time is up the player " +
@@ -623,14 +622,14 @@ namespace Server.Engines.TownHouses
 			y += 160;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.LengthReady)
+			if (!m_CSign.LengthReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void PricePage(int width, ref int y)
@@ -640,13 +639,13 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddHtml(0, y += 25, width, "<CENTER>Free");
-			AddButton(width / 2 - 80, y, c_Sign.Free ? 0xD3 : 0xD2, "Free", Free);
-			AddButton(width / 2 + 60, y, c_Sign.Free ? 0xD3 : 0xD2, "Free", Free);
+			AddButton(width / 2 - 80, y, m_CSign.Free ? 0xD3 : 0xD2, "Free", Free);
+			AddButton(width / 2 + 60, y, m_CSign.Free ? 0xD3 : 0xD2, "Free", Free);
 
-			if (!c_Sign.Free)
+			if (!m_CSign.Free)
 			{
-				AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>" + c_Sign.PriceType + " Price");
-				AddTextField(width / 2 + 20, y, 70, 20, 0x480, 0xBBC, "Price", c_Sign.Price.ToString());
+				AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>" + m_CSign.PriceType + " Price");
+				AddTextField(width / 2 + 20, y, 70, 20, 0x480, 0xBBC, "Price", m_CSign.Price.ToString());
 				AddButton(width / 2 - 5, y + 5, 0x2716, "Price", Price);
 
 				AddHtml(0, y += 20, width, "<CENTER>Suggest");
@@ -664,14 +663,14 @@ namespace Server.Engines.TownHouses
 			y += 130;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - (c_Sign.Owned ? 2 : 1));
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - (m_CSign.Owned ? 2 : 1));
 
-			if (!c_Sign.PriceReady)
+			if (!m_CSign.PriceReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void SkillsPage(int width, ref int y)
@@ -681,19 +680,19 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Skill");
-			AddTextField(width / 2 + 20, y, 100, 20, 0x480, 0xBBC, "Skill", c_Sign.Skill);
+			AddTextField(width / 2 + 20, y, 100, 20, 0x480, 0xBBC, "Skill", m_CSign.Skill);
 			AddButton(width / 2 - 5, y + 5, 0x2716, "Skill", Skill);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Amount");
-			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "SkillReq", c_Sign.SkillReq.ToString());
+			AddTextField(width / 2 + 20, y, 50, 20, 0x480, 0xBBC, "SkillReq", m_CSign.SkillReq.ToString());
 			AddButton(width / 2 - 5, y + 5, 0x2716, "Skill", Skill);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Min Total");
-			AddTextField(width / 2 + 20, y, 60, 20, 0x480, 0xBBC, "MinTotalSkill", c_Sign.MinTotalSkill.ToString());
+			AddTextField(width / 2 + 20, y, 60, 20, 0x480, 0xBBC, "MinTotalSkill", m_CSign.MinTotalSkill.ToString());
 			AddButton(width / 2 - 5, y + 5, 0x2716, "Skill", Skill);
 
 			AddHtml(0, y += 25, width / 2 - 20, "<DIV ALIGN=RIGHT>Max Total");
-			AddTextField(width / 2 + 20, y, 60, 20, 0x480, 0xBBC, "MaxTotalSkill", c_Sign.MaxTotalSkill.ToString());
+			AddTextField(width / 2 + 20, y, 60, 20, 0x480, 0xBBC, "MaxTotalSkill", m_CSign.MaxTotalSkill.ToString());
 			AddButton(width / 2 - 5, y + 5, 0x2716, "Skill", Skill);
 
 			string helptext =
@@ -706,14 +705,14 @@ namespace Server.Engines.TownHouses
 			y += 90;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
-			if (!c_Sign.PriceReady)
+			if (!m_CSign.PriceReady)
 			{
 				return;
 			}
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void OtherPage(int width, ref int y)
@@ -723,29 +722,29 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddHtml(0, y += 25, width, "<CENTER>Young");
-			AddButton(width / 2 - 80, y, c_Sign.YoungOnly ? 0xD3 : 0xD2, "Young Only", Young);
-			AddButton(width / 2 + 60, y, c_Sign.YoungOnly ? 0xD3 : 0xD2, "Young Only", Young);
+			AddButton(width / 2 - 80, y, m_CSign.YoungOnly ? 0xD3 : 0xD2, "Young Only", Young);
+			AddButton(width / 2 + 60, y, m_CSign.YoungOnly ? 0xD3 : 0xD2, "Young Only", Young);
 
-			if (!c_Sign.YoungOnly)
+			if (!m_CSign.YoungOnly)
 			{
 				AddHtml(0, y += 25, width, "<CENTER>Innocents");
-				AddButton(width / 2 - 80, y, c_Sign.Murderers == Intu.No ? 0xD3 : 0xD2, "No Murderers", Murderers, Intu.No);
-				AddButton(width / 2 + 60, y, c_Sign.Murderers == Intu.No ? 0xD3 : 0xD2, "No Murderers", Murderers, Intu.No);
+				AddButton(width / 2 - 80, y, m_CSign.Murderers == Intu.No ? 0xD3 : 0xD2, "No Murderers", Murderers, Intu.No);
+				AddButton(width / 2 + 60, y, m_CSign.Murderers == Intu.No ? 0xD3 : 0xD2, "No Murderers", Murderers, Intu.No);
 				AddHtml(0, y += 20, width, "<CENTER>Murderers");
-				AddButton(width / 2 - 80, y, c_Sign.Murderers == Intu.Yes ? 0xD3 : 0xD2, "Yes Murderers", Murderers,
+				AddButton(width / 2 - 80, y, m_CSign.Murderers == Intu.Yes ? 0xD3 : 0xD2, "Yes Murderers", Murderers,
 					Intu.Yes);
-				AddButton(width / 2 + 60, y, c_Sign.Murderers == Intu.Yes ? 0xD3 : 0xD2, "Yes Murderers", Murderers,
+				AddButton(width / 2 + 60, y, m_CSign.Murderers == Intu.Yes ? 0xD3 : 0xD2, "Yes Murderers", Murderers,
 					Intu.Yes);
 				AddHtml(0, y += 20, width, "<CENTER>All");
-				AddButton(width / 2 - 80, y, c_Sign.Murderers == Intu.Neither ? 0xD3 : 0xD2, "Neither Murderers",
+				AddButton(width / 2 - 80, y, m_CSign.Murderers == Intu.Neither ? 0xD3 : 0xD2, "Neither Murderers",
 					Murderers, Intu.Neither);
-				AddButton(width / 2 + 60, y, c_Sign.Murderers == Intu.Neither ? 0xD3 : 0xD2, "Neither Murderers",
+				AddButton(width / 2 + 60, y, m_CSign.Murderers == Intu.Neither ? 0xD3 : 0xD2, "Neither Murderers",
 					Murderers, Intu.Neither);
 			}
 
 			AddHtml(0, y += 25, width, "<CENTER>Relock doors on demolish");
-			AddButton(width / 2 - 110, y, c_Sign.Relock ? 0xD3 : 0xD2, "Relock", Relock);
-			AddButton(width / 2 + 90, y, c_Sign.Relock ? 0xD3 : 0xD2, "Relock", Relock);
+			AddButton(width / 2 - 110, y, m_CSign.Relock ? 0xD3 : 0xD2, "Relock", Relock);
+			AddButton(width / 2 + 90, y, m_CSign.Relock ? 0xD3 : 0xD2, "Relock", Relock);
 
 			string helptext =
 				string.Format("   These options are also optional.  With the young setting, you can restrict " +
@@ -758,10 +757,10 @@ namespace Server.Engines.TownHouses
 			y += 180;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 
 			AddHtml(width - 60, y, 60, "Next");
-			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)c_Page + 1);
+			AddButton(width - 30, y, 0x15E1, 0x15E5, "Next", ChangePage, (int)m_CPage + 1);
 		}
 
 		private void OtherPage2(int width, ref int y)
@@ -771,22 +770,22 @@ namespace Server.Engines.TownHouses
 			AddImage(width / 2 + 70, y + 2, 0x3B);
 
 			AddHtml(0, y += 25, width, "<CENTER>Force Public");
-			AddButton(width / 2 - 110, y, c_Sign.ForcePublic ? 0xD3 : 0xD2, "Public", ForcePublic);
-			AddButton(width / 2 + 90, y, c_Sign.ForcePublic ? 0xD3 : 0xD2, "Public", ForcePublic);
+			AddButton(width / 2 - 110, y, m_CSign.ForcePublic ? 0xD3 : 0xD2, "Public", ForcePublic);
+			AddButton(width / 2 + 90, y, m_CSign.ForcePublic ? 0xD3 : 0xD2, "Public", ForcePublic);
 
 			AddHtml(0, y += 25, width, "<CENTER>Force Private");
-			AddButton(width / 2 - 110, y, c_Sign.ForcePrivate ? 0xD3 : 0xD2, "Private", ForcePrivate);
-			AddButton(width / 2 + 90, y, c_Sign.ForcePrivate ? 0xD3 : 0xD2, "Private", ForcePrivate);
+			AddButton(width / 2 - 110, y, m_CSign.ForcePrivate ? 0xD3 : 0xD2, "Private", ForcePrivate);
+			AddButton(width / 2 + 90, y, m_CSign.ForcePrivate ? 0xD3 : 0xD2, "Private", ForcePrivate);
 
 			//AddHtml(0, y += 25, width, "<CENTER>No Trading");
 			//AddButton(width / 2 - 110, y, c_Sign.NoTrade ? 0xD3 : 0xD2, "NoTrade", NoTrade);
 			//AddButton(width / 2 + 90, y, c_Sign.NoTrade ? 0xD3 : 0xD2, "NoTrade", NoTrade);
 
 			AddHtml(0, y += 25, width, "<CENTER>No Banning");
-			AddButton(width / 2 - 110, y, c_Sign.NoBanning ? 0xD3 : 0xD2, "NoBan", NoBan);
-			AddButton(width / 2 + 90, y, c_Sign.NoBanning ? 0xD3 : 0xD2, "NoBan", NoBan);
+			AddButton(width / 2 - 110, y, m_CSign.NoBanning ? 0xD3 : 0xD2, "NoBan", NoBan);
+			AddButton(width / 2 + 90, y, m_CSign.NoBanning ? 0xD3 : 0xD2, "NoBan", NoBan);
 
-			string helptext =
+			var helptext =
 				string.Format(
 					"   Another page of optional options!  Sometimes houses have features you don't want players using.  " +
 					"So here you can force homes to be private or public.  You can also prevent trading of the home.  Lastly, you can remove their ability to ban players.");
@@ -796,14 +795,14 @@ namespace Server.Engines.TownHouses
 			y += 180;
 
 			AddHtml(30, y += 15, 80, "Previous");
-			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)c_Page - 1);
+			AddButton(10, y, 0x15E3, 0x15E7, "Previous", ChangePage, (int)m_CPage - 1);
 		}
 
 		private bool SkillNameExists(string text)
 		{
 			try
 			{
-				SkillName index = (SkillName)Enum.Parse(typeof(SkillName), text, true);
+				var index = (SkillName)Enum.Parse(typeof(SkillName), text, true);
 				return true;
 			}
 			catch
@@ -815,7 +814,7 @@ namespace Server.Engines.TownHouses
 
 		private void ChangePage(object obj)
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
@@ -825,62 +824,62 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			c_Page = (Page)(int)obj;
+			m_CPage = (Page)(int)obj;
 
-			c_Sign.ClearPreview();
+			m_CSign.ClearPreview();
 
 			NewGump();
 		}
 
 		private void Name()
 		{
-			c_Sign.Name = GetTextField("Name");
+			m_CSign.Name = GetTextField("Name");
 			Owner.SendMessage("Name set!");
 			NewGump();
 		}
 
 		private void Goto()
 		{
-			Owner.Location = c_Sign.Location;
+			Owner.Location = m_CSign.Location;
 			Owner.Z += 5;
-			Owner.Map = c_Sign.Map;
+			Owner.Map = m_CSign.Map;
 
 			NewGump();
 		}
 
 		private void Quick()
 		{
-			c_Quick = !c_Quick;
+			m_CQuick = !m_CQuick;
 			NewGump();
 		}
 
 		private void BanLocSelect()
 		{
 			Owner.SendMessage("Target the ban location.");
-			Owner.Target = new InternalTarget(this, c_Sign, TargetType.BanLoc);
+			Owner.Target = new InternalTarget(this, m_CSign, TargetType.BanLoc);
 		}
 
 		private void SignLocSelect()
 		{
 			Owner.SendMessage("Target the location for the home sign.");
-			Owner.Target = new InternalTarget(this, c_Sign, TargetType.SignLoc);
+			Owner.Target = new InternalTarget(this, m_CSign, TargetType.SignLoc);
 		}
 
 		private void MinZSelect()
 		{
 			Owner.SendMessage("Target the base floor.");
-			Owner.Target = new InternalTarget(this, c_Sign, TargetType.MinZ);
+			Owner.Target = new InternalTarget(this, m_CSign, TargetType.MinZ);
 		}
 
 		private void MaxZSelect()
 		{
 			Owner.SendMessage("Target the highest floor.");
-			Owner.Target = new InternalTarget(this, c_Sign, TargetType.MaxZ);
+			Owner.Target = new InternalTarget(this, m_CSign, TargetType.MaxZ);
 		}
 
 		private void Young()
 		{
-			c_Sign.YoungOnly = !c_Sign.YoungOnly;
+			m_CSign.YoungOnly = !m_CSign.YoungOnly;
 			NewGump();
 		}
 
@@ -891,26 +890,26 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			c_Sign.Murderers = (Intu)obj;
+			m_CSign.Murderers = (Intu)obj;
 
 			NewGump();
 		}
 
 		private void Relock()
 		{
-			c_Sign.Relock = !c_Sign.Relock;
+			m_CSign.Relock = !m_CSign.Relock;
 			NewGump();
 		}
 
 		private void ForcePrivate()
 		{
-			c_Sign.ForcePrivate = !c_Sign.ForcePrivate;
+			m_CSign.ForcePrivate = !m_CSign.ForcePrivate;
 			NewGump();
 		}
 
 		private void ForcePublic()
 		{
-			c_Sign.ForcePublic = !c_Sign.ForcePublic;
+			m_CSign.ForcePublic = !m_CSign.ForcePublic;
 			NewGump();
 		}
 
@@ -922,38 +921,38 @@ namespace Server.Engines.TownHouses
 
 		private void NoBan()
 		{
-			c_Sign.NoBanning = !c_Sign.NoBanning;
+			m_CSign.NoBanning = !m_CSign.NoBanning;
 			NewGump();
 		}
 
 		private void KeepItems()
 		{
-			c_Sign.KeepItems = !c_Sign.KeepItems;
+			m_CSign.KeepItems = !m_CSign.KeepItems;
 			NewGump();
 		}
 
 		private void LeaveItems()
 		{
-			c_Sign.LeaveItems = !c_Sign.LeaveItems;
+			m_CSign.LeaveItems = !m_CSign.LeaveItems;
 			NewGump();
 		}
 
 		private void ItemsPrice()
 		{
-			c_Sign.ItemsPrice = GetTextFieldInt("ItemsPrice");
+			m_CSign.ItemsPrice = GetTextFieldInt("ItemsPrice");
 			Owner.SendMessage("Item Price set!");
 			NewGump();
 		}
 
 		private void RecurRent()
 		{
-			c_Sign.RecurRent = !c_Sign.RecurRent;
+			m_CSign.RecurRent = !m_CSign.RecurRent;
 			NewGump();
 		}
 
 		private void RentToOwn()
 		{
-			c_Sign.RentToOwn = !c_Sign.RentToOwn;
+			m_CSign.RentToOwn = !m_CSign.RentToOwn;
 			NewGump();
 		}
 
@@ -961,16 +960,16 @@ namespace Server.Engines.TownHouses
 		{
 			if (GetTextField("Skill") != "" && SkillNameExists(GetTextField("Skill")))
 			{
-				c_Sign.Skill = GetTextField("Skill");
+				m_CSign.Skill = GetTextField("Skill");
 			}
 			else
 			{
-				c_Sign.Skill = "";
+				m_CSign.Skill = "";
 			}
 
-			c_Sign.SkillReq = GetTextFieldInt("SkillReq");
-			c_Sign.MinTotalSkill = GetTextFieldInt("MinTotalSkill");
-			c_Sign.MaxTotalSkill = GetTextFieldInt("MaxTotalSkill");
+			m_CSign.SkillReq = GetTextFieldInt("SkillReq");
+			m_CSign.MinTotalSkill = GetTextFieldInt("MinTotalSkill");
+			m_CSign.MaxTotalSkill = GetTextFieldInt("MaxTotalSkill");
 
 			Owner.SendMessage("Skill info set!");
 
@@ -979,48 +978,48 @@ namespace Server.Engines.TownHouses
 
 		private void Claim()
 		{
-			_ = new TownHouseConfirmGump(Owner, c_Sign);
+			_ = new TownHouseConfirmGump(Owner, m_CSign);
 			OnClose();
 		}
 
 		private void SuggestLocSec()
 		{
-			int price = c_Sign.CalcVolume() * General.SuggestionFactor;
-			c_Sign.Secures = price / 75;
-			c_Sign.Locks = c_Sign.Secures / 2;
+			int price = m_CSign.CalcVolume() * General.SuggestionFactor;
+			m_CSign.Secures = price / 75;
+			m_CSign.Locks = m_CSign.Secures / 2;
 
 			NewGump();
 		}
 
 		private void Secures()
 		{
-			c_Sign.Secures = GetTextFieldInt("Secures");
+			m_CSign.Secures = GetTextFieldInt("Secures");
 			Owner.SendMessage("Secures set!");
 			NewGump();
 		}
 
 		private void Lockdowns()
 		{
-			c_Sign.Locks = GetTextFieldInt("Lockdowns");
+			m_CSign.Locks = GetTextFieldInt("Lockdowns");
 			Owner.SendMessage("Lockdowns set!");
 			NewGump();
 		}
 
 		private void SuggestPrice()
 		{
-			c_Sign.Price = c_Sign.CalcVolume() * General.SuggestionFactor;
+			m_CSign.Price = m_CSign.CalcVolume() * General.SuggestionFactor;
 
-			if (c_Sign.RentByTime == TimeSpan.FromDays(1))
+			if (m_CSign.RentByTime == TimeSpan.FromDays(1))
 			{
-				c_Sign.Price /= 60;
+				m_CSign.Price /= 60;
 			}
-			if (c_Sign.RentByTime == TimeSpan.FromDays(7))
+			if (m_CSign.RentByTime == TimeSpan.FromDays(7))
 			{
-				c_Sign.Price = (int)(c_Sign.Price / 8.57);
+				m_CSign.Price = (int)(m_CSign.Price / 8.57);
 			}
-			if (c_Sign.RentByTime == TimeSpan.FromDays(30))
+			if (m_CSign.RentByTime == TimeSpan.FromDays(30))
 			{
-				c_Sign.Price /= 2;
+				m_CSign.Price /= 2;
 			}
 
 			NewGump();
@@ -1028,66 +1027,66 @@ namespace Server.Engines.TownHouses
 
 		private void Price()
 		{
-			c_Sign.Price = GetTextFieldInt("Price");
+			m_CSign.Price = GetTextFieldInt("Price");
 			Owner.SendMessage("Price set!");
 			NewGump();
 		}
 
 		private void Free()
 		{
-			c_Sign.Free = !c_Sign.Free;
+			m_CSign.Free = !m_CSign.Free;
 			NewGump();
 		}
 
 		private void AddBlock()
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
 
 			Owner.SendMessage("Target the north western corner.");
-			Owner.Target = new InternalTarget(this, c_Sign, TargetType.BlockOne);
+			Owner.Target = new InternalTarget(this, m_CSign, TargetType.BlockOne);
 		}
 
 		private void ClearAll()
 		{
-			if (c_Sign == null)
+			if (m_CSign == null)
 			{
 				return;
 			}
 
-			c_Sign.Blocks.Clear();
-			c_Sign.ClearPreview();
-			c_Sign.UpdateBlocks();
+			m_CSign.Blocks.Clear();
+			m_CSign.ClearPreview();
+			m_CSign.UpdateBlocks();
 
 			NewGump();
 		}
 
 		private void PriceUp()
 		{
-			c_Sign.NextPriceType();
+			m_CSign.NextPriceType();
 			NewGump();
 		}
 
 		private void PriceDown()
 		{
-			c_Sign.PrevPriceType();
+			m_CSign.PrevPriceType();
 			NewGump();
 		}
 
 		protected override void OnClose()
 		{
-			c_Sign.ClearPreview();
+			m_CSign.ClearPreview();
 		}
 
 
 		private class InternalTarget : Target
 		{
-			private readonly TownHouseSetupGump c_Gump;
-			private readonly TownHouseSign c_Sign;
-			private readonly TargetType c_Type;
-			private readonly Point3D c_BoundOne;
+			private readonly TownHouseSetupGump m_CGump;
+			private readonly TownHouseSign m_CSign;
+			private readonly TargetType m_CType;
+			private readonly Point3D m_CBoundOne;
 
 			public InternalTarget(TownHouseSetupGump gump, TownHouseSign sign, TargetType type)
 				: this(gump, sign, type, Point3D.Zero)
@@ -1097,77 +1096,84 @@ namespace Server.Engines.TownHouses
 			private InternalTarget(TownHouseSetupGump gump, TownHouseSign sign, TargetType type, Point3D point)
 				: base(20, true, TargetFlags.None)
 			{
-				c_Gump = gump;
-				c_Sign = sign;
-				c_Type = type;
-				c_BoundOne = point;
+				m_CGump = gump;
+				m_CSign = sign;
+				m_CType = type;
+				m_CBoundOne = point;
 			}
 
 			protected override void OnTarget(Mobile m, object o)
 			{
-				IPoint3D point = (IPoint3D)o;
+				var point = (IPoint3D)o;
 
-				switch (c_Type)
+				switch (m_CType)
 				{
 					case TargetType.BanLoc:
-						c_Sign.BanLoc = new Point3D(point.X, point.Y, point.Z);
-						c_Gump.NewGump();
+						m_CSign.BanLoc = new Point3D(point.X, point.Y, point.Z);
+						m_CGump.NewGump();
 						break;
 
 					case TargetType.SignLoc:
-						c_Sign.SignLoc = new Point3D(point.X, point.Y, point.Z);
-						c_Sign.MoveToWorld(c_Sign.SignLoc, c_Sign.Map);
-						c_Sign.Z -= 5;
-						c_Sign.ShowSignPreview();
-						c_Gump.NewGump();
+						m_CSign.SignLoc = new Point3D(point.X, point.Y, point.Z);
+						m_CSign.MoveToWorld(m_CSign.SignLoc, m_CSign.Map);
+						m_CSign.Z -= 5;
+						m_CSign.ShowSignPreview();
+						m_CGump.NewGump();
 						break;
 
 					case TargetType.MinZ:
-						c_Sign.MinZ = point.Z;
+						m_CSign.MinZ = point.Z;
 
-						if (c_Sign.MaxZ < c_Sign.MinZ + 19)
+						if (m_CSign.MaxZ < m_CSign.MinZ + 19)
 						{
-							c_Sign.MaxZ = point.Z + 19;
+							m_CSign.MaxZ = point.Z + 19;
 						}
 
-						if (c_Sign.MaxZ == short.MaxValue)
+						if (m_CSign.MaxZ == short.MaxValue)
 						{
-							c_Sign.MaxZ = point.Z + 19;
+							m_CSign.MaxZ = point.Z + 19;
 						}
 
-						c_Gump.NewGump();
+						m_CGump.NewGump();
 						break;
 
 					case TargetType.MaxZ:
-						c_Sign.MaxZ = point.Z + 19;
+						m_CSign.MaxZ = point.Z + 19;
 
-						if (c_Sign.MinZ > c_Sign.MaxZ)
+						if (m_CSign.MinZ > m_CSign.MaxZ)
 						{
-							c_Sign.MinZ = point.Z;
+							m_CSign.MinZ = point.Z;
 						}
 
-						c_Gump.NewGump();
+						m_CGump.NewGump();
 						break;
 
 					case TargetType.BlockOne:
 						m.SendMessage("Now target the south eastern corner.");
-						m.Target = new InternalTarget(c_Gump, c_Sign, TargetType.BlockTwo,
+						m.Target = new InternalTarget(m_CGump, m_CSign, TargetType.BlockTwo,
 							new Point3D(point.X, point.Y, point.Z));
 						break;
 
 					case TargetType.BlockTwo:
-						c_Sign.Blocks.Add(
-							FixRect(new Rectangle2D(c_BoundOne, new Point3D(point.X + 1, point.Y + 1, point.Z))));
-						c_Sign.UpdateBlocks();
-						c_Sign.ShowAreaPreview(m);
-						c_Gump.NewGump();
+						m_CSign.Blocks.Add(
+							FixRect(new Rectangle2D(m_CBoundOne, new Point3D(point.X + 1, point.Y + 1, point.Z))));
+						m_CSign.UpdateBlocks();
+						m_CSign.ShowAreaPreview(m);
+						m_CGump.NewGump();
 						break;
+					default:
+						throw new ArgumentOutOfRangeException
+						{
+							HelpLink = null,
+							HResult = 0,
+							Source = null
+						};
 				}
 			}
 
 			protected override void OnTargetCancel(Mobile m, TargetCancelType cancelType)
 			{
-				c_Gump.NewGump();
+				m_CGump.NewGump();
 			}
 		}
 	}

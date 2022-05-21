@@ -1,8 +1,6 @@
-using Server.Engines.MLQuests.Items;
-
 namespace Server.Items
 {
-	public class BoneMachete : ElvenMachete, ITicket
+	public class BoneMachete : ElvenMachete
 	{
 		public override WeaponAbility PrimaryAbility => null;
 		public override WeaponAbility SecondaryAbility => null;

@@ -161,6 +161,8 @@ namespace Server.Accounting
 		/// </summary>
 		public void Delete()
 		{
+			EventSink.InvokeAccountDelete(new AccountDeleteEventArgs(this));
+
 			for (int i = 0; i < Length; ++i)
 			{
 				Mobile m = this[i];
@@ -168,10 +170,10 @@ namespace Server.Accounting
 				if (m == null)
 					continue;
 
-				List<BaseHouse> list = BaseHouse.GetHouses(m);
+				//List<BaseHouse> list = BaseHouse.GetHouses(m);
 
-				for (int j = 0; j < list.Count; ++j)
-					list[j].Delete();
+				//for (int j = 0; j < list.Count; ++j)
+				//	list[j].Delete();
 
 				m.Delete();
 
@@ -551,17 +553,17 @@ namespace Server.Accounting
 
 			if (PlainPassword != null)
 			{
-				ok = (PlainPassword == plainPassword);
+				ok = PlainPassword == plainPassword;
 				curProt = PasswordProtection.None;
 			}
 			else if (CryptPassword != null)
 			{
-				ok = (CryptPassword == HashMD5(plainPassword));
+				ok = CryptPassword == HashMD5(plainPassword);
 				curProt = PasswordProtection.Crypt;
 			}
 			else
 			{
-				ok = (NewCryptPassword == HashSHA1(Username + plainPassword));
+				ok = NewCryptPassword == HashSHA1(Username + plainPassword);
 				curProt = PasswordProtection.NewCrypt;
 			}
 
