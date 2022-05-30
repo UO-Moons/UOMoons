@@ -2,6 +2,7 @@ using Server.Commands;
 using Server.Engines.Craft;
 using Server.Factions;
 using Server.Mobiles;
+using Server.Network;
 using Server.Spells.Fifth;
 using Server.Spells.First;
 using Server.Spells.Fourth;
@@ -57,37 +58,6 @@ namespace Server.Items
 			}
 		}
 
-		#region Factions
-		private FactionItem m_FactionState;
-
-		public FactionItem FactionItemState
-		{
-			get => m_FactionState;
-			set
-			{
-				m_FactionState = value;
-
-				LootType = m_FactionState == null ? LootType.Regular : LootType.Blessed;
-			}
-		}
-		#endregion
-
-		private Mobile _Owner;
-		private string _OwnerName;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Owner
-		{
-			get { return _Owner; }
-			set { _Owner = value; if (_Owner != null) _OwnerName = _Owner.Name; InvalidateProperties(); }
-		}
-
-		public virtual string OwnerName
-		{
-			get { return _OwnerName; }
-			set { _OwnerName = value; InvalidateProperties(); }
-		}
-
 		public override int LabelNumber => 1071023;// Talisman
 
 		public override bool DisplayWeight
@@ -99,8 +69,6 @@ namespace Server.Items
 		}
 
 		public virtual bool ForceShowName => false;// used to override default summoner/removal name
-
-		public virtual int ArtifactRarity => 0;
 
 		private int m_MaxHitPoints;
 		private int m_HitPoints;
@@ -227,11 +195,7 @@ namespace Server.Items
 		}
 
 		public virtual int InitMinHits => 0;
-
 		public virtual int InitMaxHits => 0;
-
-		public virtual bool CanRepair => true;
-		public virtual bool CanFortify => true;
 
 		#region Slayer
 		private TalismanSlayerName m_Slayer;
@@ -454,8 +418,8 @@ namespace Server.Items
 				{
 					MaxHitPoints--;
 
-					if (Parent is Mobile)
-						((Mobile)Parent).LocalOverheadMessage(Server.Network.MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
+					if (Parent is Mobile mobile)
+						mobile.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
 
 					if (m_MaxHitPoints == 0)
 					{
@@ -494,17 +458,15 @@ namespace Server.Items
 		{
 			if (from.IsPlayer())
 			{
-				if (_Owner != null && _Owner != from)
+				if (Owner != null && Owner != from)
 				{
 					from.SendLocalizedMessage(501023); // You must be the owner to use this item.
 					return false;
 				}
 
-				if (this is IAccountRestricted && ((IAccountRestricted)this).Account != null)
+				if (this is IAccountRestricted restricted && restricted.Account != null)
 				{
-					Accounting.Account acct = from.Account as Accounting.Account;
-
-					if (acct == null || acct.Username != ((IAccountRestricted)this).Account)
+					if (from.Account is not Accounting.Account acct || acct.Username != restricted.Account)
 					{
 						from.SendLocalizedMessage(1071296); // This item is Account Bound and your character is not bound to it. You cannot use this item.
 						return false;
@@ -545,7 +507,7 @@ namespace Server.Items
 
 		public override void OnRemoved(IEntity parent)
 		{
-			if (parent is Mobile from)
+			if (parent is Mobile)
 			{
 				m_AosSkillBonuses.Remove();
 
@@ -592,9 +554,8 @@ namespace Server.Items
 						obj = null;
 					}
 
-					if (obj is Item)
+					if (obj is Item item)
 					{
-						Item item = (Item)obj;
 						int count = 1;
 
 						if (m_Summoner != null && m_Summoner.Amount > 1)
@@ -610,7 +571,6 @@ namespace Server.Items
 						{
 							from.SendLocalizedMessage(500720); // You don't have enough room in your backpack!
 							item.Delete();
-							item = null;
 							return;
 						}
 
@@ -631,10 +591,8 @@ namespace Server.Items
 						else if (m_Summoner != null && m_Summoner.Name != null)
 							from.SendLocalizedMessage(1074853, m_Summoner.Name.ToString()); // You have been given ~1_name~
 					}
-					else if (obj is BaseCreature)
+					else if (obj is BaseCreature mob)
 					{
-						BaseCreature mob = (BaseCreature)obj;
-
 						if ((m_Creature != null && !m_Creature.Deleted) || from.Followers + mob.ControlSlots > from.FollowersMax)
 						{
 							from.SendLocalizedMessage(1074270); // You have too many followers to summon another one.
@@ -686,7 +644,7 @@ namespace Server.Items
 			base.GetProperties(list);
 
 			#region Factions
-			if (m_FactionState != null)
+			if (FactionItemState != null)
 				list.Add(1041350); // faction item
 			#endregion    
 
@@ -762,7 +720,7 @@ namespace Server.Items
 			if ((prop = Attributes.BonusMana) != 0)
 				list.Add(1060439, prop.ToString()); // mana increase ~1_val~           
 
-			if ((prop = Attributes.NightSight) != 0)
+			if (Attributes.NightSight != 0)
 				list.Add(1060441); // night sight
 
 			if ((prop = Attributes.ReflectPhysical) != 0)
@@ -841,7 +799,7 @@ namespace Server.Items
 			None = 0x00000000,
 			Attributes = 0x00000001,
 			SkillBonuses = 0x00000002,
-			Owner = 0x00000004,
+			Unused = 0x00000004,
 			Protection = 0x00000008,
 			Killer = 0x00000010,
 			Summoner = 0x00000020,
@@ -865,9 +823,6 @@ namespace Server.Items
 			writer.Write(0); // version
 
 			writer.Write(m_Creature);
-
-			writer.Write(_Owner);
-			writer.Write(_OwnerName);
 
 			writer.Write(m_MaxHitPoints);
 			writer.Write(m_HitPoints);
@@ -942,8 +897,6 @@ namespace Server.Items
 				case 0:
 					{
 						m_Creature = reader.ReadMobile();
-						_Owner = reader.ReadMobile();
-						_OwnerName = reader.ReadString();
 						m_MaxHitPoints = reader.ReadInt();
 						m_HitPoints = reader.ReadInt();
 
@@ -953,10 +906,6 @@ namespace Server.Items
 							m_AosSkillBonuses = new AosSkillBonuses(this, reader);
 						else
 							m_AosSkillBonuses = new AosSkillBonuses(this);
-
-						// Backward compatibility
-						if (GetSaveFlag(flags, SaveFlag.Owner))
-							BlessedFor = reader.ReadMobile();
 
 						if (GetSaveFlag(flags, SaveFlag.Protection))
 							m_Protection = new TalismanAttribute(reader);
@@ -1007,10 +956,8 @@ namespace Server.Items
 					}
 			}
 
-			if (Parent is Mobile)
+			if (Parent is Mobile m)
 			{
-				Mobile m = (Mobile)Parent;
-
 				m_AosSkillBonuses.AddTo(m);
 
 				if (m_ChargeTime > 0)
@@ -1332,56 +1279,53 @@ namespace Server.Items
 		/// </summary>
 		/// <param name="skill"></param>
 		/// <returns></returns>
-		public TalismanSkill GetTalismanSkill(SkillName skill)
+		public static TalismanSkill GetTalismanSkill(SkillName skill)
 		{
-			switch (skill)
+			return skill switch
 			{
-				default:
-				case SkillName.Alchemy: return TalismanSkill.Alchemy;
-				case SkillName.Blacksmith: return TalismanSkill.Blacksmithy;
-				case SkillName.Carpentry: return TalismanSkill.Carpentry;
-				case SkillName.Cartography: return TalismanSkill.Cartography;
-				case SkillName.Cooking: return TalismanSkill.Cooking;
-				case SkillName.Fletching: return TalismanSkill.Fletching;
-				case SkillName.Inscribe: return TalismanSkill.Inscription;
-				case SkillName.Tailoring: return TalismanSkill.Tailoring;
-				case SkillName.Tinkering: return TalismanSkill.Tinkering;
-			}
+				SkillName.Blacksmith => TalismanSkill.Blacksmithy,
+				SkillName.Carpentry => TalismanSkill.Carpentry,
+				SkillName.Cartography => TalismanSkill.Cartography,
+				SkillName.Cooking => TalismanSkill.Cooking,
+				SkillName.Fletching => TalismanSkill.Fletching,
+				SkillName.Inscribe => TalismanSkill.Inscription,
+				SkillName.Tailoring => TalismanSkill.Tailoring,
+				SkillName.Tinkering => TalismanSkill.Tinkering,
+				_ => TalismanSkill.Alchemy,
+			};
 		}
 
 		public SkillName GetMainSkill()
 		{
-			switch (m_Skill)
+			return m_Skill switch
 			{
-				default:
-				case TalismanSkill.Alchemy: return SkillName.Alchemy;
-				case TalismanSkill.Blacksmithy: return SkillName.Blacksmith;
-				case TalismanSkill.Fletching: return SkillName.Fletching;
-				case TalismanSkill.Carpentry: return SkillName.Carpentry;
-				case TalismanSkill.Cartography: return SkillName.Cartography;
-				case TalismanSkill.Cooking: return SkillName.Cooking;
-				case TalismanSkill.Glassblowing: return SkillName.Alchemy;
-				case TalismanSkill.Inscription: return SkillName.Inscribe;
-				case TalismanSkill.Masonry: return SkillName.Carpentry;
-				case TalismanSkill.Tailoring: return SkillName.Tailoring;
-				case TalismanSkill.Tinkering: return SkillName.Tinkering;
-			}
+				TalismanSkill.Blacksmithy => SkillName.Blacksmith,
+				TalismanSkill.Fletching => SkillName.Fletching,
+				TalismanSkill.Carpentry => SkillName.Carpentry,
+				TalismanSkill.Cartography => SkillName.Cartography,
+				TalismanSkill.Cooking => SkillName.Cooking,
+				TalismanSkill.Glassblowing => SkillName.Alchemy,
+				TalismanSkill.Inscription => SkillName.Inscribe,
+				TalismanSkill.Masonry => SkillName.Carpentry,
+				TalismanSkill.Tailoring => SkillName.Tailoring,
+				TalismanSkill.Tinkering => SkillName.Tinkering,
+				_ => SkillName.Alchemy,
+			};
 		}
 
 		public int GetSkillLabel()
 		{
-			switch (m_Skill)
+			return m_Skill switch
 			{
-				case TalismanSkill.Glassblowing: return 1072393;
-				case TalismanSkill.Masonry: return 1072392;
-				default: return AosSkillBonuses.GetLabel(GetMainSkill());
-			}
+				TalismanSkill.Glassblowing => 1072393,
+				TalismanSkill.Masonry => 1072392,
+				_ => AosSkillBonuses.GetLabel(GetMainSkill()),
+			};
 		}
 
 		public bool CheckSkill(CraftSystem system)
 		{
 			int idx = (int)m_Skill;
-
 			return idx >= 0 && idx < CraftContext.Systems.Length && CraftContext.Systems[idx] == system;
 		}
 		#endregion
@@ -1401,11 +1345,9 @@ namespace Server.Items
 				if (m_Talisman == null || m_Talisman.Deleted)
 					return;
 
-				Mobile target = o as Mobile;
-
 				if (from.Talisman != m_Talisman)
 					from.SendLocalizedMessage(502641); // You must equip this item to use it.
-				else if (target == null)
+				else if (o is not Mobile target)
 					from.SendLocalizedMessage(1046439); // That is not a valid target.
 				else if (m_Talisman.ChargeTime > 0)
 					from.SendLocalizedMessage(1074882, m_Talisman.ChargeTime.ToString()); // You must wait ~1_val~ seconds for this to recharge.
@@ -1424,9 +1366,9 @@ namespace Server.Items
 							IEntity mto = new Entity(Serial.Zero, new Point3D(target.X, target.Y, target.Z + 50), from.Map);
 							Effects.SendMovingParticles(mfrom, mto, 0x2255, 1, 0, false, false, 13, 3, 9501, 1, 0, EffectLayer.Head, 0x100);
 
-							//WeakenSpell.RemoveEffects(target);
-							//FeeblemindSpell.RemoveEffects(target);
-							//ClumsySpell.RemoveEffects(target);
+							WeakenSpell.RemoveEffects(target);
+							FeeblemindSpell.RemoveEffects(target);
+							ClumsySpell.RemoveEffects(target);
 							CurseSpell.RemoveEffect(target);
 
 							target.Paralyzed = false;

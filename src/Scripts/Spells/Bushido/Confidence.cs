@@ -1,23 +1,91 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 namespace Server.Spells.Bushido
 {
 	public class Confidence : SamuraiSpell
 	{
 		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Confidence", null,
-				-1,
-				9002
-			);
+			"Confidence", null,
+			-1,
+			9002);
+
+		private static Dictionary<Mobile, Timer> m_Table = new Dictionary<Mobile, Timer>();
+		private static Dictionary<Mobile, Timer> m_RegenTable = new Dictionary<Mobile, Timer>();
+
+		public Confidence(Mobile caster, Item scroll)
+			: base(caster, scroll, m_Info)
+		{
+		}
 
 		public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(0.25);
-
 		public override double RequiredSkill => 25.0;
 		public override int RequiredMana => 10;
 
-		public Confidence(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+		public static bool IsConfident(Mobile m)
 		{
+			return m_Table.ContainsKey(m);
+		}
+
+		public static void BeginConfidence(Mobile m)
+		{
+			if (m_Table.TryGetValue(m, out Timer t))
+				t.Stop();
+
+			t = new InternalTimer(m);
+
+			m_Table[m] = t;
+
+			t.Start();
+
+			double bushido = m.Skills[SkillName.Bushido].Value;
+			BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Confidence, 1060596, 1153809, TimeSpan.FromSeconds(4), m, string.Format("{0}\t{1}\t{2}", ((int)(bushido / 12)).ToString(), ((int)(bushido / 5)).ToString(), "100"))); // Successful parry will heal for 1-~1_HEAL~ hit points and refresh for 1-~2_STAM~ stamina points.<br>+~3_HP~ hit point regeneration (4 second duration).
+		}
+
+		public static void EndConfidence(Mobile m)
+		{
+			if (!m_Table.ContainsKey(m))
+				return;
+
+			Timer t = m_Table[m];
+
+			t.Stop();
+			m_Table.Remove(m);
+
+			OnEffectEnd(m, typeof(Confidence));
+
+			BuffInfo.RemoveBuff(m, BuffIcon.Confidence);
+			BuffInfo.RemoveBuff(m, BuffIcon.AnticipateHit);
+		}
+
+		public static bool IsRegenerating(Mobile m)
+		{
+			return m_RegenTable.ContainsKey(m);
+		}
+
+		public static void BeginRegenerating(Mobile m)
+		{
+			Timer t;
+
+			if (m_RegenTable.TryGetValue(m, out t))
+				t.Stop();
+
+			t = new RegenTimer(m);
+
+			m_RegenTable[m] = t;
+
+			t.Start();
+		}
+
+		public static void StopRegenerating(Mobile m)
+		{
+			if (m_RegenTable.TryGetValue(m, out Timer t))
+				t.Stop();
+
+			if (m_RegenTable.ContainsKey(m))
+				m_RegenTable.Remove(m);
+
+			BuffInfo.RemoveBuff(m, BuffIcon.AnticipateHit);
 		}
 
 		public override void OnBeginCast()
@@ -45,44 +113,11 @@ namespace Server.Spells.Bushido
 			FinishSequence();
 		}
 
-		private static readonly Hashtable m_Table = new Hashtable();
-
-		public static bool IsConfident(Mobile m)
-		{
-			return m_Table.Contains(m);
-		}
-
-		public static void BeginConfidence(Mobile m)
-		{
-			Timer t = (Timer)m_Table[m];
-
-			if (t != null)
-				t.Stop();
-
-			t = new InternalTimer(m);
-
-			m_Table[m] = t;
-
-			t.Start();
-		}
-
-		public static void EndConfidence(Mobile m)
-		{
-			Timer t = (Timer)m_Table[m];
-
-			if (t != null)
-				t.Stop();
-
-			m_Table.Remove(m);
-
-			OnEffectEnd(m, typeof(Confidence));
-		}
-
 		private class InternalTimer : Timer
 		{
 			private readonly Mobile m_Mobile;
-
-			public InternalTimer(Mobile m) : base(TimeSpan.FromSeconds(15.0))
+			public InternalTimer(Mobile m)
+				: base(TimeSpan.FromSeconds(15.0))
 			{
 				m_Mobile = m;
 				Priority = TimerPriority.TwoFiftyMS;
@@ -95,44 +130,16 @@ namespace Server.Spells.Bushido
 			}
 		}
 
-		private static readonly Hashtable m_RegenTable = new Hashtable();
-
-		public static bool IsRegenerating(Mobile m)
-		{
-			return m_RegenTable.Contains(m);
-		}
-
-		public static void BeginRegenerating(Mobile m)
-		{
-			Timer t = (Timer)m_RegenTable[m];
-
-			if (t != null)
-				t.Stop();
-
-			t = new RegenTimer(m);
-
-			m_RegenTable[m] = t;
-
-			t.Start();
-		}
-
-		public static void StopRegenerating(Mobile m)
-		{
-			Timer t = (Timer)m_RegenTable[m];
-
-			if (t != null)
-				t.Stop();
-
-			m_RegenTable.Remove(m);
-		}
-
 		private class RegenTimer : Timer
 		{
-			private readonly Mobile m_Mobile;
+			private Mobile m_Mobile;
 			private int m_Ticks;
-			private readonly int m_Hits;
+			private int m_Hits;
 
-			public RegenTimer(Mobile m) : base(TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(1.0))
+			public int Hits { get { return m_Hits; } set { m_Hits = value; } }
+
+			public RegenTimer(Mobile m)
+				: base(TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(1.0))
 			{
 				m_Mobile = m;
 				m_Hits = 15 + (m.Skills.Bushido.Fixed * m.Skills.Bushido.Fixed / 57600);

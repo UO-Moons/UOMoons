@@ -1,11 +1,18 @@
-using Server.Network;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Server.Network;
 
 namespace Server
 {
+	public enum StatCode
+	{
+		Str,
+		Dex,
+		Int
+	}
+
 	public delegate TimeSpan SkillUseCallback(Mobile user);
 
 	public enum SkillLock : byte
@@ -118,15 +125,33 @@ namespace Server
 						if ((version & 0xC0) == 0x00)
 						{
 							if ((version & 0x1) != 0)
+							{
 								m_Base = reader.ReadUShort();
+							}
 
 							if ((version & 0x2) != 0)
+							{
 								m_Cap = reader.ReadUShort();
+							}
 							else
+							{
 								m_Cap = 1000;
+							}
 
 							if ((version & 0x4) != 0)
+							{
 								Lock = (SkillLock)reader.ReadByte();
+							}
+
+							if ((version & 0x8) != 0)
+							{
+								VolumeLearned = reader.ReadInt();
+							}
+
+							if ((version & 0x10) != 0)
+							{
+								NextGGSGain = reader.ReadDateTime();
+							}
 						}
 
 						break;
@@ -152,14 +177,16 @@ namespace Server
 		public void SetLockNoRelay(SkillLock skillLock)
 		{
 			if (skillLock < SkillLock.Up || skillLock > SkillLock.Locked)
+			{
 				return;
+			}
 
 			Lock = skillLock;
 		}
 
 		public void Serialize(GenericWriter writer)
 		{
-			if (m_Base == 0 && m_Cap == 1000 && Lock == SkillLock.Up)
+			if (m_Base == 0 && m_Cap == 1000 && Lock == SkillLock.Up && VolumeLearned == 0 && NextGGSGain == DateTime.MinValue)
 			{
 				writer.Write((byte)0xFF); // default
 			}
@@ -168,24 +195,56 @@ namespace Server
 				int flags = 0x0;
 
 				if (m_Base != 0)
+				{
 					flags |= 0x1;
+				}
 
 				if (m_Cap != 1000)
+				{
 					flags |= 0x2;
+				}
 
 				if (Lock != SkillLock.Up)
+				{
 					flags |= 0x4;
+				}
+
+				if (VolumeLearned != 0)
+				{
+					flags |= 0x8;
+				}
+
+				if (NextGGSGain != DateTime.MinValue)
+				{
+					flags |= 0x10;
+				}
 
 				writer.Write((byte)flags); // version
 
 				if (m_Base != 0)
+				{
 					writer.Write((short)m_Base);
+				}
 
 				if (m_Cap != 1000)
+				{
 					writer.Write((short)m_Cap);
+				}
 
 				if (Lock != SkillLock.Up)
+				{
 					writer.Write((byte)Lock);
+				}
+
+				if (VolumeLearned != 0)
+				{
+					writer.Write((int)VolumeLearned);
+				}
+
+				if (NextGGSGain != DateTime.MinValue)
+				{
+					writer.Write(NextGGSGain);
+				}
 			}
 		}
 
@@ -203,15 +262,33 @@ namespace Server
 		[CommandProperty(AccessLevel.Counselor)]
 		public SkillLock Lock { get; private set; }
 
+		[CommandProperty(AccessLevel.Counselor)]
+		public int VolumeLearned
+		{
+			get;
+			set;
+		}
+
+		[CommandProperty(AccessLevel.Counselor)]
+		public DateTime NextGGSGain
+		{
+			get;
+			set;
+		}
+
 		public int BaseFixedPoint
 		{
 			get => m_Base;
 			set
 			{
 				if (value < 0)
+				{
 					value = 0;
+				}
 				else if (value >= 0x10000)
+				{
 					value = 0xFFFF;
+				}
 
 				ushort sv = (ushort)value;
 
@@ -228,17 +305,15 @@ namespace Server
 					Mobile m = Owner.Owner;
 
 					if (m != null)
+					{
 						m.OnSkillChange(SkillName, (double)oldBase / 10);
+					}
 				}
 			}
 		}
 
 		[CommandProperty(AccessLevel.Counselor, AccessLevel.GameMaster)]
-		public double Base
-		{
-			get => (m_Base / 10.0);
-			set => BaseFixedPoint = (int)(value * 10.0);
-		}
+		public double Base { get => (m_Base / 10.0); set => BaseFixedPoint = (int)(value * 10.0); }
 
 		public int CapFixedPoint
 		{
@@ -246,9 +321,13 @@ namespace Server
 			set
 			{
 				if (value < 0)
+				{
 					value = 0;
+				}
 				else if (value >= 0x10000)
+				{
 					value = 0xFFFF;
+				}
 
 				ushort sv = (ushort)value;
 
@@ -264,17 +343,17 @@ namespace Server
 		[CommandProperty(AccessLevel.Counselor, AccessLevel.GameMaster)]
 		public double Cap
 		{
-			get => (m_Cap / 10.0);
+			get => m_Cap / 10.0;
 			set
 			{
-				double old = m_Cap / 10;
+				_ = m_Cap / 10;
 
 				CapFixedPoint = (int)(value * 10.0);
 
-				if (old != value && Owner.Owner != null)
-				{
-					EventSink.InvokeOnSkillCapChange(Owner.Owner, this, old, value);
-				}
+				//if (old != value && Owner.Owner != null)
+				//{
+					//EventSink.InvokeSkillCapChange(new SkillCapChangeEventArgs(Owner.Owner, this, old, value));
+				//}
 			}
 		}
 
@@ -290,10 +369,12 @@ namespace Server
 				//There has to be this distinction between the racial values and not to account for gaining skills and these skills aren't displayed nor Totaled up.
 				double value = NonRacialValue;
 
-				double raceBonus = Owner.Owner.RacialSkillBonus;
+				double raceBonus = Owner.Owner.GetRacialSkillBonus(SkillName);
 
 				if (raceBonus > value)
+				{
 					value = raceBonus;
+				}
 
 				return value;
 			}
@@ -307,23 +388,30 @@ namespace Server
 				double baseValue = Base;
 				double inv = 100.0 - baseValue;
 
-				if (inv < 0.0) inv = 0.0;
+				if (inv < 0.0)
+				{
+					inv = 0.0;
+				}
 
 				inv /= 100.0;
 
-				double statsOffset = ((UseStatMods ? Owner.Owner.Str : Owner.Owner.RawStr) * Info.StrScale) + ((UseStatMods ? Owner.Owner.Dex : Owner.Owner.RawDex) * Info.DexScale) + ((UseStatMods ? Owner.Owner.Int : Owner.Owner.RawInt) * Info.IntScale);
+				double statsOffset = ((UseStatMods ? Owner.Owner.Str : Owner.Owner.RawStr) * Info.StrScale) +
+									 ((UseStatMods ? Owner.Owner.Dex : Owner.Owner.RawDex) * Info.DexScale) +
+									 ((UseStatMods ? Owner.Owner.Int : Owner.Owner.RawInt) * Info.IntScale);
 				double statTotal = Info.StatTotal * inv;
 
 				statsOffset *= inv;
 
 				if (statsOffset > statTotal)
+				{
 					statsOffset = statTotal;
+				}
 
 				double value = baseValue + statsOffset;
 
 				Owner.Owner.ValidateSkillMods();
 
-				List<SkillMod> mods = Owner.Owner.SkillMods;
+				var mods = Owner.Owner.SkillMods;
 
 				double bonusObey = 0.0, bonusNotObey = 0.0;
 
@@ -336,9 +424,13 @@ namespace Server
 						if (mod.Relative)
 						{
 							if (mod.ObeyCap)
+							{
 								bonusObey += mod.Value;
+							}
 							else
+							{
 								bonusNotObey += mod.Value;
+							}
 						}
 						else
 						{
@@ -356,11 +448,54 @@ namespace Server
 					value += bonusObey;
 
 					if (value > Cap)
+					{
 						value = Cap;
+					}
 				}
+
+				Owner.Owner.MutateSkill((SkillName)Info.SkillID, ref value);
 
 				return value;
 			}
+		}
+
+		public bool IsMastery => Info.IsMastery;
+
+		public bool LearnMastery(int volume)
+		{
+			if (!IsMastery || HasLearnedVolume(volume))
+				return false;
+
+			VolumeLearned = volume;
+
+			if (VolumeLearned > 3)
+				VolumeLearned = 3;
+
+			if (VolumeLearned < 0)
+				VolumeLearned = 0;
+
+			return true;
+		}
+
+		public bool HasLearnedVolume(int volume)
+		{
+			return VolumeLearned >= volume;
+		}
+
+		public bool HasLearnedMastery()
+		{
+			return VolumeLearned > 0;
+		}
+
+		public bool SetCurrent()
+		{
+			if (IsMastery)
+			{
+				Owner.CurrentMastery = (SkillName)Info.SkillID;
+				return true;
+			}
+
+			return false;
 		}
 
 		public void Update()
@@ -371,20 +506,22 @@ namespace Server
 
 	public class SkillInfo
 	{
-		public SkillUseCallback Callback { get; set; }
-		public int SkillID { get; }
-		public string Name { get; set; }
-		public string Title { get; set; }
-		public double StrScale { get; set; }
-		public double DexScale { get; set; }
-		public double IntScale { get; set; }
-		public double StatTotal { get; set; }
-		public double StrGain { get; set; }
-		public double DexGain { get; set; }
-		public double IntGain { get; set; }
-		public double GainFactor { get; set; }
-
-		public SkillInfo(int skillID, string name, double strScale, double dexScale, double intScale, string title, SkillUseCallback callback, double strGain, double dexGain, double intGain, double gainFactor)
+		public SkillInfo(
+			int skillID,
+			string name,
+			double strScale,
+			double dexScale,
+			double intScale,
+			string title,
+			SkillUseCallback callback,
+			double strGain,
+			double dexGain,
+			double intGain,
+			double gainFactor,
+			StatCode primary,
+			StatCode secondary,
+			bool mastery = false,
+			bool usewhilecasting = false)
 		{
 			Name = name;
 			Title = title;
@@ -397,78 +534,99 @@ namespace Server
 			DexGain = dexGain;
 			IntGain = intGain;
 			GainFactor = gainFactor;
+			Primary = primary;
+			Secondary = secondary;
+			IsMastery = mastery;
+			UseWhileCasting = usewhilecasting;
 
 			StatTotal = strScale + dexScale + intScale;
 		}
 
+		public StatCode Primary { get; private set; }
+		public StatCode Secondary { get; private set; }
+
+		public SkillUseCallback Callback { get; set; }
+		public int SkillID { get; }
+		public string Name { get; set; }
+		public string Title { get; set; }
+		public double StrScale { get; set; }
+		public double DexScale { get; set; }
+		public double IntScale { get; set; }
+		public double StatTotal { get; set; }
+		public double StrGain { get; set; }
+		public double DexGain { get; set; }
+		public double IntGain { get; set; }
+		public double GainFactor { get; set; }
+		public bool IsMastery { get; set; }
+		public bool UseWhileCasting { get; set; }
+		public int Localization => 1044060 + SkillID;
+
 		public static SkillInfo[] Table { get; set; } = new SkillInfo[58]
-			{
-				new SkillInfo(  0, "Alchemy",           0.0,    5.0,    5.0,    "Alchemist",    null,   0.0,    0.5,    0.5,    1.0 ),
-				new SkillInfo(  1, "Anatomy",           0.0,    0.0,    0.0,    "Biologist",    null,   0.15,   0.15,   0.7,    1.0 ),
-				new SkillInfo(  2, "Animal Lore",       0.0,    0.0,    0.0,    "Naturalist",   null,   0.0,    0.0,    1.0,    1.0 ),
-				new SkillInfo(  3, "Item Identification",   0.0,    0.0,    0.0,    "Merchant", null,   0.0,    0.0,    1.0,    1.0 ),
-				new SkillInfo(  4, "Arms Lore",         0.0,    0.0,    0.0,    "Weapon Master",    null,   0.75,   0.15,   0.1,    1.0 ),
-				new SkillInfo(  5, "Parrying",          7.5,    2.5,    0.0,    "Duelist",  null,   0.75,   0.25,   0.0,    1.0 ),
-				new SkillInfo(  6, "Begging",           0.0,    0.0,    0.0,    "Beggar",   null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo(  7, "Blacksmithy",       10.0,   0.0,    0.0,    "Blacksmith",   null,   1.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo(  8, "Bowcraft/Fletching",    6.0,    16.0,   0.0,    "Bowyer",   null,   0.6,    1.6,    0.0,    1.0 ),
-				new SkillInfo(  9, "Peacemaking",       0.0,    0.0,    0.0,    "Pacifier",     null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 10, "Camping",           20.0,   15.0,   15.0,   "Explorer", null,   2.0,    1.5,    1.5,    1.0 ),
-				new SkillInfo( 11, "Carpentry",         20.0,   5.0,    0.0,    "Carpenter",    null,   2.0,    0.5,    0.0,    1.0 ),
-				new SkillInfo( 12, "Cartography",       0.0,    7.5,    7.5,    "Cartographer", null,   0.0,    0.75,   0.75,   1.0 ),
-				new SkillInfo( 13, "Cooking",           0.0,    20.0,   30.0,   "Chef",     null,   0.0,    2.0,    3.0,    1.0 ),
-				new SkillInfo( 14, "Detecting Hidden",      0.0,    0.0,    0.0,    "Scout",    null,   0.0,    0.4,    0.6,    1.0 ),
-				new SkillInfo( 15, "Discordance",       0.0,    2.5,    2.5,    "Demoralizer",      null,   0.0,    0.25,   0.25,   1.0 ),
-				new SkillInfo( 16, "Evaluating Intelligence",   0.0,    0.0,    0.0,    "Scholar",  null,   0.0,    0.0,    1.0,    1.0 ),
-				new SkillInfo( 17, "Healing",           6.0,    6.0,    8.0,    "Healer",   null,   0.6,    0.6,    0.8,    1.0 ),
-				new SkillInfo( 18, "Fishing",           0.0,    0.0,    0.0,    "Fisherman",    null,   0.5,    0.5,    0.0,    1.0 ),
-				new SkillInfo( 19, "Forensic Evaluation",   0.0,    0.0,    0.0,    "Detective",    null,   0.0,    0.2,    0.8,    1.0 ),
-				new SkillInfo( 20, "Herding",           16.25,  6.25,   2.5,    "Shepherd", null,   1.625,  0.625,  0.25,   1.0 ),
-				new SkillInfo( 21, "Hiding",            0.0,    0.0,    0.0,    "Shade",    null,   0.0,    0.8,    0.2,    1.0 ),
-				new SkillInfo( 22, "Provocation",       0.0,    4.5,    0.5,    "Rouser",       null,   0.0,    0.45,   0.05,   1.0 ),
-				new SkillInfo( 23, "Inscription",       0.0,    2.0,    8.0,    "Scribe",   null,   0.0,    0.2,    0.8,    1.0 ),
-				new SkillInfo( 24, "Lockpicking",       0.0,    25.0,   0.0,    "Infiltrator",  null,   0.0,    2.0,    0.0,    1.0 ),
-				new SkillInfo( 25, "Magery",            0.0,    0.0,    15.0,   "Mage",     null,   0.0,    0.0,    1.5,    1.0 ),
-				new SkillInfo( 26, "Resisting Spells",      0.0,    0.0,    0.0,    "Warder",       null,   0.25,   0.25,   0.5,    1.0 ),
-				new SkillInfo( 27, "Tactics",           0.0,    0.0,    0.0,    "Tactician",    null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 28, "Snooping",          0.0,    25.0,   0.0,    "Spy",  null,   0.0,    2.5,    0.0,    1.0 ),
-				new SkillInfo( 29, "Musicianship",      0.0,    0.0,    0.0,    "Bard",     null,   0.0,    0.8,    0.2,    1.0 ),
-				new SkillInfo( 30, "Poisoning",         0.0,    4.0,    16.0,   "Assassin", null,   0.0,    0.4,    1.6,    1.0 ),
-				new SkillInfo( 31, "Archery",           2.5,    7.5,    0.0,    "Archer",   null,   0.25,   0.75,   0.0,    1.0 ),
-				new SkillInfo( 32, "Spirit Speak",      0.0,    0.0,    0.0,    "Medium",   null,   0.0,    0.0,    1.0,    1.0 ),
-				new SkillInfo( 33, "Stealing",          0.0,    10.0,   0.0,    "Pickpocket",   null,   0.0,    1.0,    0.0,    1.0 ),
-				new SkillInfo( 34, "Tailoring",         3.75,   16.25,  5.0,    "Tailor",   null,   0.38,   1.63,   0.5,    1.0 ),
-				new SkillInfo( 35, "Animal Taming",     14.0,   2.0,    4.0,    "Tamer",    null,   1.4,    0.2,    0.4,    1.0 ),
-				new SkillInfo( 36, "Taste Identification",  0.0,    0.0,    0.0,    "Praegustator",     null,   0.2,    0.0,    0.8,    1.0 ),
-				new SkillInfo( 37, "Tinkering",         5.0,    2.0,    3.0,    "Tinker",   null,   0.5,    0.2,    0.3,    1.0 ),
-				new SkillInfo( 38, "Tracking",          0.0,    12.5,   12.5,   "Ranger",   null,   0.0,    1.25,   1.25,   1.0 ),
-				new SkillInfo( 39, "Veterinary",        8.0,    4.0,    8.0,    "Veterinarian", null,   0.8,    0.4,    0.8,    1.0 ),
-				new SkillInfo( 40, "Swordsmanship",     7.5,    2.5,    0.0,    "Swordsman",    null,   0.75,   0.25,   0.0,    1.0 ),
-				new SkillInfo( 41, "Mace Fighting",     9.0,    1.0,    0.0,    "Armsman",  null,   0.9,    0.1,    0.0,    1.0 ),
-				new SkillInfo( 42, "Fencing",           4.5,    5.5,    0.0,    "Fencer",   null,   0.45,   0.55,   0.0,    1.0 ),
-				new SkillInfo( 43, "Wrestling",         9.0,    1.0,    0.0,    "Wrestler", null,   0.9,    0.1,    0.0,    1.0 ),
-				new SkillInfo( 44, "Lumberjacking",     20.0,   0.0,    0.0,    "Lumberjack",   null,   2.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 45, "Mining",            20.0,   0.0,    0.0,    "Miner",    null,   2.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 46, "Meditation",        0.0,    0.0,    0.0,    "Stoic",    null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 47, "Stealth",           0.0,    0.0,    0.0,    "Rogue",    null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 48, "Remove Trap",       0.0,    0.0,    0.0,    "Trap Specialist",  null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 49, "Necromancy",        0.0,    0.0,    0.0,    "Necromancer",  null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 50, "Focus",         0.0,    0.0,    0.0,    "Driven",   null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 51, "Chivalry",          0.0,    0.0,    0.0,    "Paladin",  null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 52, "Bushido",           0.0,    0.0,    0.0,    "Samurai",  null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 53, "Ninjitsu",          0.0,    0.0,    0.0,    "Ninja",    null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 54, "Spellweaving",      0.0,    0.0,    0.0,    "Arcanist", null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 55, "Mysticism",         0.0,    0.0,    0.0,    "Mystic",   null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 56, "Imbuing",           0.0,    0.0,    0.0,    "Artificer",    null,   0.0,    0.0,    0.0,    1.0 ),
-				new SkillInfo( 57, "Throwing",          0.0,    0.0,    0.0,    "Bladeweaver",  null,   0.0,    0.0,    0.0,    1.0 ),
-			};
+		{
+			new SkillInfo(0, "Alchemy", 0.0, 5.0, 5.0, "Alchemist", null, 0.0, 0.5, 0.5, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(1, "Anatomy", 0.0, 0.0, 0.0, "Biologist", null, 0.15, 0.15, 0.7, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(2, "Animal Lore", 0.0, 0.0, 0.0, "Naturalist", null, 0.0, 0.0, 1.0, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(3, "Item Identification", 0.0, 0.0, 0.0, "Merchant", null, 0.0, 0.0, 1.0, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(4, "Arms Lore", 0.0, 0.0, 0.0, "Weapon Master", null, 0.75, 0.15, 0.1, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(5, "Parrying", 7.5, 2.5, 0.0, "Duelist", null, 0.75, 0.25, 0.0, 1.0, StatCode.Dex, StatCode.Str, true ),
+			new SkillInfo(6, "Begging", 0.0, 0.0, 0.0, "Beggar", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(7, "Blacksmithy", 10.0, 0.0, 0.0, "Blacksmith", null, 1.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(8, "Bowcraft/Fletching", 6.0, 16.0, 0.0, "Bowyer", null, 0.6, 1.6, 0.0, 1.0, StatCode.Dex, StatCode.Str),
+			new SkillInfo(9, "Peacemaking", 0.0, 0.0, 0.0, "Pacifier", null, 0.0, 0.0, 0.0, 1.0, StatCode.Int, StatCode.Dex, true ),
+			new SkillInfo(10, "Camping", 20.0, 15.0, 15.0, "Explorer", null, 2.0, 1.5, 1.5, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(11, "Carpentry", 20.0, 5.0, 0.0, "Carpenter", null, 2.0, 0.5, 0.0, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(12, "Cartography", 0.0, 7.5, 7.5, "Cartographer", null, 0.0, 0.75, 0.75, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(13, "Cooking", 0.0, 20.0, 30.0, "Chef", null, 0.0, 2.0, 3.0, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(14, "Detecting Hidden", 0.0, 0.0, 0.0, "Scout", null, 0.0, 0.4, 0.6, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(15, "Discordance", 0.0, 2.5, 2.5, "Demoralizer", null, 0.0, 0.25, 0.25, 1.0, StatCode.Dex, StatCode.Int, true ),
+			new SkillInfo(16, "Evaluating Intelligence", 0.0, 0.0, 0.0, "Scholar", null, 0.0, 0.0, 1.0, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(17, "Healing", 6.0, 6.0, 8.0, "Healer", null, 0.6, 0.6, 0.8, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(18, "Fishing", 0.0, 0.0, 0.0, "Fisherman", null, 0.5, 0.5, 0.0, 1.0, StatCode.Dex, StatCode.Str),
+			new SkillInfo(19, "Forensic Evaluation", 0.0, 0.0, 0.0, "Detective", null, 0.0, 0.2, 0.8, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(20, "Herding", 16.25, 6.25, 2.5, "Shepherd", null, 1.625, 0.625, 0.25, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(21, "Hiding", 0.0, 0.0, 0.0, "Shade", null, 0.0, 0.8, 0.2, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(22, "Provocation", 0.0, 4.5, 0.5, "Rouser", null, 0.0, 0.45, 0.05, 1.0, StatCode.Int, StatCode.Dex, true ),
+			new SkillInfo(23, "Inscription", 0.0, 2.0, 8.0, "Scribe", null, 0.0, 0.2, 0.8, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(24, "Lockpicking", 0.0, 25.0, 0.0, "Infiltrator", null, 0.0, 2.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(25, "Magery", 0.0, 0.0, 15.0, "Mage", null, 0.0, 0.0, 1.5, 1.0, StatCode.Int, StatCode.Str, true ),
+			new SkillInfo(26, "Resisting Spells", 0.0, 0.0, 0.0, "Warder", null, 0.25, 0.25, 0.5, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(27, "Tactics", 0.0, 0.0, 0.0, "Tactician", null, 0.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(28, "Snooping", 0.0, 25.0, 0.0, "Spy", null, 0.0, 2.5, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(29, "Musicianship", 0.0, 0.0, 0.0, "Bard", null, 0.0, 0.8, 0.2, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(30, "Poisoning", 0.0, 4.0, 16.0, "Assassin", null, 0.0, 0.4, 1.6, 1.0, StatCode.Int, StatCode.Dex, true ),
+			new SkillInfo(31, "Archery", 2.5, 7.5, 0.0, "Archer", null, 0.25, 0.75, 0.0, 1.0, StatCode.Dex, StatCode.Str, true ),
+			new SkillInfo(32, "Spirit Speak", 0.0, 0.0, 0.0, "Medium", null, 0.0, 0.0, 1.0, 1.0, StatCode.Int, StatCode.Str, false, true),
+			new SkillInfo(33, "Stealing", 0.0, 10.0, 0.0, "Pickpocket", null, 0.0, 1.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(34, "Tailoring", 3.75, 16.25, 5.0, "Tailor", null, 0.38, 1.63, 0.5, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(35, "Animal Taming", 14.0, 2.0, 4.0, "Tamer", null, 1.4, 0.2, 0.4, 1.0, StatCode.Str, StatCode.Int, true ),
+			new SkillInfo(36, "Taste Identification", 0.0, 0.0, 0.0, "Praegustator", null, 0.2, 0.0, 0.8, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(37, "Tinkering", 5.0, 2.0, 3.0, "Tinker", null, 0.5, 0.2, 0.3, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(38, "Tracking", 0.0, 12.5, 12.5, "Ranger", null, 0.0, 1.25, 1.25, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(39, "Veterinary", 8.0, 4.0, 8.0, "Veterinarian", null, 0.8, 0.4, 0.8, 1.0, StatCode.Int, StatCode.Dex),
+			new SkillInfo(40, "Swordsmanship", 7.5, 2.5, 0.0, "Swordsman", null, 0.75, 0.25, 0.0, 1.0, StatCode.Str, StatCode.Dex, true ),
+			new SkillInfo(41, "Mace Fighting", 9.0, 1.0, 0.0, "Armsman", null, 0.9, 0.1, 0.0, 1.0, StatCode.Str, StatCode.Dex, true ),
+			new SkillInfo(42, "Fencing", 4.5, 5.5, 0.0, "Fencer", null, 0.45, 0.55, 0.0, 1.0, StatCode.Dex, StatCode.Str, true ),
+			new SkillInfo(43, "Wrestling", 9.0, 1.0, 0.0, "Wrestler", null, 0.9, 0.1, 0.0, 1.0, StatCode.Str, StatCode.Dex, true ),
+			new SkillInfo(44, "Lumberjacking", 20.0, 0.0, 0.0, "Lumberjack", null, 2.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(45, "Mining", 20.0, 0.0, 0.0, "Miner", null, 2.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Dex),
+			new SkillInfo(46, "Meditation", 0.0, 0.0, 0.0, "Stoic", null, 0.0, 0.0, 0.0, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(47, "Stealth", 0.0, 0.0, 0.0, "Rogue", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(48, "Remove Trap", 0.0, 0.0, 0.0, "Trap Specialist", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(49, "Necromancy", 0.0, 0.0, 0.0, "Necromancer", null, 0.0, 0.0, 0.0, 1.0, StatCode.Int, StatCode.Str, true ),
+			new SkillInfo(50, "Focus", 0.0, 0.0, 0.0, "Driven", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Int),
+			new SkillInfo(51, "Chivalry", 0.0, 0.0, 0.0, "Paladin", null, 0.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Int, true ),
+			new SkillInfo(52, "Bushido", 0.0, 0.0, 0.0, "Samurai", null, 0.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Int, true ),
+			new SkillInfo(53, "Ninjitsu", 0.0, 0.0, 0.0, "Ninja", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Int, true ),
+			new SkillInfo(54, "Spellweaving", 0.0, 0.0, 0.0, "Arcanist", null, 0.0, 0.0, 0.0, 1.0, StatCode.Int, StatCode.Str, true),
+			new SkillInfo(55, "Mysticism", 0.0, 0.0, 0.0, "Mystic", null, 0.0, 0.0, 0.0, 1.0, StatCode.Str, StatCode.Int, true ),
+			new SkillInfo(56, "Imbuing", 0.0, 0.0, 0.0, "Artificer", null, 0.0, 0.0, 0.0, 1.0, StatCode.Int, StatCode.Str),
+			new SkillInfo(57, "Throwing", 0.0, 0.0, 0.0, "Bladeweaver", null, 0.0, 0.0, 0.0, 1.0, StatCode.Dex, StatCode.Str, true ),
+		};
 	}
 
 	[PropertyObject]
 	public class Skills : IEnumerable<Skill>
 	{
-		private static readonly int m_SkillTotalCap = Settings.Configuration.Get<int>("Gameplay", "SkillTotalCap");
-		private static readonly int m_SkillCap = Settings.Configuration.Get<int>("Gameplay", "SkillCap");
 		private readonly Skill[] m_Skills;
 		private Skill m_Highest;
 
@@ -646,31 +804,39 @@ namespace Server
 
 		[CommandProperty(AccessLevel.Counselor)]
 		public Skill Throwing { get => this[SkillName.Throwing]; set { } }
-
 		#endregion
 
 		[CommandProperty(AccessLevel.Counselor, AccessLevel.GameMaster)]
 		public int Cap { get; set; }
 
+		[CommandProperty(AccessLevel.Counselor, AccessLevel.GameMaster)]
+		public SkillName CurrentMastery
+		{
+			get;
+			set;
+		}
+
 		public int Total { get; set; }
-
 		public Mobile Owner { get; }
-
 		public int Length => m_Skills.Length;
 
-		public Skill this[SkillName name] => this[(int)name];
+		public Skill this[SkillName name] { get { return this[(int)name]; } }
 
 		public Skill this[int skillID]
 		{
 			get
 			{
 				if (skillID < 0 || skillID >= m_Skills.Length)
+				{
 					return null;
+				}
 
 				Skill sk = m_Skills[skillID];
 
 				if (sk == null)
-					m_Skills[skillID] = sk = new Skill(this, SkillInfo.Table[skillID], 0, m_SkillCap, SkillLock.Up);
+				{
+					m_Skills[skillID] = sk = new Skill(this, SkillInfo.Table[skillID], 0, 1000, SkillLock.Up);
+				}
 
 				return sk;
 			}
@@ -689,11 +855,17 @@ namespace Server
 		public static bool UseSkill(Mobile from, int skillID)
 		{
 			if (!from.CheckAlive())
+			{
 				return false;
+			}
 			else if (!from.Region.OnSkillUse(from, skillID))
+			{
 				return false;
+			}
 			else if (!from.AllowSkillUse((SkillName)skillID))
+			{
 				return false;
+			}
 
 			if (skillID >= 0 && skillID < SkillInfo.Table.Length)
 			{
@@ -701,7 +873,7 @@ namespace Server
 
 				if (info.Callback != null)
 				{
-					if (Core.TickCount - from.NextSkillTime >= 0 && from.Spell == null)
+					if (Core.TickCount - from.NextSkillTime >= 0 && (info.UseWhileCasting || from.Spell == null))
 					{
 						from.DisruptiveAction();
 
@@ -744,7 +916,9 @@ namespace Server
 					}
 
 					if (highest == null && m_Skills.Length > 0)
+					{
 						highest = this[0];
+					}
 
 					m_Highest = highest;
 				}
@@ -757,7 +931,8 @@ namespace Server
 		{
 			Total = 0;
 
-			writer.Write(0); // version
+			writer.Write(4); // version
+			writer.Write((int)CurrentMastery);
 
 			writer.Write(Cap);
 			writer.Write(m_Skills.Length);
@@ -781,9 +956,9 @@ namespace Server
 		public Skills(Mobile owner)
 		{
 			Owner = owner;
-			Cap = m_SkillTotalCap;
+			Cap = Settings.Configuration.Get<int>("Gameplay", "SkillTotalCap");
 
-			SkillInfo[] info = SkillInfo.Table;
+			var info = SkillInfo.Table;
 
 			m_Skills = new Skill[info.Length];
 
@@ -799,11 +974,30 @@ namespace Server
 
 			switch (version)
 			{
-				case 0:
+				case 4:
+					CurrentMastery = (SkillName)reader.ReadInt();
+					goto case 3;
+				case 3:
+				case 2:
 					{
 						Cap = reader.ReadInt();
 
-						SkillInfo[] info = SkillInfo.Table;
+						goto case 1;
+					}
+				case 1:
+					{
+						if (version < 2)
+						{
+							Cap = 7000;
+						}
+
+						if (version < 3)
+						{
+							/*m_Total =*/
+							reader.ReadInt();
+						}
+
+						var info = SkillInfo.Table;
 
 						m_Skills = new Skill[info.Length];
 
@@ -813,9 +1007,9 @@ namespace Server
 						{
 							if (i < info.Length)
 							{
-								Skill sk = new(this, info[i], reader);
+								Skill sk = new Skill(this, info[i], reader);
 
-								if (sk.BaseFixedPoint != 0 || sk.CapFixedPoint != 1000 || sk.Lock != SkillLock.Up)
+								if (sk.BaseFixedPoint != 0 || sk.CapFixedPoint != 1000 || sk.Lock != SkillLock.Up || sk.VolumeLearned != 0)
 								{
 									m_Skills[i] = sk;
 									Total += sk.BaseFixedPoint;
@@ -823,10 +1017,20 @@ namespace Server
 							}
 							else
 							{
-								_ = new Skill(this, null, reader);
+								new Skill(this, null, reader);
 							}
 						}
+
+						//for ( int i = count; i < info.Length; ++i )
+						//	m_Skills[i] = new Skill( this, info[i], 0, 1000, SkillLock.Up );
+
 						break;
+					}
+				case 0:
+					{
+						reader.ReadInt();
+
+						goto case 1;
 					}
 			}
 		}
@@ -834,16 +1038,25 @@ namespace Server
 		public void OnSkillChange(Skill skill)
 		{
 			if (skill == m_Highest) // could be downgrading the skill, force a recalc
+			{
 				m_Highest = null;
+			}
 			else if (m_Highest != null && skill.BaseFixedPoint > m_Highest.BaseFixedPoint)
+			{
 				m_Highest = skill;
+			}
 
 			Owner.OnSkillInvalidated(skill);
 
 			NetState ns = Owner.NetState;
 
 			if (ns != null)
+			{
 				ns.Send(new SkillChange(skill));
+
+				Owner.Delta(MobileDelta.Skills);
+				Owner.ProcessDelta();
+			}
 		}
 
 		public IEnumerator<Skill> GetEnumerator()

@@ -6,7 +6,7 @@ namespace Server.Spells.Fourth
 {
 	public class ManaDrainSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Mana Drain", "Ort Rel",
 				215,
 				9031,
@@ -17,6 +17,7 @@ namespace Server.Spells.Fourth
 
 		public override SpellCircle Circle => SpellCircle.Fourth;
 		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
+		private static readonly Dictionary<Mobile, Timer> m_Table = new();
 
 		public ManaDrainSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
@@ -36,8 +37,6 @@ namespace Server.Spells.Fourth
 					FinishSequence();
 			}
 		}
-
-		private static readonly Dictionary<Mobile, Timer> m_Table = new Dictionary<Mobile, Timer>();
 
 		private void AosDelay_Callback(object state)
 		{
@@ -130,8 +129,8 @@ namespace Server.Spells.Fourth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
+				if (o is Mobile mobile)
+					m_Owner.Target(mobile);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

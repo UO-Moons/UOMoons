@@ -48,13 +48,14 @@ namespace Server.Items
 			}
 		}
 
-		private static void Shoot(PlayerMobile from, Mobile target, INinjaWeapon weapon)
+		public static void Shoot(Mobile from, Mobile target, INinjaWeapon weapon)
 		{
-			if (from != target && CanUseWeapon(from, weapon) && from.CanBeHarmful(target))
+			if (from != target && (!(from is PlayerMobile) || CanUseWeapon((PlayerMobile)from, weapon)) && from.CanBeHarmful(target))
 			{
 				if (weapon.WeaponMinRange == 0 || !from.InRange(target, weapon.WeaponMinRange))
 				{
-					from.NinjaWepCooldown = true;
+					if (from is PlayerMobile)
+						((PlayerMobile)from).NinjaWepCooldown = true;
 
 					from.Direction = from.GetDirectionTo(target);
 
@@ -69,7 +70,8 @@ namespace Server.Items
 						Timer.DelayCall(TimeSpan.FromSeconds(1.0), new TimerStateCallback<object[]>(OnHit), new object[] { from, target, weapon });
 					}
 
-					Timer.DelayCall(TimeSpan.FromSeconds(2.5), new TimerStateCallback<PlayerMobile>(ResetUsing), from);
+					if (from is PlayerMobile)
+						Timer.DelayCall(TimeSpan.FromSeconds(2.5), new TimerStateCallback<PlayerMobile>(ResetUsing), (PlayerMobile)from);
 				}
 				else
 				{
@@ -248,12 +250,9 @@ namespace Server.Items
 				defenseValue -= 25;
 			}
 
-			int refBonus = 0;
+			defenseValue += Block.GetBonus(defender);
 
-			if (Block.GetBonus(defender, ref refBonus))
-			{
-				defenseValue += refBonus;
-			}
+			int refBonus = 0;
 
 			if (SkillHandlers.Discordance.GetEffect(attacker, ref refBonus))
 			{
@@ -344,7 +343,7 @@ namespace Server.Items
 
 		public class LoadEntry : ContextMenuEntry
 		{
-			private readonly INinjaWeapon weapon;
+			private INinjaWeapon weapon;
 
 			public LoadEntry(INinjaWeapon wep, int entry)
 				: base(entry, 0)
@@ -363,7 +362,7 @@ namespace Server.Items
 
 		public class UnloadEntry : ContextMenuEntry
 		{
-			private readonly INinjaWeapon weapon;
+			private INinjaWeapon weapon;
 
 			public UnloadEntry(INinjaWeapon wep, int entry)
 				: base(entry, 0)

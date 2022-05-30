@@ -26,10 +26,10 @@ namespace Server.Gumps
 			return GetType().FullName.GetHashCode();
 		}
 
-		public static int GetTypeID(Type type)
-		{
-			return type.FullName.GetHashCode();
-		}
+		//public static int GetTypeID(Type type)
+		//{
+		//	return type.FullName.GetHashCode();
+		//}
 
 		public Gump(int x, int y)
 		{
@@ -41,7 +41,8 @@ namespace Server.Gumps
 			m_X = x;
 			m_Y = y;
 
-			TypeID = GetTypeID(GetType());
+			TypeID = GetTypeID();
+			//TypeID = GetTypeID(GetType());
 
 			Entries = new List<GumpEntry>();
 			m_Strings = new List<string>();
@@ -53,7 +54,7 @@ namespace Server.Gumps
 			//	m_Strings.Clear();
 		}
 
-		public int TypeID { get; }
+		public int TypeID { get; set; }
 
 		public List<GumpEntry> Entries { get; }
 
@@ -203,9 +204,24 @@ namespace Server.Gumps
 			Add(new GumpTooltip(number));
 		}
 
+		public void AddTooltip(int number, string args)
+		{
+			Add(new GumpTooltip(number, args));
+		}
+
+		public void AddTooltip(string text)
+		{
+			Add(new GumpTooltip(1042971, text));
+		}
+
 		public void AddHtml(int x, int y, int width, int height, string text, bool background, bool scrollbar)
 		{
 			Add(new GumpHtml(x, y, width, height, text, background, scrollbar));
+		}
+
+		public void AddHtmlIntern(int x, int y, int width, int height, int textid, bool background, bool scrollbar)
+		{
+			Add(new GumpHtml(x, y, width, height, textid, background, scrollbar));
 		}
 
 		public void AddHtmlLocalized(int x, int y, int width, int height, int number, bool background, bool scrollbar)
@@ -221,6 +237,11 @@ namespace Server.Gumps
 		public void AddHtmlLocalized(int x, int y, int width, int height, int number, string args, int color, bool background, bool scrollbar)
 		{
 			Add(new GumpHtmlLocalized(x, y, width, height, number, args, color, background, scrollbar));
+		}
+
+		public void AddSpriteImage(int x, int y, int gumpID, int width, int height, int sx, int sy)
+		{
+			Add(new GumpSpriteImage(x, y, gumpID, width, height, sx, sy));
 		}
 
 		public void AddImage(int x, int y, int gumpID)
@@ -257,6 +278,11 @@ namespace Server.Gumps
 			Add(new GumpItem(x, y, itemID, hue));
 		}
 
+		public void AddLabelIntern(int x, int y, int hue, int textid)
+		{
+			Add(new GumpLabel(x, y, hue, textid));
+		}
+
 		public void AddLabel(int x, int y, int hue, string text)
 		{
 			Add(new GumpLabel(x, y, hue, text));
@@ -265,6 +291,11 @@ namespace Server.Gumps
 		public void AddLabelCropped(int x, int y, int width, int height, int hue, string text)
 		{
 			Add(new GumpLabelCropped(x, y, width, height, hue, text));
+		}
+
+		public void AddLabelCroppedIntern(int x, int y, int width, int height, int hue, int textid)
+		{
+			Add(new GumpLabelCropped(x, y, width, height, hue, textid));
 		}
 
 		public void AddRadio(int x, int y, int inactiveID, int activeID, bool initialState, int switchID)
@@ -282,6 +313,11 @@ namespace Server.Gumps
 			Add(new GumpTextEntryLimited(x, y, width, height, hue, entryID, initialText, size));
 		}
 
+		public void AddTextEntryIntern(int x, int y, int width, int height, int hue, int entryID, int initialTextID)
+		{
+			Add(new GumpTextEntry(x, y, width, height, hue, entryID, initialTextID));
+		}
+
 		public void AddItemProperty(Item item)
 		{
 			Add(new GumpItemProperty(item.Serial.Value));
@@ -290,6 +326,11 @@ namespace Server.Gumps
 		public void AddItemProperty(int serial)
 		{
 			Add(new GumpItemProperty(serial));
+		}
+
+		public void AddECHandleInput()
+		{
+			Add(new ECHandleInput());
 		}
 
 		public void Add(GumpEntry g)
@@ -317,18 +358,21 @@ namespace Server.Gumps
 
 		public int Intern(string value)
 		{
-			int indexOf = m_Strings.IndexOf(value);
+			return Intern(value, false);
+		}
 
-			if (indexOf >= 0)
+		public int Intern(string value, bool enforceUnique)
+		{
+			if (enforceUnique)
 			{
-				return indexOf;
+				int indexOf = m_Strings.IndexOf(value);
+
+				if (indexOf >= 0)
+					return indexOf;
 			}
-			else
-			{
-				Invalidate();
-				m_Strings.Add(value);
-				return m_Strings.Count - 1;
-			}
+
+			m_Strings.Add(value);
+			return m_Strings.Count - 1;
 		}
 
 		public void SendTo(NetState state)
@@ -349,6 +393,11 @@ namespace Server.Gumps
 		private static readonly byte[] m_NoClose = StringToBuffer("{ noclose }");
 		private static readonly byte[] m_NoDispose = StringToBuffer("{ nodispose }");
 		private static readonly byte[] m_NoResize = StringToBuffer("{ noresize }");
+
+		protected virtual Packet GetPacketFor(NetState ns)
+		{
+			return Compile(ns);
+		}
 
 		private Packet Compile(NetState ns)
 		{

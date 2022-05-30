@@ -108,11 +108,24 @@ namespace Server
 		public virtual int RandomFacialHair(Mobile m) { return RandomFacialHair(m.Female); }
 		public abstract int RandomFacialHair(bool female);  //For the *ahem* bearded ladies
 
+		public abstract bool ValidateFace(bool female, int itemID);
+
+		public virtual int RandomFace(Mobile m)
+		{
+			return RandomFace(m.Female);
+		}
+		public abstract int RandomFace(bool female);
+
 		public abstract int ClipSkinHue(int hue);
 		public abstract int RandomSkinHue();
 
 		public abstract int ClipHairHue(int hue);
 		public abstract int RandomHairHue();
+
+		public abstract int ClipFaceHue(int hue);
+		public abstract int RandomFaceHue();
+
+		public abstract bool ValidateEquipment(Item item);
 
 		public virtual int Body(Mobile m)
 		{
@@ -125,7 +138,7 @@ namespace Server
 		public virtual int AliveBody(Mobile m) { return AliveBody(m.Female); }
 		public virtual int AliveBody(bool female)
 		{
-			return (female ? FemaleBody : MaleBody);
+			return female ? FemaleBody : MaleBody;
 		}
 
 		public virtual int GhostBody(Mobile m) { return GhostBody(m.Female); }

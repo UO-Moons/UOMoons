@@ -1,174 +1,168 @@
-using System;
 using Reward = Server.Engines.Quests.BaseReward;
 
 namespace Server.Items
 {
-    public class BaseRewardBag : Bag
-    {
-        public BaseRewardBag()
-            : base()
-        {
-            Hue = Reward.RewardBagHue();
+	public class BaseRewardBag : Bag
+	{
+		public BaseRewardBag()
+			: base()
+		{
+			Hue = Reward.RewardBagHue();
 
-            while (Items.Count < ItemAmount)
-            {
-                if (0.05 > Utility.RandomDouble()) // check
-                    DropItem(Loot.RandomTalisman());
-                else
-                {
-                    switch (Utility.Random(4))
-                    {
-                        case 0:
-                            DropItem(Reward.Armor());
-                            break;
-                        case 1:
-                            DropItem(Reward.RangedWeapon());
-                            break;
-                        case 2:
-                            DropItem(Reward.Weapon());
-                            break;
-                        case 3:
-                            DropItem(Reward.Jewlery());
-                            break;
-                    }
-                }
-            }
-        }
+			while (Items.Count < ItemAmount)
+			{
+				if (0.05 > Utility.RandomDouble()) // check
+					DropItem(Loot.RandomTalisman());
+				else
+				{
+					switch (Utility.Random(4))
+					{
+						case 0:
+							DropItem(Reward.Armor());
+							break;
+						case 1:
+							DropItem(Reward.RangedWeapon());
+							break;
+						case 2:
+							DropItem(Reward.Weapon());
+							break;
+						case 3:
+							DropItem(Reward.Jewlery());
+							break;
+					}
+				}
+			}
+		}
 
-        public BaseRewardBag(Serial serial)
-            : base(serial)
-        {
-        }
+		public BaseRewardBag(Serial serial)
+			: base(serial)
+		{
+		}
 
-        public virtual int ItemAmount => 0;
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+		public virtual int ItemAmount => 0;
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-            writer.Write(0); // version
-        }
+			writer.Write(0); // version
+		}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 
-            int version = reader.ReadInt();
-        }
-    }
+	public class SmallTrinketBag : BaseRewardBag
+	{
+		[Constructable]
+		public SmallTrinketBag()
+			: base()
+		{
+		}
 
-    public class SmallTrinketBag : BaseRewardBag
-    {
-        [Constructable]
-        public SmallTrinketBag()
-            : base()
-        {
-        }
+		public SmallTrinketBag(Serial serial)
+			: base(serial)
+		{
+		}
 
-        public SmallTrinketBag(Serial serial)
-            : base(serial)
-        {
-        }
+		public override int ItemAmount => 1;
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-        public override int ItemAmount => 1;
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+			writer.Write(0); // version
+		}
 
-            writer.Write(0); // version
-        }
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+	public class TrinketBag : BaseRewardBag
+	{
+		[Constructable]
+		public TrinketBag()
+			: base()
+		{
+		}
 
-            int version = reader.ReadInt();
-        }
-    }
+		public TrinketBag(Serial serial)
+			: base(serial)
+		{
+		}
 
-    public class TrinketBag : BaseRewardBag
-    {
-        [Constructable]
-        public TrinketBag()
-            : base()
-        {
-        }
+		public override int ItemAmount => 2;
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-        public TrinketBag(Serial serial)
-            : base(serial)
-        {
-        }
+			writer.Write(0); // version
+		}
 
-        public override int ItemAmount => 2;
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 
-            writer.Write(0); // version
-        }
+	public class TreasureBag : BaseRewardBag
+	{
+		[Constructable]
+		public TreasureBag()
+			: base()
+		{
+		}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+		public TreasureBag(Serial serial)
+			: base(serial)
+		{
+		}
 
-            int version = reader.ReadInt();
-        }
-    }
+		public override int ItemAmount => 3;
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-    public class TreasureBag : BaseRewardBag
-    {
-        [Constructable]
-        public TreasureBag()
-            : base()
-        {
-        }
+			writer.Write(0); // version
+		}
 
-        public TreasureBag(Serial serial)
-            : base(serial)
-        {
-        }
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 
-        public override int ItemAmount => 3;
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+	public class LargeTreasureBag : BaseRewardBag
+	{
+		[Constructable]
+		public LargeTreasureBag()
+			: base()
+		{
+		}
 
-            writer.Write(0); // version
-        }
+		public LargeTreasureBag(Serial serial)
+			: base(serial)
+		{
+		}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+		public override int ItemAmount => 4;
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-            int version = reader.ReadInt();
-        }
-    }
+			writer.Write(0); // version
+		}
 
-    public class LargeTreasureBag : BaseRewardBag
-    {
-        [Constructable]
-        public LargeTreasureBag()
-            : base()
-        {
-        }
-
-        public LargeTreasureBag(Serial serial)
-            : base(serial)
-        {
-        }
-
-        public override int ItemAmount => 4;
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
-
-            writer.Write(0); // version
-        }
-
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
-
-            int version = reader.ReadInt();
-        }
-    }
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 }

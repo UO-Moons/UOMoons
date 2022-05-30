@@ -16,7 +16,7 @@ namespace Server.Regions
 			return (from.AccessLevel > AccessLevel.Player);
 		}
 
-		public override bool AllowHarmful(Mobile from, Mobile target)
+		public override bool AllowHarmful(Mobile from, IDamageable target)
 		{
 			if (from.AccessLevel == AccessLevel.Player)
 				from.SendMessage("You may not do that in jail.");
@@ -52,7 +52,7 @@ namespace Server.Regions
 			return (from.AccessLevel > AccessLevel.Player);
 		}
 
-		public override bool OnCombatantChange(Mobile from, Mobile Old, Mobile New)
+		public override bool OnCombatantChange(Mobile from, IDamageable Old, IDamageable New)
 		{
 			return (from.AccessLevel > AccessLevel.Player);
 		}

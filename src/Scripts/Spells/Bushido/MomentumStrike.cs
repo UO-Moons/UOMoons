@@ -1,73 +1,91 @@
-using Server.Items;
+using System;
 using System.Collections.Generic;
+using Server.Items;
 
 namespace Server.Spells.Bushido
 {
-	public class MomentumStrike : SamuraiMove
-	{
-		public MomentumStrike()
-		{
-		}
+    public class MomentumStrike : SamuraiMove
+    {
+        public MomentumStrike()
+        {
+        }
 
-		public override int BaseMana => 10;
-		public override double RequiredSkill => 70.0;
+        public override int BaseMana => 10;
+        public override double RequiredSkill => 70.0;
+        public override TextDefinition AbilityMessage => new TextDefinition(1070757);// You prepare to strike two enemies with one blow.
+        public override void OnHit(Mobile attacker, Mobile defender, int damage)
+        {
+            if (!Validate(attacker) || !CheckMana(attacker, false))
+                return;
 
-		public override TextDefinition AbilityMessage => new TextDefinition(1070757);  // You prepare to strike two enemies with one blow.
+            ClearCurrentMove(attacker);
 
-		public override void OnHit(Mobile attacker, Mobile defender, int damage)
-		{
-			if (!Validate(attacker) || !CheckMana(attacker, false))
-				return;
+            BaseWeapon weapon = attacker.Weapon as BaseWeapon;
 
-			ClearCurrentMove(attacker);
+            List<Mobile> targets = new List<Mobile>();
+            IPooledEnumerable eable = attacker.GetMobilesInRange(weapon.MaxRange);
 
-			BaseWeapon weapon = attacker.Weapon as BaseWeapon;
+            foreach (Mobile m in eable)
+            {
+                if (m != defender && m != attacker && m.CanBeHarmful(attacker, false) && attacker.InLOS(m) &&
+                    Server.Spells.SpellHelper.ValidIndirectTarget(attacker, m))
+                {
+                    targets.Add(m);
+                }
+            }
+            eable.Free();
 
-			List<Mobile> targets = new List<Mobile>();
+            if (targets.Count > 0)
+            {
+                if (!CheckMana(attacker, true))
+                    return;
 
-			foreach (Mobile m in attacker.GetMobilesInRange(weapon.MaxRange))
-			{
-				if (m == defender)
-					continue;
+                Mobile target = targets[Utility.Random(targets.Count)];
 
-				if (m.Combatant != attacker)
-					continue;
+                double damageBonus = attacker.Skills[SkillName.Bushido].Value / 100.0;
 
-				targets.Add(m);
-			}
+                if (!defender.Alive)
+                    damageBonus *= 1.5;
 
-			if (targets.Count > 0)
-			{
-				if (!CheckMana(attacker, true))
-					return;
+                attacker.SendLocalizedMessage(1063171); // You transfer the momentum of your weapon into another enemy!
+                target.SendLocalizedMessage(1063172); // You were hit by the momentum of a Samurai's weapon!
 
-				Mobile target = targets[Utility.Random(targets.Count)];
+                target.FixedParticles(0x37B9, 1, 4, 0x251D, 0, 0, EffectLayer.Waist);
 
-				double damageBonus = attacker.Skills[SkillName.Bushido].Value / 100.0;
+                attacker.PlaySound(0x510);
 
-				if (!defender.Alive)
-					damageBonus *= 1.5;
+                weapon.OnSwing(attacker, target, damageBonus);
 
-				attacker.SendLocalizedMessage(1063171); // You transfer the momentum of your weapon into another enemy!
-				target.SendLocalizedMessage(1063172); // You were hit by the momentum of a Samurai's weapon!
+                if (defender.Alive)
+                    attacker.Combatant = defender;
 
-				target.FixedParticles(0x37B9, 1, 4, 0x251D, 0, 0, EffectLayer.Waist);
+                CheckGain(attacker);
+            }
+            else
+            {
+                attacker.SendLocalizedMessage(1063123); // There are no valid targets to attack!
+            }
 
-				attacker.PlaySound(0x510);
+            ColUtility.Free(targets);
+        }
 
-				weapon.OnSwing(attacker, target, damageBonus);
+        public override void OnUse(Mobile m)
+        {
+            base.OnUse(m);
 
-				CheckGain(attacker);
-			}
-			else
-			{
-				attacker.SendLocalizedMessage(1063123); // There are no valid targets to attack!
-			}
-		}
+            BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.MomentumStrike, 1060600, 1063268));
+        }
 
-		public override void CheckGain(Mobile m)
-		{
-			m.CheckSkill(MoveSkill, RequiredSkill, 120.0);
-		}
-	}
+        public override void OnClearMove(Mobile from)
+        {
+            base.OnClearMove(from);
+
+            BuffInfo.RemoveBuff(from, BuffIcon.MomentumStrike);
+        }
+
+        public override void CheckGain(Mobile m)
+        {
+            m.CheckSkill(MoveSkill, RequiredSkill, 120.0);
+        }
+    }
 }

@@ -7,7 +7,7 @@ namespace Server
 	{
 		#region List definitions
 
-		#region Mondain's Legacy
+		#region Mondain's Legacy Equipment
 		public static Type[] MLWeaponTypes { get; } = new Type[]
 		{
 				typeof( AssassinSpike ),        typeof( DiamondMace ),          typeof( ElvenMachete ),
@@ -41,6 +41,7 @@ namespace Server
 			};
 		#endregion
 
+		#region SE Equipment
 		public static Type[] SEWeaponTypes { get; } = new Type[]
 			{
 				typeof( Bokuto ),               typeof( Daisho ),               typeof( Kama ),
@@ -48,7 +49,40 @@ namespace Server
 				typeof( Sai ),                  typeof( Tekagi ),               typeof( Tessen ),
 				typeof( Tetsubo ),              typeof( Wakizashi )
 			};
+		public static Type[] SERangedWeaponTypes { get; } = new Type[]
+		{
+				typeof( Yumi )
+		};
 
+		public static Type[] SEArmorTypes { get; } = new Type[]
+		{
+				typeof( ChainHatsuburi ),       typeof( LeatherDo ),            typeof( LeatherHaidate ),
+				typeof( LeatherHiroSode ),      typeof( LeatherJingasa ),       typeof( LeatherMempo ),
+				typeof( LeatherNinjaHood ),     typeof( LeatherNinjaJacket ),   typeof( LeatherNinjaMitts ),
+				typeof( LeatherNinjaPants ),    typeof( LeatherSuneate ),       typeof( DecorativePlateKabuto ),
+				typeof( HeavyPlateJingasa ),    typeof( LightPlateJingasa ),    typeof( PlateBattleKabuto ),
+				typeof( PlateDo ),              typeof( PlateHaidate ),         typeof( PlateHatsuburi ),
+				typeof( PlateHiroSode ),        typeof( PlateMempo ),           typeof( PlateSuneate ),
+				typeof( SmallPlateJingasa ),    typeof( StandardPlateKabuto ),  typeof( StuddedDo ),
+				typeof( StuddedHaidate ),       typeof( StuddedHiroSode ),      typeof( StuddedMempo ),
+				typeof( StuddedSuneate )
+		};
+
+		public static Type[] SEClothingTypes { get; } = new Type[]
+		{
+				typeof( ClothNinjaJacket ),     typeof( FemaleKimono ),         typeof( Hakama ),
+				typeof( HakamaShita ),          typeof( JinBaori ),             typeof( Kamishimo ),
+				typeof( MaleKimono ),           typeof( NinjaTabi ),            typeof( Obi ),
+				typeof( SamuraiTabi ),          typeof( TattsukeHakama ),       typeof( Waraji )
+		};
+
+		public static Type[] SEHatTypes { get; } = new Type[]
+		{
+				typeof( ClothNinjaHood ),       typeof( Kasa )
+		};
+		#endregion
+
+		#region AOS Equipment
 		public static Type[] AosWeaponTypes { get; } = new Type[]
 			{
 				typeof( Scythe ),               typeof( BoneHarvester ),        typeof( Scepter ),
@@ -56,6 +90,29 @@ namespace Server
 				typeof( Lance ),                typeof( CrescentBlade )
 			};
 
+		public static Type[] AosRangedWeaponTypes { get; } = new Type[]
+		{
+				typeof( CompositeBow ),         typeof( RepeatingCrossbow )
+		};
+
+		public static Type[] AosShieldTypes { get; } = new Type[]
+		{
+				typeof( ChaosShield ),          typeof( OrderShield )
+		};
+
+		public static Type[] AosClothingTypes { get; } = new Type[]
+		{
+				typeof( FurSarong ),            typeof( FurCape ),              typeof( FlowerGarland ),
+				typeof( GildedDress ),          typeof( FurBoots ),             typeof( FormalShirt ),
+		};
+
+		public static Type[] AosHatTypes { get; } = new Type[]
+		{
+				typeof( FlowerGarland ),    typeof( BearMask ),     typeof( DeerMask )  //Are Bear& Deer mask inside the Pre-AoS loottables too?
+		};
+		#endregion
+
+		#region Pre AOS Equipment
 		public static Type[] WeaponTypes { get; } = new Type[]
 			{
 				typeof( Axe ),                  typeof( BattleAxe ),            typeof( DoubleAxe ),
@@ -72,33 +129,9 @@ namespace Server
 				typeof( Dagger ),               typeof( SkinningKnife ),        typeof( ShepherdsCrook )
 			};
 
-		public static Type[] SERangedWeaponTypes { get; } = new Type[]
-			{
-				typeof( Yumi )
-			};
-
-		public static Type[] AosRangedWeaponTypes { get; } = new Type[]
-			{
-				typeof( CompositeBow ),         typeof( RepeatingCrossbow )
-			};
-
 		public static Type[] RangedWeaponTypes { get; } = new Type[]
 			{
 				typeof( Bow ),                  typeof( Crossbow ),             typeof( HeavyCrossbow )
-			};
-
-		public static Type[] SEArmorTypes { get; } = new Type[]
-			{
-				typeof( ChainHatsuburi ),       typeof( LeatherDo ),            typeof( LeatherHaidate ),
-				typeof( LeatherHiroSode ),      typeof( LeatherJingasa ),       typeof( LeatherMempo ),
-				typeof( LeatherNinjaHood ),     typeof( LeatherNinjaJacket ),   typeof( LeatherNinjaMitts ),
-				typeof( LeatherNinjaPants ),    typeof( LeatherSuneate ),       typeof( DecorativePlateKabuto ),
-				typeof( HeavyPlateJingasa ),    typeof( LightPlateJingasa ),    typeof( PlateBattleKabuto ),
-				typeof( PlateDo ),              typeof( PlateHaidate ),         typeof( PlateHatsuburi ),
-				typeof( PlateHiroSode ),        typeof( PlateMempo ),           typeof( PlateSuneate ),
-				typeof( SmallPlateJingasa ),    typeof( StandardPlateKabuto ),  typeof( StuddedDo ),
-				typeof( StuddedHaidate ),       typeof( StuddedHiroSode ),      typeof( StuddedMempo ),
-				typeof( StuddedSuneate )
 			};
 
 		public static Type[] ArmorTypes { get; } = new Type[]
@@ -119,11 +152,6 @@ namespace Server
 				typeof( StuddedGorget ),        typeof( StuddedLegs )
 			};
 
-		public static Type[] AosShieldTypes { get; } = new Type[]
-			{
-				typeof( ChaosShield ),          typeof( OrderShield )
-			};
-
 		public static Type[] ShieldTypes { get; } = new Type[]
 			{
 				typeof( BronzeShield ),         typeof( Buckler ),              typeof( HeaterShield ),
@@ -131,6 +159,32 @@ namespace Server
 				typeof( WoodenShield )
 			};
 
+		public static Type[] ClothingTypes { get; } = new Type[]
+		{
+				typeof( Cloak ),
+				typeof( Bonnet ),               typeof( Cap ),                  typeof( FeatheredHat ),
+				typeof( FloppyHat ),            typeof( JesterHat ),            typeof( Surcoat ),
+				typeof( SkullCap ),             typeof( StrawHat ),             typeof( TallStrawHat ),
+				typeof( TricorneHat ),          typeof( WideBrimHat ),          typeof( WizardsHat ),
+				typeof( BodySash ),             typeof( Doublet ),              typeof( Boots ),
+				typeof( FullApron ),            typeof( JesterSuit ),           typeof( Sandals ),
+				typeof( Tunic ),                typeof( Shoes ),                typeof( Shirt ),
+				typeof( Kilt ),                 typeof( Skirt ),                typeof( FancyShirt ),
+				typeof( FancyDress ),           typeof( ThighBoots ),           typeof( LongPants ),
+				typeof( PlainDress ),           typeof( Robe ),                 typeof( ShortPants ),
+				typeof( HalfApron )
+		};
+
+		public static Type[] HatTypes { get; } = new Type[]
+		{
+				typeof( SkullCap ),         typeof( Bandana ),      typeof( FloppyHat ),
+				typeof( Cap ),              typeof( WideBrimHat ),  typeof( StrawHat ),
+				typeof( TallStrawHat ),     typeof( WizardsHat ),   typeof( Bonnet ),
+				typeof( FeatheredHat ),     typeof( TricorneHat ),  typeof( JesterHat )
+		};
+		#endregion
+
+		#region Provisions
 		public static Type[] GemTypes { get; } = new Type[]
 			{
 				typeof( Amber ),                typeof( Amethyst ),             typeof( Citrine ),
@@ -152,10 +206,10 @@ namespace Server
 			};
 
 		public static Type[] NecroRegTypes { get; } = new Type[]
-			{
+		{
 				typeof( BatWing ),              typeof( GraveDust ),            typeof( DaemonBlood ),
 				typeof( NoxCrystal ),           typeof( PigIron )
-			};
+		};
 
 		public static Type[] PotionTypes { get; } = new Type[]
 			{
@@ -220,7 +274,6 @@ namespace Server
 
 		public static Type[] PaladinScrollTypes { get; } = Array.Empty<Type>();
 
-		#region Mondain's Legacy
 		public static Type[] ArcanistScrollTypes { get; } = new Type[]
 		{
 			typeof( ArcaneCircleScroll ),   typeof( GiftOfRenewalScroll ),  typeof( ImmolatingWeaponScroll ),   typeof( AttuneWeaponScroll ),
@@ -228,7 +281,6 @@ namespace Server
 			typeof( ReaperFormScroll ),     typeof( WildfireScroll ),       typeof( EssenceOfWindScroll ),      typeof( DryadAllureScroll ),
 			typeof( EtherealVoyageScroll ), typeof( WordOfDeathScroll ),    typeof( GiftOfLifeScroll ),         typeof( ArcaneEmpowermentScroll )
 		};
-		#endregion
 
 		public static Type[] GrimmochJournalTypes { get; } = new Type[]
 		{
@@ -269,54 +321,6 @@ namespace Server
 				typeof( IDWand )
 			};
 
-		public static Type[] SEClothingTypes { get; } = new Type[]
-			{
-				typeof( ClothNinjaJacket ),     typeof( FemaleKimono ),         typeof( Hakama ),
-				typeof( HakamaShita ),          typeof( JinBaori ),             typeof( Kamishimo ),
-				typeof( MaleKimono ),           typeof( NinjaTabi ),            typeof( Obi ),
-				typeof( SamuraiTabi ),          typeof( TattsukeHakama ),       typeof( Waraji )
-			};
-
-		public static Type[] AosClothingTypes { get; } = new Type[]
-			{
-				typeof( FurSarong ),            typeof( FurCape ),              typeof( FlowerGarland ),
-				typeof( GildedDress ),          typeof( FurBoots ),             typeof( FormalShirt ),
-		};
-
-		public static Type[] ClothingTypes { get; } = new Type[]
-			{
-				typeof( Cloak ),
-				typeof( Bonnet ),               typeof( Cap ),                  typeof( FeatheredHat ),
-				typeof( FloppyHat ),            typeof( JesterHat ),            typeof( Surcoat ),
-				typeof( SkullCap ),             typeof( StrawHat ),             typeof( TallStrawHat ),
-				typeof( TricorneHat ),          typeof( WideBrimHat ),          typeof( WizardsHat ),
-				typeof( BodySash ),             typeof( Doublet ),              typeof( Boots ),
-				typeof( FullApron ),            typeof( JesterSuit ),           typeof( Sandals ),
-				typeof( Tunic ),                typeof( Shoes ),                typeof( Shirt ),
-				typeof( Kilt ),                 typeof( Skirt ),                typeof( FancyShirt ),
-				typeof( FancyDress ),           typeof( ThighBoots ),           typeof( LongPants ),
-				typeof( PlainDress ),           typeof( Robe ),                 typeof( ShortPants ),
-				typeof( HalfApron )
-			};
-
-		public static Type[] SEHatTypes { get; } = new Type[]
-			{
-				typeof( ClothNinjaHood ),       typeof( Kasa )
-			};
-
-		public static Type[] AosHatTypes { get; } = new Type[]
-			{
-				typeof( FlowerGarland ),    typeof( BearMask ),     typeof( DeerMask )	//Are Bear& Deer mask inside the Pre-AoS loottables too?
-			};
-
-		public static Type[] HatTypes { get; } = new Type[]
-			{
-				typeof( SkullCap ),         typeof( Bandana ),      typeof( FloppyHat ),
-				typeof( Cap ),              typeof( WideBrimHat ),  typeof( StrawHat ),
-				typeof( TallStrawHat ),     typeof( WizardsHat ),   typeof( Bonnet ),
-				typeof( FeatheredHat ),     typeof( TricorneHat ),  typeof( JesterHat )
-			};
-
 		public static Type[] LibraryBookTypes { get; } = new Type[]
 			{
 				typeof( GrammarOfOrcish ),      typeof( CallToAnarchy ),                typeof( ArmsAndWeaponsPrimer ),
@@ -330,7 +334,7 @@ namespace Server
 				typeof( RankingsOfTrades ),     typeof( WildGirlOfTheForest ),          typeof( TreatiseOnAlchemy ),
 				typeof( VirtueBook )
 			};
-
+		#endregion
 		#endregion
 
 		#region Accessors
@@ -751,6 +755,106 @@ namespace Server
 			}
 
 			return null;
+		}
+		#endregion
+
+		#region Loot Packs
+		public static Item PackGold(int amount = 1)
+		{
+			return new Gold(amount);
+		}
+
+		public static Item PackGold(int min, int max)
+		{
+			return PackGold(Utility.RandomMinMax(min, max));
+		}
+
+		public static Item PackReg(int min, int max)
+		{
+			return PackReg(Utility.RandomMinMax(min, max));
+		}
+
+		public static Item PackReg(int amount = 1)
+		{
+			Item reg = RandomReagent();
+			reg.Amount = amount;
+
+			return reg;
+		}
+
+		public static Item PackNecroReg(int min, int max)
+		{
+			return PackNecroReg(Utility.RandomMinMax(min, max));
+		}
+
+		public static Item PackNecroReg(int amount = 1)
+		{
+			if (!Core.AOS)
+			{
+				return null;
+			}
+
+			Item reg = RandomNecromancyReagent();
+			reg.Amount = amount;
+
+			return reg;
+		}
+
+		public static Item PackGem(int min, int max)
+		{
+			return PackGem(Utility.RandomMinMax(min, max));
+		}
+
+		public static Item PackGem(int amount = 1)
+		{
+			Item gem = RandomGem();
+
+			gem.Amount = amount;
+
+			return gem;
+		}
+
+		public static Item PackBones()
+		{
+			return Utility.Random(6) switch
+			{
+				0 => new Bone(),
+				1 => new RibCage(),
+				2 => new RibCage(),
+				3 => new BonePile(),
+				4 => new BonePile(),
+				5 => new BonePile(),
+				_ => new Bone(),
+			};
+		}
+
+		public static Item PackBodyPartOrBones()
+		{
+			return Utility.Random(8) switch
+			{
+				0 => new LeftArm(),
+				1 => new RightArm(),
+				2 => new Torso(),
+				3 => new RightLeg(),
+				4 => new LeftLeg(),
+				5 => new Bone(),
+				6 => new RibCage(),
+				7 => new BonePile(),
+				_ => new BonePile(),
+			};
+		}
+
+		public static Item PackBodyPart()
+		{
+			return Utility.Random(5) switch
+			{
+				0 => new LeftArm(),
+				1 => new RightArm(),
+				2 => new Torso(),
+				3 => new RightLeg(),
+				4 => new LeftLeg(),
+				_ => new Torso(),
+			};
 		}
 		#endregion
 	}

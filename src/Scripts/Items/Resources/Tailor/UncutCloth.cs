@@ -5,7 +5,7 @@ namespace Server.Items
 	[Flipable(0x1765, 0x1767)]
 	public class UncutCloth : BaseItem, IScissorable, IDyable, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		public override double DefaultWeight => 0.1;

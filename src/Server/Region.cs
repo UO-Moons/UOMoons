@@ -1,3 +1,4 @@
+using Server.ContextMenus;
 using Server.Items;
 using Server.Network;
 using Server.Targeting;
@@ -650,13 +651,13 @@ namespace Server
 				Parent.OnAggressed(aggressor, aggressed, criminal);
 		}
 
-		public virtual void OnDidHarmful(Mobile harmer, Mobile harmed)
+		public virtual void OnDidHarmful(Mobile harmer, IDamageable harmed)
 		{
 			if (Parent != null)
 				Parent.OnDidHarmful(harmer, harmed);
 		}
 
-		public virtual void OnGotHarmful(Mobile harmer, Mobile harmed)
+		public virtual void OnGotHarmful(Mobile harmer, IDamageable harmed)
 		{
 			if (Parent != null)
 				Parent.OnGotHarmful(harmer, harmed);
@@ -676,10 +677,26 @@ namespace Server
 			return true;
 		}
 
-		public virtual bool OnCombatantChange(Mobile m, Mobile Old, Mobile New)
+		public virtual bool OnCombatantChange(Mobile m, IDamageable Old, IDamageable New)
 		{
 			if (Parent != null)
 				return Parent.OnCombatantChange(m, Old, New);
+
+			return true;
+		}
+
+		public virtual bool AllowAutoClaim(Mobile from)
+		{
+			if (Parent != null)
+				return Parent.AllowAutoClaim(from);
+
+			return true;
+		}
+
+		public virtual bool AllowFlying(Mobile from)
+		{
+			if (Parent != null)
+				return Parent.AllowFlying(from);
 
 			return true;
 		}
@@ -727,7 +744,7 @@ namespace Server
 			return true;
 		}
 
-		public virtual bool AllowHarmful(Mobile from, Mobile target)
+		public virtual bool AllowHarmful(Mobile from, IDamageable target)
 		{
 			if (Parent != null)
 				return Parent.AllowHarmful(from, target);
@@ -787,6 +804,11 @@ namespace Server
 				return Parent.OnSkillUse(m, Skill);
 
 			return true;
+		}
+
+		public virtual double SkillGain(Mobile from)
+		{
+			return 0.1;
 		}
 
 		public virtual bool OnBeginSpellCast(Mobile m, ISpell s)
@@ -855,6 +877,14 @@ namespace Server
 				return Parent.OnSingleClick(m, o);
 
 			return true;
+		}
+
+		public virtual void OnDelete(Item item)
+		{
+		}
+
+		public virtual void GetContextMenuEntries(Mobile from, List<ContextMenuEntry> list, Item item)
+		{
 		}
 
 		public virtual bool AllowSpawn()

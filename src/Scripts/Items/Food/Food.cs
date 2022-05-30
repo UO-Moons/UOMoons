@@ -1,10 +1,14 @@
 using Server.ContextMenus;
+using Server.Engines.Craft;
+using System;
 using System.Collections.Generic;
 
 namespace Server.Items
 {
-	public abstract class Food : BaseItem
+	public abstract class Food : BaseItem, IQuality
 	{
+		private bool m_PlayerConstructed;
+
 		[CommandProperty(AccessLevel.GameMaster)]
 		public Mobile Poisoner { get; set; }
 
@@ -35,6 +39,14 @@ namespace Server.Items
 
 			if (from.Alive)
 				list.Add(new ContextMenus.EatEntry(from, this));
+		}
+
+		public override void AddCraftedProperties(ObjectPropertyList list)
+		{
+			if (Quality == ItemQuality.Exceptional)
+			{
+				list.Add(1060636); // Exceptional
+			}
 		}
 
 		public override void OnDoubleClick(Mobile from)
@@ -108,6 +120,13 @@ namespace Server.Items
 			}
 
 			return true;
+		}
+
+		public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
+		{
+			Quality = (ItemQuality)quality;
+
+			return quality;
 		}
 
 		public override void Serialize(GenericWriter writer)

@@ -16,7 +16,7 @@ namespace Server.Items
 		{
 			DropItem(new MortarPestle(5));
 			DropItem(new BagOfReagents(5000));
-			DropItem(new Bottle(5000));
+			DropItem(new EmptyBottle(5000));
 		}
 
 		public AlchemyBag(Serial serial) : base(serial)

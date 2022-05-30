@@ -5,7 +5,7 @@ namespace Server.Spells.Sixth
 {
 	public class RevealSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Reveal", "Wis Quas",
 				206,
 				9002,
@@ -47,7 +47,7 @@ namespace Server.Spells.Sixth
 
 				SpellHelper.GetSurfaceTop(ref p);
 
-				List<Mobile> targets = new List<Mobile>();
+				List<Mobile> targets = new();
 
 				Map map = Caster.Map;
 
@@ -115,9 +115,7 @@ namespace Server.Spells.Sixth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				IPoint3D p = o as IPoint3D;
-
-				if (p != null)
+				if (o is IPoint3D p)
 					m_Owner.Target(p);
 			}
 

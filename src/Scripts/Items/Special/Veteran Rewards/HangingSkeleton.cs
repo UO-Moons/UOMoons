@@ -68,6 +68,11 @@ namespace Server.Items
 				list.Add(1076220); // 4th Year Veteran Reward
 		}
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (from.InRange(Location, 3))
@@ -302,7 +307,7 @@ namespace Server.Items
 									else if (west)
 										banner = new HangingSkeleton(GetWestItemID(m_ItemID));
 
-									house.Addons.Add(banner);
+									house.Addons[banner] = from;
 
 									banner.IsRewardItem = m_Skeleton.IsRewardItem;
 									banner.MoveToWorld(p3d, map);
@@ -376,7 +381,7 @@ namespace Server.Items
 
 					if (banner != null)
 					{
-						m_House.Addons.Add(banner);
+						m_House.Addons[banner] = sender.Mobile;
 
 						banner.IsRewardItem = m_Skeleton.IsRewardItem;
 						banner.MoveToWorld(m_Location, sender.Mobile.Map);

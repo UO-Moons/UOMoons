@@ -842,20 +842,26 @@ namespace Server.Network
 			int type = pvSrc.ReadInt32();
 			string text = pvSrc.ReadStringSafe();
 
-			if (text.Length > 128)
+			if (text == null || text.Length > 128)
+			{
 				return;
+			}
 
 			Mobile from = state.Mobile;
 			Prompt p = from.Prompt;
 
-			if (p != null && p.Serial == serial && p.Serial == prompt)
+			if (from != null && p != null && p.Sender.Serial == serial && p.TypeId == prompt)
 			{
 				from.Prompt = null;
 
 				if (type == 0)
+				{
 					p.OnCancel(from);
+				}
 				else
+				{
 					p.OnResponse(from, text);
+				}
 			}
 		}
 
@@ -868,19 +874,27 @@ namespace Server.Network
 			string text = pvSrc.ReadUnicodeStringLESafe();
 
 			if (text.Length > 128)
+			{
 				return;
+			}
 
 			Mobile from = state.Mobile;
 			Prompt p = from.Prompt;
 
-			if (p != null && p.Serial == serial && p.Serial == prompt)
+			int promptSerial = (p != null && p.Sender != null) ? p.Sender.Serial.Value : from.Serial.Value;
+
+			if (p != null && promptSerial == serial && p.TypeId == prompt)
 			{
 				from.Prompt = null;
 
 				if (type == 0)
+				{
 					p.OnCancel(from);
+				}
 				else
+				{
 					p.OnResponse(from, text);
+				}
 			}
 		}
 
@@ -1872,6 +1886,11 @@ namespace Server.Network
 
 						int index = pvSrc.ReadUInt16();
 
+						if (state.IsEnhancedClient && index > 0x64)
+						{
+							index = menu.GetIndexEC(index);
+						}
+
 						if (index >= 0 && index < menu.Entries.Length)
 						{
 							ContextMenuEntry e = menu.Entries[index];
@@ -1969,34 +1988,76 @@ namespace Server.Network
 
 			pvSrc.ReadInt32(); // 0xEDEDEDED
 			int type = pvSrc.ReadByte();
-			Mobile m = World.FindMobile(pvSrc.ReadInt32());
 
-			if (m != null)
+			Serial serial = pvSrc.ReadInt32();
+
+			if (serial.IsMobile)
 			{
-				switch (type)
-				{
-					case 0x00: // Unknown, sent by godclient
-						{
-							if (VerifyGC(state))
-								Console.WriteLine("God Client: {0}: Query 0x{1:X2} on {2} '{3}'", state, type, m.Serial, m.Name);
+				Mobile m = World.FindMobile(serial);
 
-							break;
-						}
-					case 0x04: // Stats
-						{
-							m.OnStatsQuery(from);
-							break;
-						}
-					case 0x05:
-						{
-							m.OnSkillsQuery(from);
-							break;
-						}
-					default:
-						{
-							pvSrc.Trace(state);
-							break;
-						}
+				if (m != null)
+				{
+					switch (type)
+					{
+						case 0x00: // Unknown, sent by godclient
+							{
+								if (VerifyGC(state))
+								{
+									Console.WriteLine("God Client: {0}: Query 0x{1:X2} on {2} '{3}'", state, type, serial, m.Name);
+								}
+
+								break;
+							}
+						case 0x04: // Stats
+							{
+								m.OnStatsQuery(from);
+								break;
+							}
+						case 0x05:
+							{
+								m.OnSkillsQuery(from);
+								break;
+							}
+						default:
+							{
+								pvSrc.Trace(state);
+								break;
+							}
+					}
+				}
+			}
+			else if (serial.IsItem)
+			{
+				IDamageable item = World.FindItem(serial) as IDamageable;
+
+				if (item != null)
+				{
+					switch (type)
+					{
+						case 0x00:
+							{
+								if (VerifyGC(state))
+								{
+									Console.WriteLine("God Client: {0}: Query 0x{1:X2} on {2} '{3}'", state, type, serial, item.Name);
+								}
+
+								break;
+							}
+						case 0x04: // Stats
+							{
+								item.OnStatsQuery(from);
+								break;
+							}
+						case 0x05:
+							{
+								break;
+							}
+						default:
+							{
+								pvSrc.Trace(state);
+								break;
+							}
+					}
 				}
 			}
 		}
@@ -2481,6 +2542,12 @@ namespace Server.Network
 			}
 		}
 
+		public static void PublicHouseContent(NetState state, PacketReader pvSrc)
+		{
+			int value = pvSrc.ReadByte();
+			state.Mobile.PublicHouseContent = Convert.ToBoolean(value);
+		}
+
 		public static bool ClientVerification { get; set; } = true;
 
 		internal struct AuthIDPersistence
@@ -2587,7 +2654,7 @@ namespace Server.Network
 
 				if (state.NewCharacterList)
 				{
-					state.Send(new CharacterList(state.Account, state.CityInfo));
+					state.Send(new CharacterList(state.Account, state.CityInfo, state.IsEnhancedClient));
 				}
 				else
 				{

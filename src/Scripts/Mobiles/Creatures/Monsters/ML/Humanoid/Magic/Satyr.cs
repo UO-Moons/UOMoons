@@ -53,7 +53,7 @@ namespace Server.Mobiles
 			base.OnThink();
 
 			Peace(Combatant);
-			Undress(Combatant);
+			Undress();
 			Suppress(Combatant);
 			Provoke(Combatant);
 		}
@@ -61,7 +61,7 @@ namespace Server.Mobiles
 		#region Peace
 		private DateTime m_NextPeace;
 
-		public void Peace(Mobile target)
+		public void Peace(IDamageable target)
 		{
 			if (target == null || Deleted || !Alive || m_NextPeace > DateTime.UtcNow || 0.1 < Utility.RandomDouble())
 				return;
@@ -86,8 +86,9 @@ namespace Server.Mobiles
 		private static readonly Dictionary<Mobile, Timer> m_Suppressed = new Dictionary<Mobile, Timer>();
 		private DateTime m_NextSuppress;
 
-		public void Suppress(Mobile target)
+		public void Suppress(IDamageable damageable)
 		{
+			Mobile target = damageable as Mobile;
 			if (target == null || m_Suppressed.ContainsKey(target) || Deleted || !Alive || m_NextSuppress > DateTime.UtcNow || 0.1 < Utility.RandomDouble())
 				return;
 
@@ -154,21 +155,26 @@ namespace Server.Mobiles
 		#region Undress
 		private DateTime m_NextUndress;
 
-		public void Undress(Mobile target)
+		public void Undress()
 		{
-			if (target == null || Deleted || !Alive || m_NextUndress > DateTime.UtcNow || 0.005 < Utility.RandomDouble())
+			if (Combatant == null || Deleted || !Alive || m_NextUndress > DateTime.UtcNow || 0.005 < Utility.RandomDouble())
 				return;
+			IPooledEnumerable eable = GetMobilesInRange(RangePerception);
 
-			if (target.Player && target.Female && !target.Hidden && CanBeHarmful(target))
+			foreach (Mobile m in eable)
 			{
-				UndressItem(target, Layer.OuterTorso);
-				UndressItem(target, Layer.InnerTorso);
-				UndressItem(target, Layer.MiddleTorso);
-				UndressItem(target, Layer.Pants);
-				UndressItem(target, Layer.Shirt);
+				if (m.Player && m.Female && !m.Hidden && CanBeHarmful(m))
+				{
+					UndressItem(m, Layer.OuterTorso);
+					UndressItem(m, Layer.InnerTorso);
+					UndressItem(m, Layer.MiddleTorso);
+					UndressItem(m, Layer.Pants);
+					UndressItem(m, Layer.Shirt);
 
-				target.SendLocalizedMessage(1072196); // The satyr's music makes your blood race. Your clothing is too confining.
+					m.SendLocalizedMessage(1072196); // The satyr's music makes your blood race. Your clothing is too confining.
+				}
 			}
+			eable.Free();
 
 			m_NextUndress = DateTime.UtcNow + TimeSpan.FromMinutes(1);
 		}
@@ -185,8 +191,9 @@ namespace Server.Mobiles
 		#region Provoke
 		private DateTime m_NextProvoke;
 
-		public void Provoke(Mobile target)
+		public void Provoke(IDamageable damageable)
 		{
+			Mobile target = damageable as Mobile;
 			if (target == null || Deleted || !Alive || m_NextProvoke > DateTime.UtcNow || 0.05 < Utility.RandomDouble())
 				return;
 

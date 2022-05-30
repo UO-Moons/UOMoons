@@ -6,51 +6,58 @@ using Server.Targeting;
 
 namespace Server.Items
 {
-	public class Banner : BaseItem, IAddon, IDyable, IRewardItem
+	public class Banner : Item, IAddon, IDyable, IRewardItem
 	{
-		public override bool ForceShowProperties => ObjectPropertyList.Enabled;
-
-		public Item Deed
-		{
-			get
-			{
-				BannerDeed deed = new BannerDeed
-				{
-					IsRewardItem = m_IsRewardItem
-				};
-
-				return deed;
-			}
-		}
-
 		private bool m_IsRewardItem;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IsRewardItem
-		{
-			get => m_IsRewardItem;
-			set { m_IsRewardItem = value; InvalidateProperties(); }
-		}
-
-		public bool FacingSouth => (ItemID & 0x1) == 0;
-
 		[Constructable]
-		public Banner(int itemID) : base(itemID)
+		public Banner(int itemID)
+			: base(itemID)
 		{
 			LootType = LootType.Blessed;
 			Movable = false;
 		}
 
-		public Banner(Serial serial) : base(serial)
+		public Banner(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public override bool ForceShowProperties => ObjectPropertyList.Enabled;
+		public Item Deed
+		{
+			get
+			{
+				BannerDeed deed = new BannerDeed();
+				deed.IsRewardItem = m_IsRewardItem;
+
+				return deed;
+			}
+		}
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool IsRewardItem
+		{
+			get
+			{
+				return m_IsRewardItem;
+			}
+			set
+			{
+				m_IsRewardItem = value;
+				InvalidateProperties();
+			}
+		}
+		public bool FacingSouth => (ItemID & 0x1) == 0;
 		public override void GetProperties(ObjectPropertyList list)
 		{
 			base.GetProperties(list);
 
 			if (Core.ML && m_IsRewardItem)
 				list.Add(1076218); // 2nd Year Veteran Reward
+		}
+
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
 		}
 
 		public override void OnDoubleClick(Mobile from)
@@ -111,29 +118,36 @@ namespace Server.Items
 		}
 	}
 
-	public class BannerDeed : BaseItem, IRewardItem
+	public class BannerDeed : Item, IRewardItem
 	{
-		public override int LabelNumber => 1041007;  // a banner deed
-
 		private bool m_IsRewardItem;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IsRewardItem
-		{
-			get => m_IsRewardItem;
-			set { m_IsRewardItem = value; InvalidateProperties(); }
-		}
 		[Constructable]
-		public BannerDeed() : base(0x14F0)
+		public BannerDeed()
+			: base(0x14F0)
 		{
 			LootType = LootType.Blessed;
 			Weight = 1.0;
 		}
 
-		public BannerDeed(Serial serial) : base(serial)
+		public BannerDeed(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public override int LabelNumber => 1041007;// a banner deed
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool IsRewardItem
+		{
+			get
+			{
+				return m_IsRewardItem;
+			}
+			set
+			{
+				m_IsRewardItem = value;
+				InvalidateProperties();
+			}
+		}
 		public override void GetProperties(ObjectPropertyList list)
 		{
 			base.GetProperties(list);
@@ -157,10 +171,10 @@ namespace Server.Items
 					from.SendGump(new InternalGump(this));
 				}
 				else
-					from.SendLocalizedMessage(502092); // You must be in your house to do this.
+					from.SendLocalizedMessage(502092); // You must be in your house to do 
 			}
 			else
-				from.SendLocalizedMessage(1042038); // You must have the object in your backpack to use it.
+				from.SendLocalizedMessage(1042038); // You must have the object in your backpack to use it.          	
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -185,10 +199,9 @@ namespace Server.Items
 		{
 			public const int Start = 0x15AE;
 			public const int End = 0x15F4;
-
 			private readonly BannerDeed m_Banner;
-
-			public InternalGump(BannerDeed banner) : base(100, 200)
+			public InternalGump(BannerDeed banner)
+				: base(100, 200)
 			{
 				m_Banner = banner;
 
@@ -202,10 +215,9 @@ namespace Server.Items
 				AddBackground(25, 0, 520, 230, 0xA28);
 				AddLabel(70, 12, 0x3E3, "Choose a Banner:");
 
-
 				int itemID = Start;
 
-				for (int i = 1; i <= 4; i++)
+				for (int i = 1; i <= 5; i++)
 				{
 					AddPage(i);
 
@@ -213,19 +225,22 @@ namespace Server.Items
 					{
 						AddItem(50 + 60 * j, 70, itemID);
 						AddButton(50 + 60 * j, 50, 0x845, 0x846, itemID, GumpButtonType.Reply, 0);
+
+						if (itemID >= End)
+							break;
 					}
 
 					if (i > 1)
 						AddButton(75, 198, 0x8AF, 0x8AF, 0, GumpButtonType.Page, i - 1);
 
-					if (i < 4)
+					if (i < 5)
 						AddButton(475, 198, 0x8B0, 0x8B0, 0, GumpButtonType.Page, i + 1);
 				}
 			}
 
 			public override void OnResponse(NetState sender, RelayInfo info)
 			{
-				if (m_Banner == null | m_Banner.Deleted)
+				if (m_Banner == null || m_Banner.Deleted)
 					return;
 
 				Mobile m = sender.Mobile;
@@ -245,8 +260,8 @@ namespace Server.Items
 		{
 			private readonly BannerDeed m_Banner;
 			private readonly int m_ItemID;
-
-			public InternalTarget(BannerDeed banner, int itemID) : base(-1, true, TargetFlags.None)
+			public InternalTarget(BannerDeed banner, int itemID)
+				: base(-1, true, TargetFlags.None)
 			{
 				m_Banner = banner;
 				m_ItemID = itemID;
@@ -295,7 +310,7 @@ namespace Server.Items
 									else if (west)
 										banner = new Banner(m_ItemID + 1);
 
-									house.Addons.Add(banner);
+									house.Addons[banner] = from;
 
 									banner.IsRewardItem = m_Banner.IsRewardItem;
 									banner.MoveToWorld(p3d, map);
@@ -303,36 +318,29 @@ namespace Server.Items
 									m_Banner.Delete();
 								}
 								else
-									from.SendLocalizedMessage(1042039); // The banner must be placed next to a wall.
+									from.SendLocalizedMessage(1042039); // The banner must be placed next to a wall.								
 							}
 							else
 								from.SendLocalizedMessage(1042036); // That location is not in your house.
 						}
 						else
-							from.SendLocalizedMessage(500269); // You cannot build that there.
+							from.SendLocalizedMessage(500269); // You cannot build that there.		
 					}
 					else
-						from.SendLocalizedMessage(502092); // You must be in your house to do this.
+						from.SendLocalizedMessage(502092); // You must be in your house to do 
 				}
 				else
-					from.SendLocalizedMessage(1042038); // You must have the object in your backpack to use it.
+					from.SendLocalizedMessage(1042038); // You must have the object in your backpack to use it.     
 			}
 
 			private class FacingGump : Gump
 			{
 				private readonly BannerDeed m_Banner;
 				private readonly int m_ItemID;
-				private Point3D m_Location;
+				private readonly Point3D m_Location;
 				private readonly BaseHouse m_House;
-
-				private enum Buttons
-				{
-					Cancel,
-					East,
-					South
-				}
-
-				public FacingGump(BannerDeed banner, int itemID, Point3D location, BaseHouse house) : base(150, 50)
+				public FacingGump(BannerDeed banner, int itemID, Point3D location, BaseHouse house)
+					: base(150, 50)
 				{
 					m_Banner = banner;
 					m_ItemID = itemID;
@@ -355,6 +363,12 @@ namespace Server.Items
 					AddButton(145, 35, 0x868, 0x869, (int)Buttons.South, GumpButtonType.Reply, 0);
 				}
 
+				private enum Buttons
+				{
+					Cancel,
+					East,
+					South
+				}
 				public override void OnResponse(NetState sender, RelayInfo info)
 				{
 					if (m_Banner == null || m_Banner.Deleted || m_House == null)
@@ -369,7 +383,7 @@ namespace Server.Items
 
 					if (banner != null)
 					{
-						m_House.Addons.Add(banner);
+						m_House.Addons[banner] = sender.Mobile;
 
 						banner.IsRewardItem = m_Banner.IsRewardItem;
 						banner.MoveToWorld(m_Location, sender.Mobile.Map);

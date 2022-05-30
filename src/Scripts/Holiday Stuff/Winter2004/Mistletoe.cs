@@ -76,6 +76,11 @@ namespace Server.Items
 
 		public Item Deed => new MistletoeDeed(Hue);
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			BaseHouse house = BaseHouse.FindHouseAt(this);
@@ -288,7 +293,7 @@ namespace Server.Items
 				};
 				addon.MoveToWorld(loc, from.Map);
 
-				house.Addons.Add(addon);
+				house.Addons[addon] = from;
 				Delete();
 			}
 		}

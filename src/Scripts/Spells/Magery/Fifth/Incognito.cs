@@ -8,7 +8,7 @@ namespace Server.Spells.Fifth
 {
 	public class IncognitoSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Incognito", "Kal In Ex",
 				206,
 				9002,
@@ -76,9 +76,7 @@ namespace Server.Spells.Fifth
 					Caster.HueMod = Caster.Race.RandomSkinHue();
 					Caster.NameMod = Caster.Female ? NameList.RandomName("female") : NameList.RandomName("male");
 
-					PlayerMobile pm = Caster as PlayerMobile;
-
-					if (pm != null && pm.Race != null)
+					if (Caster is PlayerMobile pm && pm.Race != null)
 					{
 						pm.SetHairMods(pm.Race.RandomHair(pm.Female), pm.Race.RandomFacialHair(pm.Female));
 						pm.HairHue = pm.Race.RandomHairHue();
@@ -120,7 +118,7 @@ namespace Server.Spells.Fifth
 			FinishSequence();
 		}
 
-		private static readonly Hashtable m_Timers = new Hashtable();
+		private static readonly Hashtable m_Timers = new();
 
 		public static bool StopTimer(Mobile m)
 		{
@@ -174,16 +172,15 @@ namespace Server.Spells.Fifth
 			{
 				if (!m_Owner.CanBeginAction(typeof(IncognitoSpell)))
 				{
-					if (m_Owner is PlayerMobile)
-						((PlayerMobile)m_Owner).SetHairMods(-1, -1);
+					if (m_Owner is PlayerMobile mobile)
+						mobile.SetHairMods(-1, -1);
 
 					m_Owner.BodyMod = 0;
 					m_Owner.HueMod = -1;
 					m_Owner.NameMod = null;
 					m_Owner.EndAction(typeof(IncognitoSpell));
 
-					BaseArmor.ValidateMobile(m_Owner);
-					BaseClothing.ValidateMobile(m_Owner);
+					BaseEquipment.ValidateMobile(m_Owner);
 				}
 			}
 		}

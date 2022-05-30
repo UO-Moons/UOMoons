@@ -33,7 +33,7 @@ namespace Server.Mobiles
 				Add(new GenericBuyInfo(typeof(LesserPoisonPotion), 15, 10, 0xF0A, 0));
 				Add(new GenericBuyInfo(typeof(LesserExplosionPotion), 21, 10, 0xF0D, 0));
 
-				Add(new GenericBuyInfo(typeof(Bolt), 6, Utility.Random(30, 60), 0x1BFB, 0));
+				Add(new GenericBuyInfo(typeof(CrossBowBolt), 6, Utility.Random(30, 60), 0x1BFB, 0));
 				Add(new GenericBuyInfo(typeof(Arrow), 3, Utility.Random(30, 60), 0xF3F, 0));
 
 				Add(new GenericBuyInfo(typeof(BlackPearl), 5, 999, 0xF7A, 0));
@@ -99,7 +99,7 @@ namespace Server.Mobiles
 				Add(typeof(LesserPoisonPotion), 7);
 				Add(typeof(LesserExplosionPotion), 10);
 
-				Add(typeof(Bolt), 3);
+				Add(typeof(CrossBowBolt), 3);
 				Add(typeof(Arrow), 2);
 
 				Add(typeof(BlackPearl), 3);

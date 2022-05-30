@@ -11,7 +11,7 @@ namespace Server.Items
 			set { m_Resource = value; InvalidateProperties(); }
 		}
 
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		public override void Serialize(GenericWriter writer)

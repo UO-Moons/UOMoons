@@ -9,7 +9,7 @@ namespace Server.Engines.Quests
 {
     public static class MondainQuestData
     {
-        public static string FilePath = Path.Combine("Saves/Quests", "MLQuests.bin");
+        public static readonly string FilePath = Path.Combine("Saves/Quests", "MLQuests.bin");
 
         public static Dictionary<PlayerMobile, List<BaseQuest>> QuestData { get; set; }
         public static Dictionary<PlayerMobile, Dictionary<QuestChain, BaseChain>> ChainData { get; set; }
@@ -132,11 +132,9 @@ namespace Server.Engines.Quests
                     count = reader.ReadInt();
                     for (int i = 0; i < count; i++)
                     {
-                        PlayerMobile pm = reader.ReadMobile() as PlayerMobile;
+						Dictionary<QuestChain, BaseChain> dic = QuestReader.Chains(reader);
 
-                        Dictionary<QuestChain, BaseChain> dic = QuestReader.Chains(reader);
-
-                        if (pm != null)
+						if (reader.ReadMobile() is PlayerMobile pm)
                             ChainData[pm] = dic;
                     }
 

@@ -6,24 +6,28 @@ using System;
 
 namespace Server.Items
 {
-	public class WreathAddon : BaseItem, IDyable, IAddon
+	public class WreathAddon : Item, IDyable, IAddon
 	{
 		[Constructable]
-		public WreathAddon() : this(Utility.RandomDyedHue())
+		public WreathAddon()
+			: this(Utility.RandomDyedHue())
 		{
 		}
 
 		[Constructable]
-		public WreathAddon(int hue) : base(0x232C)
+		public WreathAddon(int hue)
+			: base(0x232C)
 		{
 			Hue = hue;
 			Movable = false;
 		}
 
-		public WreathAddon(Serial serial) : base(serial)
+		public WreathAddon(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public Item Deed => new WreathDeed(Hue);
 		public bool CouldFit(IPoint3D p, Map map)
 		{
 			if (!map.CanFit(p.X, p.Y, p.Z, ItemData.Height))
@@ -51,30 +55,10 @@ namespace Server.Items
 			Timer.DelayCall(TimeSpan.Zero, new TimerCallback(FixMovingCrate));
 		}
 
-		private void FixMovingCrate()
+		void IChopable.OnChop(Mobile user)
 		{
-			if (Deleted)
-				return;
-
-			if (Movable || IsLockedDown)
-			{
-				Item deed = Deed;
-
-				if (Parent is Item)
-				{
-					((Item)Parent).AddItem(deed);
-					deed.Location = Location;
-				}
-				else
-				{
-					deed.MoveToWorld(Location, Map);
-				}
-
-				Delete();
-			}
+			OnDoubleClick(user);
 		}
-
-		public Item Deed => new WreathDeed(Hue);
 
 		public override void OnDoubleClick(Mobile from)
 		{
@@ -120,12 +104,35 @@ namespace Server.Items
 			}
 		}
 
+		private void FixMovingCrate()
+		{
+			if (Deleted)
+				return;
+
+			if (Movable || IsLockedDown)
+			{
+				Item deed = Deed;
+
+				if (Parent is Item)
+				{
+					((Item)Parent).AddItem(deed);
+					deed.Location = Location;
+				}
+				else
+				{
+					deed.MoveToWorld(Location, Map);
+				}
+
+				Delete();
+			}
+		}
+
 		private class WreathAddonGump : Gump
 		{
 			private readonly Mobile m_From;
 			private readonly WreathAddon m_Addon;
-
-			public WreathAddonGump(Mobile from, WreathAddon addon) : base(150, 50)
+			public WreathAddonGump(Mobile from, WreathAddon addon)
+				: base(150, 50)
 			{
 				m_From = from;
 				m_Addon = addon;
@@ -163,27 +170,29 @@ namespace Server.Items
 	}
 
 	[Flipable(0x14F0, 0x14EF)]
-	public class WreathDeed : BaseItem
+	public class WreathDeed : Item
 	{
-		public override int LabelNumber => 1062837;  // holiday wreath deed
-
 		[Constructable]
-		public WreathDeed() : this(Utility.RandomDyedHue())
+		public WreathDeed()
+			: this(Utility.RandomDyedHue())
 		{
 		}
 
 		[Constructable]
-		public WreathDeed(int hue) : base(0x14F0)
+		public WreathDeed(int hue)
+			: base(0x14F0)
 		{
 			Weight = 1.0;
 			Hue = hue;
 			LootType = LootType.Blessed;
 		}
 
-		public WreathDeed(Serial serial) : base(serial)
+		public WreathDeed(Serial serial)
+			: base(serial)
 		{
 		}
 
+		public override int LabelNumber => 1062837;// holiday wreath deed
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -271,13 +280,12 @@ namespace Server.Items
 
 			if (itemID > 0)
 			{
-				Item addon = new WreathAddon(Hue)
-				{
-					ItemID = itemID
-				};
+				Item addon = new WreathAddon(Hue);
+
+				addon.ItemID = itemID;
 				addon.MoveToWorld(loc, from.Map);
 
-				house.Addons.Add(addon);
+				house.Addons[addon] = from;
 				Delete();
 			}
 		}
@@ -285,10 +293,10 @@ namespace Server.Items
 		private class WreathDeedGump : Gump
 		{
 			private readonly Mobile m_From;
-			private Point3D m_Loc;
+			private readonly Point3D m_Loc;
 			private readonly WreathDeed m_Deed;
-
-			public WreathDeedGump(Mobile from, Point3D loc, WreathDeed deed) : base(150, 50)
+			public WreathDeedGump(Mobile from, Point3D loc, WreathDeed deed)
+				: base(150, 50)
 			{
 				m_From = from;
 				m_Loc = loc;

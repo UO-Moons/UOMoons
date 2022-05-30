@@ -14,7 +14,7 @@ namespace Server.Items
 		public override int BaseMana => 20;
 		public override double DamageScalar => 1.25;
 
-		public override bool RequiresTactics(Mobile from)
+		public override bool RequiresSecondarySkill(Mobile from)
 		{
 			return false;
 		}

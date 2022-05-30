@@ -16,7 +16,6 @@ namespace Server.Items
 
 		public static readonly TimeSpan PlayerFreezeDuration = TimeSpan.FromSeconds(3.0);
 		public static readonly TimeSpan NPCFreezeDuration = TimeSpan.FromSeconds(6.0);
-
 		public static readonly TimeSpan FreezeDelayDuration = TimeSpan.FromSeconds(8.0);
 
 		// No longer active in pub21:
@@ -38,7 +37,7 @@ namespace Server.Items
 			return false;
 		}*/
 
-		public override bool RequiresTactics(Mobile from)
+		public override bool RequiresSecondarySkill(Mobile from)
 		{
 			BaseWeapon weapon = from.Weapon as BaseWeapon;
 

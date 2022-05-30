@@ -244,7 +244,7 @@ namespace Server.Items
 
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
 			if (from.CheckSkill(SkillName.Tinkering, -5.0, 15.0))
 			{
@@ -278,7 +278,7 @@ namespace Server.Items
 				from.SendLocalizedMessage(500637); // Your tinker skill was insufficient to make the item lockable.
 			}
 
-			return ItemQuality.Normal;
+			return quality;
 		}
 
 		#endregion

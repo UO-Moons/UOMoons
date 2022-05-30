@@ -2,93 +2,94 @@ using System;
 
 namespace Server.Engines.Harvest
 {
-	public class HarvestBank
-	{
-		private int m_Current;
-		private readonly int m_Maximum;
-		private DateTime m_NextRespawn;
-		private HarvestVein m_Vein, m_DefaultVein;
+    public class HarvestBank
+    {
+        private readonly int m_Maximum;
+        private int m_Current;
+        private DateTime m_NextRespawn;
+        private HarvestVein m_Vein, m_DefaultVein;
+        public HarvestBank(HarvestDefinition def, HarvestVein defaultVein)
+        {
+            m_Maximum = Utility.RandomMinMax(def.MinTotal, def.MaxTotal);
+            m_Current = m_Maximum;
+            m_DefaultVein = defaultVein;
+            m_Vein = m_DefaultVein;
 
-		public HarvestDefinition Definition { get; }
+            Definition = def;
+        }
 
-		public int Current
-		{
-			get
-			{
-				CheckRespawn();
-				return m_Current;
-			}
-		}
+        public HarvestDefinition Definition { get; }
+        public int Current
+        {
+            get
+            {
+                CheckRespawn();
+                return m_Current;
+            }
+        }
+        public HarvestVein Vein
+        {
+            get
+            {
+                CheckRespawn();
+                return m_Vein;
+            }
+            set => m_Vein = value;
+        }
+        public HarvestVein DefaultVein
+        {
+            get
+            {
+                CheckRespawn();
+                return m_DefaultVein;
+            }
+        }
+        public void CheckRespawn()
+        {
+            if (m_Current == m_Maximum || m_NextRespawn > DateTime.UtcNow)
+            {
+                return;
+            }
 
-		public HarvestVein Vein
-		{
-			get
-			{
-				CheckRespawn();
-				return m_Vein;
-			}
-			set => m_Vein = value;
-		}
+            m_Current = m_Maximum;
 
-		public HarvestVein DefaultVein
-		{
-			get
-			{
-				CheckRespawn();
-				return m_DefaultVein;
-			}
-		}
+            if (Definition.RandomizeVeins)
+            {
+                m_DefaultVein = Definition.GetVeinFrom(Utility.RandomDouble());
+            }
 
-		public void CheckRespawn()
-		{
-			if (m_Current == m_Maximum || m_NextRespawn > DateTime.UtcNow)
-				return;
+            m_Vein = m_DefaultVein;
+        }
 
-			m_Current = m_Maximum;
+        public void Consume(int amount, Mobile from)
+        {
+            CheckRespawn();
 
-			if (Definition.RandomizeVeins)
-			{
-				m_DefaultVein = Definition.GetVeinFrom(Utility.RandomDouble());
-			}
+            if (m_Current == m_Maximum)
+            {
+                double min = Definition.MinRespawn.TotalMinutes;
+                double max = Definition.MaxRespawn.TotalMinutes;
+                double rnd = Utility.RandomDouble();
 
-			m_Vein = m_DefaultVein;
-		}
+                m_Current = m_Maximum - amount;
 
-		public void Consume(int amount, Mobile from)
-		{
-			CheckRespawn();
+                double minutes = min + (rnd * (max - min));
+                if (Definition.RaceBonus && from.Race == Race.Elf)    //def.RaceBonus = Core.ML
+                {
+                    minutes *= .75;    //25% off the time.  
+                }
 
-			if (m_Current == m_Maximum)
-			{
-				double min = Definition.MinRespawn.TotalMinutes;
-				double max = Definition.MaxRespawn.TotalMinutes;
-				double rnd = Utility.RandomDouble();
+                m_NextRespawn = DateTime.UtcNow + TimeSpan.FromMinutes(minutes);
+            }
+            else
+            {
+                m_Current -= amount;
+            }
 
-				m_Current = m_Maximum - amount;
-
-				double minutes = min + (rnd * (max - min));
-				if (Definition.RaceBonus && from.Race == Race.Elf)    //def.RaceBonus = Core.ML
-					minutes *= .75; //25% off the time.
-
-				m_NextRespawn = DateTime.UtcNow + TimeSpan.FromMinutes(minutes);
-			}
-			else
-			{
-				m_Current -= amount;
-			}
-
-			if (m_Current < 0)
-				m_Current = 0;
-		}
-
-		public HarvestBank(HarvestDefinition def, HarvestVein defaultVein)
-		{
-			m_Maximum = Utility.RandomMinMax(def.MinTotal, def.MaxTotal);
-			m_Current = m_Maximum;
-			m_DefaultVein = defaultVein;
-			m_Vein = m_DefaultVein;
-
-			Definition = def;
-		}
-	}
+            if (m_Current < 0)
+            {
+                m_Current = 0;
+            }
+        }
+    }
 }

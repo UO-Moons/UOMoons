@@ -56,13 +56,9 @@ namespace Server.Accounting
 		public void Save(XmlTextWriter xml)
 		{
 			xml.WriteStartElement("comment");
-
 			xml.WriteAttributeString("addedBy", AddedBy);
-
 			xml.WriteAttributeString("lastModified", XmlConvert.ToString(LastModified, XmlDateTimeSerializationMode.Utc));
-
 			xml.WriteString(m_Content);
-
 			xml.WriteEndElement();
 		}
 	}

@@ -1041,6 +1041,104 @@ namespace Server
 		}
 		#endregion
 
+		#region Find Item/Mobile
+		public TItem FindItem<TItem>(Point3D p, int range = 0) where TItem : Item
+		{
+			var eable = GetItemsInRange(p, range);
+
+			foreach (var item in eable)
+			{
+				if (item.GetType() == typeof(TItem))
+				{
+					eable.Free();
+					return item as TItem;
+				}
+			}
+
+			eable.Free();
+			return null;
+		}
+
+		public IEnumerable<TItem> FindItems<TItem>(Point3D p, int range = 0) where TItem : Item
+		{
+			IPooledEnumerable<Item> eable = GetItemsInRange(p, range);
+
+			foreach (Item item in eable)
+			{
+				if (item.GetType() == typeof(TItem))
+				{
+					yield return item as TItem;
+				}
+			}
+
+			eable.Free();
+		}
+
+		public TMob FindMobile<TMob>(Point3D p, int range = 0) where TMob : Mobile
+		{
+			var eable = GetMobilesInRange(p, range);
+
+			foreach (var m in eable)
+			{
+				if (m.GetType() == typeof(TMob))
+				{
+					eable.Free();
+					return m as TMob;
+				}
+			}
+
+			eable.Free();
+			return null;
+		}
+
+		public IEnumerable<TMob> FindMobiles<TMob>(Point3D p, int range = 0) where TMob : Mobile
+		{
+			IPooledEnumerable<Mobile> eable = GetMobilesInRange(p, range);
+
+			foreach (Mobile m in eable)
+			{
+				if (m.GetType() == typeof(TMob))
+				{
+					yield return m as TMob;
+				}
+			}
+
+			eable.Free();
+		}
+		#endregion
+
+		#region Spawn Position
+		public Point3D GetSpawnPosition(Point3D center, int range)
+		{
+			for (int i = 0; i < 10; i++)
+			{
+				int x = center.X + (Utility.Random((range * 2) + 1) - range);
+				int y = center.Y + (Utility.Random((range * 2) + 1) - range);
+				int z = GetAverageZ(x, y);
+
+				if (CanSpawnMobile(new Point2D(x, y), center.Z))
+					return new Point3D(x, y, center.Z);
+
+				if (CanSpawnMobile(new Point2D(x, y), z))
+					return new Point3D(x, y, z);
+			}
+
+			return center;
+		}
+
+		public Point3D GetRandomSpawnPoint(Rectangle2D rec)
+		{
+			if (this == Internal)
+				return Point3D.Zero;
+
+			int x = Utility.RandomMinMax(rec.X, rec.X + rec.Width);
+			int y = Utility.RandomMinMax(rec.Y, rec.Y + rec.Height);
+			int z = GetAverageZ(x, y);
+
+			return new Point3D(x, y, z);
+		}
+		#endregion
+
 		private class ZComparer : IComparer<Item>
 		{
 			public static readonly ZComparer Default = new();

@@ -1,5 +1,7 @@
+using Server.Spells.Fourth;
 using Server.Targeting;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Spells.Sixth
 {
@@ -46,45 +48,14 @@ namespace Server.Spells.Sixth
 			else if (SpellHelper.CheckTown(p, Caster) && CheckSequence())
 			{
 				SpellHelper.Turn(Caster, p);
-
 				SpellHelper.GetSurfaceTop(ref p);
 
-				List<Mobile> targets = new List<Mobile>();
-
-				Map map = Caster.Map;
-
-				if (map != null)
+				foreach (var m in AcquireIndirectTargets(p, 2).OfType<Mobile>())
 				{
-					IPooledEnumerable eable = map.GetMobilesInRange(new Point3D(p), 2);
-
-					foreach (Mobile m in eable)
-					{
-						if (Core.AOS && m == Caster)
-							continue;
-
-						if (SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanSee(m) && Caster.CanBeHarmful(m, false))
-							targets.Add(m);
-					}
-
-					eable.Free();
-				}
-
-				for (int i = 0; i < targets.Count; ++i)
-				{
-					Mobile m = targets[i];
-
-					Caster.DoHarmful(m);
-
-					SpellHelper.AddStatCurse(Caster, m, StatType.Str); SpellHelper.DisableSkillCheck = true;
-					SpellHelper.AddStatCurse(Caster, m, StatType.Dex);
-					SpellHelper.AddStatCurse(Caster, m, StatType.Int); SpellHelper.DisableSkillCheck = false;
-
-					m.FixedParticles(0x374A, 10, 15, 5028, EffectLayer.Waist);
-					m.PlaySound(0x1FB);
-
-					HarmfulSpell(m);
+					CurseSpell.DoCurse(Caster, m, true);
 				}
 			}
+
 			FinishSequence();
 		}
 
@@ -99,9 +70,7 @@ namespace Server.Spells.Sixth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				IPoint3D p = o as IPoint3D;
-
-				if (p != null)
+				if (o is IPoint3D p)
 					m_Owner.Target(p);
 			}
 

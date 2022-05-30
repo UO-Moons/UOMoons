@@ -1,4 +1,4 @@
-# UO Moons
+# UO Moons Version 2.0.0.
 
 [![GitHub build](https://img.shields.io/github/workflow/status/UO-Moons/UOMoons/Build?logo=github)](https://github.com/UO-Moons/UOMoons/actions)
 [![GitHub issues](https://img.shields.io/github/issues/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/issues)
@@ -22,6 +22,8 @@ For change Era configuration and some basic server configuration you can use the
 - AOS:		Release on February 11, 2003
 - SE:		Released on November 2, 2004
 - ML: 		Released on August 30, 2005
+- KR: 		Released on month day, 2007
+- SA:           Released on September day, 2009
 ```
 
 ## .Net 6 Support

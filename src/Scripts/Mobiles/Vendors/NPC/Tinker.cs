@@ -19,7 +19,7 @@ namespace Server.Mobiles
 
 		public override void InitSBInfo()
 		{
-			m_SBInfos.Add(new SBTinker());
+			m_SBInfos.Add(new SBTinker(this));
 		}
 
 		public Tinker(Serial serial) : base(serial)

@@ -313,6 +313,77 @@ namespace Server
 		}
 	}
 
+	public class ContainerDroppedToEventArgs : EventArgs
+	{
+		public Mobile Mobile { get; set; }
+		public Container Container { get; set; }
+		public Item Dropped { get; set; }
+
+		public ContainerDroppedToEventArgs(Mobile m, Container container, Item dropped)
+		{
+			Mobile = m;
+			Container = container;
+			Dropped = dropped;
+		}
+	}
+
+	public class PlayerDeathEventArgs : EventArgs
+	{
+		public Mobile Mobile { get; private set; }
+		public Mobile Killer { get; private set; }
+		public Container Corpse { get; private set; }
+
+		public PlayerDeathEventArgs(Mobile mobile)
+			: this(mobile, mobile.LastKiller, mobile.Corpse)
+		{ }
+
+		public PlayerDeathEventArgs(Mobile mobile, Mobile killer, Container corpse)
+		{
+			Mobile = mobile;
+			Killer = killer;
+			Corpse = corpse;
+		}
+	}
+
+	public class CreatureDeathEventArgs : EventArgs
+	{
+		public Mobile Creature { get; private set; }
+		public Mobile Killer { get; private set; }
+		public Container Corpse { get; private set; }
+
+		public List<Item> ForcedLoot { get; private set; }
+
+		public bool PreventDefault { get; set; }
+		public bool PreventDelete { get; set; }
+		public bool ClearCorpse { get; set; }
+
+		public CreatureDeathEventArgs(Mobile creature)
+			: this(creature, creature.LastKiller, creature.Corpse)
+		{ }
+
+		public CreatureDeathEventArgs(Mobile creature, Mobile killer, Container corpse)
+		{
+			Creature = creature;
+			Killer = killer;
+			Corpse = corpse;
+
+			ForcedLoot = new List<Item>();
+		}
+
+		public void ClearLoot(bool free)
+		{
+			if (free)
+			{
+				ForcedLoot.Clear();
+				ForcedLoot.TrimExcess();
+			}
+			else
+			{
+				ForcedLoot = new List<Item>();
+			}
+		}
+	}
+
 	public static partial class EventSink
 	{
 		//Server
@@ -492,8 +563,8 @@ namespace Server
 			OnTameCreature?.Invoke(mobile, creature);
 		}
 
-		public static event Action<Mobile, Mobile> OnMobileAttackRequest;
-		public static void InvokeOnMobileAttackRequest(Mobile from, Mobile to)
+		public static event Action<Mobile, IDamageable> OnMobileAttackRequest;
+		public static void InvokeOnMobileAttackRequest(Mobile from, IDamageable to)
 		{
 			OnMobileAttackRequest?.Invoke(from, to);
 		}
@@ -502,6 +573,12 @@ namespace Server
 		public static void InvokeOnMobileCheckHit(Mobile from, Mobile to, bool success)
 		{
 			OnMobileCheckHit?.Invoke(from, to, success);
+		}
+
+		public static event Action<Mobile, Mobile> OnMobileNewCheckHit;
+		public static void InvokeOnMobileCheckHit(Mobile from, Mobile to)
+		{
+			OnMobileNewCheckHit?.Invoke(from, to);
 		}
 
 		//Item
@@ -533,6 +610,12 @@ namespace Server
 		public static void InvokeOnRepairItem(Mobile from, Item tool, IEntity repaired)
 		{
 			OnRepairItem?.Invoke(from, tool, repaired);
+		}
+
+		public static event Action<ContainerDroppedToEventArgs> ContainerDroppedTo;
+		public static void InvokeContainerDroppedTo(ContainerDroppedToEventArgs e)
+		{
+			ContainerDroppedTo?.Invoke(e);
 		}
 
 		//Skill
@@ -705,6 +788,18 @@ namespace Server
 		public static void InvokeVirtueMacroRequest(Mobile mobile, int virtueID)
 		{
 			OnVirtueMacroRequest?.Invoke(mobile, virtueID);
+		}
+
+		public static event Action<PlayerDeathEventArgs> OnPlayerDeath;
+		public static void InvokePlayerDeath(PlayerDeathEventArgs e)
+		{
+			OnPlayerDeath?.Invoke(e);
+		}
+
+		public static event Action<CreatureDeathEventArgs> OnCreatureDeath;
+		public static void InvokeCreatureDeath(CreatureDeathEventArgs e)
+		{
+			OnCreatureDeath?.Invoke(e);
 		}
 
 		public static event Action<Mobile, Mobile> OnPaperdollRequest;

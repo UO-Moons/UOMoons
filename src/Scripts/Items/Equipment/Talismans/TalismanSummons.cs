@@ -1,8 +1,11 @@
+#region References
 using System;
 using System.Collections.Generic;
+
 using Server.ContextMenus;
 using Server.Items;
 using Server.Regions;
+#endregion
 
 namespace Server.Mobiles
 {
@@ -129,7 +132,7 @@ namespace Server.Mobiles
                 {
                     if (master.Combatant != null && master.InRange(master.Combatant, 1) && Core.TickCount > m_NextMove)
                     {
-                        Mobile combatant = master.Combatant;
+                        IDamageable combatant = master.Combatant;
 
                         if (!InRange(combatant.Location, 1))
                         {
@@ -225,7 +228,7 @@ namespace Server.Mobiles
             SetDamageType(ResistanceType.Physical, 70);
             SetDamageType(ResistanceType.Poison, 30);
 
-			SetResistance(ResistanceType.Physical, 45, 60);
+            SetResistance(ResistanceType.Physical, 45, 60);
             SetResistance(ResistanceType.Fire, 25, 35);
             SetResistance(ResistanceType.Cold, 30, 40);
             SetResistance(ResistanceType.Poison, 40, 50);

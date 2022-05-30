@@ -9,7 +9,7 @@ namespace Server.Spells.Fourth
 {
 	public class FireFieldSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Fire Field", "In Flam Grav",
 				215,
 				9041,
@@ -47,7 +47,7 @@ namespace Server.Spells.Fourth
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (SpellHelper.CheckTown(p, Caster) && CheckSequence())
+			else if (SpellHelper.CheckTown(p, Caster) && SpellHelper.CheckWater(new Point3D(p), Caster.Map) && CheckSequence())
 			{
 				SpellHelper.Turn(Caster, p);
 
@@ -88,12 +88,35 @@ namespace Server.Spells.Fourth
 				else
 					duration = TimeSpan.FromSeconds(4.0 + (Caster.Skills[SkillName.Magery].Value * 0.5));
 
-				for (int i = -2; i <= 2; ++i)
-				{
-					Point3D loc = new Point3D(eastToWest ? p.X + i : p.X, eastToWest ? p.Y : p.Y + i, p.Z);
+				Point3D pnt = new(p);
 
-					new FireFieldItem(itemID, loc, Caster, Caster.Map, duration, i);
+				for (int i = 1; i <= 2; ++i)
+				{
+					Timer.DelayCall<int>(TimeSpan.FromMilliseconds(i * 300), index =>
+					{
+						Point3D point = new(eastToWest ? pnt.X + index : pnt.X, eastToWest ? pnt.Y : pnt.Y + index, pnt.Z);
+						SpellHelper.AdjustField(ref point, Caster.Map, 16, false);
+
+						if (SpellHelper.CheckField(point, Caster.Map))
+						{
+							new FireFieldItem(itemID, point, Caster, Caster.Map, duration);
+						}
+
+						point = new Point3D(eastToWest ? pnt.X + -index : pnt.X, eastToWest ? pnt.Y : pnt.Y + -index, pnt.Z);
+						SpellHelper.AdjustField(ref point, Caster.Map, 16, false);
+
+						if (SpellHelper.CheckField(point, Caster.Map))
+						{
+							new FireFieldItem(itemID, point, Caster, Caster.Map, duration);
+						}
+					}, i);
 				}
+				//for (int i = -2; i <= 2; ++i)
+				//{
+				//	Point3D loc = new Point3D(eastToWest ? p.X + i : p.X, eastToWest ? p.Y : p.Y + i, p.Z);
+
+				//	new FireFieldItem(itemID, loc, Caster, Caster.Map, duration, i);
+				//}
 			}
 
 			FinishSequence();
@@ -102,27 +125,30 @@ namespace Server.Spells.Fourth
 		[DispellableAttributes]
 		public class FireFieldItem : BaseItem
 		{
-			private Timer m_Timer;
-			private DateTime m_End;
-			private Mobile m_Caster;
-			private int m_Damage;
+            private Timer m_Timer;
+            private DateTime m_End;
+            private Mobile m_Caster;
+            private int m_Damage;
 
+            public Mobile Caster => m_Caster;
 			public override bool BlocksFit => true;
 
-			public FireFieldItem(int itemID, Point3D loc, Mobile caster, Map map, TimeSpan duration, int val)
-				: this(itemID, loc, caster, map, duration, val, 2)
+			public FireFieldItem(int itemID, Point3D loc, Mobile caster, Map map, TimeSpan duration)
+				: this(itemID, loc, caster, map, duration, 2)
 			{
 			}
 
-			public FireFieldItem(int itemID, Point3D loc, Mobile caster, Map map, TimeSpan duration, int val, int damage) : base(itemID)
+			public FireFieldItem(int itemID, Point3D loc, Mobile caster, Map map, TimeSpan duration, int damage)
+				: base(itemID)
 			{
 				bool canFit = SpellHelper.AdjustField(ref loc, map, 12, false);
 
-				Visible = false;
+
 				Movable = false;
 				Light = LightType.Circle300;
 
 				MoveToWorld(loc, map);
+				Effects.SendLocationParticles(EffectItem.Create(loc, map, EffectItem.DefaultDuration), 0x376A, 9, 10, 5029);
 
 				m_Caster = caster;
 
@@ -130,7 +156,7 @@ namespace Server.Spells.Fourth
 
 				m_End = DateTime.UtcNow + duration;
 
-				m_Timer = new InternalTimer(this, TimeSpan.FromSeconds(Math.Abs(val) * 0.2), caster.InLOS(this), canFit);
+				m_Timer = new InternalTimer(this, caster.InLOS(this), canFit);
 				m_Timer.Start();
 			}
 
@@ -172,7 +198,7 @@ namespace Server.Spells.Fourth
 
 							m_End = reader.ReadDeltaTime();
 
-							m_Timer = new InternalTimer(this, TimeSpan.Zero, true, true);
+							m_Timer = new InternalTimer(this, true, true);
 							m_Timer.Start();
 
 							break;
@@ -213,12 +239,13 @@ namespace Server.Spells.Fourth
 
 			private class InternalTimer : Timer
 			{
-				private readonly FireFieldItem m_Item;
-				private readonly bool m_InLOS, m_CanFit;
-
 				private static readonly Queue m_Queue = new Queue();
+				private readonly FireFieldItem m_Item;
+				private readonly bool m_InLOS;
+				private readonly bool m_CanFit;
 
-				public InternalTimer(FireFieldItem item, TimeSpan delay, bool inLOS, bool canFit) : base(delay, TimeSpan.FromSeconds(1.0))
+				public InternalTimer(FireFieldItem item, bool inLOS, bool canFit)
+					: base(TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1.0))
 				{
 					m_Item = item;
 					m_InLOS = inLOS;
@@ -230,22 +257,11 @@ namespace Server.Spells.Fourth
 				protected override void OnTick()
 				{
 					if (m_Item.Deleted)
-						return;
-
-					if (!m_Item.Visible)
 					{
-						if (m_InLOS && m_CanFit)
-							m_Item.Visible = true;
-						else
-							m_Item.Delete();
-
-						if (!m_Item.Deleted)
-						{
-							m_Item.ProcessDelta();
-							Effects.SendLocationParticles(EffectItem.Create(m_Item.Location, m_Item.Map, EffectItem.DefaultDuration), 0x376A, 9, 10, 5029);
-						}
+						return;
 					}
-					else if (DateTime.UtcNow > m_Item.m_End)
+
+					if (DateTime.UtcNow > m_Item.m_End)
 					{
 						m_Item.Delete();
 						Stop();
@@ -257,18 +273,26 @@ namespace Server.Spells.Fourth
 
 						if (map != null && caster != null)
 						{
-							foreach (Mobile m in m_Item.GetMobilesInRange(0))
+							IPooledEnumerable eable = m_Item.GetMobilesInRange(0);
+
+							foreach (Mobile m in eable)
 							{
 								if ((m.Z + 16) > m_Item.Z && (m_Item.Z + 12) > m.Z && (!Core.AOS || m != caster) && SpellHelper.ValidIndirectTarget(caster, m) && caster.CanBeHarmful(m, false))
+								{
 									m_Queue.Enqueue(m);
+								}
 							}
+
+							eable.Free();
 
 							while (m_Queue.Count > 0)
 							{
 								Mobile m = (Mobile)m_Queue.Dequeue();
 
 								if (SpellHelper.CanRevealCaster(m))
+								{
 									caster.RevealingAction();
+								}
 
 								caster.DoHarmful(m);
 
@@ -284,8 +308,10 @@ namespace Server.Spells.Fourth
 								AOS.Damage(m, caster, damage, 0, 100, 0, 0, 0);
 								m.PlaySound(0x208);
 
-								if (m is BaseMobile bm)
-									bm.OnHarmfulSpell(caster);
+								if (m is BaseCreature creature)
+								{
+									creature.OnHarmfulSpell(caster);
+								}
 							}
 						}
 					}
@@ -293,7 +319,7 @@ namespace Server.Spells.Fourth
 			}
 		}
 
-		private class InternalTarget : Target
+		public class InternalTarget : Target
 		{
 			private readonly FireFieldSpell m_Owner;
 
@@ -304,8 +330,8 @@ namespace Server.Spells.Fourth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is IPoint3D)
-					m_Owner.Target((IPoint3D)o);
+				if (o is IPoint3D d)
+					m_Owner.Target(d);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

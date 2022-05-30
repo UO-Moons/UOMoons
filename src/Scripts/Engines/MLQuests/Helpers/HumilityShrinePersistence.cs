@@ -34,7 +34,7 @@ namespace Server.Engines.Quests
             Movable = false;
         }
 
-        private Rectangle2D m_Rec = new Rectangle2D(4273, 3696, 2, 2);
+        private Rectangle2D m_Rec = new(4273, 3696, 2, 2);
 
         public override bool HandlesOnMovement => true;
 

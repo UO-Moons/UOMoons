@@ -106,7 +106,7 @@ namespace Server.Misc
 			PlaceItemIn(cont, 117, 149, MakePotionKeg(PotionEffect.RefreshTotal, 0x21));
 			PlaceItemIn(cont, 141, 149, MakePotionKeg(PotionEffect.ExplosionGreater, 0x74));
 
-			PlaceItemIn(cont, 93, 82, new Bottle(1000));
+			PlaceItemIn(cont, 93, 82, new EmptyBottle(1000));
 
 			PlaceItemIn(bank, 53, 169, cont);
 			// End bag of potion kegs
@@ -154,7 +154,7 @@ namespace Server.Misc
 			};
 
 			PlaceItemIn(cont, 48, 76, new Arrow(5000));
-			PlaceItemIn(cont, 72, 76, new Bolt(5000));
+			PlaceItemIn(cont, 72, 76, new CrossBowBolt(5000));
 
 			PlaceItemIn(bank, 118, 124, cont);
 			// End bag of archery ammo
@@ -1230,7 +1230,7 @@ namespace Server.Misc
 			{
 				case SkillName.Alchemy:
 					{
-						PackItem(new Bottle(4));
+						PackItem(new EmptyBottle(4));
 						PackItem(new MortarPestle());
 
 						int hue = Utility.RandomPinkHue();

@@ -218,7 +218,7 @@ namespace Server.Engines.Harvest
 			return base.CheckResources(from, tool, def, map, loc, timed);
 		}
 
-		public override Item Construct(Type type, Mobile from)
+		public override Item Construct(Type type, Mobile from, Item tool)
 		{
 			if (type == typeof(TreasureMap))
 			{
@@ -358,7 +358,7 @@ namespace Server.Engines.Harvest
 				}
 			}
 
-			return base.Construct(type, from);
+			return base.Construct(type, from, tool);
 		}
 
 		public override bool Give(Mobile m, Item item, bool placeAtFeet)

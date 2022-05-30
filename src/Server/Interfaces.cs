@@ -1,3 +1,4 @@
+using Server.ContextMenus;
 using Server.Mobiles;
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ namespace Server.Mobiles
 	public interface IMount
 	{
 		Mobile Rider { get; set; }
-		void OnRiderDamaged(int amount, Mobile from, bool willKill);
+		void OnRiderDamaged(Mobile from, ref int amount, bool willKill);
 	}
 
 	public interface IMountItem
@@ -47,9 +48,10 @@ namespace Server
 	public interface IWeapon
 	{
 		int MaxRange { get; }
-		void OnBeforeSwing(Mobile attacker, Mobile defender);
-		TimeSpan OnSwing(Mobile attacker, Mobile defender);
+		void OnBeforeSwing(Mobile attacker, IDamageable damageable);
+		TimeSpan OnSwing(Mobile attacker, IDamageable damageable);
 		void GetStatusDamage(Mobile from, out int min, out int max);
+		TimeSpan GetDelay(Mobile attacker);
 	}
 
 	public interface IHued
@@ -76,6 +78,7 @@ namespace Server
 		void OnStatsQuery(Mobile beholder, Mobile beheld);
 	}
 
+
 	public interface ISpawner
 	{
 		bool UnlinkOnTaming { get; }
@@ -83,6 +86,9 @@ namespace Server
 		int HomeRange { get; }
 
 		void Remove(ISpawnable spawn);
+
+		void GetSpawnProperties(ISpawnable spawn, ObjectPropertyList list);
+		void GetSpawnContextEntries(ISpawnable spawn, Mobile m, List<ContextMenuEntry> list);
 	}
 
 	public interface ISpawnable : IEntity
@@ -92,6 +98,40 @@ namespace Server
 		void OnAfterSpawn();
 
 		ISpawner Spawner { get; set; }
+	}
+
+	public interface IDamageable : IEntity
+	{
+		int Hits { get; set; }
+		int HitsMax { get; }
+		bool Alive { get; }
+
+		int PhysicalResistance { get; }
+		int FireResistance { get; }
+		int ColdResistance { get; }
+		int PoisonResistance { get; }
+		int EnergyResistance { get; }
+
+		int Damage(int amount, Mobile attacker);
+
+		void PlaySound(int soundID);
+
+		void MovingEffect(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int hue, int renderMode);
+		void MovingEffect(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes);
+
+		void MovingParticles(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int hue, int renderMode, int effect, int explodeEffect, int explodeSound, EffectLayer layer, int unknown);
+		void MovingParticles(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int hue, int renderMode, int effect, int explodeEffect, int explodeSound, int unknown);
+		void MovingParticles(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int effect, int explodeEffect, int explodeSound, int unknown);
+		void MovingParticles(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int effect, int explodeEffect, int explodeSound);
+
+		void FixedEffect(int itemID, int speed, int duration, int hue, int renderMode);
+		void FixedEffect(int itemID, int speed, int duration);
+
+		void FixedParticles(int itemID, int speed, int duration, int effect, int hue, int renderMode, EffectLayer layer, int unknown);
+		void FixedParticles(int itemID, int speed, int duration, int effect, int hue, int renderMode, EffectLayer layer);
+		void FixedParticles(int itemID, int speed, int duration, int effect, EffectLayer layer, int unknown);
+		void FixedParticles(int itemID, int speed, int duration, int effect, EffectLayer layer);
+		void BoltEffect(int hue);
 	}
 
 	public interface IArtifact

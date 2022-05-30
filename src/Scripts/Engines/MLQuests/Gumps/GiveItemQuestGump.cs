@@ -1,10 +1,10 @@
 using Server.Network;
-using Server.Engines.Quests;
 using Server.Mobiles;
+using Server.Engines.Quests;
 
 namespace Server.Gumps
 {
-    public class HumilityItemQuestGump : Gump
+	public class HumilityItemQuestGump : Gump
     {
         private HumilityQuestMobile m_Mobile;
         private WhosMostHumbleQuest m_Quest;

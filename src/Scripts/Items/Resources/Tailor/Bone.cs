@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class Bone : BaseItem, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		[Constructable]

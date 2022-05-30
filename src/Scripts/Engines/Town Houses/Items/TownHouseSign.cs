@@ -1301,7 +1301,7 @@ namespace Server.Engines.TownHouses
 			else if (!Visible)
 			{
 			}
-			else if (CanBuyHouse(m) && !BaseHouse.HasReachedHouseLimit(m))
+			else if (CanBuyHouse(m) && !BaseHouse.AtAccountHouseLimit(m))
 			{
 				_ = new TownHouseConfirmGump(m, this);
 			}

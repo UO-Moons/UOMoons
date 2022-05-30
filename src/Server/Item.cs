@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Server
@@ -79,9 +80,9 @@ namespace Server
 		/// </summary>
 		Bracelet = 0x0E,
 		/// <summary>
-		/// Unused.
+		/// Faces for EC
 		/// </summary>
-		Unused_xF = 0x0F,
+		Face = 0x0F,
 		/// <summary>
 		/// Beards and mustaches.
 		/// </summary>
@@ -1072,36 +1073,23 @@ namespace Server
 		}
 
 		/// <summary>
-		/// Overridable. Determines whether the item will show <see cref="AddWeightProperty" />.
+		///     Overridable. Determines whether the item will show <see cref="AddWeightProperty" />.
 		/// </summary>
 		public virtual bool DisplayWeight
 		{
 			get
 			{
 				if (!Core.ML)
+				{
 					return false;
+				}
 
 				if (!Movable && !(IsLockedDown || IsSecure) && ItemData.Weight == 255)
+				{
 					return false;
+				}
 
 				return true;
-			}
-		}
-
-		/// <summary>
-		/// Overridable. Displays cliloc 1072788-1072789.
-		/// </summary>
-		public virtual void AddWeightProperty(ObjectPropertyList list)
-		{
-			int weight = PileWeight + TotalWeight;
-
-			if (weight == 1)
-			{
-				list.Add(1072788, weight.ToString()); //Weight: ~1_WEIGHT~ stone
-			}
-			else
-			{
-				list.Add(1072789, weight.ToString()); //Weight: ~1_WEIGHT~ stones
 			}
 		}
 
@@ -1113,30 +1101,79 @@ namespace Server
 			AddNameProperty(list);
 
 			if (IsSecure)
+			{
 				AddSecureProperty(list);
+			}
 			else if (IsLockedDown)
+			{
 				AddLockedDownProperty(list);
+			}
 
-			Mobile blessedFor = BlessedFor;
+			AddCraftedProperties(list);
+			AddLootTypeProperty(list);
+			AddUsesRemainingProperties(list);
+			AddWeightProperty(list);
 
-			if (blessedFor != null && !blessedFor.Deleted)
-				AddBlessedForProperty(list, blessedFor);
+			AppendChildNameProperties(list);
 
-			if (DisplayLootType)
-				AddLootTypeProperty(list);
+			//Mobile blessedFor = BlessedFor;
 
-			if (DisplayWeight)
-				AddWeightProperty(list);
+			//if (blessedFor != null && !blessedFor.Deleted)
+			//	AddBlessedForProperty(list, blessedFor);
+
+			//if (DisplayLootType)
+			//	AddLootTypeProperty(list);
+
+			//if (DisplayWeight)
+			//	AddWeightProperty(list);
 
 			if (QuestItem)
+			{
 				AddQuestItemProperty(list);
+			}
 
 
 			AppendChildNameProperties(list);
 		}
 
 		/// <summary>
-		/// Overridable. Adds the "Quest Item" property to the given <see cref="ObjectPropertyList" />.
+		/// Overrideable, used to add crafted by, excpetional, etc properties to items
+		/// </summary>
+		/// <param name="list"></param>
+		public virtual void AddCraftedProperties(ObjectPropertyList list)
+		{
+		}
+
+		/// <summary>
+		/// Overrideable, used for IUsesRemaining UsesRemaining property
+		/// </summary>
+		/// <param name="list"></param>
+		public virtual void AddUsesRemainingProperties(ObjectPropertyList list)
+		{
+		}
+
+		/// <summary>
+		///     Overridable. Displays cliloc 1072788-1072789.
+		/// </summary>
+		public virtual void AddWeightProperty(ObjectPropertyList list)
+		{
+			if (DisplayWeight && Weight > 0)
+			{
+				int weight = PileWeight + TotalWeight;
+
+				if (weight == 1)
+				{
+					list.Add(1072788, weight.ToString()); //Weight: ~1_WEIGHT~ stone
+				}
+				else
+				{
+					list.Add(1072789, weight.ToString()); //Weight: ~1_WEIGHT~ stones
+				}
+			}
+		}
+
+		/// <summary>
+		///     Overridable. Adds the "Quest Item" property to the given <see cref="ObjectPropertyList" />.
 		/// </summary>
 		public virtual void AddQuestItemProperty(ObjectPropertyList list)
 		{
@@ -1144,7 +1181,7 @@ namespace Server
 		}
 
 		/// <summary>
-		/// Overridable. Adds the "Locked Down & Secure" property to the given <see cref="ObjectPropertyList" />.
+		///     Overridable. Adds the "Locked Down & Secure" property to the given <see cref="ObjectPropertyList" />.
 		/// </summary>
 		public virtual void AddSecureProperty(ObjectPropertyList list)
 		{
@@ -1152,7 +1189,7 @@ namespace Server
 		}
 
 		/// <summary>
-		/// Overridable. Adds the "Locked Down" property to the given <see cref="ObjectPropertyList" />.
+		///     Overridable. Adds the "Locked Down" property to the given <see cref="ObjectPropertyList" />.
 		/// </summary>
 		public virtual void AddLockedDownProperty(ObjectPropertyList list)
 		{
@@ -1160,41 +1197,94 @@ namespace Server
 		}
 
 		/// <summary>
-		/// Overridable. Adds the "Blessed for ~1_NAME~" property to the given <see cref="ObjectPropertyList" />.
+		///     Overridable. Adds the "Blessed for ~1_NAME~" property to the given <see cref="ObjectPropertyList" />.
 		/// </summary>
 		public virtual void AddBlessedForProperty(ObjectPropertyList list, Mobile m)
 		{
 			list.Add(1062203, "{0}", m.Name); // Blessed for ~1_NAME~
 		}
 
+		public virtual void AddItemSocketProperties(ObjectPropertyList list)
+		{
+			if (Sockets != null)
+			{
+				foreach (var socket in Sockets)
+				{
+					socket.GetProperties(list);
+				}
+			}
+		}
+
+		public virtual void AddItemPowerProperties(ObjectPropertyList list)
+		{
+		}
+
 		/// <summary>
-		/// Overridable. Fills an <see cref="ObjectPropertyList" /> with everything applicable. By default, this invokes <see cref="AddNameProperties" />, then <see cref="Item.GetChildProperties">Item.GetChildProperties</see> or <see cref="Mobile.GetChildProperties">Mobile.GetChildProperties</see>. This method should be overriden to add any custom properties.
+		///     Overridable. Fills an <see cref="ObjectPropertyList" /> with everything applicable. By default, this invokes
+		///     <see
+		///         cref="AddNameProperties" />
+		///     , then <see cref="Item.GetChildProperties">Item.GetChildProperties</see> or
+		///     <see
+		///         cref="Mobile.GetChildProperties">
+		///         Mobile.GetChildProperties
+		///     </see>
+		///     . This method should be overriden to add any custom properties.
 		/// </summary>
 		public virtual void GetProperties(ObjectPropertyList list)
 		{
 			AddNameProperties(list);
+
+			AddItemSocketProperties(list);
+
+			if (Spawner != null)
+			{
+				Spawner.GetSpawnProperties(this, list);
+			}
+
+			AddItemPowerProperties(list);
 		}
 
 		/// <summary>
-		/// Overridable. Event invoked when a child (<paramref name="item" />) is building it's <see cref="ObjectPropertyList" />. Recursively calls <see cref="Item.GetChildProperties">Item.GetChildProperties</see> or <see cref="Mobile.GetChildProperties">Mobile.GetChildProperties</see>.
+		///     Overridable. Event invoked when a child (<paramref name="item" />) is building it's <see cref="ObjectPropertyList" />. Recursively calls
+		///     <see
+		///         cref="Item.GetChildProperties">
+		///         Item.GetChildProperties
+		///     </see>
+		///     or <see cref="Mobile.GetChildProperties">Mobile.GetChildProperties</see>.
 		/// </summary>
 		public virtual void GetChildProperties(ObjectPropertyList list, Item item)
 		{
-			if (m_Parent is Item parentItem)
-				parentItem.GetChildProperties(list, item);
-			else if (m_Parent is Mobile parentMob)
-				parentMob.GetChildProperties(list, item);
+			if (m_Parent is Item)
+			{
+				((Item)m_Parent).GetChildProperties(list, item);
+			}
+			else if (m_Parent is Mobile)
+			{
+				((Mobile)m_Parent).GetChildProperties(list, item);
+			}
 		}
 
 		/// <summary>
-		/// Overridable. Event invoked when a child (<paramref name="item" />) is building it's Name <see cref="ObjectPropertyList" />. Recursively calls <see cref="Item.GetChildProperties">Item.GetChildNameProperties</see> or <see cref="Mobile.GetChildProperties">Mobile.GetChildNameProperties</see>.
+		///     Overridable. Event invoked when a child (<paramref name="item" />) is building it's Name
+		///     <see
+		///         cref="ObjectPropertyList" />
+		///     . Recursively calls <see cref="Item.GetChildProperties">Item.GetChildNameProperties</see> or
+		///     <see
+		///         cref="Mobile.GetChildProperties">
+		///         Mobile.GetChildNameProperties
+		///     </see>
+		///     .
 		/// </summary>
 		public virtual void GetChildNameProperties(ObjectPropertyList list, Item item)
 		{
-			if (m_Parent is Item parentItem)
-				parentItem.GetChildNameProperties(list, item);
-			else if (m_Parent is Mobile parentMob)
-				parentMob.GetChildNameProperties(list, item);
+			if (m_Parent is Item)
+			{
+				((Item)m_Parent).GetChildNameProperties(list, item);
+			}
+			else if (m_Parent is Mobile)
+			{
+				((Mobile)m_Parent).GetChildNameProperties(list, item);
+			}
 		}
 
 		public virtual bool IsChildVisibleTo(Mobile m, Item child)
@@ -1204,10 +1294,14 @@ namespace Server
 
 		public void Bounce(Mobile from)
 		{
-			if (m_Parent is Item parentItem)
-				parentItem.RemoveItem(this);
-			else if (m_Parent is Mobile parentMob)
-				parentMob.RemoveItem(this);
+			if (m_Parent is Item item)
+			{
+				item.RemoveItem(this);
+			}
+			else if (m_Parent is Mobile mobile)
+			{
+				mobile.RemoveItem(this);
+			}
 
 			m_Parent = null;
 
@@ -1215,18 +1309,30 @@ namespace Server
 
 			if (bounce != null)
 			{
-				IEntity parent = bounce.m_Parent;
+				var stack = bounce.m_ParentStack;
 
-				if (parent == null || parent.Deleted)
+				if (stack is Item s)
 				{
-					MoveToWorld(bounce.m_WorldLoc, bounce.m_Map);
+					if (!s.Deleted)
+					{
+						if (s.IsAccessibleTo(from))
+						{
+							s.StackWith(from, this);
+						}
+					}
 				}
-				else if (parent is Item p)
+
+				var parent = bounce.m_Parent;
+
+				if (parent is Item item1 && !item1.Deleted)
 				{
-					IEntity root = p.RootParent;
+					Item p = item1;
+					var root = p.RootParent;
+
 					if (p.IsAccessibleTo(from) && (root is not Mobile mobile || mobile.CheckNonlocalDrop(from, this, p)))
 					{
 						Location = bounce.m_Location;
+
 						p.AddItem(this);
 					}
 					else
@@ -1234,10 +1340,12 @@ namespace Server
 						MoveToWorld(from.Location, from.Map);
 					}
 				}
-				else if (parent is Mobile mobile)
+				else if (parent is Mobile mobile && !mobile.Deleted)
 				{
 					if (!mobile.EquipItem(this))
+					{
 						MoveToWorld(bounce.m_WorldLoc, bounce.m_Map);
+					}
 				}
 				else
 				{
@@ -1589,6 +1697,9 @@ namespace Server
 			}
 		}
 
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool HonestyItem { get; set; }
+
 		/// <summary>
 		/// Has the item been deleted?
 		/// </summary>
@@ -1619,16 +1730,25 @@ namespace Server
 		public static TimeSpan DefaultDecayTime { get; set; } = TimeSpan.FromMinutes(Settings.Configuration.Get<int>("Items", "DefaultDecayTime", 60));
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public virtual TimeSpan DecayTime => DefaultDecayTime;
+		public virtual int DecayMultiplier => 1;
 
 		[CommandProperty(AccessLevel.GameMaster)]
+		public virtual bool DefaultDecaySetting => true;
+
+		[CommandProperty(AccessLevel.Decorator)]
+		public virtual TimeSpan DecayTime => TimeSpan.FromMinutes(DefaultDecayTime.TotalMinutes * DecayMultiplier);
+
+		[CommandProperty(AccessLevel.Decorator)]
 		public virtual bool Decays =>
 				// TODO: Make item decay an option on the spawner
-				(Movable && Visible/* && Spawner == null*/);
+				DefaultDecaySetting && Movable && Visible && !HonestyItem/* && Spawner == null*/;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public TimeSpan TimeToDecay => TimeSpan.FromMinutes((DecayTime - (DateTime.UtcNow - LastMoved)).TotalMinutes);
 
 		public virtual bool OnDecay()
 		{
-			return (Decays && Parent == null && Map != Map.Internal && Region.Find(Location, Map).OnDecay(this));
+			return Decays && Parent == null && Map != Map.Internal && Region.Find(Location, Map).OnDecay(this);
 		}
 
 		public void SetLastMoved()
@@ -1638,6 +1758,10 @@ namespace Server
 
 		public DateTime LastMoved { get; set; }
 
+		public virtual bool StackIgnoreItemID => false;
+		public virtual bool StackIgnoreHue => false;
+		public virtual bool StackIgnoreName => false;
+
 		public bool StackWith(Mobile from, Item dropped)
 		{
 			return StackWith(from, dropped, true);
@@ -1645,10 +1769,12 @@ namespace Server
 
 		public virtual bool StackWith(Mobile from, Item dropped, bool playSound)
 		{
-			if (dropped.Stackable && Stackable && dropped.GetType() == GetType() && dropped.ItemID == ItemID && dropped.Hue == Hue && dropped.Name == Name && (dropped.Amount + Amount) <= 60000 && dropped != this && !dropped.Nontransferable && !Nontransferable)
+			if (WillStack(from, dropped))
 			{
 				if (m_LootType != dropped.m_LootType)
+				{
 					m_LootType = LootType.Regular;
+				}
 
 				Amount += dropped.Amount;
 				dropped.Delete();
@@ -1658,7 +1784,9 @@ namespace Server
 					int soundID = GetDropSound();
 
 					if (soundID == -1)
+					{
 						soundID = 0x42;
+					}
 
 					from.SendSound(soundID, GetWorldLocation());
 				}
@@ -1667,6 +1795,63 @@ namespace Server
 			}
 
 			return false;
+		}
+
+		public virtual bool WillStack(Mobile from, Item item)
+		{
+			if (item == this || item.GetType() != GetType())
+			{
+				return false;
+			}
+
+			if (!item.Stackable || !Stackable)
+			{
+				return false;
+			}
+
+			if (item.Nontransferable || Nontransferable)
+			{
+				return false;
+			}
+
+			if ((!item.StackIgnoreItemID || !StackIgnoreItemID) && item.ItemID != ItemID)
+			{
+				return false;
+			}
+
+			if ((!item.StackIgnoreHue || !StackIgnoreHue) && item.Hue != Hue)
+			{
+				return false;
+			}
+
+			if ((!item.StackIgnoreName || !StackIgnoreName) && item.Name != Name)
+			{
+				return false;
+			}
+
+			if (item.Amount + Amount > 60000)
+			{
+				return false;
+			}
+
+			if ((Sockets == null && item.Sockets != null) || (Sockets != null && item.Sockets == null))
+			{
+				return false;
+			}
+			else if (Sockets != null && item.Sockets != null)
+			{
+				if (Sockets.Any(s => !item.HasSocket(s.GetType())))
+				{
+					return false;
+				}
+
+				if (item.Sockets.Any(s => !HasSocket(s.GetType())))
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		public virtual bool OnDragDrop(Mobile from, Item dropped)
@@ -2738,7 +2923,9 @@ namespace Server
 			}
 		}
 
-		public const int QuestItemHue = 0x4EA; // Hmmmm... "for EA"?
+		public virtual bool HiddenQuestItemHue { get; set; }
+
+		public int QuestItemHue => HiddenQuestItemHue ? Hue : 0x04EA;
 
 		public virtual bool Nontransferable => QuestItem;
 
@@ -3323,6 +3510,60 @@ namespace Server
 			}
 		}
 
+		public void PrivateOverheadMessage(MessageType type, int hue, int number, NetState state, string args = "")
+		{
+			if (Map != null && state != null)
+			{
+				Packet p = null;
+				Point3D worldLoc = GetWorldLocation();
+
+				Mobile m = state.Mobile;
+
+				if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
+				{
+					if (p == null)
+						p = Packet.Acquire(new MessageLocalized(Serial, m_ItemID, type, hue, 3, number, Name, args));
+
+					state.Send(p);
+				}
+
+				Packet.Release(p);
+			}
+		}
+
+		public void PrivateOverheadMessage(MessageType type, int hue, bool ascii, string text, NetState state)
+		{
+			if (Map != null && state != null)
+			{
+				Point3D worldLoc = GetWorldLocation();
+				Mobile m = state.Mobile;
+
+				Packet asciip = null;
+				Packet p = null;
+
+				if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
+				{
+					if (ascii)
+					{
+						if (asciip == null)
+							asciip = Packet.Acquire(new AsciiMessage(Serial, m_ItemID, type, hue, 3, Name, text));
+
+						state.Send(asciip);
+					}
+					else
+					{
+						if (p == null)
+							p = Packet.Acquire(new UnicodeMessage(Serial, m_ItemID, type, hue, 3, m.Language, Name, text));
+
+						state.Send(p);
+					}
+				}
+
+				Packet.Release(asciip);
+				Packet.Release(p);
+			}
+		}
+
 		public Region GetRegion()
 		{
 			return Region.Find(GetWorldLocation(), Map);
@@ -3438,6 +3679,12 @@ namespace Server
 
 		[CommandProperty(AccessLevel.Counselor)]
 		public Serial Serial { get; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public IEntity ParentEntity => Parent;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public IEntity RootParentEntity => RootParent;
 
 		#region Location Location Location!
 
@@ -4066,7 +4313,7 @@ namespace Server
 
 		public Point3D GetWorldLocation()
 		{
-			IEntity root = RootParent;
+			IEntity root = RootParentEntity;
 
 			if (root == null)
 				return m_Location;
@@ -4080,7 +4327,7 @@ namespace Server
 
 		public Point3D GetSurfaceTop()
 		{
-			IEntity root = RootParent;
+			IEntity root = RootParentEntity;
 
 			if (root == null)
 				return new Point3D(m_Location.m_X, m_Location.m_Y, m_Location.m_Z + (ItemData.Surface ? ItemData.CalcHeight : 0));
@@ -4090,7 +4337,7 @@ namespace Server
 
 		public Point3D GetWorldTop()
 		{
-			IEntity root = RootParent;
+			IEntity root = RootParentEntity;
 
 			if (root == null)
 				return new Point3D(m_Location.m_X, m_Location.m_Y, m_Location.m_Z + ItemData.CalcHeight);
@@ -4120,6 +4367,39 @@ namespace Server
 				return;
 
 			_ = to.Send(new MessageLocalizedAffix(Serial, ItemID, MessageType.Regular, DisplayColor, 3, number, "", affixType, affix, args));
+		}
+
+		public void SendLocalizedMessage(int number, string args)
+		{
+			if (Deleted || Map == null)
+			{
+				return;
+			}
+
+			IPooledEnumerable eable = Map.GetClientsInRange(Location, Map.GlobalMaxUpdateRange);
+			Packet p = Packet.Acquire(new MessageLocalized(Serial, m_ItemID, MessageType.Regular, DisplayColor, 3, number, Name, args));
+
+			foreach (NetState ns in eable)
+			{
+				ns.Send(p);
+			}
+
+			Packet.Release(p);
+			eable.Free();
+		}
+
+		public void SendLocalizedMessage(MessageType type, int number, AffixType affixType, string affix, string args)
+		{
+			IPooledEnumerable eable = Map.GetClientsInRange(Location, Map.GlobalMaxUpdateRange);
+			Packet p = Packet.Acquire(new MessageLocalizedAffix(Serial, m_ItemID, type, DisplayColor, 3, number, "", affixType, affix, args));
+
+			foreach (NetState ns in eable)
+			{
+				ns.Send(p);
+			}
+
+			Packet.Release(p);
+			eable.Free();
 		}
 
 		#region OnDoubleClick[...]
@@ -4229,6 +4509,44 @@ namespace Server
 				return parentMob.CheckTarget(from, targ, targeted);
 
 			return true;
+		}
+
+		public virtual void OnStatsQuery(Mobile m)
+		{
+			if (m == null || m.Deleted || m.Map != Map || m.NetState == null)
+			{
+				return;
+			}
+
+			if (Utility.InUpdateRange(m, this) && m.CanSee(this))
+			{
+				SendStatusTo(m.NetState);
+			}
+		}
+
+		public virtual void SendStatusTo(NetState state)
+		{
+			var p = GetStatusPacketFor(state);
+
+			if (p != null)
+			{
+				state.Send(p);
+			}
+		}
+
+		public virtual Packet GetStatusPacketFor(NetState state)
+		{
+			if (this is IDamageable && state != null && state.Mobile != null && state.HighSeas)
+			{
+				return new MobileStatusCompact(CanBeRenamedBy(state.Mobile), (IDamageable)this);
+			}
+
+			return null;
+		}
+
+		public virtual bool CanBeRenamedBy(Mobile m)
+		{
+			return m != null && m.AccessLevel >= AccessLevel.GameMaster;
 		}
 
 		public virtual bool IsAccessibleTo(Mobile check)
@@ -4579,5 +4897,103 @@ namespace Server
 		public virtual void OnSectorDeactivate()
 		{
 		}
+
+		#region Item Sockets
+		public List<ItemSocket> Sockets { get; private set; }
+
+		public void AttachSocket(ItemSocket socket)
+		{
+			if (Sockets == null)
+			{
+				Sockets = new List<ItemSocket>();
+			}
+
+			Sockets.Add(socket);
+			socket.Owner = this;
+
+			InvalidateProperties();
+		}
+
+		public bool RemoveSocket<T>()
+		{
+			var socket = GetSocket(typeof(T));
+
+			if (socket != null)
+			{
+				RemoveItemSocket(socket);
+				return true;
+			}
+
+			return false;
+		}
+
+		public void RemoveItemSocket(ItemSocket socket)
+		{
+			if (Sockets == null)
+			{
+				return;
+			}
+
+			Sockets.Remove(socket);
+			socket.OnRemoved();
+
+			if (Sockets.Count == 0)
+			{
+				Sockets = null;
+			}
+
+			InvalidateProperties();
+		}
+
+		public T GetSocket<T>() where T : ItemSocket
+		{
+			if (Sockets == null)
+			{
+				return null;
+			}
+
+			return Sockets.FirstOrDefault(s => s.GetType() == typeof(T)) as T;
+		}
+
+		public T GetSocket<T>(Func<T, bool> predicate) where T : ItemSocket
+		{
+			if (Sockets == null)
+			{
+				return null;
+			}
+
+			return Sockets.FirstOrDefault(s => s.GetType() == typeof(T) && (predicate == null || predicate(s as T))) as T;
+		}
+
+		public ItemSocket GetSocket(Type type)
+		{
+			if (Sockets == null)
+			{
+				return null;
+			}
+
+			return Sockets.FirstOrDefault(s => s.GetType() == type);
+		}
+
+		public bool HasSocket<T>()
+		{
+			if (Sockets == null)
+			{
+				return false;
+			}
+
+			return Sockets.Any(s => s.GetType() == typeof(T));
+		}
+
+		public bool HasSocket(Type t)
+		{
+			if (Sockets == null)
+			{
+				return false;
+			}
+
+			return Sockets.Any(s => s.GetType() == t);
+		}
+		#endregion
 	}
 }

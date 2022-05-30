@@ -44,11 +44,8 @@ namespace Server.Items
 
 		public override int LabelNumber => 1041314 + (int)m_PotionEffect;
 
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => Core.ML;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter { get; set; }
 
 		private PotionEffect m_PotionEffect;
 
@@ -169,7 +166,7 @@ namespace Server.Items
 
 			#region Dueling
 			if (!Engines.ConPVP.DuelContext.IsFreeConsume(m))
-				_ = m.AddToBackpack(new Bottle());
+				_ = m.AddToBackpack(new EmptyBottle());
 			#endregion
 
 			if (m.Body.IsHuman && !m.Mounted)
@@ -225,7 +222,7 @@ namespace Server.Items
 
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
 			if (craftSystem is DefAlchemy)
 			{
@@ -234,7 +231,9 @@ namespace Server.Items
 				if (pack != null)
 				{
 					if ((int)PotionEffect >= (int)PotionEffect.Invisibility)
-						return ItemQuality.Normal;
+					{
+						return 1;
+					}
 
 					List<PotionKeg> kegs = pack.FindItemsByType<PotionKeg>();
 
@@ -243,27 +242,32 @@ namespace Server.Items
 						PotionKeg keg = kegs[i];
 
 						if (keg == null)
+						{
 							continue;
+						}
 
 						if (keg.Held <= 0 || keg.Held >= 100)
+						{
 							continue;
+						}
 
 						if (keg.Type != PotionEffect)
+						{
 							continue;
+						}
 
 						++keg.Held;
 
 						Consume();
-						_ = from.AddToBackpack(new Bottle());
+						from.AddToBackpack(new EmptyBottle());
 
-						return ItemQuality.Low; // signal placed in keg
+						return -1; // signal placed in keg
 					}
 				}
 			}
 
-			return ItemQuality.Normal;
+			return 1;
 		}
-
 		#endregion
 	}
 }

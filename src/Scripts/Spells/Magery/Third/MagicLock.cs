@@ -6,7 +6,7 @@ namespace Server.Spells.Third
 {
 	public class MagicLockSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Magic Lock", "An Por",
 				215,
 				9001,
@@ -80,8 +80,8 @@ namespace Server.Spells.Third
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is LockableContainer)
-					m_Owner.Target((LockableContainer)o);
+				if (o is LockableContainer container)
+					m_Owner.Target(container);
 				else
 					from.SendLocalizedMessage(501762); // Target must be an unlocked chest.
 			}

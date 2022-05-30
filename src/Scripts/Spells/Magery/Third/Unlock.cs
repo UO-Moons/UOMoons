@@ -6,7 +6,7 @@ namespace Server.Spells.Third
 {
 	public class UnlockSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Unlock Spell", "Ex Por",
 				215,
 				9001,
@@ -37,7 +37,7 @@ namespace Server.Spells.Third
 
 		public void Target(LockableContainer cont)
 		{
-			if (cont is LockableContainer && cont is IPoint3D loc)
+			if (cont is not null && cont is IPoint3D loc)
 			{
 				if (CheckSequence())
 				{
@@ -57,7 +57,7 @@ namespace Server.Spells.Third
 					{
 						int level = (int)(Caster.Skills[SkillName.Magery].Value * 0.8) - 4;
 
-						if (level >= cont.RequiredSkill && !(cont is TreasureMapChest && ((TreasureMapChest)cont).Level > 2))
+						if (level >= cont.RequiredSkill && !(cont is TreasureMapChest chest && chest.Level > 2))
 						{
 							cont.Locked = false;
 
@@ -84,8 +84,8 @@ namespace Server.Spells.Third
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is LockableContainer)
-					m_Owner.Target((LockableContainer)o);
+				if (o is LockableContainer container)
+					m_Owner.Target(container);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

@@ -6,8 +6,8 @@ namespace Server.Items
 	public class RepeatingCrossbow : BaseRanged
 	{
 		public override int EffectID => 0x1BFE;
-		public override Type AmmoType => typeof(Bolt);
-		public override Item Ammo => new Bolt();
+		public override Type AmmoType => typeof(CrossBowBolt);
+		public override Item Ammo => new CrossBowBolt();
 
 		public override WeaponAbility PrimaryAbility => WeaponAbility.DoubleStrike;
 		public override WeaponAbility SecondaryAbility => WeaponAbility.MovingShot;

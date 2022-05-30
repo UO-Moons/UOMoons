@@ -38,16 +38,26 @@ namespace Server.Engines.Craft
 			return true;
 		}
 
-		public override int CanCraft(Mobile from, BaseTool tool, Type itemType)
+		public override int CanCraft(Mobile from, ITool tool, Type itemType)
 		{
-			if (tool == null || tool.Deleted || tool.UsesRemaining < 0)
+			int num = 0;
+
+			if (tool == null || tool.Deleted || tool.UsesRemaining <= 0)
+			{
 				return 1044038; // You have worn out your tool!
-			else if (!BaseTool.CheckTool(tool, from))
+			}
+			else if (tool is Item && !BaseTool.CheckTool((Item)tool, from))
+			{
 				return 1048146; // If you have a tool equipped, you must use that tool.
-			else if (!(from is PlayerMobile mobile && mobile.Masonry && from.Skills[SkillName.Carpentry].Base >= 100.0))
+			}
+			else if (!(from is PlayerMobile && ((PlayerMobile)from).Masonry && from.Skills[SkillName.Carpentry].Base >= 100.0))
+			{
 				return 1044633; // You havent learned stonecraft.
-			else if (!BaseTool.CheckAccessible(tool, from))
-				return 1044263; // The tool must be on your person to use.
+			}
+			else if (!tool.CheckAccessible(from, ref num))
+			{
+				return num; // The tool must be on your person to use.
+			}
 
 			return 0;
 		}
@@ -76,28 +86,42 @@ namespace Server.Engines.Craft
 			}
 		}
 
-		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item)
+		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item)
 		{
 			if (toolBroken)
-				from.SendLocalizedMessage(1044038); // You have worn out your tool
+			{
+				from.SendLocalizedMessage(1044038); // You have worn out your tool 
+			}
 
 			if (failed)
 			{
 				if (lostMaterial)
-					return 1044043; // You failed to create the item, and some of your materials are lost.
+				{
+					return 1044043; // You failed to create the item, and some of your materials are lost. 
+				}
 				else
-					return 1044157; // You failed to create the item, but no materials were lost.
+				{
+					return 1044157; // You failed to create the item, but no materials were lost. 
+				}
 			}
 			else
 			{
 				if (quality == 0)
-					return 502785; // You were barely able to make this item.  It's quality is below average.
-				else if (makersMark && quality == ItemQuality.Exceptional)
-					return 1044156; // You create an exceptional quality item and affix your maker's mark.
-				else if (quality == ItemQuality.Exceptional)
-					return 1044155; // You create an exceptional quality item.
+				{
+					return 502785; // You were barely able to make this item.  It's quality is below average. 
+				}
+				else if (makersMark && quality == 2)
+				{
+					return 1044156; // You create an exceptional quality item and affix your maker's mark. 
+				}
+				else if (quality == 2)
+				{
+					return 1044155; // You create an exceptional quality item. 
+				}
 				else
-					return 1044154; // You create the item.
+				{
+					return 1044154; // You create the item. 
+				}
 			}
 		}
 
@@ -116,6 +140,17 @@ namespace Server.Engines.Craft
 				SetNeededExpansion(index, Expansion.SE);
 			}
 
+			if (Core.ML)
+			{
+				int index = AddCraft(typeof(StoneAnvilSouthDeed), 1044290, 1072876, 78.0, 128.0, typeof(Granite), 1044514, 20, 1044513);
+				AddRecipe(index, (int)CarpRecipes.StoneAnvilSouth);
+				SetNeededExpansion(index, Expansion.ML);
+
+				index = AddCraft(typeof(StoneAnvilEastDeed), 1044290, 1073392, 78.0, 128.0, typeof(Granite), 1044514, 20, 1044513);
+				AddRecipe(index, (int)CarpRecipes.StoneAnvilEast);
+				SetNeededExpansion(index, Expansion.ML);
+			}
+
 			// Furniture
 			AddCraft(typeof(StoneChair), 1044502, 1024635, 55.0, 105.0, typeof(Granite), 1044514, 4, 1044513);
 			AddCraft(typeof(MediumStoneTableEastDeed), 1044502, 1044508, 65.0, 115.0, typeof(Granite), 1044514, 6, 1044513);
@@ -128,6 +163,10 @@ namespace Server.Engines.Craft
 			AddCraft(typeof(StatueNorth), 1044503, 1044506, 60.0, 120.0, typeof(Granite), 1044514, 3, 1044513);
 			AddCraft(typeof(StatueEast), 1044503, 1044507, 60.0, 120.0, typeof(Granite), 1044514, 3, 1044513);
 			AddCraft(typeof(StatuePegasus), 1044503, 1044510, 70.0, 130.0, typeof(Granite), 1044514, 4, 1044513);
+
+			MarkOption = true;
+			Repair = Core.SA;
+			CanEnhance = Core.SA;
 
 			SetSubRes(typeof(Granite), 1044525);
 

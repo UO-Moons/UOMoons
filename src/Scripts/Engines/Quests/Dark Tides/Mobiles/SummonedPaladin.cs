@@ -45,12 +45,12 @@ namespace Server.Engines.Quests.Necro
 			PackGold(500);
 		}
 
-		public override bool IsHarmfulCriminal(Mobile target)
+		public override bool IsHarmfulCriminal(IDamageable damageable)
 		{
-			if (target == m_Necromancer)
+			if (damageable == m_Necromancer)
 				return false;
 
-			return base.IsHarmfulCriminal(target);
+			return base.IsHarmfulCriminal(damageable);
 		}
 
 		public override bool ClickTitle => false;

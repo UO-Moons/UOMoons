@@ -249,9 +249,23 @@ namespace Server
 			return m_X == p.X && m_Y == p.Y && m_Z == p.Z;
 		}
 
+		//public override int GetHashCode()
+		//{
+		//	return m_X ^ m_Y ^ m_Z;
+		//}
+
 		public override int GetHashCode()
 		{
-			return m_X ^ m_Y ^ m_Z;
+			unchecked
+			{
+				var hash = 1 + Math.Abs(X) + Math.Abs(Y) + Math.Abs(Z);
+
+				hash = (hash * 397) ^ X;
+				hash = (hash * 397) ^ Y;
+				hash = (hash * 397) ^ Z;
+
+				return hash;
+			}
 		}
 
 		public static Point3D Parse(string value)
@@ -287,7 +301,9 @@ namespace Server
 		public static bool operator ==(Point3D l, IPoint3D r)
 		{
 			if (r is null)
+			{
 				return false;
+			}
 
 			return l.m_X == r.X && l.m_Y == r.Y && l.m_Z == r.Z;
 		}

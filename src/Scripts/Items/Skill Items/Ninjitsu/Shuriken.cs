@@ -12,9 +12,6 @@ namespace Server.Items
 		private int m_PoisonCharges;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter { get; set; }
-
-		[CommandProperty(AccessLevel.GameMaster)]
 		public int UsesRemaining
 		{
 			get => m_UsesRemaining;
@@ -96,9 +93,9 @@ namespace Server.Items
 			}
 		}
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			if (Quality == ItemQuality.Exceptional)
 				UsesRemaining *= 2;

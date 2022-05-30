@@ -265,6 +265,19 @@ namespace Server.Items
 			return true;
 		}
 
+		public virtual bool CheckStack(Mobile from, Item item)
+		{
+			foreach (var i in Items)
+			{
+				if (i.WillStack(from, item))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		public virtual void SendFullItemsMessage(Mobile to, Item item)
 		{
 			to.SendLocalizedMessage(1080017); // That container cannot hold more items.

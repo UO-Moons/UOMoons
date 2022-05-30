@@ -1,10 +1,11 @@
 using Server.Targeting;
+using System;
 
 namespace Server.Spells.Third
 {
 	public class FireballSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Fireball", "Vas Flam",
 				203,
 				9041,
@@ -13,6 +14,7 @@ namespace Server.Spells.Third
 
 		public override SpellCircle Circle => SpellCircle.Third;
 		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
+		public override bool DelayedDamage => true;
 
 		public FireballSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
@@ -33,9 +35,7 @@ namespace Server.Spells.Third
 			}
 		}
 
-		public override bool DelayedDamage => true;
-
-		public void Target(Mobile m)
+		public void Target(IDamageable m)
 		{
 			if (!Caster.CanSee(m))
 			{
@@ -43,36 +43,47 @@ namespace Server.Spells.Third
 			}
 			else if (CheckHSequence(m))
 			{
-				Mobile source = Caster;
+				IDamageable source = Caster;
+				IDamageable target = m;
 
-				SpellHelper.Turn(source, m);
+				SpellHelper.Turn(Caster, m);
 
-				SpellHelper.CheckReflect((int)Circle, ref source, ref m);
+				if (SpellHelper.CheckReflect((int)Circle, ref source, ref target))
+				{
+					Timer.DelayCall(TimeSpan.FromSeconds(.5), () =>
+					{
+						source.MovingParticles(target, 0x36D4, 7, 0, false, true, 9502, 4019, 0x160);
+						source.PlaySound(Core.AOS ? 0x15E : 0x44B);
+					});
+				}
 
-				double damage;
+				double damage = 0;
 
 				if (Core.AOS)
 				{
 					damage = GetNewAosDamage(19, 1, 5, m);
 				}
-				else
+				else if (m is Mobile mobile)
 				{
 					damage = Utility.Random(10, 7);
 
-					if (CheckResisted(m))
+					if (CheckResisted(mobile))
 					{
 						damage *= 0.75;
 
-						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
+						mobile.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
 					}
 
-					damage *= GetDamageScalar(m);
+					damage *= GetDamageScalar(mobile);
 				}
 
-				source.MovingParticles(m, 0x36D4, 7, 0, false, true, 9502, 4019, 0x160);
-				source.PlaySound(Core.AOS ? 0x15E : 0x44B);
+				if (damage > 0)
+				{
+					Caster.MovingParticles(m, 0x36D4, 7, 0, false, true, 9502, 4019, 0x160);
+					Caster.PlaySound(Core.AOS ? 0x15E : 0x44B);
 
-				SpellHelper.Damage(this, m, damage, 0, 100, 0, 0, 0);
+					SpellHelper.Damage(this, target, damage, 0, 100, 0, 0, 0);
+				}
 			}
 
 			FinishSequence();
@@ -89,8 +100,10 @@ namespace Server.Spells.Third
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
+				if (o is IDamageable damageable)
+				{
+					m_Owner.Target(damageable);
+				}
 			}
 
 			protected override void OnTargetFinish(Mobile from)

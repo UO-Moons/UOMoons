@@ -1,155 +1,187 @@
-using Server.Targeting;
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using Server.Targeting;
 
 namespace Server.Spells.Necromancy
 {
-	public class CorpseSkinSpell : NecromancerSpell
-	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Corpse Skin", "In Agle Corp Ylem",
-				203,
-				9051,
-				Reagent.BatWing,
-				Reagent.GraveDust
-			);
+    public class CorpseSkinSpell : NecromancerSpell
+    {
+        private static readonly SpellInfo m_Info = new SpellInfo(
+            "Corpse Skin", "In Agle Corp Ylem",
+            203,
+            9051,
+            Reagent.BatWing,
+            Reagent.GraveDust);
 
-		public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.5);
+        private static readonly Dictionary<Mobile, ExpireTimer> m_Table = new Dictionary<Mobile, ExpireTimer>();
 
-		public override double RequiredSkill => 20.0;
-		public override int RequiredMana => 11;
+        public CorpseSkinSpell(Mobile caster, Item scroll)
+            : base(caster, scroll, m_Info)
+        {
+        }
 
-		public CorpseSkinSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
-		{
-		}
+        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.75);
+        public override double RequiredSkill => 20.0;
+        public override int RequiredMana => 11;
 
-		public override void OnCast()
-		{
-			Caster.Target = new InternalTarget(this);
-		}
+        public static bool RemoveCurse(Mobile m)
+        {
+            if (m_Table.ContainsKey(m))
+            {
+                m_Table[m].DoExpire();
+                return true;
+            }
 
-		public void Target(Mobile m)
-		{
-			if (CheckHSequence(m))
-			{
-				SpellHelper.Turn(Caster, m);
+            return false;
+        }
 
-				/* Transmogrifies the flesh of the target creature or player to resemble rotted corpse flesh,
-				 * making them more vulnerable to Fire and Poison damage,
-				 * but increasing their resistance to Physical and Cold damage.
-				 *
-				 * The effect lasts for ((Spirit Speak skill level - target's Resist Magic skill level) / 25 ) + 40 seconds.
-				 *
-				 * NOTE: Algorithm above is fixed point, should be:
-				 * ((ss-mr)/2.5) + 40
-				 *
-				 * NOTE: Resistance is not checked if targeting yourself
-				 */
+        public static bool IsUnderEffects(Mobile m)
+        {
+            return m_Table.ContainsKey(m);
+        }
 
-				ExpireTimer timer = (ExpireTimer)m_Table[m];
+        public static int GetResistMalus(Mobile m)
+        {
+            if (m_Table.ContainsKey(m))
+            {
+                return 70 - m_Table[m].Malus;
+            }
 
-				if (timer != null)
-					timer.DoExpire();
-				else
-					m.SendLocalizedMessage(1061689); // Your skin turns dry and corpselike.
+            return 70;
+        }
 
-				if (m.Spell != null)
-					m.Spell.OnCasterHurt();
+        public override void OnCast()
+        {
+            Caster.Target = new InternalTarget(this);
+        }
 
-				m.FixedParticles(0x373A, 1, 15, 9913, 67, 7, EffectLayer.Head);
-				m.PlaySound(0x1BB);
+        public void Target(Mobile m)
+        {
+            if (CheckHSequence(m))
+            {
+                SpellHelper.Turn(Caster, m);
 
-				double ss = GetDamageSkill(Caster);
-				double mr = (Caster == m ? 0.0 : GetResistSkill(m));
-				m.CheckSkill(SkillName.MagicResist, 0.0, 120.0);    //Skill check for gain
+                ApplyEffects(m);
+            }
 
-				TimeSpan duration = TimeSpan.FromSeconds(((ss - mr) / 2.5) + 40.0);
+            FinishSequence();
+        }
 
-				ResistanceMod[] mods = new ResistanceMod[4]
-					{
-						new ResistanceMod( ResistanceType.Fire, -15 ),
-						new ResistanceMod( ResistanceType.Poison, -15 ),
-						new ResistanceMod( ResistanceType.Cold, +10 ),
-						new ResistanceMod( ResistanceType.Physical, +10 )
-					};
+        public void ApplyEffects(Mobile m, double strength = 1.0)
+        {
+            /* Transmogrifies the flesh of the target creature or player to resemble rotted corpse flesh,
+                * making them more vulnerable to Fire and Poison damage,
+                * but increasing their resistance to Physical and Cold damage.
+                * 
+                * The effect lasts for ((Spirit Speak skill level - target's Resist Magic skill level) / 25 ) + 40 seconds.
+                * 
+                * NOTE: Algorithm above is fixed point, should be:
+                * ((ss-mr)/2.5) + 40
+                * 
+                * NOTE: Resistance is not checked if targeting yourself
+                */
 
-				timer = new ExpireTimer(m, mods, duration);
-				timer.Start();
+            if (m_Table.ContainsKey(m))
+            {
+                m_Table[m].DoExpire(false);
+            }
 
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.CorpseSkin, 1075663, duration, m));
+            m.SendLocalizedMessage(1061689); // Your skin turns dry and corpselike.
 
-				m_Table[m] = timer;
+            if (m.Spell != null)
+                m.Spell.OnCasterHurt();
 
-				for (int i = 0; i < mods.Length; ++i)
-					m.AddResistanceMod(mods[i]);
+            m.FixedParticles(0x373A, 1, 15, 9913, 67, 7, EffectLayer.Head);
+            m.PlaySound(0x1BB);
 
-				HarmfulSpell(m);
-			}
+            double ss = GetDamageSkill(Caster);
+            double mr = GetResistSkill(m);
+            m.CheckSkill(SkillName.MagicResist, 0.0, m.Skills[SkillName.MagicResist].Cap);	//Skill check for gain
 
-			FinishSequence();
-		}
+            TimeSpan duration = TimeSpan.FromSeconds((((ss - mr) / 2.5) + 40.0) * strength);
 
-		private static readonly Hashtable m_Table = new Hashtable();
+            int malus = (int)Math.Min(15, (Caster.Skills[CastSkill].Value + Caster.Skills[DamageSkill].Value) * 0.075);
 
-		public static bool RemoveCurse(Mobile m)
-		{
-			ExpireTimer t = (ExpireTimer)m_Table[m];
+            ResistanceMod[] mods = new ResistanceMod[4]
+                    {
+                        new ResistanceMod( ResistanceType.Fire, (int)(-malus * strength) ),
+                        new ResistanceMod( ResistanceType.Poison, (int)(-malus * strength) ),
+                        new ResistanceMod( ResistanceType.Cold, (int)(+10.0 * strength) ),
+                        new ResistanceMod( ResistanceType.Physical, (int)(+10.0 * strength) )
+                    };
 
-			if (t == null)
-				return false;
+            ExpireTimer timer = new ExpireTimer(m, mods, malus, duration);
+            timer.Start();
 
-			m.SendLocalizedMessage(1061688); // Your skin returns to normal.
-			t.DoExpire();
-			return true;
-		}
+            BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.CorpseSkin, 1075663, duration, m));
 
-		private class ExpireTimer : Timer
-		{
-			private readonly Mobile m_Mobile;
-			private readonly ResistanceMod[] m_Mods;
+            m_Table[m] = timer;
 
-			public ExpireTimer(Mobile m, ResistanceMod[] mods, TimeSpan delay) : base(delay)
-			{
-				m_Mobile = m;
-				m_Mods = mods;
-			}
+            m.UpdateResistances();
 
-			public void DoExpire()
-			{
-				for (int i = 0; i < m_Mods.Length; ++i)
-					m_Mobile.RemoveResistanceMod(m_Mods[i]);
+            for (int i = 0; i < mods.Length; ++i)
+                m.AddResistanceMod(mods[i]);
 
-				Stop();
-				BuffInfo.RemoveBuff(m_Mobile, BuffIcon.CorpseSkin);
-				m_Table.Remove(m_Mobile);
-			}
+            HarmfulSpell(m);
+        }
 
-			protected override void OnTick()
-			{
-				m_Mobile.SendLocalizedMessage(1061688); // Your skin returns to normal.
-				DoExpire();
-			}
-		}
+        private class ExpireTimer : Timer
+        {
+            private readonly Mobile m_Mobile;
+            private readonly ResistanceMod[] m_Mods;
 
-		private class InternalTarget : Target
-		{
-			private readonly CorpseSkinSpell m_Owner;
+            public int Malus { get; }
 
-			public InternalTarget(CorpseSkinSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
-			{
-				m_Owner = owner;
-			}
+            public ExpireTimer(Mobile m, ResistanceMod[] mods, int malus, TimeSpan delay)
+                : base(delay)
+            {
+                m_Mobile = m;
+                m_Mods = mods;
+                Malus = malus;
+            }
 
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
-			}
+            public void DoExpire(bool message = true)
+            {
+                for (int i = 0; i < m_Mods.Length; ++i)
+                    m_Mobile.RemoveResistanceMod(m_Mods[i]);
 
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
-		}
-	}
+                Stop();
+                BuffInfo.RemoveBuff(m_Mobile, BuffIcon.CorpseSkin);
+
+                if (m_Table.ContainsKey(m_Mobile))
+                    m_Table.Remove(m_Mobile);
+
+                m_Mobile.UpdateResistances();
+
+                if (message)
+                    m_Mobile.SendLocalizedMessage(1061688); // Your skin returns to normal.
+            }
+
+            protected override void OnTick()
+            {
+                DoExpire();
+            }
+        }
+
+        private class InternalTarget : Target
+        {
+            private readonly CorpseSkinSpell m_Owner;
+            public InternalTarget(CorpseSkinSpell owner)
+                : base(Core.ML ? 10 : 12, false, TargetFlags.Harmful)
+            {
+                m_Owner = owner;
+            }
+
+            protected override void OnTarget(Mobile from, object o)
+            {
+                if (o is Mobile)
+                    m_Owner.Target((Mobile)o);
+            }
+
+            protected override void OnTargetFinish(Mobile from)
+            {
+                m_Owner.FinishSequence();
+            }
+        }
+    }
 }

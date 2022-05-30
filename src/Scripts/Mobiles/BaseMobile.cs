@@ -1,5 +1,6 @@
 using Server.Items;
 using Server.Misc;
+using Server.Network;
 using Server.Spells;
 using Server.Spells.Bushido;
 using Server.Spells.Necromancy;
@@ -122,6 +123,18 @@ namespace Server.Mobiles
 
 		#endregion
 
+		public virtual void OnBeforeTame()
+		{
+		}
+
+		public virtual void OnBeforeReTame()
+		{
+		}
+
+		public virtual void OnHarmfulSpell(Mobile from) { }
+
+		public virtual void CheckReflect(Mobile caster, ref bool reflect) { }
+
 		public override double GetHitBlockChance()
 		{
 			double chance = base.GetHitBlockChance();
@@ -236,12 +249,6 @@ namespace Server.Mobiles
 				// Bonus granted by successful use of Honorable Execution.
 				bonus += HonorableExecution.GetSwingBonus(this);
 
-				if (DualWield.Registry.Contains(this))
-					bonus += ((DualWield.DualWieldTimer)DualWield.Registry[this]).BonusSwingSpeed;
-
-				if (Feint.Registry.Contains(this))
-					bonus -= ((Feint.FeintTimer)Feint.Registry[this]).SwingSpeedReduction;
-
 				TransformContext context = TransformationSpellHelper.GetContext(this);
 
 				if (context != null && context.Spell is ReaperFormSpell reaperSpell)
@@ -337,6 +344,26 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 
 			_ = reader.ReadInt();
+		}
+	}
+
+	public sealed class PetWindow : Packet
+	{
+		public PetWindow(PlayerMobile owner, Mobile pet)
+			: base(0x31)
+		{
+			int count = owner.AllFollowers.Count;
+
+			EnsureCapacity(6 + (6 * count));
+
+			m_Stream.Write(owner.Serial);
+			m_Stream.Write((byte)count);
+
+			for (int i = 0; i < owner.AllFollowers.Count; i++)
+			{
+				m_Stream.Write(owner.AllFollowers[i].Serial);
+				m_Stream.Write((byte)0x01);
+			}
 		}
 	}
 }

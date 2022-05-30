@@ -142,11 +142,15 @@ namespace Server.Items
 		{
 			BaseHouse house = FindHouse();
 
-			if (house != null && house.IsFriend(from) && from.AccessLevel == AccessLevel.Player && house.RefreshDecay())
+			if (house != null && house.IsFriend(from) && from.IsPlayer() && house.RefreshDecay())
+			{
 				from.SendLocalizedMessage(1043293); // Your house's age and contents have been refreshed.
+			}
 
-			if (house != null && house.Public && !house.IsFriend(from))
-				house.Visits++;
+			if (!Core.AOS && house != null && house.Public && !house.IsFriend(from))
+			{
+				house.AddVisit(from);
+			}
 		}
 
 		public override bool UseLocks()

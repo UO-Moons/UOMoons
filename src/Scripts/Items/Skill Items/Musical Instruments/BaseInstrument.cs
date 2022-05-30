@@ -12,7 +12,6 @@ namespace Server.Items
 	public abstract class BaseInstrument : BaseItem, ICraftable, ISlayer
 	{
 		private SlayerName m_Slayer, m_Slayer2;
-		private Mobile m_Crafter;
 		private int m_UsesRemaining;
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -40,13 +39,6 @@ namespace Server.Items
 		{
 			get => base.Quality;
 			set { UnscaleUses(); base.Quality = value; InvalidateProperties(); ScaleUses(); }
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter
-		{
-			get => m_Crafter;
-			set { m_Crafter = value; InvalidateProperties(); }
 		}
 
 		public virtual int InitMinUses => 350;
@@ -323,8 +315,8 @@ namespace Server.Items
 
 			base.GetProperties(list);
 
-			if (m_Crafter != null)
-				list.Add(1050043, m_Crafter.Name); // crafted by ~1_NAME~
+			if (Crafter != null)
+				list.Add(1050043, Crafter.Name); // crafted by ~1_NAME~
 
 			if (Quality == ItemQuality.Exceptional)
 				list.Add(1060636); // exceptional
@@ -400,7 +392,7 @@ namespace Server.Items
 			if (attrs.Count == 0 && Crafter == null && Name != null)
 				return;
 
-			EquipmentInfo eqInfo = new EquipmentInfo(number, m_Crafter, false, (EquipInfoAttribute[])attrs.ToArray(typeof(EquipInfoAttribute)));
+			EquipmentInfo eqInfo = new EquipmentInfo(number, Crafter, false, (EquipInfoAttribute[])attrs.ToArray(typeof(EquipInfoAttribute)));
 
 			from.Send(new DisplayEquipmentInfo(this, eqInfo));
 		}
@@ -418,8 +410,6 @@ namespace Server.Items
 			writer.Write(m_ReplenishesCharges);
 			if (m_ReplenishesCharges)
 				writer.Write(m_LastReplenished);
-
-			writer.Write(m_Crafter);
 
 			writer.WriteEncodedInt((int)m_Slayer);
 			writer.WriteEncodedInt((int)m_Slayer2);
@@ -444,8 +434,6 @@ namespace Server.Items
 
 						if (m_ReplenishesCharges)
 							m_LastReplenished = reader.ReadDateTime();
-
-						m_Crafter = reader.ReadMobile();
 
 						m_Slayer = (SlayerName)reader.ReadEncodedInt();
 						m_Slayer2 = (SlayerName)reader.ReadEncodedInt();
@@ -520,9 +508,9 @@ namespace Server.Items
 		}
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			if (makersMark)
 				Crafter = from;

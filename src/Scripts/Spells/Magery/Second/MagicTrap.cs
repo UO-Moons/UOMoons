@@ -5,7 +5,7 @@ namespace Server.Spells.Second
 {
 	public class MagicTrapSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Magic Trap", "In Jux",
 				212,
 				9001,
@@ -78,9 +78,9 @@ namespace Server.Spells.Second
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is TrapableContainer)
+				if (o is TrapableContainer container)
 				{
-					m_Owner.Target((TrapableContainer)o);
+					m_Owner.Target(container);
 				}
 				else
 				{

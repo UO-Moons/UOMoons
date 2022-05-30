@@ -6,6 +6,8 @@ namespace Server
 	[Parsable]
 	public abstract class Poison
 	{
+		public abstract int LabelNumber { get; }
+		public abstract int RealLevel { get; }
 		public abstract string Name { get; }
 		public abstract int Level { get; }
 		public abstract Timer ConstructTimer(Mobile m);
@@ -17,6 +19,8 @@ namespace Server
 		public static Poison Greater => GetPoison("Greater");
 		public static Poison Deadly => GetPoison("Deadly");
 		public static Poison Lethal => GetPoison("Lethal");
+		public static Poison Parasitic => GetPoison("DeadlyParasitic");
+		public static Poison DarkGlow => GetPoison("GreaterDarkglow");
 
 		public override string ToString()
 		{
@@ -30,9 +34,13 @@ namespace Server
 			for (int i = 0; i < Poisons.Count; i++)
 			{
 				if (reg.Level == Poisons[i].Level)
+				{
 					throw new Exception("A poison with that level already exists.");
+				}
 				else if (regName == Poisons[i].Name.ToLower())
+				{
 					throw new Exception("A poison with that name already exists.");
+				}
 			}
 
 			Poisons.Add(reg);
@@ -92,18 +100,11 @@ namespace Server
 
 		public static Poison Deserialize(GenericReader reader)
 		{
-			switch (reader.ReadByte())
+			return reader.ReadByte() switch
 			{
-				case 1: return GetPoison(reader.ReadByte());
-				case 2:
-					//no longer used, safe to remove?
-					reader.ReadInt();
-					reader.ReadDouble();
-					reader.ReadInt();
-					reader.ReadTimeSpan();
-					break;
-			}
-			return null;
+				1 => GetPoison(reader.ReadByte()),
+				_ => null,
+			};
 		}
 	}
 }

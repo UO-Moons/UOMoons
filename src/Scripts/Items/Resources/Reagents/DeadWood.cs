@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class DeadWood : BaseReagent, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		[Constructable]

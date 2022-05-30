@@ -438,19 +438,22 @@ namespace Server.Factions
 	public class VirtualMount : IMount
 	{
 		private readonly VirtualMountItem m_Item;
-
-		public Mobile Rider
-		{
-			get => m_Item.Rider;
-			set { }
-		}
-
 		public VirtualMount(VirtualMountItem item)
 		{
 			m_Item = item;
 		}
 
-		public virtual void OnRiderDamaged(int amount, Mobile from, bool willKill)
+		public Mobile Rider
+		{
+			get
+			{
+				return m_Item.Rider;
+			}
+			set
+			{
+			}
+		}
+		public virtual void OnRiderDamaged(Mobile from, ref int amount, bool willKill)
 		{
 		}
 	}

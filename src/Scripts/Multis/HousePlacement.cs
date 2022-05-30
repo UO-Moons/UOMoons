@@ -24,7 +24,7 @@ namespace Server.Multis
 		private const int YardSize = 5;
 
 		// Any land tile which matches one of these ID numbers is considered a road and cannot be placed over.
-		private static readonly int[] m_RoadIDs = new int[]
+		public static readonly int[] m_RoadIDs = new int[]
 			{
 				0x0071, 0x0078,
 				0x00E8, 0x00EB,

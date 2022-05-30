@@ -44,4 +44,12 @@ namespace Server.Items
 		ShootXBow = 19,
 		Wrestle = 31
 	}
+
+	public enum CheckSlayerResult
+	{
+		None,
+		Slayer,
+		SuperSlayer,
+		Opposition
+	}
 }

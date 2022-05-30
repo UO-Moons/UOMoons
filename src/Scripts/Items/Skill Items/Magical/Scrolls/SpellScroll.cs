@@ -8,7 +8,7 @@ namespace Server.Items
 	{
 		public int SpellID { get; private set; }
 
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => (Core.ML);
 
 		public SpellScroll(Serial serial) : base(serial)

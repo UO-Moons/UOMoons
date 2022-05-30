@@ -4,7 +4,7 @@ namespace Server.Spells.First
 {
 	public class ReactiveArmorSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Reactive Armor", "Flam Sanct",
 				236,
 				9011,
@@ -18,6 +18,25 @@ namespace Server.Spells.First
 
 		public ReactiveArmorSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
+		}
+
+		public static void EndArmor(Mobile m)
+		{
+			if (m_Table.Contains(m))
+			{
+				ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
+
+				if (mods != null)
+				{
+					for (int i = 0; i < mods.Length; ++i)
+					{
+						m.RemoveResistanceMod(mods[i]);
+					}
+				}
+
+				m_Table.Remove(m);
+				BuffInfo.RemoveBuff(m, BuffIcon.ReactiveArmor);
+			}
 		}
 
 		public override bool CheckCast()
@@ -39,7 +58,7 @@ namespace Server.Spells.First
 			return true;
 		}
 
-		private static readonly Hashtable m_Table = new Hashtable();
+		private static readonly Hashtable m_Table = new();
 
 		public override void OnCast()
 		{
@@ -136,21 +155,9 @@ namespace Server.Spells.First
 			}
 		}
 
-		public static void EndArmor(Mobile m)
+		public static bool HasArmor(Mobile m)
 		{
-			if (m_Table.Contains(m))
-			{
-				ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
-
-				if (mods != null)
-				{
-					for (int i = 0; i < mods.Length; ++i)
-						m.RemoveResistanceMod(mods[i]);
-				}
-
-				m_Table.Remove(m);
-				BuffInfo.RemoveBuff(m, BuffIcon.ReactiveArmor);
-			}
+			return m_Table.ContainsKey(m);
 		}
 	}
 }

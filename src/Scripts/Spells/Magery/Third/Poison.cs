@@ -4,7 +4,7 @@ namespace Server.Spells.Third
 {
 	public class PoisonSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Poison", "In Nox",
 				203,
 				9051,
@@ -141,9 +141,9 @@ namespace Server.Spells.Third
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 

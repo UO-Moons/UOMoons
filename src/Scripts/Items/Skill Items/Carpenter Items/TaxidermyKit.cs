@@ -307,6 +307,11 @@ namespace Server.Items
 
 		public Item Deed => new TrophyDeed(WestID, NorthID, DeedNumber, m_AddonNumber, m_Hunter, m_AnimalWeight);
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			BaseHouse house = BaseHouse.FindHouseAt(this);
@@ -462,7 +467,14 @@ namespace Server.Items
 
 					if (itemID > 0)
 					{
-						house.Addons.Add(new TrophyAddon(from, itemID, WestID, NorthID, m_DeedNumber, AddonNumber, m_Hunter, m_AnimalWeight));
+						Item trophy = new TrophyAddon(from, itemID, WestID, NorthID, m_DeedNumber, AddonNumber, m_Hunter, m_AnimalWeight);
+
+						if (m_DeedNumber == 1113567)
+							trophy.Hue = 1645;
+						else if (m_DeedNumber == 1113568)
+							trophy.Hue = 1032;
+
+						house.Addons[trophy] = from;
 						Delete();
 					}
 				}

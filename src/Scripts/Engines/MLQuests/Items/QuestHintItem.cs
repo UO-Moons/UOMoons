@@ -6,7 +6,7 @@ using Server.Mobiles;
 
 namespace Server.Items
 {
-    public class QuestHintItem : BaseItem
+    public class QuestHintItem : Item
     {
         private int m_Number;
         private string m_String;
@@ -49,7 +49,7 @@ namespace Server.Items
             m_Range = DefaultRange;
         }
 
-        private Dictionary<Mobile, DateTime> m_Table = new Dictionary<Mobile, DateTime>();
+        private readonly Dictionary<Mobile, DateTime> m_Table = new();
 
         public override bool HandlesOnMovement => true;
 

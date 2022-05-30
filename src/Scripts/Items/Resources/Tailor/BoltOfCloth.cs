@@ -5,7 +5,7 @@ namespace Server.Items
 	[Flipable(0xF95, 0xF96, 0xF97, 0xF98, 0xF99, 0xF9A, 0xF9B, 0xF9C)]
 	public class BoltOfCloth : BaseItem, IScissorable, IDyable, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		[Constructable]

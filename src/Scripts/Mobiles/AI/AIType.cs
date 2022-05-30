@@ -1,17 +1,38 @@
-﻿namespace Server.Mobiles
+namespace Server.Mobiles
 {
 	public enum AIType
 	{
-		AI_Use_Default,
+		UseDefault,
 		AI_Melee,
 		AI_Animal,
+		AI_Necro,
+		BerserkAI,
 		AI_Archer,
 		AI_Healer,
 		AI_Vendor,
 		AI_Mage,
-		AI_Berserk,
-		AI_Predator,
-		AI_Thief
+		PredatorAI,
+		AI_Thief,
+		AI_NecroMage,
+		OrcScoutAI,
+		AI_Samurai,
+		AI_Ninja,
+		AI_Spellweaving,
+		AI_Mystic,
+		AI_Paladin,
+		SpellbinderAI,
+		ChampionMeleeAI,
+		BoneDemonAI,
+		BossMeleeAI,
+		MephitisAI,
+		ScalisAI,
+		AdvancedArcherAI,
+		AmbusherAI,
+		WeakMageAI,
+		CoreAI,
+		SuperAI,
+		AnimalSkittishAI,
+		VampireAI
 	}
 }
 

@@ -25,7 +25,7 @@ namespace Server.Regions
 
 		public static void Configure()
 		{
-			Region.DefaultRegionType = typeof(BaseRegion);
+			DefaultRegionType = typeof(BaseRegion);
 		}
 
 		private string m_RuneName;

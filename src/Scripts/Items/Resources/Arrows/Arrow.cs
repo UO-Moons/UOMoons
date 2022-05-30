@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class Arrow : BaseItem, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		public override double DefaultWeight => 0.1;

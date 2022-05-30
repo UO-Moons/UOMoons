@@ -237,7 +237,7 @@ namespace Server.Mobiles
 				{
 					bc = (BaseCreature)Combatant;
 				}
-				if (Combatant.Player || (bc != null && (bc.Controlled || bc.SummonMaster != null)))
+				if (Combatant is PlayerMobile || (bc != null && (bc.Controlled || bc.SummonMaster != null)))
 				{
 					SummonMaster.Combatant = Combatant;
 				}
@@ -250,7 +250,7 @@ namespace Server.Mobiles
 
 		private bool Combat(Mobile mobile)
 		{
-			Mobile combatant = mobile.Combatant;
+			Mobile combatant = mobile.Combatant as Mobile;
 			if (combatant == null || combatant.Deleted)
 			{
 				return false;

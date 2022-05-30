@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Server
 {
@@ -31,6 +31,8 @@ namespace Server
 		Race = 0x00400000,
 		HealthbarYellow = 0x00800000,
 		HealthbarPoison = 0x01000000,
+		Face = 0x08000000,
+		Skills = 0x10000000,
 
 		Attributes = 0x0000001C
 	}

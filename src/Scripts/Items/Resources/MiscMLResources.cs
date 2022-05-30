@@ -1,6 +1,6 @@
 namespace Server.Items
 {
-	public class Blight : BaseItem
+	public class Blight : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Blight()
@@ -21,6 +21,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -31,12 +34,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-	public class LuminescentFungi : BaseItem
+	public class LuminescentFungi : BaseItem, ICommodity
 	{
 		[Constructable]
 		public LuminescentFungi()
@@ -57,6 +59,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -67,13 +72,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class CapturedEssence : BaseItem
+	public class CapturedEssence : BaseItem, ICommodity
 	{
 		[Constructable]
 		public CapturedEssence()
@@ -94,6 +97,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -104,13 +110,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class EyeOfTheTravesty : BaseItem
+	public class EyeOfTheTravesty : BaseItem, ICommodity
 	{
 		[Constructable]
 		public EyeOfTheTravesty()
@@ -137,6 +141,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -147,13 +154,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class Corruption : BaseItem
+	public class Corruption : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Corruption()
@@ -180,6 +185,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -190,13 +198,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class DreadHornMane : BaseItem
+	public class DreadHornMane : BaseItem, ICommodity
 	{
 		[Constructable]
 		public DreadHornMane()
@@ -223,6 +229,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -233,13 +242,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class ParasiticPlant : BaseItem
+	public class ParasiticPlant : BaseItem, ICommodity
 	{
 		[Constructable]
 		public ParasiticPlant()
@@ -266,6 +273,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -276,13 +286,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class Muculent : BaseItem
+	public class Muculent : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Muculent()
@@ -309,6 +317,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -319,13 +330,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class DiseasedBark : BaseItem
+	public class DiseasedBark : BaseItem, ICommodity
 	{
 		[Constructable]
 		public DiseasedBark()
@@ -352,6 +361,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -362,13 +374,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class BarkFragment : BaseItem
+	public class BarkFragment : BaseItem, ICommodity
 	{
 		[Constructable]
 		public BarkFragment()
@@ -395,6 +405,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -405,13 +418,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class GrizzledBones : BaseItem
+	public class GrizzledBones : BaseItem, ICommodity
 	{
 		[Constructable]
 		public GrizzledBones()
@@ -438,23 +449,28 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(1); // version
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
 
-			_ = reader.ReadInt();
+			int version = reader.ReadInt();
+
+			if (version <= 0 && ItemID == 0x318F)
+				ItemID = 0x318C;
 		}
 	}
 
-
-	public class LardOfParoxysmus : BaseItem
+	public class LardOfParoxysmus : BaseItem, ICommodity
 	{
 		[Constructable]
 		public LardOfParoxysmus()
@@ -481,6 +497,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -491,12 +510,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-	public class PerfectEmerald : BaseItem
+	public class PerfectEmerald : BaseItem, ICommodity
 	{
 		[Constructable]
 		public PerfectEmerald()
@@ -523,6 +541,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -533,12 +554,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-	public class DarkSapphire : BaseItem
+	public class DarkSapphire : BaseItem, ICommodity
 	{
 		[Constructable]
 		public DarkSapphire()
@@ -565,6 +585,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -575,13 +598,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class Turquoise : BaseItem
+	public class Turquoise : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Turquoise()
@@ -608,6 +629,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -618,13 +642,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class EcruCitrine : BaseItem
+	public class EcruCitrine : BaseItem, ICommodity
 	{
 		[Constructable]
 		public EcruCitrine()
@@ -651,6 +673,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -661,13 +686,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class WhitePearl : BaseItem
+	public class WhitePearl : BaseItem, ICommodity
 	{
 		[Constructable]
 		public WhitePearl()
@@ -694,6 +717,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -704,13 +730,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class FireRuby : BaseItem
+	public class FireRuby : BaseItem, ICommodity
 	{
 		[Constructable]
 		public FireRuby()
@@ -737,6 +761,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -747,13 +774,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class BlueDiamond : BaseItem
+	public class BlueDiamond : BaseItem, ICommodity
 	{
 		[Constructable]
 		public BlueDiamond()
@@ -780,6 +805,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -790,13 +818,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class BrilliantAmber : BaseItem
+	public class BrilliantAmber : BaseItem, ICommodity
 	{
 		[Constructable]
 		public BrilliantAmber()
@@ -823,6 +849,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -833,12 +862,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-	public class Scourge : BaseItem
+	public class Scourge : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Scourge()
@@ -866,6 +894,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -876,28 +907,27 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class Putrefication : BaseItem
+	[TypeAlias("Server.Items.Putrefication")]
+	public class Putrefaction : BaseItem, ICommodity
 	{
 		[Constructable]
-		public Putrefication()
+		public Putrefaction()
 			: this(1)
 		{
 		}
 
 		[Constructable]
-		public Putrefication(int amountFrom, int amountTo)
+		public Putrefaction(int amountFrom, int amountTo)
 			: this(Utility.RandomMinMax(amountFrom, amountTo))
 		{
 		}
 
 		[Constructable]
-		public Putrefication(int amount)
+		public Putrefaction(int amount)
 			: base(0x3186)
 		{
 			Stackable = true;
@@ -905,10 +935,13 @@ namespace Server.Items
 			Hue = 883;
 		}
 
-		public Putrefication(Serial serial)
+		public Putrefaction(Serial serial)
 			: base(serial)
 		{
 		}
+
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
 
 		public override void Serialize(GenericWriter writer)
 		{
@@ -920,13 +953,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-
-	public class Taint : BaseItem
+	public class Taint : BaseItem, ICommodity
 	{
 		[Constructable]
 		public Taint()
@@ -954,6 +985,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -964,19 +998,17 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
 	[Flipable(0x315A, 0x315B)]
-	public class PristineDreadHorn : BaseItem
+	public class PristineDreadHorn : BaseItem, ICommodity
 	{
 		[Constructable]
 		public PristineDreadHorn()
 			: base(0x315A)
 		{
-
 		}
 
 		public PristineDreadHorn(Serial serial)
@@ -984,6 +1016,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -994,12 +1029,11 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}
 
-	public class SwitchItem : BaseItem
+	public class SwitchItem : BaseItem, ICommodity
 	{
 		[Constructable]
 		public SwitchItem()
@@ -1026,6 +1060,9 @@ namespace Server.Items
 		{
 		}
 
+		TextDefinition ICommodity.Description => LabelNumber;
+		bool ICommodity.IsDeedable => true;
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
@@ -1036,7 +1073,6 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			_ = reader.ReadInt();
 		}
 	}

@@ -49,6 +49,11 @@ namespace Server.Items
 		{
 		}
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (from.InRange(Location, 3))
@@ -251,7 +256,7 @@ namespace Server.Items
 								{
 									Fireflies flies = new Fireflies(m_ItemID);
 
-									house.Addons.Add(flies);
+									house.Addons[flies] = from;
 
 									flies.MoveToWorld(p3d, from.Map);
 

@@ -7,4 +7,10 @@ namespace Server
 		Everyone,
 		Selective
 	}
+
+	public enum DFAlgorithm
+	{
+		Standard,
+		PainSpike
+	}
 }

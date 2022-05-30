@@ -1,5 +1,7 @@
+using Server.Mobiles;
 using Server.Targeting;
-using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Server.Spells.Seventh
 {
@@ -50,75 +52,59 @@ namespace Server.Spells.Seventh
 				SpellHelper.Turn(Caster, p);
 
 				if (p is Item)
+				{
 					p = ((Item)p).GetWorldLocation();
-
-				List<Mobile> targets = new List<Mobile>();
-
-				Map map = Caster.Map;
-
-				bool playerVsPlayer = false;
-
-				if (map != null)
-				{
-					IPooledEnumerable eable = map.GetMobilesInRange(new Point3D(p), 2);
-
-					foreach (Mobile m in eable)
-					{
-						if (Core.AOS && m == Caster)
-							continue;
-
-						if (SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanBeHarmful(m, false))
-						{
-							if (Core.AOS && !Caster.InLOS(m))
-								continue;
-
-							targets.Add(m);
-
-							if (m.Player)
-								playerVsPlayer = true;
-						}
-					}
-
-					eable.Free();
 				}
 
-				double damage;
+				var targets = AcquireIndirectTargets(p, 2).ToList();
+				var count = Math.Max(1, targets.Count);
 
-				if (Core.AOS)
-					damage = GetNewAosDamage(51, 1, 5, playerVsPlayer);
-				else
-					damage = Utility.Random(27, 22);
-
-				if (targets.Count > 0)
+				foreach (var dam in targets)
 				{
-					if (Core.AOS && targets.Count > 2)
-						damage = (damage * 2) / targets.Count;
+					var id = dam;
+					var m = id as Mobile;
+					double damage;
+
+					if (Core.AOS)
+					{
+						damage = GetNewAosDamage(51, 1, 5, id is PlayerMobile, id);
+					}
+					else
+					{
+						damage = Utility.Random(27, 22);
+					}
+
+					if (Core.AOS && count > 2)
+					{
+						damage = (damage * 2) / count;
+					}
 					else if (!Core.AOS)
-						damage /= targets.Count;
-
-					double toDeal;
-					for (int i = 0; i < targets.Count; ++i)
 					{
-						toDeal = damage;
-						Mobile m = targets[i];
-
-						if (!Core.AOS && CheckResisted(m))
-						{
-							toDeal *= 0.5;
-
-							m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
-						}
-						toDeal *= GetDamageScalar(m);
-						Caster.DoHarmful(m);
-						SpellHelper.Damage(this, m, toDeal, 0, 0, 0, 0, 100);
-
-						m.BoltEffect(0);
+						damage /= count;
 					}
+
+					if (!Core.AOS && m != null && CheckResisted(m))
+					{
+						damage *= 0.5;
+
+						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
+					}
+
+					Mobile source = Caster;
+					SpellHelper.CheckReflect((int)Circle, ref source, ref id, SpellDamageType);
+
+					if (m != null)
+					{
+						damage *= GetDamageScalar(m);
+					}
+
+					Effects.SendBoltEffect(id, true, 0, false);
+
+					Caster.DoHarmful(id);
+					SpellHelper.Damage(this, id, damage, 0, 0, 0, 0, 100);
 				}
-				else
-				{
-					Caster.PlaySound(0x29);
-				}
+
+				ColUtility.Free(targets);
 			}
 
 			FinishSequence();
@@ -127,8 +113,8 @@ namespace Server.Spells.Seventh
 		private class InternalTarget : Target
 		{
 			private readonly ChainLightningSpell m_Owner;
-
-			public InternalTarget(ChainLightningSpell owner) : base(owner.SpellRange, true, TargetFlags.None)
+			public InternalTarget(ChainLightningSpell owner)
+				: base(Core.ML ? 10 : 12, true, TargetFlags.None)
 			{
 				m_Owner = owner;
 			}
@@ -138,7 +124,9 @@ namespace Server.Spells.Seventh
 				IPoint3D p = o as IPoint3D;
 
 				if (p != null)
+				{
 					m_Owner.Target(p);
+				}
 			}
 
 			protected override void OnTargetFinish(Mobile from)

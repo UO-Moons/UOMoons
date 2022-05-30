@@ -15,7 +15,7 @@ namespace Server.Items
 			Amount = amount;
 		}
 
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => (Core.ML);
 
 		public BlankScroll(Serial serial) : base(serial)

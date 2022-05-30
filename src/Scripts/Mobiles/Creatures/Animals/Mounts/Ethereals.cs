@@ -1,85 +1,234 @@
 using Server.Engines.VeteranRewards;
 using Server.Items;
+using Server.Multis;
+using Server.Network;
 using Server.Spells;
 using System;
 
 namespace Server.Mobiles
 {
-	public class EtherealMount : BaseItem, IMount, IMountItem, Engines.VeteranRewards.IRewardItem
+	public class EtherealMount : Item, IMount, IMountItem, IRewardItem
 	{
-		private int m_MountedID;
-		private int m_RegularID;
+		public static readonly int DefaultEtherealHue = 0x4001;
+
 		private Mobile m_Rider;
-		private bool m_IsDonationItem;
+		private bool m_Transparent;
+
+		private int m_TransparentMountedID;
+		private int m_NonTransparentMountedID;
+		private int m_TransparentMountedHue;
+		private int m_NonTransparentMountedHue;
+
+		private int m_StatueID;
+		private int m_StatueHue;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Transparent
+		{
+			get { return m_Transparent; }
+			set
+			{
+				if (Rider != null)
+				{
+					if (value && !m_Transparent)
+					{
+						ItemID = m_TransparentMountedID;
+						Hue = m_TransparentMountedHue;
+					}
+					else if (!value && m_Transparent)
+					{
+						ItemID = m_NonTransparentMountedID;
+						Hue = m_NonTransparentMountedHue;
+					}
+				}
+
+				m_Transparent = value;
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int TransparentMountedID
+		{
+			get { return m_TransparentMountedID; }
+			set
+			{
+				if (m_TransparentMountedID != value)
+				{
+					m_TransparentMountedID = value;
+
+					if (m_Rider != null && Transparent)
+					{
+						ItemID = value;
+					}
+
+					InvalidateProperties();
+				}
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int NonTransparentMountedID
+		{
+			get { return m_NonTransparentMountedID; }
+			set
+			{
+				if (m_NonTransparentMountedID != value)
+				{
+					m_NonTransparentMountedID = value;
+
+					if (m_Rider != null && !Transparent)
+					{
+						ItemID = value;
+					}
+
+					InvalidateProperties();
+				}
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int TransparentMountedHue
+		{
+			get { return m_TransparentMountedHue; }
+			set
+			{
+				if (m_TransparentMountedHue != value)
+				{
+					m_TransparentMountedHue = value;
+
+					if (m_Rider != null && Transparent)
+					{
+						Hue = value;
+					}
+
+					InvalidateProperties();
+				}
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int NonTransparentMountedHue
+		{
+			get { return m_NonTransparentMountedHue; }
+			set
+			{
+				if (m_NonTransparentMountedHue != value)
+				{
+					m_NonTransparentMountedHue = value;
+
+					if (m_Rider != null && !Transparent)
+					{
+						Hue = value;
+					}
+
+					InvalidateProperties();
+				}
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int StatueID
+		{
+			get { return m_StatueID; }
+			set
+			{
+				if (m_StatueID != value)
+				{
+					m_StatueID = value;
+
+					if (m_Rider == null)
+					{
+						ItemID = value;
+					}
+				}
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int StatueHue
+		{
+			get { return m_StatueHue; }
+			set
+			{
+				if (m_StatueHue != value)
+				{
+					m_StatueHue = value;
+
+					if (Rider == null)
+					{
+						Hue = value;
+					}
+				}
+			}
+		}
+
+		public int MountedID => Transparent ? TransparentMountedID : NonTransparentMountedID;
+
+		public int MountedHue => Transparent ? TransparentMountedHue : NonTransparentMountedHue;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool IsRewardItem { get; set; }
 
 		public override double DefaultWeight => 1.0;
 
-		[CommandProperty(AccessLevel.GameMaster, AccessLevel.Administrator)]
-		public bool IsDonationItem
+		public override bool DisplayLootType => Core.AOS;
+		public virtual int FollowerSlots => 1;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Mobile Rider
 		{
-			get => m_IsDonationItem;
-			set { m_IsDonationItem = value; InvalidateProperties(); }
+			get { return m_Rider; }
+			set
+			{
+				if (value == m_Rider)
+				{
+					return;
+				}
+
+				if (value == null)
+				{
+					Internalize();
+					UnmountMe();
+
+					RemoveFollowers();
+					m_Rider = null;
+				}
+				else
+				{
+					if (m_Rider != null)
+					{
+						Dismount(m_Rider);
+					}
+
+					Dismount(value);
+
+					RemoveFollowers();
+					m_Rider = value;
+					AddFollowers();
+
+					MountMe();
+				}
+			}
 		}
+
+		public IMount Mount => this;
 
 		[Constructable]
-		public EtherealMount(int itemID, int mountID)
+		public EtherealMount(int itemID, int transMountedID, int nonTransMountedID, int transHue = 0, int nonTransHue = 0)
 			: base(itemID)
 		{
-			m_MountedID = mountID;
-			m_RegularID = itemID;
 			m_Rider = null;
-
 			Layer = Layer.Invalid;
-
 			LootType = LootType.Blessed;
-		}
 
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
+			m_Transparent = true;
+			m_TransparentMountedID = transMountedID;
+			m_NonTransparentMountedID = nonTransMountedID;
+			m_TransparentMountedHue = transHue;
+			m_NonTransparentMountedHue = nonTransHue;
 
-			if (m_IsDonationItem)
-			{
-				list.Add("Donation Ethereal");
-				list.Add("7.5 sec slower cast time if not a 9mo. Veteran");
-			}
-			if (Core.ML && IsRewardItem)
-				list.Add(RewardSystem.GetRewardYearLabel(this, Array.Empty<object>())); // X Year Veteran Reward
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int MountedID
-		{
-			get => m_MountedID;
-			set
-			{
-				if (m_MountedID != value)
-				{
-					m_MountedID = value;
-
-					if (m_Rider != null)
-						ItemID = value;
-				}
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int RegularID
-		{
-			get => m_RegularID;
-			set
-			{
-				if (m_RegularID != value)
-				{
-					m_RegularID = value;
-
-					if (m_Rider == null)
-						ItemID = value;
-				}
-			}
+			StatueID = itemID;
+			StatueHue = 0;
 		}
 
 		public EtherealMount(Serial serial)
@@ -87,63 +236,114 @@ namespace Server.Mobiles
 		{
 		}
 
-		public override bool DisplayLootType => false;
+		public static void Dismount(Mobile m)
+		{
+			IMount mount = m.Mount;
 
-		public virtual int FollowerSlots => 1;
+			if (mount != null)
+			{
+				mount.Rider = null;
+			}
+		}
+
+		public static void StopMounting(Mobile mob)
+		{
+			if (mob.Spell is EtherealSpell)
+			{
+				((EtherealSpell)mob.Spell).Stop();
+			}
+		}
+
+		public override void GetProperties(ObjectPropertyList list)
+		{
+			base.GetProperties(list);
+
+			if (Core.ML && IsRewardItem)
+			{
+				list.Add(RewardSystem.GetRewardYearLabel(this, new object[] { })); // X Year Veteran Reward
+			}
+
+			EtherealRetouchingTool.AddProperty(this, list);
+		}
 
 		public void RemoveFollowers()
 		{
 			if (m_Rider != null)
+			{
 				m_Rider.Followers -= FollowerSlots;
+			}
 
 			if (m_Rider != null && m_Rider.Followers < 0)
+			{
 				m_Rider.Followers = 0;
+			}
 		}
 
 		public void AddFollowers()
 		{
 			if (m_Rider != null)
+			{
 				m_Rider.Followers += FollowerSlots;
+			}
 		}
 
 		public virtual bool Validate(Mobile from)
 		{
+			if (from.Race == Race.Gargoyle)
+			{
+				from.SendLocalizedMessage(1112281); // gargs can't mount
+				return false;
+			}
+
 			if (Parent == null)
 			{
 				from.SayTo(from, 1010095); // This must be on your person to use.
 				return false;
 			}
-			else if (IsRewardItem && !RewardSystem.CheckIsUsableBy(from, this, null))
+
+			if (IsRewardItem && !RewardSystem.CheckIsUsableBy(from, this, null))
 			{
 				// CheckIsUsableBy sends the message
 				return false;
 			}
-			else if (!BaseMount.CheckMountAllowed(from))
+
+			if (!BaseMount.CheckMountAllowed(from, true))
 			{
 				// CheckMountAllowed sends the message
 				return false;
 			}
-			else if (from.Mounted)
+
+			if (from.Mount is BaseBoat)
+			{
+				PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042146, from.NetState); // You cannot use this while mounted.
+				return false;
+			}
+
+			if (from.Mounted)
 			{
 				from.SendLocalizedMessage(1005583); // Please dismount first.
 				return false;
 			}
-			else if (from.IsBodyMod && !from.Body.IsHuman)
+
+			if (from.IsBodyMod && !from.Body.IsHuman)
 			{
 				from.SendLocalizedMessage(1061628); // You can't do that while polymorphed.
 				return false;
 			}
-			else if (from.HasTrade)
+
+			if (from.HasTrade)
 			{
-				from.SendLocalizedMessage(1042317, 0x41); // You may not ride at this time
+				from.SendLocalizedMessage(1042317, "", 0x41); // You may not ride at this time
 				return false;
 			}
-			else if ((from.Followers + FollowerSlots) > from.FollowersMax)
+
+			if ((from.Followers + FollowerSlots) > from.FollowersMax)
 			{
 				from.SendLocalizedMessage(1049679); // You have too many followers to summon your mount.
 				return false;
 			}
-			else if (!Multis.DesignContext.Check(from))
+
+			if (!DesignContext.Check(from))
 			{
 				// Check sends the message
 				return false;
@@ -155,30 +355,30 @@ namespace Server.Mobiles
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (Validate(from))
+			{
 				new EtherealSpell(this, from).Cast();
+			}
 		}
 
 		public override void OnSingleClick(Mobile from)
 		{
 			base.OnSingleClick(from);
 
-			if (m_IsDonationItem)
-				LabelTo(from, "Donation Ethereal");
-			else
-				LabelTo(from, "Veteran Reward");
+			LabelTo(from, "Veteran Reward");
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write(m_IsDonationItem);
+			writer.Write(7);
+			writer.Write(m_Transparent);
+			writer.Write(m_TransparentMountedID);
+			writer.Write(m_NonTransparentMountedID);
+			writer.Write(m_TransparentMountedHue);
+			writer.Write(m_NonTransparentMountedHue);
+			writer.Write(m_StatueID);
+			writer.Write(m_StatueHue);
 			writer.Write(IsRewardItem);
-
-			writer.Write(m_MountedID);
-			writer.Write(m_RegularID);
 			writer.Write(m_Rider);
 		}
 
@@ -191,20 +391,46 @@ namespace Server.Mobiles
 
 			switch (version)
 			{
+				case 7:
+				case 6:
+				case 5:
+					m_Transparent = reader.ReadBool();
+					m_TransparentMountedID = reader.ReadInt();
+					m_NonTransparentMountedID = reader.ReadInt();
+					m_TransparentMountedHue = reader.ReadInt();
+					m_NonTransparentMountedHue = reader.ReadInt();
+					m_StatueID = reader.ReadInt();
+					m_StatueHue = reader.ReadInt();
+
+					IsRewardItem = reader.ReadBool();
+					m_Rider = reader.ReadMobile();
+					break;
+				case 4:
+					m_NonTransparentMountedID = reader.ReadInt(); // m_DefaultMountedID = reader.ReadInt();
+					m_NonTransparentMountedHue = reader.ReadInt(); // m_OriginalHue = reader.ReadInt();
+					m_TransparentMountedHue = reader.ReadInt(); // m_EtherealHue = reader.ReadInt();
+					goto case 3;
+				case 3:
+					reader.ReadBool();
+					goto case 2;
+				case 2:
+					IsRewardItem = reader.ReadBool();
+					goto case 0;
+				case 1:
+					reader.ReadInt();
+					goto case 0;
 				case 0:
 					{
-						m_IsDonationItem = reader.ReadBool();
-						IsRewardItem = reader.ReadBool();
-
-						m_MountedID = reader.ReadInt();
-						m_RegularID = reader.ReadInt();
+						m_TransparentMountedID = reader.ReadInt(); // m_MountedID = reader.ReadInt();
+						m_StatueID = reader.ReadInt(); // m_RegularID = reader.ReadInt();
 						m_Rider = reader.ReadMobile();
 
-						if (m_MountedID == 0x3EA2)
-							m_MountedID = 0x3EAA;
-
-						break;
+						if (m_TransparentMountedID == 0x3EA2)
+						{
+							m_TransparentMountedID = 0x3EAA;
+						}
 					}
+					break;
 			}
 
 			AddFollowers();
@@ -212,92 +438,52 @@ namespace Server.Mobiles
 
 		public override DeathMoveResult OnParentDeath(Mobile parent)
 		{
-			Rider = null;//get off, move to pack
+			Rider = null; //get off, move to pack
 
 			return DeathMoveResult.RemainEquiped;
 		}
-
-		public static void Dismount(Mobile m)
-		{
-			IMount mount = m.Mount;
-
-			if (mount != null)
-				mount.Rider = null;
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Rider
-		{
-			get => m_Rider;
-			set
-			{
-				if (value != m_Rider)
-				{
-					if (value == null)
-					{
-						Internalize();
-						UnmountMe();
-
-						RemoveFollowers();
-						m_Rider = value;
-					}
-					else
-					{
-						if (m_Rider != null)
-							Dismount(m_Rider);
-
-						Dismount(value);
-
-						RemoveFollowers();
-						m_Rider = value;
-						AddFollowers();
-
-						MountMe();
-					}
-				}
-			}
-		}
-
-		public virtual int EtherealHue => 0x4001;
 
 		public void UnmountMe()
 		{
 			Container bp = m_Rider.Backpack;
 
-			ItemID = m_RegularID;
+			ItemID = m_StatueID;
 			Layer = Layer.Invalid;
+
 			Movable = true;
 
-			if (Hue == EtherealHue)
-				Hue = 0;
+			if (Hue != m_StatueHue)
+			{
+				Hue = m_StatueHue;
+			}
 
 			if (bp != null)
 			{
 				bp.DropItem(this);
+				return;
 			}
-			else
+
+			Point3D loc = m_Rider.Location;
+			Map map = m_Rider.Map;
+
+			if (map == null || map == Map.Internal)
 			{
-				Point3D loc = m_Rider.Location;
-				Map map = m_Rider.Map;
-
-				if (map == null || map == Map.Internal)
-				{
-					loc = m_Rider.LogoutLocation;
-					map = m_Rider.LogoutMap;
-				}
-
-				MoveToWorld(loc, map);
+				loc = m_Rider.LogoutLocation;
+				map = m_Rider.LogoutMap;
 			}
+
+			MoveToWorld(loc, map);
 		}
 
 		public void MountMe()
 		{
-			ItemID = m_MountedID;
+			StatueHue = Hue;
+
+			ItemID = MountedID;
+			Hue = MountedHue;
+
 			Layer = Layer.Mount;
 			Movable = false;
-
-			if (Hue == 0)
-				Hue = EtherealHue;
 
 			ProcessDelta();
 			m_Rider.ProcessDelta();
@@ -306,24 +492,15 @@ namespace Server.Mobiles
 			ProcessDelta();
 		}
 
-		public IMount Mount => this;
-
-		public static void StopMounting(Mobile mob)
-		{
-			if (mob.Spell is EtherealSpell)
-				((EtherealSpell)mob.Spell).Stop();
-		}
-
-		public void OnRiderDamaged(int amount, Mobile from, bool willKill)
-		{
-		}
+		public virtual void OnRiderDamaged(Mobile from, ref int amount, bool willKill)
+		{ }
 
 		private class EtherealSpell : Spell
 		{
 			private static readonly SpellInfo m_Info = new SpellInfo("Ethereal Mount", "", 230);
-
 			private readonly EtherealMount m_Mount;
 			private readonly Mobile m_Rider;
+			private bool m_Stop;
 
 			public EtherealSpell(EtherealMount mount, Mobile rider)
 				: base(rider, null, m_Info)
@@ -334,17 +511,14 @@ namespace Server.Mobiles
 
 			public override bool ClearHandsOnCast => false;
 			public override bool RevealOnCast => false;
-			public override bool Precast => true;
-			public override bool BlocksMovement => true;
+			public override double CastDelayFastScalar => 0;
+
+			public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(Core.AOS ? 3.0 : 2.0);
 
 			public override TimeSpan GetCastRecovery()
 			{
 				return TimeSpan.Zero;
 			}
-
-			public override double CastDelayFastScalar => 0;
-
-			public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(((m_Mount.IsDonationItem && RewardSystem.GetRewardLevel(m_Rider) < 3) ? (7.5 + (Core.AOS ? 3.0 : 2.0)) : (Core.AOS ? 3.0 : 2.0)));
 
 			public override int GetMana()
 			{
@@ -361,8 +535,6 @@ namespace Server.Mobiles
 				return true;
 			}
 
-			private bool m_Stop;
-
 			public void Stop()
 			{
 				m_Stop = true;
@@ -371,8 +543,10 @@ namespace Server.Mobiles
 
 			public override bool CheckDisturb(DisturbType type, bool checkFirst, bool resistable)
 			{
-				if (type == DisturbType.EquipRequest || type == DisturbType.UseRequest/* || type == DisturbType.Hurt*/ )
+				if (type == DisturbType.EquipRequest || type == DisturbType.UseRequest /* || type == DisturbType.Hurt*/)
+				{
 					return false;
+				}
 
 				return true;
 			}
@@ -380,19 +554,25 @@ namespace Server.Mobiles
 			public override void DoHurtFizzle()
 			{
 				if (!m_Stop)
+				{
 					base.DoHurtFizzle();
+				}
 			}
 
 			public override void DoFizzle()
 			{
 				if (!m_Stop)
+				{
 					base.DoFizzle();
+				}
 			}
 
 			public override void OnDisturb(DisturbType type, bool message)
 			{
 				if (message && !m_Stop)
+				{
 					Caster.SendLocalizedMessage(1049455); // You have been disrupted while attempting to summon your ethereal mount!
+				}
 
 				//m_Mount.UnmountMe();
 			}
@@ -400,434 +580,11 @@ namespace Server.Mobiles
 			public override void OnCast()
 			{
 				if (!m_Mount.Deleted && m_Mount.Rider == null && m_Mount.Validate(m_Rider))
+				{
 					m_Mount.Rider = m_Rider;
+				}
 
 				FinishSequence();
-			}
-		}
-	}
-
-	public class EtherealHorse : EtherealMount
-	{
-		public override int LabelNumber => 1041298;  // Ethereal Horse Statuette
-
-		[Constructable]
-		public EtherealHorse()
-			: base(0x20DD, 0x3EAA)
-		{
-		}
-
-		public EtherealHorse(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal horse")
-				Name = null;
-
-			if (ItemID == 0x2124)
-				ItemID = 0x20DD;
-		}
-	}
-
-	public class EtherealLlama : EtherealMount
-	{
-		public override int LabelNumber => 1041300;  // Ethereal Llama Statuette
-
-		[Constructable]
-		public EtherealLlama()
-			: base(0x20F6, 0x3EAB)
-		{
-		}
-
-		public EtherealLlama(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal llama")
-				Name = null;
-		}
-	}
-
-	public class EtherealOstard : EtherealMount
-	{
-		public override int LabelNumber => 1041299;  // Ethereal Ostard Statuette
-
-		[Constructable]
-		public EtherealOstard()
-			: base(0x2135, 0x3EAC)
-		{
-		}
-
-		public EtherealOstard(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal ostard")
-				Name = null;
-		}
-	}
-
-	public class EtherealRidgeback : EtherealMount
-	{
-		public override int LabelNumber => 1049747;  // Ethereal Ridgeback Statuette
-
-		[Constructable]
-		public EtherealRidgeback()
-			: base(0x2615, 0x3E9A)
-		{
-		}
-
-		public EtherealRidgeback(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal ridgeback")
-				Name = null;
-		}
-	}
-
-	public class EtherealUnicorn : EtherealMount
-	{
-		public override int LabelNumber => 1049745;  // Ethereal Unicorn Statuette
-
-		[Constructable]
-		public EtherealUnicorn()
-			: base(0x25CE, 0x3E9B)
-		{
-		}
-
-		public EtherealUnicorn(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal unicorn")
-				Name = null;
-		}
-	}
-
-	public class EtherealBeetle : EtherealMount
-	{
-		public override int LabelNumber => 1049748;  // Ethereal Beetle Statuette
-
-		[Constructable]
-		public EtherealBeetle()
-			: base(0x260F, 0x3E97)
-		{
-		}
-
-		public EtherealBeetle(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal beetle")
-				Name = null;
-		}
-	}
-
-	public class EtherealKirin : EtherealMount
-	{
-		public override int LabelNumber => 1049746;  // Ethereal Ki-Rin Statuette
-
-		[Constructable]
-		public EtherealKirin()
-			: base(0x25A0, 0x3E9C)
-		{
-		}
-
-		public EtherealKirin(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal kirin")
-				Name = null;
-		}
-	}
-
-	public class EtherealSwampDragon : EtherealMount
-	{
-		public override int LabelNumber => 1049749;  // Ethereal Swamp Dragon Statuette
-
-		[Constructable]
-		public EtherealSwampDragon()
-			: base(0x2619, 0x3E98)
-		{
-		}
-
-		public EtherealSwampDragon(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Name == "an ethereal swamp dragon")
-				Name = null;
-		}
-	}
-
-	public class RideablePolarBear : EtherealMount
-	{
-		public override int LabelNumber => 1076159;  // Rideable Polar Bear
-		public override int EtherealHue => 0;
-
-		[Constructable]
-		public RideablePolarBear()
-			: base(0x20E1, 0x3EC5)
-		{
-		}
-
-		public RideablePolarBear(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
-	}
-
-	public class EtherealCuSidhe : EtherealMount
-	{
-		public override int LabelNumber => 1080386;  // Ethereal Cu Sidhe Statuette
-
-		[Constructable]
-		public EtherealCuSidhe()
-			: base(0x2D96, 0x3E91)
-		{
-		}
-
-		public EtherealCuSidhe(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
-	}
-
-	public class EtherealHiryu : EtherealMount
-	{
-		public override int LabelNumber => 1113813;  // Ethereal Hiryu Statuette
-
-		[Constructable]
-		public EtherealHiryu()
-			: base(0x276A, 0x3E94)
-		{
-		}
-
-		public EtherealHiryu(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
-	}
-
-	public class EtherealReptalon : EtherealMount
-	{
-		public override int LabelNumber => 1113812;  // Ethereal Reptalon Statuette
-
-		[Constructable]
-		public EtherealReptalon()
-			: base(0x2d95, 0x3e90)
-		{
-		}
-
-		public EtherealReptalon(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
-	}
-
-	public class ChargerOfTheFallen : EtherealMount
-	{
-		public override int LabelNumber => 1074816;  // Charger of the Fallen Statuette
-
-		[Constructable]
-		public ChargerOfTheFallen()
-			: base(0x2D9C, 0x3E92)
-		{
-		}
-
-		public override int EtherealHue => 0;
-
-		public ChargerOfTheFallen(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (version <= 1 && Hue != 0)
-			{
-				Hue = 0;
 			}
 		}
 	}

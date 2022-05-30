@@ -6,7 +6,7 @@ namespace Server.Spells.Sixth
 {
 	public class DispelSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Dispel", "An Ort",
 				218,
 				9002,
@@ -43,7 +43,7 @@ namespace Server.Spells.Sixth
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (!(m is BaseCreature bc) || !bc.IsDispellable)
+			else if (m is not BaseCreature bc || !bc.IsDispellable)
 			{
 				Caster.SendLocalizedMessage(1005049); // That cannot be dispelled.
 			}

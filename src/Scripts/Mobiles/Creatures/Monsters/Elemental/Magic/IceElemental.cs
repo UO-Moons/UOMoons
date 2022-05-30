@@ -1,9 +1,10 @@
 using Server.Items;
+using System;
 
 namespace Server.Mobiles
 {
 	[CorpseName("an ice elemental corpse")]
-	public class IceElemental : BaseCreature
+	public class IceElemental : AuraCreature
 	{
 		[Constructable]
 		public IceElemental() : base(AIType.AI_Mage, FightMode.Closest, 10, 1, 0.2, 0.4)
@@ -49,6 +50,7 @@ namespace Server.Mobiles
 			AddLoot(LootPack.Average, 2);
 			AddLoot(LootPack.Gems, 2);
 		}
+
 		public override bool BleedImmune => true;
 
 		public IceElemental(Serial serial) : base(serial)
@@ -64,7 +66,7 @@ namespace Server.Mobiles
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 }

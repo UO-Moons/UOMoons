@@ -1,12 +1,11 @@
 using Server;
 
-namespace UOMoons
+namespace UOMoons;
+
+internal class UOMoons
 {
-	internal class UOMoons
+	private static void Main(string[] args)
 	{
-		private static void Main(string[] args)
-		{
-			Core.Run(args);
-		}
+		Core.Run(args);
 	}
 }

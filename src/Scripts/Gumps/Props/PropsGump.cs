@@ -295,7 +295,7 @@ namespace Server.Gumps
 
 							Type type = prop.PropertyType;
 
-							if (IsType(type, typeofMobile) || IsType(type, typeofItem))
+							if (IsType(type, typeofMobile) || IsType(type, typeofItem) || type.IsAssignableFrom(typeof(IDamageable)))
 								from.SendGump(new SetObjectGump(prop, from, m_Object, m_Stack, type, m_Page, m_List));
 							else if (IsType(type, typeofType))
 								from.Target = new SetObjectTarget(prop, from, m_Object, m_Stack, type, m_Page, m_List);

@@ -43,6 +43,11 @@ namespace Server.Items
 				m_Statue.Location = new Point3D(X, Y, Z + 5);
 		}
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (m_Statue != null)

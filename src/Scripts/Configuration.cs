@@ -9,11 +9,12 @@ namespace Server
 	public class Configuration
 	{
 		private static readonly Expansion Expansion = (Expansion)Settings.Configuration.Get<int>("Server", "Expansion");
+		private static readonly Publishes Publishes = (Publishes)Settings.Configuration.Get<int>("Server", "Publish");
 
 		public static void Configure()
 		{
 			Core.Expansion = Expansion;
-
+			Core.Publishes = Publishes;
 			AccountGold.Enabled = Core.TOL;
 			AccountGold.ConvertOnBank = true;
 			AccountGold.ConvertOnTrade = false;

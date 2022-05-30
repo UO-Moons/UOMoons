@@ -60,7 +60,7 @@ namespace Server.Items
 				from.AddToBackpack(new Arrow(Arrows));
 
 			if (Bolts > 0)
-				from.AddToBackpack(new Bolt(Bolts));
+				from.AddToBackpack(new CrossBowBolt(Bolts));
 
 			Arrows = 0;
 			Bolts = 0;
@@ -143,7 +143,7 @@ namespace Server.Items
 			Type ammoType = bow.AmmoType;
 
 			bool isArrow = (ammoType == typeof(Arrow));
-			bool isBolt = (ammoType == typeof(Bolt));
+			bool isBolt = (ammoType == typeof(CrossBowBolt));
 			bool isKnown = (isArrow || isBolt);
 
 			if (pack == null || !pack.ConsumeTotal(ammoType, 1))

@@ -27,7 +27,7 @@ namespace Server.Mobiles
 				Add(new GenericBuyInfo("1060834", typeof(Engines.Plants.PlantBowl), 2, 20, 0x15FD, 0));
 
 				Add(new GenericBuyInfo(typeof(Arrow), 2, 20, 0xF3F, 0));
-				Add(new GenericBuyInfo(typeof(Bolt), 5, 20, 0x1BFB, 0));
+				Add(new GenericBuyInfo(typeof(CrossBowBolt), 5, 20, 0x1BFB, 0));
 
 				Add(new GenericBuyInfo(typeof(Backpack), 15, 20, 0x9B2, 0));
 				Add(new GenericBuyInfo(typeof(Pouch), 6, 20, 0xE79, 0));
@@ -71,7 +71,7 @@ namespace Server.Mobiles
 				Add(new GenericBuyInfo(typeof(Garlic), 3, 20, 0xF84, 0));
 				Add(new GenericBuyInfo(typeof(Ginseng), 3, 20, 0xF85, 0));
 
-				Add(new GenericBuyInfo(typeof(Bottle), 5, 20, 0xF0E, 0));
+				Add(new GenericBuyInfo(typeof(EmptyBottle), 5, 20, 0xF0E, 0));
 
 				Add(new GenericBuyInfo(typeof(RedBook), 15, 20, 0xFF1, 0));
 				Add(new GenericBuyInfo(typeof(BlueBook), 15, 20, 0xFF2, 0));
@@ -110,7 +110,7 @@ namespace Server.Mobiles
 			public InternalSellInfo()
 			{
 				Add(typeof(Arrow), 1);
-				Add(typeof(Bolt), 2);
+				Add(typeof(CrossBowBolt), 2);
 				Add(typeof(Backpack), 7);
 				Add(typeof(Pouch), 3);
 				Add(typeof(Bag), 3);
@@ -129,7 +129,7 @@ namespace Server.Mobiles
 				Add(typeof(TricorneHat), 4);
 				Add(typeof(Bandana), 3);
 				Add(typeof(SkullCap), 3);
-				Add(typeof(Bottle), 3);
+				Add(typeof(EmptyBottle), 3);
 				Add(typeof(RedBook), 7);
 				Add(typeof(BlueBook), 7);
 				Add(typeof(TanBook), 7);

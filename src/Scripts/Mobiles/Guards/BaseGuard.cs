@@ -4,6 +4,36 @@ namespace Server.Mobiles
 {
 	public abstract class BaseGuard : Mobile
 	{
+		public BaseGuard(Mobile target)
+		{
+			GuardImmune = true;
+
+			if (target != null)
+			{
+				Location = target.Location;
+				Map = target.Map;
+
+				Effects.SendLocationParticles(EffectItem.Create(Location, Map, EffectItem.DefaultDuration), 0x3728, 10, 10, 5023);
+			}
+		}
+
+		public BaseGuard(Serial serial)
+			: base(serial)
+		{
+		}
+
+		public abstract Mobile Focus { get; set; }
+
+		public override bool CanBeHarmful(IDamageable target, bool message, bool ignoreOurBlessedness)
+		{
+			if (target is Mobile && ((Mobile)target).GuardImmune)
+			{
+				return false;
+			}
+
+			return base.CanBeHarmful(target, message, ignoreOurBlessedness);
+		}
+
 		public static void Spawn(Mobile caller, Mobile target)
 		{
 			Spawn(caller, target, 1, false);
@@ -37,21 +67,6 @@ namespace Server.Mobiles
 				caller.Region.MakeGuard(target);
 		}
 
-		public BaseGuard(Mobile target)
-		{
-			if (target != null)
-			{
-				Location = target.Location;
-				Map = target.Map;
-
-				Effects.SendLocationParticles(EffectItem.Create(Location, Map, EffectItem.DefaultDuration), 0x3728, 10, 10, 5023);
-			}
-		}
-
-		public BaseGuard(Serial serial) : base(serial)
-		{
-		}
-
 		public override bool OnBeforeDeath()
 		{
 			Effects.SendLocationParticles(EffectItem.Create(Location, Map, EffectItem.DefaultDuration), 0x3728, 10, 10, 2023);
@@ -62,8 +77,6 @@ namespace Server.Mobiles
 
 			return false;
 		}
-
-		public abstract Mobile Focus { get; set; }
 
 		public override void Serialize(GenericWriter writer)
 		{

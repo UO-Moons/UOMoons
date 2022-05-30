@@ -260,7 +260,7 @@ namespace Server.Factions
 				Mobile active = null;
 				double activePrio = 0.0;
 
-				Mobile comb = m_Mobile.Combatant;
+				Mobile comb = (Mobile)m_Mobile.Combatant;
 
 				if (comb != null && !comb.Deleted && comb.Alive && !comb.IsDeadBondedPet && m_Mobile.InRange(comb, 12) && CanDispel(comb))
 				{
@@ -322,7 +322,7 @@ namespace Server.Factions
 					Mobile active = null, inactive = null;
 					double actPrio = 0.0, inactPrio = 0.0;
 
-					Mobile comb = m_Mobile.Combatant;
+					Mobile comb = (Mobile)m_Mobile.Combatant;
 
 					if (comb != null && !comb.Deleted && comb.Alive && !comb.IsDeadBondedPet && CanDispel(comb))
 					{
@@ -416,7 +416,7 @@ namespace Server.Factions
 			}
 		}
 
-		public void Run(Direction d)
+		public new void Run(Direction d)
 		{
 			if ((m_Mobile.Spell != null && m_Mobile.Spell.IsCasting) || m_Mobile.Paralyzed || m_Mobile.Frozen || m_Mobile.DisallowAllMoves)
 				return;
@@ -437,16 +437,15 @@ namespace Server.Factions
 			if (m_Mobile.Deleted)
 				return false;
 
-			Mobile combatant = m_Guard.Combatant;
-
-			if (combatant == null || combatant.Deleted || !combatant.Alive || combatant.IsDeadBondedPet || !m_Mobile.CanSee(combatant) || !m_Mobile.CanBeHarmful(combatant, false) || combatant.Map != m_Mobile.Map)
+			if (!(m_Guard.Combatant is Mobile combatant) || combatant.Deleted || !combatant.Alive || combatant.IsDeadBondedPet ||
+				!m_Mobile.CanSee(combatant) || !m_Mobile.CanBeHarmful(combatant, false) || combatant.Map != m_Mobile.Map)
 			{
 				// Our combatant is deleted, dead, hidden, or we cannot hurt them
 				// Try to find another combatant
 
 				if (AcquireFocusMob(m_Mobile.RangePerception, m_Mobile.FightMode, false, false, true))
 				{
-					m_Mobile.Combatant = combatant = m_Mobile.FocusMob;
+					m_Mobile.Combatant = combatant = m_Mobile.FocusMob as Mobile;
 					m_Mobile.FocusMob = null;
 				}
 				else
@@ -459,7 +458,7 @@ namespace Server.Factions
 			{
 				if (AcquireFocusMob(m_Mobile.RangePerception, m_Mobile.FightMode, false, false, true))
 				{
-					m_Mobile.Combatant = combatant = m_Mobile.FocusMob;
+					m_Mobile.Combatant = combatant = m_Mobile.FocusMob as Mobile;
 					m_Mobile.FocusMob = null;
 				}
 				else if (!m_Mobile.InRange(combatant, 36))

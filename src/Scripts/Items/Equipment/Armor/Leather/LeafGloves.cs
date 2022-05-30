@@ -1,7 +1,7 @@
 namespace Server.Items
 {
 	[Flipable]
-	public class LeafGloves : BaseArmor, IArcaneEquip
+	public class LeafGloves : BaseArmor
 	{
 		public override Race RequiredRace => Race.Elf;
 		public override int BasePhysicalResistance => 2;

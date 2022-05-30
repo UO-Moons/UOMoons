@@ -6,7 +6,7 @@ namespace Server.Spells.Sixth
 {
 	public class MarkSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Mark", "Kal Por Ylem",
 				218,
 				9002,
@@ -83,9 +83,9 @@ namespace Server.Spells.Sixth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is RecallRune)
+				if (o is RecallRune rune)
 				{
-					m_Owner.Target((RecallRune)o);
+					m_Owner.Target(rune);
 				}
 				else
 				{

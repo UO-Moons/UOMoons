@@ -53,9 +53,9 @@ namespace Server.Items
 				list.Add(1041645); // recovered from a shipwreck
 		}
 
-		public override ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public override int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			if (Quality == ItemQuality.Exceptional)
 				DistributeBonuses((tool is BaseRunicTool ? 6 : (Core.SE ? 15 : 14)));   //BLAME OSI. (We can't confirm it's an OSI bug yet.)
@@ -72,7 +72,6 @@ namespace Server.Items
 		public override int BaseColdResistance => 9;
 		public override int BasePoisonResistance => 5;
 		public override int BaseEnergyResistance => 5;
-
 		public override int InitMinHits => 20;
 		public override int InitMaxHits => 30;
 

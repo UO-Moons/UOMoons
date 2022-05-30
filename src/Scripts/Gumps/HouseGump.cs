@@ -1,7 +1,8 @@
+using System;
+using System.Collections.Generic;
 using Server.Multis;
 using Server.Network;
 using Server.Prompts;
-using System.Collections;
 
 namespace Server.Gumps
 {
@@ -9,7 +10,7 @@ namespace Server.Gumps
 	{
 		private readonly BaseHouse m_House;
 
-		public HouseListGump(int number, ArrayList list, BaseHouse house, bool accountOf) : base(20, 30)
+		public HouseListGump(int number, List<Mobile> list, BaseHouse house, bool accountOf) : base(20, 30)
 		{
 			if (house.Deleted)
 				return;
@@ -73,11 +74,12 @@ namespace Server.Gumps
 	public class HouseRemoveGump : Gump
 	{
 		private readonly BaseHouse m_House;
-		private readonly ArrayList m_List, m_Copy;
+		private readonly List<Mobile> m_List;
+		private readonly List<Mobile> m_Copy;
 		private readonly int m_Number;
 		private readonly bool m_AccountOf;
 
-		public HouseRemoveGump(int number, ArrayList list, BaseHouse house, bool accountOf) : base(20, 30)
+		public HouseRemoveGump(int number, List<Mobile> list, BaseHouse house, bool accountOf) : base(20, 30)
 		{
 			if (house.Deleted)
 				return;
@@ -102,7 +104,7 @@ namespace Server.Gumps
 
 			if (list != null)
 			{
-				m_Copy = new ArrayList(list);
+				m_Copy = new List<Mobile>(list);
 
 				for (int i = 0; i < list.Count; ++i)
 				{
@@ -175,66 +177,6 @@ namespace Server.Gumps
 	public class HouseGump : Gump
 	{
 		private readonly BaseHouse m_House;
-
-		private ArrayList Wrap(string value)
-		{
-			if (value == null || (value = value.Trim()).Length <= 0)
-				return null;
-
-			string[] values = value.Split(' ');
-			ArrayList list = new();
-			string current = "";
-
-			for (int i = 0; i < values.Length; ++i)
-			{
-				string val = values[i];
-
-				string v = current.Length == 0 ? val : current + ' ' + val;
-
-				if (v.Length < 10)
-				{
-					current = v;
-				}
-				else if (v.Length == 10)
-				{
-					list.Add(v);
-
-					if (list.Count == 6)
-						return list;
-
-					current = "";
-				}
-				else if (val.Length <= 10)
-				{
-					list.Add(current);
-
-					if (list.Count == 6)
-						return list;
-
-					current = val;
-				}
-				else
-				{
-					while (v.Length >= 10)
-					{
-						list.Add(v.Substring(0, 10));
-
-						if (list.Count == 6)
-							return list;
-
-						v = v.Substring(10);
-					}
-
-					current = v;
-				}
-			}
-
-			if (current.Length > 0)
-				list.Add(current);
-
-			return list;
-		}
-
 		public HouseGump(Mobile from, BaseHouse house) : base(20, 30)
 		{
 			if (house.Deleted)
@@ -267,7 +209,7 @@ namespace Server.Gumps
 
 			if (m_House.Sign != null)
 			{
-				ArrayList lines = Wrap(m_House.Sign.GetName());
+				var lines = Wrap(m_House.Sign.GetName());
 
 				if (lines != null)
 				{
@@ -420,21 +362,6 @@ namespace Server.Gumps
 				AddHtmlLocalized(200, 340, 355, 30, 1011277, false, false); // Okay that is fine.
 				AddButton(350, 340, 4005, 4007, 18, GumpButtonType.Reply, 0);
 			}
-		}
-
-		private string GetOwnerName()
-		{
-			Mobile m = m_House.Owner;
-
-			if (m == null)
-				return "(unowned)";
-
-			string name;
-
-			if ((name = m.Name) == null || (name = name.Trim()).Length <= 0)
-				name = "(no name)";
-
-			return name;
 		}
 
 		public override void OnResponse(NetState sender, RelayInfo info)
@@ -722,6 +649,79 @@ namespace Server.Gumps
 						break;
 					}
 			}
+		}
+		private List<string> Wrap(string value)
+		{
+			if (value == null || (value = value.Trim()).Length <= 0)
+				return null;
+
+			string[] values = value.Split(' ');
+			List<string> list = new List<string>();
+			string current = "";
+
+			for (int i = 0; i < values.Length; ++i)
+			{
+				string val = values[i];
+
+				string v = current.Length == 0 ? val : current + ' ' + val;
+
+				if (v.Length < 10)
+				{
+					current = v;
+				}
+				else if (v.Length == 10)
+				{
+					list.Add(v);
+
+					if (list.Count == 6)
+						return list;
+
+					current = "";
+				}
+				else if (val.Length <= 10)
+				{
+					list.Add(current);
+
+					if (list.Count == 6)
+						return list;
+
+					current = val;
+				}
+				else
+				{
+					while (v.Length >= 10)
+					{
+						list.Add(v.Substring(0, 10));
+
+						if (list.Count == 6)
+							return list;
+
+						v = v.Substring(10);
+					}
+
+					current = v;
+				}
+			}
+
+			if (current.Length > 0)
+				list.Add(current);
+
+			return list;
+		}
+
+		private string GetOwnerName()
+		{
+			Mobile m = m_House.Owner;
+
+			if (m == null)
+				return "(unowned)";
+
+			string name;
+
+			if ((name = m.Name) == null || (name = name.Trim()).Length <= 0)
+				name = "(no name)";
+
+			return name;
 		}
 	}
 }

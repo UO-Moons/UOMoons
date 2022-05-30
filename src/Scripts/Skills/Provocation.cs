@@ -28,7 +28,7 @@ namespace Server.SkillHandlers
 			from.Target = new InternalFirstTarget(from, instrument);
 		}
 
-		private class InternalFirstTarget : Target
+		public class InternalFirstTarget : Target
 		{
 			private readonly BaseInstrument m_Instrument;
 
@@ -70,7 +70,7 @@ namespace Server.SkillHandlers
 			}
 		}
 
-		private class InternalSecondTarget : Target
+		public class InternalSecondTarget : Target
 		{
 			private readonly BaseCreature m_Creature;
 			private readonly BaseInstrument m_Instrument;

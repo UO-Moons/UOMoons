@@ -5,7 +5,7 @@ namespace Server.Spells.Second
 {
 	public class StrengthSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Strength", "Uus Mani",
 				212,
 				9061,
@@ -54,17 +54,23 @@ namespace Server.Spells.Second
 			}
 			else if (CheckBSequence(m))
 			{
-				SpellHelper.Turn(Caster, m);
+				int oldStr = SpellHelper.GetBuffOffset(m, StatType.Str);
+				int newStr = SpellHelper.GetOffset(Caster, m, StatType.Str, false, true);
 
-				SpellHelper.AddStatBonus(Caster, m, StatType.Str);
+				if (newStr < oldStr || newStr == 0)
+				{
+					DoHurtFizzle();
+				}
+				else
+				{
+					SpellHelper.AddStatBonus(Caster, m, false, StatType.Str);
+					int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
+					TimeSpan length = SpellHelper.GetDuration(Caster, m);
+					BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Strength, 1075845, length, m, percentage.ToString()));
 
-				m.FixedParticles(0x375A, 10, 15, 5017, EffectLayer.Waist);
-				m.PlaySound(0x1EE);
-
-				int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
-				TimeSpan length = SpellHelper.GetDuration(Caster, m);
-
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Strength, 1075845, length, m, percentage.ToString()));
+					m.FixedParticles(0x375A, 10, 15, 5017, EffectLayer.Waist);
+					m.PlaySound(0x1EE);
+				}
 			}
 
 			FinishSequence();
@@ -81,9 +87,9 @@ namespace Server.Spells.Second
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 

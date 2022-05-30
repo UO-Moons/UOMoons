@@ -1,11 +1,12 @@
 using Server.Targeting;
 using System;
+using System.Collections.Generic;
 
 namespace Server.Spells.Third
 {
 	public class BlessSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Bless", "Rel Sanct",
 				203,
 				9061,
@@ -15,9 +16,41 @@ namespace Server.Spells.Third
 
 		public override SpellCircle Circle => SpellCircle.Third;
 		public override TargetFlags SpellTargetFlags => TargetFlags.Beneficial;
+		private static Dictionary<Mobile, InternalTimer> _Table;
 
 		public BlessSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
+		}
+
+		public static bool IsBlessed(Mobile m)
+		{
+			return _Table != null && _Table.ContainsKey(m);
+		}
+
+		public static void AddBless(Mobile m, TimeSpan duration)
+		{
+			if (_Table == null)
+			{
+				_Table = new Dictionary<Mobile, InternalTimer>();
+			}
+
+			if (_Table.ContainsKey(m))
+			{
+				_Table[m].Stop();
+			}
+
+			_Table[m] = new InternalTimer(m, duration);
+		}
+
+		public static void RemoveBless(Mobile m, bool early = false)
+		{
+			if (_Table != null && _Table.ContainsKey(m))
+			{
+				_Table[m].Stop();
+				m.Delta(MobileDelta.Stat);
+
+				_Table.Remove(m);
+			}
 		}
 
 		public override bool CheckCast()
@@ -56,19 +89,35 @@ namespace Server.Spells.Third
 			{
 				SpellHelper.Turn(Caster, m);
 
-				SpellHelper.AddStatBonus(Caster, m, StatType.Str); SpellHelper.DisableSkillCheck = true;
-				SpellHelper.AddStatBonus(Caster, m, StatType.Dex);
-				SpellHelper.AddStatBonus(Caster, m, StatType.Int); SpellHelper.DisableSkillCheck = false;
+				int oldStr = SpellHelper.GetBuffOffset(m, StatType.Str);
+				int oldDex = SpellHelper.GetBuffOffset(m, StatType.Dex);
+				int oldInt = SpellHelper.GetBuffOffset(m, StatType.Int);
 
-				m.FixedParticles(0x373A, 10, 15, 5018, EffectLayer.Waist);
-				m.PlaySound(0x1EA);
+				int newStr = SpellHelper.GetOffset(Caster, m, StatType.Str, false, true);
+				int newDex = SpellHelper.GetOffset(Caster, m, StatType.Dex, false, true);
+				int newInt = SpellHelper.GetOffset(Caster, m, StatType.Int, false, true);
 
-				int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
-				TimeSpan length = SpellHelper.GetDuration(Caster, m);
+				if ((newStr < oldStr && newDex < oldDex && newInt < oldInt) ||
+					(newStr == 0 && newDex == 0 && newInt == 0))
+				{
+					DoHurtFizzle();
+				}
+				else
+				{
+					SpellHelper.AddStatBonus(Caster, m, false, StatType.Str);
+					SpellHelper.AddStatBonus(Caster, m, true, StatType.Dex);
+					SpellHelper.AddStatBonus(Caster, m, true, StatType.Int);
 
-				string args = string.Format("{0}\t{1}\t{2}", percentage, percentage, percentage);
+					int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
+					TimeSpan length = SpellHelper.GetDuration(Caster, m);
+					string args = string.Format("{0}\t{1}\t{2}", percentage, percentage, percentage);
+					BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Bless, 1075847, 1075848, length, m, args.ToString()));
 
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Bless, 1075847, 1075848, length, m, args.ToString()));
+					m.FixedParticles(0x373A, 10, 15, 5018, EffectLayer.Waist);
+					m.PlaySound(0x1EA);
+
+					AddBless(Caster, length + TimeSpan.FromMilliseconds(50));
+				}
 			}
 
 			FinishSequence();
@@ -85,15 +134,32 @@ namespace Server.Spells.Third
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 
 			protected override void OnTargetFinish(Mobile from)
 			{
 				m_Owner.FinishSequence();
+			}
+		}
+
+		private class InternalTimer : Timer
+		{
+			public Mobile Mobile { get; set; }
+
+			public InternalTimer(Mobile m, TimeSpan duration)
+				: base(duration)
+			{
+				Mobile = m;
+				Start();
+			}
+
+			protected override void OnTick()
+			{
+				RemoveBless(Mobile);
 			}
 		}
 	}

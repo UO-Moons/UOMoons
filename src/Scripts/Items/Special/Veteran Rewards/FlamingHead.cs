@@ -58,6 +58,11 @@ namespace Server.Items
 				list.Add(1076218); // 2nd Year Veteran Reward
 		}
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (from.InRange(Location, 2))
@@ -230,7 +235,7 @@ namespace Server.Items
 
 								if (north || west)
 								{
-									house.Addons.Add(head);
+									house.Addons[head] = from;
 
 									head.IsRewardItem = m_Head.IsRewardItem;
 									head.MoveToWorld(p3d, map);

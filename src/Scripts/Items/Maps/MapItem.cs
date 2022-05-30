@@ -13,9 +13,6 @@ namespace Server.Items
 		private const int MaxUserPins = 50;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter { get; set; }
-
-		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Protected { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -368,10 +365,10 @@ namespace Server.Items
 		}
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
 			CraftInit(from);
-			return ItemQuality.Normal;
+			return quality;
 		}
 
 		#endregion

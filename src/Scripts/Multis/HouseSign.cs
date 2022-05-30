@@ -138,7 +138,7 @@ namespace Server.Multis
 				else
 					canClaim = Owner.IsCoOwner(from);
 
-				if (canClaim && !BaseHouse.HasReachedHouseLimit(from))
+				if (canClaim && !BaseHouse.AtAccountHouseLimit(from))
 				{
 					Owner.Owner = from;
 					Owner.LastTraded = DateTime.UtcNow;
@@ -162,7 +162,7 @@ namespace Server.Multis
 				else
 					canClaim = Owner.IsCoOwner(m);
 
-				if (canClaim && !BaseHouse.HasReachedHouseLimit(m))
+				if (canClaim && !BaseHouse.AtAccountHouseLimit(m))
 				{
 					/* You do not currently own any house on any shard with this account,
 					 * and this house currently does not have an owner.  If you wish, you

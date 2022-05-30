@@ -1,146 +1,137 @@
-using Server.Items;
 using System;
 using System.Collections;
+using Server.Items;
 
 namespace Server.Spells.Ninjitsu
 {
-	public class KiAttack : NinjaMove
-	{
-		public KiAttack()
-		{
-		}
+    public class KiAttack : NinjaMove
+    {
+        private static readonly Hashtable m_Table = new Hashtable();
+        public KiAttack()
+        {
+        }
 
-		public override int BaseMana => 25;
-		public override double RequiredSkill => 80.0;
+        public override int BaseMana => 25;
+        public override double RequiredSkill => 80.0;
+        public override TextDefinition AbilityMessage => new TextDefinition(1063099);// Your Ki Attack must be complete within 2 seconds for the damage bonus!
+        public static double GetBonus(Mobile from)
+        {
+            KiAttackInfo info = m_Table[from] as KiAttackInfo;
 
-		public override TextDefinition AbilityMessage => new TextDefinition(1063099);  // Your Ki Attack must be complete within 2 seconds for the damage bonus!
+            if (info == null)
+                return 0.0;
 
-		public override void OnUse(Mobile from)
-		{
-			if (!Validate(from))
-				return;
+            int xDelta = info.m_Location.X - from.X;
+            int yDelta = info.m_Location.Y - from.Y;
 
-			KiAttackInfo info = new KiAttackInfo(from);
-			info.m_Timer = Timer.DelayCall(TimeSpan.FromSeconds(2.0), new TimerStateCallback(EndKiAttack), info);
+            double bonus = Math.Sqrt((xDelta * xDelta) + (yDelta * yDelta));
 
-			m_Table[from] = info;
-		}
+            if (bonus > 20.0)
+                bonus = 20.0;
 
-		public override bool Validate(Mobile from)
-		{
-			if (from.Hidden && from.AllowedStealthSteps > 0)
-			{
-				from.SendLocalizedMessage(1063127); // You cannot use this ability while in stealth mode.
-				return false;
-			}
+            return bonus;
+        }
 
-			if (Core.ML)
-			{
-				BaseRanged ranged = from.Weapon as BaseRanged;
+        public override void OnUse(Mobile from)
+        {
+            if (!Validate(from))
+                return;
 
-				if (ranged != null)
-				{
-					from.SendLocalizedMessage(1075858); // You can only use this with melee attacks.
-					return false;
-				}
-			}
+            KiAttackInfo info = new KiAttackInfo(from);
+            info.m_Timer = Timer.DelayCall(TimeSpan.FromSeconds(2.0), new TimerStateCallback(EndKiAttack), info);
 
+            m_Table[from] = info;
+        }
 
-			return base.Validate(from);
-		}
+        public override bool Validate(Mobile from)
+        {
+            if (from.Hidden && from.AllowedStealthSteps > 0)
+            {
+                from.SendLocalizedMessage(1063127); // You cannot use this ability while in stealth mode.
+                return false;
+            }
 
-		public override double GetDamageScalar(Mobile attacker, Mobile defender)
-		{
-			if (attacker.Hidden)
-				return 1.0;
+            if (Core.ML)
+            {
+                BaseRanged ranged = from.Weapon as BaseRanged;
 
-			/*
-			 * Pub40 changed pvp damage max to 55%
-			 */
+                if (ranged != null)
+                {
+                    from.SendLocalizedMessage(1075858); // You can only use this with melee attacks.
+                    return false;
+                }
+            }
 
-			return 1.0 + GetBonus(attacker) / ((Core.ML && attacker.Player && defender.Player) ? 40 : 10);
-		}
+            return base.Validate(from);
+        }
 
-		public override void OnHit(Mobile attacker, Mobile defender, int damage)
-		{
-			if (!Validate(attacker) || !CheckMana(attacker, true))
-				return;
+        public override double GetDamageScalar(Mobile attacker, Mobile defender)
+        {
+            if (attacker.Hidden)
+                return 1.0;
 
-			if (GetBonus(attacker) == 0.0)
-			{
-				attacker.SendLocalizedMessage(1063101); // You were too close to your target to cause any additional damage.
-			}
-			else
-			{
-				attacker.FixedParticles(0x37BE, 1, 5, 0x26BD, 0x0, 0x1, EffectLayer.Waist);
-				attacker.PlaySound(0x510);
+            return 1.0 + GetBonus(attacker) / 10;
+        }
 
-				attacker.SendLocalizedMessage(1063100); // Your quick flight to your target causes extra damage as you strike!
-				defender.FixedParticles(0x37BE, 1, 5, 0x26BD, 0, 0x1, EffectLayer.Waist);
+        public override void OnHit(Mobile attacker, Mobile defender, int damage)
+        {
+            if (!Validate(attacker) || !CheckMana(attacker, true))
+                return;
 
-				CheckGain(attacker);
-			}
+            if (GetBonus(attacker) == 0.0)
+            {
+                attacker.SendLocalizedMessage(1063101); // You were too close to your target to cause any additional damage.
+            }
+            else
+            {
+                attacker.FixedParticles(0x37BE, 1, 5, 0x26BD, 0x0, 0x1, EffectLayer.Waist);
+                attacker.PlaySound(0x510);
 
-			ClearCurrentMove(attacker);
-		}
+                attacker.SendLocalizedMessage(1063100); // Your quick flight to your target causes extra damage as you strike!
+                defender.FixedParticles(0x37BE, 1, 5, 0x26BD, 0, 0x1, EffectLayer.Waist);
 
-		public override void OnClearMove(Mobile from)
-		{
-			KiAttackInfo info = m_Table[from] as KiAttackInfo;
+                CheckGain(attacker);
+            }
 
-			if (info != null)
-			{
-				if (info.m_Timer != null)
-					info.m_Timer.Stop();
+            ClearCurrentMove(attacker);
+        }
 
-				m_Table.Remove(info.m_Mobile);
-			}
-		}
+        public override void OnClearMove(Mobile from)
+        {
+            KiAttackInfo info = m_Table[from] as KiAttackInfo;
 
-		private static readonly Hashtable m_Table = new Hashtable();
+            if (info != null)
+            {
+                if (info.m_Timer != null)
+                    info.m_Timer.Stop();
 
-		public static double GetBonus(Mobile from)
-		{
-			KiAttackInfo info = m_Table[from] as KiAttackInfo;
+                m_Table.Remove(info.m_Mobile);
+            }
+        }
 
-			if (info == null)
-				return 0.0;
+        private static void EndKiAttack(object state)
+        {
+            KiAttackInfo info = (KiAttackInfo)state;
 
-			int xDelta = info.m_Location.X - from.X;
-			int yDelta = info.m_Location.Y - from.Y;
+            if (info.m_Timer != null)
+                info.m_Timer.Stop();
 
-			double bonus = Math.Sqrt((xDelta * xDelta) + (yDelta * yDelta));
+            ClearCurrentMove(info.m_Mobile);
+            info.m_Mobile.SendLocalizedMessage(1063102); // You failed to complete your Ki Attack in time.
 
-			if (bonus > 20.0)
-				bonus = 20.0;
+            m_Table.Remove(info.m_Mobile);
+        }
 
-			return bonus;
-		}
-
-		private class KiAttackInfo
-		{
-			public Mobile m_Mobile;
-			public Point3D m_Location;
-			public Timer m_Timer;
-
-			public KiAttackInfo(Mobile m)
-			{
-				m_Mobile = m;
-				m_Location = m.Location;
-			}
-		}
-
-		private static void EndKiAttack(object state)
-		{
-			KiAttackInfo info = (KiAttackInfo)state;
-
-			if (info.m_Timer != null)
-				info.m_Timer.Stop();
-
-			ClearCurrentMove(info.m_Mobile);
-			info.m_Mobile.SendLocalizedMessage(1063102); // You failed to complete your Ki Attack in time.
-
-			m_Table.Remove(info.m_Mobile);
-		}
-	}
+        private class KiAttackInfo
+        {
+            public readonly Mobile m_Mobile;
+            public readonly Point3D m_Location;
+            public Timer m_Timer;
+            public KiAttackInfo(Mobile m)
+            {
+                m_Mobile = m;
+                m_Location = m.Location;
+            }
+        }
+    }
 }

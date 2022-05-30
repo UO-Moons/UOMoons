@@ -1,3 +1,4 @@
+using Server.Items;
 using Server.Mobiles;
 using Server.Network;
 using Server.Targeting;
@@ -6,7 +7,7 @@ namespace Server.Spells.Fourth
 {
 	public class GreaterHealSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Greater Heal", "In Vas Mani",
 				204,
 				9061,
@@ -55,7 +56,7 @@ namespace Server.Spells.Fourth
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (m is BaseCreature && ((BaseCreature)m).IsAnimatedDead)
+			else if (m is BaseCreature creature && creature.IsAnimatedDead)
 			{
 				Caster.SendLocalizedMessage(1061654); // You cannot heal that which is not alive.
 			}
@@ -63,11 +64,11 @@ namespace Server.Spells.Fourth
 			{
 				Caster.SendLocalizedMessage(1060177); // You cannot heal a creature that is already dead!
 			}
-			else if (m is Golem)
+			else if (m is IRepairableMobile)
 			{
 				Caster.LocalOverheadMessage(MessageType.Regular, 0x3B2, 500951); // You cannot heal that.
 			}
-			else if (m.Poisoned || Server.Items.MortalStrike.IsWounded(m))
+			else if (m.Poisoned || MortalStrike.IsWounded(m))
 			{
 				Caster.LocalOverheadMessage(MessageType.Regular, 0x22, (Caster == m) ? 1005000 : 1010398);
 			}
@@ -101,9 +102,9 @@ namespace Server.Spells.Fourth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 

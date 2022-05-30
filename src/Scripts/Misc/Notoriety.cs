@@ -146,10 +146,12 @@ namespace Server.Misc
 			return CheckBeneficialStatus(GetGuildStatus(from), GetGuildStatus(target));
 		}
 
-		public static bool Mobile_AllowHarmful(Mobile from, Mobile target)
+		public static bool Mobile_AllowHarmful(Mobile from, IDamageable damageable)
 		{
-			if (from == null || target == null || from.AccessLevel > AccessLevel.Player || target.AccessLevel > AccessLevel.Player)
+			if (from == null || damageable is not Mobile target || from.IsStaff() || target.IsStaff())
+			{
 				return true;
+			}
 
 			#region Dueling
 			PlayerMobile pmFrom = from as PlayerMobile;
@@ -208,7 +210,7 @@ namespace Server.Misc
 
 			BaseCreature bc = from as BaseCreature;
 
-			if (!from.Player && !(bc != null && bc.GetMaster() != null && bc.GetMaster().AccessLevel == AccessLevel.Player))
+			if (!from.Player && !(bc != null && bc.GetMaster() != null && bc.GetMaster().IsPlayer()))
 			{
 				if (!CheckAggressor(from.Aggressors, target) && !CheckAggressed(from.Aggressed, target) && target is PlayerMobile playerMobile && playerMobile.CheckYoungProtection(from))
 					return false;
@@ -366,8 +368,18 @@ namespace Server.Misc
 
 		/* Must be thread-safe */
 
-		public static int MobileNotoriety(Mobile source, Mobile target)
+		public static int MobileNotoriety(Mobile source, IDamageable damageable)
 		{
+			if (damageable is PublicMoongate)
+			{
+				return Notoriety.Innocent;
+			}
+
+			if (!(damageable is Mobile target))
+			{
+				return Notoriety.CanBeAttacked;
+			}
+
 			if (Core.AOS && (target.Blessed || (target is BaseCreature tbaseCreature && tbaseCreature.IsInvulnerable) || target is PlayerVendor || target is TownCrier))
 				return Notoriety.Invulnerable;
 

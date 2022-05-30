@@ -1,11 +1,14 @@
 using Server.Items;
 using Server.Spells;
 using System;
+using System.Collections.Generic;
 
 namespace Server.Engines.Craft
 {
 	public class DefInscription : CraftSystem
 	{
+		private readonly Dictionary<Type, int> _Buffer = new();
+
 		public override SkillName MainSkill => SkillName.Inscribe;
 
 		public override int GumpTitleNumber => 1044009;
@@ -33,30 +36,44 @@ namespace Server.Engines.Craft
 			m_CraftSystem = this;
 		}
 
-		public override int CanCraft(Mobile from, BaseTool tool, Type typeItem)
+		public override int CanCraft(Mobile from, ITool tool, Type typeItem)
 		{
-			if (tool == null || tool.Deleted || tool.UsesRemaining < 0)
-				return 1044038; // You have worn out your tool!
-			if (!BaseTool.CheckAccessible(tool, @from))
-				return 1044263; // The tool must be on your person to use.
+			int num = 0;
 
-			if (typeItem != null)
+			if (tool == null || tool.Deleted || tool.UsesRemaining <= 0)
 			{
-				object o = Activator.CreateInstance(typeItem);
+				return 1044038; // You have worn out your tool!
+			}
+			else if (!tool.CheckAccessible(from, ref num))
+			{
+				return num; // The tool must be on your person to use.
+			}
 
-				if (o is SpellScroll scroll)
+			if (typeItem != null && typeItem.IsSubclassOf(typeof(SpellScroll)))
+			{
+				if (!_Buffer.ContainsKey(typeItem))
 				{
-					Spellbook book = Spellbook.Find(from, scroll.SpellID);
+					object o = Activator.CreateInstance(typeItem);
 
-					bool hasSpell = (book != null && book.HasSpell(scroll.SpellID));
-
-					scroll.Delete();
-
-					return (hasSpell ? 0 : 1042404); // null : You don't have that spell!
+					if (o is SpellScroll)
+					{
+						SpellScroll scroll = (SpellScroll)o;
+						_Buffer[typeItem] = scroll.SpellID;
+						scroll.Delete();
+					}
+					else if (o is IEntity)
+					{
+						((IEntity)o).Delete();
+						return 1042404; // You don't have that spell!
+					}
 				}
-				else if (o is Item item)
+
+				int id = _Buffer[typeItem];
+				Spellbook book = Spellbook.Find(from, id);
+
+				if (book == null || !book.HasSpell(id))
 				{
-					item.Delete();
+					return 1042404; // You don't have that spell!
 				}
 			}
 
@@ -70,38 +87,56 @@ namespace Server.Engines.Craft
 
 		private static readonly Type typeofSpellScroll = typeof(SpellScroll);
 
-		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item)
+		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item)
 		{
 			if (toolBroken)
+			{
 				from.SendLocalizedMessage(1044038); // You have worn out your tool
+			}
 
 			if (!typeofSpellScroll.IsAssignableFrom(item.ItemType)) //  not a scroll
 			{
 				if (failed)
 				{
 					if (lostMaterial)
+					{
 						return 1044043; // You failed to create the item, and some of your materials are lost.
+					}
 					else
+					{
 						return 1044157; // You failed to create the item, but no materials were lost.
+					}
 				}
 				else
 				{
 					if (quality == 0)
+					{
 						return 502785; // You were barely able to make this item.  It's quality is below average.
-					else if (makersMark && quality == ItemQuality.Exceptional)
+					}
+					else if (makersMark && quality == 2)
+					{
 						return 1044156; // You create an exceptional quality item and affix your maker's mark.
-					else if (quality == ItemQuality.Exceptional)
+					}
+					else if (quality == 2)
+					{
 						return 1044155; // You create an exceptional quality item.
+					}
 					else
+					{
 						return 1044154; // You create the item.
+					}
 				}
 			}
 			else
 			{
 				if (failed)
+				{
 					return 501630; // You fail to inscribe the scroll, and the scroll is ruined.
+				}
 				else
+				{
 					return 501629; // You inscribe the spell and put the scroll in your backpack.
+				}
 			}
 		}
 
@@ -346,22 +381,27 @@ namespace Server.Engines.Craft
 				AddCraft(typeof(Spellbook), 1044294, 1023834, 50.0, 126, typeof(BlankScroll), 1044377, 10, 1044378);
 			}
 
-			/* TODO
-			if ( Core.ML )
+			if (Core.ML)
 			{
-				index = AddCraft( typeof( ScrappersCompendium ), 1044294, 1072940, 75.0, 125.0, typeof( BlankScroll ), 1044377, 100, 1044378 );
-				AddRes( index, typeof( DreadHornMane ), 1032682, 1, 1044253 );
-				AddRes( index, typeof( Taint ), 1032679, 10, 1044253 );
-				AddRes( index, typeof( Corruption ), 1032676, 10, 1044253 );
-				AddRareRecipe( index, 400 );
-				ForceNonExceptional( index );
-				SetNeededExpansion( index, Expansion.ML );
+				index = AddCraft(typeof(ScrappersCompendium), 1044294, 1072940, 75.0, 125.0, typeof(BlankScroll), 1044377, 100, 1044378);
+				AddRes(index, typeof(DreadHornMane), 1032682, 1, 1044253);
+				AddRes(index, typeof(Taint), 1032679, 10, 1044253);
+				AddRes(index, typeof(Corruption), 1032676, 10, 1044253);
+				AddRecipe(index, (int)TinkerRecipes.ScrappersCompendium);
+				ForceNonExceptional(index);
+
+				index = AddCraft(typeof(SpellbookEngraver), 1044294, 1072151, 75.0, 100.0, typeof(Feather), 1044562, 1, 1044563);
+				AddRes(index, typeof(BlackPearl), 1015001, 7, 1044253);
+
+
+				AddCraft(typeof(NecromancerSpellbook), 1044294, 1074909, 50.0, 100.0, typeof(BlankScroll), 1044377, 10, 1044378);
+
+				AddCraft(typeof(MysticBook), 1044294, 1031677, 50.0, 100.0, typeof(BlankScroll), 1044377, 10, 1044378);
 			}
-			*/
 
 			if (Core.SA)
 			{
-				AddCraft(typeof(MysticSpellbook), 1044294, 1031677, 50.0, 150.0, typeof(BlankScroll), 1044377, 10, 1044378);
+				AddCraft(typeof(MysticBook), 1044294, 1031677, 50.0, 150.0, typeof(BlankScroll), 1044377, 10, 1044378);
 
 				AddMysticismSpell(1031678, 4, 0.0, typeof(NetherBoltScroll), Reg.SulfurousAsh, Reg.BlackPearl);
 				AddMysticismSpell(1031679, 4, 0.0, typeof(HealingStoneScroll), Reg.Bone, Reg.Garlic, Reg.Ginseng, Reg.SpidersSilk);

@@ -7,7 +7,7 @@ namespace Server.Spells.Fourth
 {
 	public class ArchProtectionSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Arch Protection", "Vas Uus Sanct",
 				Core.AOS ? 239 : 215,
 				9011,
@@ -50,7 +50,7 @@ namespace Server.Spells.Fourth
 
 				SpellHelper.GetSurfaceTop(ref p);
 
-				List<Mobile> targets = new List<Mobile>();
+				List<Mobile> targets = new();
 
 				Map map = Caster.Map;
 
@@ -113,7 +113,7 @@ namespace Server.Spells.Fourth
 			FinishSequence();
 		}
 
-		private static readonly Dictionary<Mobile, int> _Table = new Dictionary<Mobile, int>();
+		private static readonly Dictionary<Mobile, int> _Table = new();
 
 		private static void AddEntry(Mobile m, int v)
 		{
@@ -165,9 +165,7 @@ namespace Server.Spells.Fourth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				IPoint3D p = o as IPoint3D;
-
-				if (p != null)
+				if (o is IPoint3D p)
 					m_Owner.Target(p);
 			}
 

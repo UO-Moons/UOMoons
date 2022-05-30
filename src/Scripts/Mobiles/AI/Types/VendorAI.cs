@@ -1,15 +1,10 @@
-//
-// This is a first simple AI
-//
-//
-
 namespace Server.Mobiles
 {
 	public class VendorAI : BaseAI
 	{
-		public VendorAI(BaseCreature m) : base(m)
-		{
-		}
+		public VendorAI(BaseCreature m)
+			: base(m)
+		{ }
 
 		public override bool DoActionWander()
 		{
@@ -20,7 +15,8 @@ namespace Server.Mobiles
 				if (m_Mobile.Debug)
 					m_Mobile.DebugSay("{0} is attacking me", m_Mobile.Combatant.Name);
 
-				m_Mobile.Say(Utility.RandomList(1005305, 501603));
+				if (m_Mobile.CanCallGuards)
+					m_Mobile.Say(Utility.RandomList(1005305, 501603));
 
 				Action = ActionType.Flee;
 			}
@@ -46,14 +42,15 @@ namespace Server.Mobiles
 
 		public override bool DoActionInteract()
 		{
-			Mobile customer = m_Mobile.FocusMob;
+			var customer = m_Mobile.FocusMob as Mobile;
 
 			if (m_Mobile.Combatant != null)
 			{
 				if (m_Mobile.Debug)
 					m_Mobile.DebugSay("{0} is attacking me", m_Mobile.Combatant.Name);
 
-				m_Mobile.Say(Utility.RandomList(1005305, 501603));
+				if (m_Mobile.CanCallGuards)
+					m_Mobile.Say(Utility.RandomList(1005305, 501603));
 
 				Action = ActionType.Flee;
 
@@ -74,7 +71,8 @@ namespace Server.Mobiles
 					if (m_Mobile.Debug)
 						m_Mobile.DebugSay("I am with {0}", customer.Name);
 
-					m_Mobile.Direction = m_Mobile.GetDirectionTo(customer);
+					if (!DirectionLocked)
+						m_Mobile.Direction = m_Mobile.GetDirectionTo(customer);
 				}
 				else
 				{
@@ -92,7 +90,7 @@ namespace Server.Mobiles
 
 		public override bool DoActionGuard()
 		{
-			m_Mobile.FocusMob = m_Mobile.Combatant;
+			m_Mobile.FocusMob = m_Mobile.Combatant as Mobile;
 			return base.DoActionGuard();
 		}
 
@@ -104,12 +102,12 @@ namespace Server.Mobiles
 			return base.HandlesOnSpeech(from);
 		}
 
-		// Temporary
+		// Temporary 
 		public override void OnSpeech(SpeechEventArgs e)
 		{
 			base.OnSpeech(e);
 
-			Mobile from = e.Mobile;
+			var from = e.Mobile;
 
 			if (m_Mobile is BaseVendor && from.InRange(m_Mobile, Core.AOS ? 1 : 4) && !e.Handled)
 			{
@@ -145,6 +143,16 @@ namespace Server.Mobiles
 					m_Mobile.FocusMob = from;
 				}
 			}
+		}
+
+		public override double TransformMoveDelay(double delay)
+		{
+			if (m_Mobile is BaseVendor)
+			{
+				return ((BaseVendor)m_Mobile).GetMoveDelay;
+			}
+
+			return base.TransformMoveDelay(delay);
 		}
 	}
 }

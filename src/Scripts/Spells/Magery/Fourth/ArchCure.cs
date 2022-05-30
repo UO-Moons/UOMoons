@@ -52,7 +52,7 @@ namespace Server.Spells.Fourth
 
 				SpellHelper.GetSurfaceTop(ref p);
 
-				List<Mobile> targets = new List<Mobile>();
+				List<Mobile> targets = new();
 
 				Map map = Caster.Map;
 				Mobile directTarget = p as Mobile;
@@ -172,7 +172,7 @@ namespace Server.Spells.Fourth
 			return (Notoriety.Compute(from, to) == Notoriety.Ally);
 		}
 
-		private class InternalTarget : Target
+		public class InternalTarget : Target
 		{
 			private readonly ArchCureSpell m_Owner;
 
@@ -183,9 +183,7 @@ namespace Server.Spells.Fourth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				IPoint3D p = o as IPoint3D;
-
-				if (p != null)
+				if (o is IPoint3D p)
 					m_Owner.Target(p);
 			}
 

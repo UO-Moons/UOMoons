@@ -1,14 +1,29 @@
+using Server.ContextMenus;
 using Server.Gumps;
 using Server.Items;
 using Server.Mobiles;
 using Server.Multis;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Regions
 {
 	public class HouseRegion : BaseRegion
 	{
 		public static readonly int HousePriority = Region.DefaultPriority + 1;
+		public static TimeSpan CombatHeatDelay = TimeSpan.FromSeconds(30.0);
+		private bool m_Recursion;
+
+		public HouseRegion(BaseHouse house) : base(null, house.Map, HousePriority, GetArea(house))
+		{
+			House = house;
+			Point3D ban = house.RelativeBanLocation;
+			GoLocation = new Point3D(house.X + ban.X, house.Y + ban.Y, house.Z + ban.Z);
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public BaseHouse House { get; }
 
 		public static void Initialize()
 		{
@@ -23,36 +38,57 @@ namespace Server.Regions
 				m.Location = house.BanLocation;
 		}
 
-		public HouseRegion(BaseHouse house) : base(null, house.Map, HousePriority, GetArea(house))
-		{
-			House = house;
-
-			Point3D ban = house.RelativeBanLocation;
-
-			GoLocation = new Point3D(house.X + ban.X, house.Y + ban.Y, house.Z + ban.Z);
-		}
-
 		public override bool AllowHousing(Mobile from, Point3D p)
 		{
 			return false;
 		}
 
-		private static Rectangle3D[] GetArea(BaseHouse house)
+		public override void OnEnter(Mobile m)
 		{
-			int x = house.X;
-			int y = house.Y;
-			int z = house.Z;
-
-			Rectangle2D[] houseArea = house.Area;
-			Rectangle3D[] area = new Rectangle3D[houseArea.Length];
-
-			for (int i = 0; i < area.Length; i++)
+			if (m.AccessLevel == AccessLevel.Player && House != null && House.IsFriend(m))
 			{
-				Rectangle2D rect = houseArea[i];
-				area[i] = Region.ConvertTo3D(new Rectangle2D(x + rect.Start.X, y + rect.Start.Y, rect.Width, rect.Height));
+				if (Core.AOS && House is HouseFoundation)
+				{
+					House.RefreshDecay();
+				}
+			}
+			//m.SendEverything();
+			Timer.DelayCall(TimeSpan.FromMilliseconds(500), () =>
+			{
+				m.SendEverything();
+			});
+		}
+
+		public override bool CanSee(Mobile m, IEntity e)
+		{
+			Item item = e as Item;
+
+			if (item != null && (m.PublicHouseContent && House.Public) ||
+					House.IsInside(m) ||
+					ExcludeItem(item) ||
+					(item.RootParent != null && m.CanSee(item.RootParent)))
+			{
+				return true;
 			}
 
-			return area;
+			return false;
+		}
+
+		private bool ExcludeItem(Item item)
+		{
+			return IsStairArea(item) || m_ItemTypes.Any(t => t == item.GetType() || item.GetType().IsSubclassOf(t));
+		}
+
+		private static Type[] m_ItemTypes = new Type[]
+		{
+			typeof(BaseHouse),  typeof(HouseTeleporter),
+			typeof(BaseDoor),   typeof(Static),
+			typeof(HouseSign)
+		};
+
+		public bool IsStairArea(Item item)
+		{
+			return item.Y >= House.Sign.Y;
 		}
 
 		public override bool SendInaccessibleMessage(Item item, Mobile from)
@@ -69,8 +105,6 @@ namespace Server.Regions
 		{
 			return House.CheckAccessibility(item, from);
 		}
-
-		private bool m_Recursion;
 
 		// Use OnLocationChanged instead of OnEnter because it can be that we enter a house region even though we're not actually inside the house
 		public override void OnLocationChanged(Mobile m, Point3D oldLocation)
@@ -379,6 +413,25 @@ namespace Server.Regions
 			}
 		}
 
+		public override void GetContextMenuEntries(Mobile from, List<ContextMenuEntry> list, Item item)
+		{
+			if (House.IsOwner(from) && item.Parent == null &&
+				(House.IsLockedDown(item) || House.IsSecure(item)) &&
+				!House.Addons.ContainsKey(item))
+			{
+				list.Add(new ReleaseEntry(from, item, House));
+			}
+
+			if (item is BaseContainer && House.IsSecure(item) &&
+				!House.IsLockedDown(item) && item.Parent == null && House.IsOwner(from) &&
+				!House.Addons.ContainsKey(item))
+			{
+				list.Add(new ReLocateEntry(from, item, House));
+			}
+
+			base.GetContextMenuEntries(from, list, item);
+		}
+
 		public override bool OnDoubleClick(Mobile from, object o)
 		{
 			if (o is Container)
@@ -413,6 +466,30 @@ namespace Server.Regions
 			return base.OnSingleClick(from, o);
 		}
 
-		public BaseHouse House { get; }
+		public override void OnDelete(Item item)
+		{
+			if (House.IsLockedDown(item) || House.IsSecure(item))
+			{
+				House.SetLockdown(null, item, false);
+			}
+		}
+
+		private static Rectangle3D[] GetArea(BaseHouse house)
+		{
+			int x = house.X;
+			int y = house.Y;
+			int z = house.Z;
+
+			Rectangle2D[] houseArea = house.Area;
+			Rectangle3D[] area = new Rectangle3D[houseArea.Length];
+
+			for (int i = 0; i < area.Length; i++)
+			{
+				Rectangle2D rect = houseArea[i];
+				area[i] = Region.ConvertTo3D(new Rectangle2D(x + rect.Start.X, y + rect.Start.Y, rect.Width, rect.Height));
+			}
+
+			return area;
+		}
 	}
 }

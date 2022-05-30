@@ -9,6 +9,7 @@ using Server.Regions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Mobiles
 {
@@ -23,39 +24,37 @@ namespace Server.Mobiles
 
 	public abstract class BaseVendor : BaseCreature, IVendor
 	{
+		public static List<BaseVendor> AllVendors { get; private set; }
+
+		static BaseVendor()
+		{
+			AllVendors = new List<BaseVendor>(0x4000);
+		}
+
 		private const int MaxSell = 500;
-
-		protected abstract List<SBInfo> SBInfos { get; }
-
-		private readonly ArrayList m_ArmorBuyInfo = new();
-		private readonly ArrayList m_ArmorSellInfo = new();
-
-		private DateTime m_NextTrickOrTreat;
-
+		public override bool ShowFameTitle => false;
+		public override bool IsInvulnerable => true;
 		public override bool CanTeach => true;
-
 		public override bool BardImmune => true;
-
 		public override bool PlayerRangeSensitive => true;
-
 		public virtual bool IsActiveVendor => true;
+		public virtual double GetMoveDelay => Utility.RandomMinMax(1, 2);
+		public virtual bool ChangeRace => true;
+		public virtual TimeSpan RestockDelay => TimeSpan.FromHours(1);
+
+		public virtual bool IsTokunoVendor => (Map == Map.Tokuno);
+		public DateTime LastRestock { get; set; }
 		public virtual bool IsActiveBuyer => IsActiveVendor;  // response to vendor SELL
 		public virtual bool IsActiveSeller => IsActiveVendor;  // repsonse to vendor BUY
-
+		protected abstract List<SBInfo> SBInfos { get; }
+		private readonly ArrayList m_ArmorBuyInfo = new();
+		private readonly ArrayList m_ArmorSellInfo = new();
+		private DateTime m_NextTrickOrTreat;
 		public virtual NpcGuild NpcGuild => NpcGuild.None;
-
-		public override bool IsInvulnerable => true;
-
 		public virtual DateTime NextTrickOrTreat { get => m_NextTrickOrTreat; set => m_NextTrickOrTreat = value; }
-
-		public override bool ShowFameTitle => false;
-
 		public virtual bool IsValidBulkOrder(Item item) => false;
-
 		public virtual Item CreateBulkOrder(Mobile from, bool fromContextMenu) => null;
-
 		public virtual bool SupportsBulkOrders(Mobile from) => false;
-
 		public virtual TimeSpan GetNextBulkOrder(Mobile from) => TimeSpan.Zero;
 
 		public virtual void OnSuccessfulBulkOrderReceive(Mobile from)
@@ -122,10 +121,6 @@ namespace Server.Mobiles
 		{
 		}
 
-		public DateTime LastRestock { get; set; }
-
-		public virtual TimeSpan RestockDelay => TimeSpan.FromHours(1);
-
 		public Container BuyPack
 		{
 			get
@@ -145,9 +140,6 @@ namespace Server.Mobiles
 		}
 
 		public abstract void InitSBInfo();
-
-		public virtual bool IsTokunoVendor => (Map == Map.Tokuno);
-
 		protected void LoadSBInfo()
 		{
 			LastRestock = DateTime.UtcNow;
@@ -647,7 +639,33 @@ namespace Server.Mobiles
 
 		public override bool OnDragDrop(Mobile from, Item dropped)
 		{
+			#region Honesty Item Check
+			var honestySocket = dropped.GetSocket<HonestyItemSocket>();
+
+			if (honestySocket != null)
+			{
+				bool gainedPath = false;
+
+				if (honestySocket.HonestyOwner == this)
+				{
+					VirtueHelper.Award(from, VirtueName.Honesty, 120, ref gainedPath);
+					from.SendMessage(gainedPath ? "You have gained a path in Honesty!" : "You have gained in Honesty.");
+					SayTo(from, 1074582); //Ah!  You found my property.  Thank you for your honesty in returning it to me.
+					dropped.Delete();
+					return true;
+				}
+				else
+				{
+					SayTo(from, 501550, 0x3B2); // I am not interested in this.
+					return false;
+				}
+			}
+			#endregion
 			/* TODO: Thou art giving me? and fame/karma for gold gifts */
+			if (ConvertsMageArmor && dropped is BaseArmor && CheckConvertArmor(from, (BaseArmor)dropped))
+			{
+				return false;
+			}
 
 			if (dropped is SmallBOD || dropped is LargeBOD)
 			{
@@ -1319,6 +1337,163 @@ namespace Server.Mobiles
 		{
 			return (IBuyItemInfo[])m_ArmorBuyInfo.ToArray(typeof(IBuyItemInfo));
 		}
+
+		#region Mage Armor Conversion
+		public virtual bool ConvertsMageArmor => false;
+
+		private readonly List<PendingConvert> _PendingConvertEntries = new();
+
+		private bool CheckConvertArmor(Mobile from, BaseArmor armor)
+		{
+			var convert = GetConvert(from, armor);
+
+			if (convert == null || !(from is PlayerMobile))
+				return false;
+
+			object state = convert.Armor;
+
+			RemoveConvertEntry(convert);
+			from.CloseGump(typeof(Server.Gumps.ConfirmCallbackGump));
+
+			from.SendGump(new Server.Gumps.ConfirmCallbackGump((PlayerMobile)from, 1049004, 1154115, state, null,
+				(m, obj) =>
+				{
+					BaseArmor ar = obj as BaseArmor;
+
+					if (!Deleted && ar != null && armor.IsChildOf(m.Backpack) && CanConvertArmor(m, ar))
+					{
+						if (!InRange(m.Location, 3))
+						{
+							m.SendLocalizedMessage(1149654); // You are too far away.
+						}
+						else if (!Banker.Withdraw(m, 250000, true))
+						{
+							m.SendLocalizedMessage(1019022); // You do not have enough gold.
+						}
+						else
+						{
+							ConvertMageArmor(m, ar);
+						}
+					}
+				},
+				(m, obj) =>
+				{
+					var con = GetConvert(m, armor);
+
+					if (con != null)
+					{
+						RemoveConvertEntry(con);
+					}
+				}));
+
+			return true;
+		}
+
+		protected virtual bool CanConvertArmor(Mobile from, BaseArmor armor)
+		{
+			if (armor == null || armor is BaseShield/*|| armor.ArtifactRarity != 0 || armor.IsArtifact*/)
+			{
+				from.SendLocalizedMessage(1113044); // You can't convert that.
+				return false;
+			}
+
+			//if (armor.ArmorAttributes.MageArmor == 0 &&
+			//	Server.SkillHandlers.Imbuing.GetTotalMods(armor) > 4)
+			//{
+			//	from.SendLocalizedMessage(1154119); // This action would exceed a stat cap
+			//	return false;
+			//}
+
+			return true;
+		}
+
+		public void TryConvertArmor(Mobile from, BaseArmor armor)
+		{
+			if (CanConvertArmor(from, armor))
+			{
+				from.SendLocalizedMessage(1154117); // Ah yes, I will convert this piece of armor but it's gonna cost you 250,000 gold coin. Payment is due immediately. Just hand me the armor.
+
+				var convert = GetConvert(from, armor);
+
+				if (convert != null)
+				{
+					convert.ResetTimer();
+				}
+				else
+				{
+					_PendingConvertEntries.Add(new PendingConvert(from, armor, this));
+				}
+			}
+		}
+
+		public virtual void ConvertMageArmor(Mobile from, BaseArmor armor)
+		{
+			if (armor.ArmorAttributes.MageArmor > 0)
+				armor.ArmorAttributes.MageArmor = 0;
+			else
+				armor.ArmorAttributes.MageArmor = 1;
+
+			from.SendLocalizedMessage(1154118); // Your armor has been converted.
+		}
+
+		private void RemoveConvertEntry(PendingConvert convert)
+		{
+			_PendingConvertEntries.Remove(convert);
+
+			if (convert.Timer != null)
+			{
+				convert.Timer.Stop();
+			}
+		}
+
+		private PendingConvert GetConvert(Mobile from, BaseArmor armor)
+		{
+			return _PendingConvertEntries.FirstOrDefault(c => c.From == from && c.Armor == armor);
+		}
+
+		protected class PendingConvert
+		{
+			public Mobile From { get; set; }
+			public BaseArmor Armor { get; set; }
+			public BaseVendor Vendor { get; set; }
+
+			public Timer Timer { get; set; }
+			public DateTime Expires { get; set; }
+
+			public bool Expired => DateTime.UtcNow > Expires;
+
+			public PendingConvert(Mobile from, BaseArmor armor, BaseVendor vendor)
+			{
+				From = from;
+				Armor = armor;
+				Vendor = vendor;
+
+				ResetTimer();
+			}
+
+			public void ResetTimer()
+			{
+				if (Timer != null)
+				{
+					Timer.Stop();
+					Timer = null;
+				}
+
+				Expires = DateTime.UtcNow + TimeSpan.FromSeconds(120);
+
+				Timer = Timer.DelayCall(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), OnTick);
+				Timer.Start();
+			}
+
+			public void OnTick()
+			{
+				if (Expired)
+				{
+					Vendor.RemoveConvertEntry(this);
+				}
+			}
+		}
+		#endregion
 	}
 }
 

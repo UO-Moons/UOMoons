@@ -1,10 +1,11 @@
+using Server.Mobiles;
 using Server.Targeting;
 
 namespace Server.Spells.Fourth
 {
 	public class LightningSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Lightning", "Por Ort Grav",
 				239,
 				9021,
@@ -27,7 +28,7 @@ namespace Server.Spells.Fourth
 			}
 			else
 			{
-				if (SpellTarget is Mobile target)
+				if (SpellTarget is IDamageable target)
 					Target(target);
 				else
 					FinishSequence();
@@ -36,41 +37,53 @@ namespace Server.Spells.Fourth
 
 		public override bool DelayedDamage => false;
 
-		public void Target(Mobile m)
+		public void Target(IDamageable m)
 		{
+			Mobile mob = m as Mobile;
 			if (!Caster.CanSee(m))
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
 			else if (CheckHSequence(m))
 			{
-				SpellHelper.Turn(Caster, m);
+				Mobile source = Caster;
+				SpellHelper.Turn(Caster, m.Location);
 
-				SpellHelper.CheckReflect((int)Circle, Caster, ref m);
+				SpellHelper.CheckReflect((int)Circle, ref source, ref m);
 
-				double damage;
+				double damage = 0;
 
 				if (Core.AOS)
 				{
 					damage = GetNewAosDamage(23, 1, 4, m);
 				}
-				else
+				else if (mob != null)
 				{
 					damage = Utility.Random(12, 9);
 
-					if (CheckResisted(m))
+					if (CheckResisted(mob))
 					{
 						damage *= 0.75;
 
-						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
+						mob.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
 					}
 
-					damage *= GetDamageScalar(m);
+					damage *= GetDamageScalar(mob);
 				}
 
-				m.BoltEffect(0);
+				if (m is Mobile)
+				{
+					Effects.SendBoltEffect(m, true, 0, false);
+				}
+				else
+				{
+					Effects.SendBoltEffect(EffectMobile.Create(m.Location, m.Map, EffectMobile.DefaultDuration), true, 0, false);
+				}
 
-				SpellHelper.Damage(this, m, damage, 0, 0, 0, 0, 100);
+				if (damage > 0)
+				{
+					SpellHelper.Damage(this, m, damage, 0, 0, 0, 0, 100);
+				}
 			}
 			FinishSequence();
 		}

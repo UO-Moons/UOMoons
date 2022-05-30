@@ -7,7 +7,7 @@ namespace Server.Spells.Fifth
 {
 	public class ParalyzeSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Paralyze", "An Ex Por",
 				218,
 				9012,
@@ -44,7 +44,7 @@ namespace Server.Spells.Fifth
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (Core.AOS && (m.Frozen || m.Paralyzed || (m.Spell != null && m.Spell.IsCasting && !(m.Spell is PaladinSpell))))
+			else if (Core.AOS && (m.Frozen || m.Paralyzed || (m.Spell != null && m.Spell.IsCasting && m.Spell is not PaladinSpell)))
 			{
 				Caster.SendLocalizedMessage(1061923); // The target is already frozen.
 			}
@@ -81,9 +81,9 @@ namespace Server.Spells.Fifth
 						duration *= 0.75;
 				}
 
-				if (m is PlagueBeastLord)
+				if (m is PlagueBeastLord lord)
 				{
-					((PlagueBeastLord)m).OnParalyzed(Caster);
+					lord.OnParalyzed(Caster);
 					duration = 120;
 				}
 
@@ -109,8 +109,8 @@ namespace Server.Spells.Fifth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
+				if (o is Mobile mobile)
+					m_Owner.Target(mobile);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

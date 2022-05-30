@@ -39,32 +39,32 @@ namespace Server
 
 		public static bool operator ==(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) == 0);
+			return Compare(l, r) == 0;
 		}
 
 		public static bool operator !=(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) != 0);
+			return Compare(l, r) != 0;
 		}
 
 		public static bool operator >=(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) >= 0);
+			return Compare(l, r) >= 0;
 		}
 
 		public static bool operator >(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) > 0);
+			return Compare(l, r) > 0;
 		}
 
 		public static bool operator <=(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) <= 0);
+			return Compare(l, r) <= 0;
 		}
 
 		public static bool operator <(ClientVersion l, ClientVersion r)
 		{
-			return (Compare(l, r) < 0);
+			return Compare(l, r) < 0;
 		}
 
 		public override int GetHashCode()
@@ -156,7 +156,11 @@ namespace Server
 					}
 				}
 
-				if (fmt.IndexOf("god") >= 0 || fmt.IndexOf("gq") >= 0)
+				if (Major >= 67)
+				{
+					Type = ClientType.SA;
+				}
+				else if (fmt.IndexOf("god") >= 0 || fmt.IndexOf("gq") >= 0)
 					Type = ClientType.God;
 				else if (fmt.IndexOf("third dawn") >= 0 || fmt.IndexOf("uo:td") >= 0 || fmt.IndexOf("uotd") >= 0 || fmt.IndexOf("uo3d") >= 0 || fmt.IndexOf("uo:3d") >= 0)
 					Type = ClientType.UOTD;

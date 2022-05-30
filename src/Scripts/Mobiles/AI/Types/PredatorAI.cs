@@ -1,16 +1,17 @@
-/*
- * PredatorAI, its an animal that can attack
- *	Dont flee but dont attack if not hurt or attacked
- *
- */
 
+
+/*
+* PredatorAI, its an animal that can attack
+*	Dont flee but dont attack if not hurt or attacked
+* 
+*/
 namespace Server.Mobiles
 {
 	public class PredatorAI : BaseAI
 	{
-		public PredatorAI(BaseCreature m) : base(m)
-		{
-		}
+		public PredatorAI(BaseCreature m)
+			: base(m)
+		{ }
 
 		public override bool DoActionWander()
 		{
@@ -34,7 +35,7 @@ namespace Server.Mobiles
 
 		public override bool DoActionCombat()
 		{
-			Mobile combatant = m_Mobile.Combatant;
+			var combatant = m_Mobile.Combatant as Mobile;
 
 			if (combatant == null || combatant.Deleted || combatant.Map != m_Mobile.Map)
 			{
@@ -45,7 +46,8 @@ namespace Server.Mobiles
 
 			if (WalkMobileRange(combatant, 1, true, m_Mobile.RangeFight, m_Mobile.RangeFight))
 			{
-				m_Mobile.Direction = m_Mobile.GetDirectionTo(combatant);
+				if (!DirectionLocked)
+					m_Mobile.Direction = m_Mobile.GetDirectionTo(combatant);
 			}
 			else
 			{
@@ -56,10 +58,8 @@ namespace Server.Mobiles
 					Action = ActionType.Wander;
 					return true;
 				}
-				else
-				{
-					m_Mobile.DebugSay("I should be closer to {0}", combatant.Name);
-				}
+
+				m_Mobile.DebugSay("I should be closer to {0}", combatant.Name);
 			}
 
 			return true;

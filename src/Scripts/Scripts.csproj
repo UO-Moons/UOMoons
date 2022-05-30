@@ -32,4 +32,12 @@
     <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Engines\MLQuests\Definitions\ChainedQuests\" />
+    <Folder Include="Engines\MLQuests\Definitions\Spellweaving\" />
+    <Folder Include="Engines\MLQuests\Definitions\PeerlessRelatedQuests\" />
+    <Folder Include="Engines\Mobile Engine\" />
+    <Folder Include="Items\Equipment\ML Armor\" />
+  </ItemGroup>
+
 </Project>

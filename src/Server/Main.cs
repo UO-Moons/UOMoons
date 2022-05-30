@@ -136,9 +136,10 @@ namespace Server
 			return FindDataFile(string.Format(format, args));
 		}
 
-		#region Expansions
+		#region Expansions and Publishes
 
 		public static Expansion Expansion { get; set; }
+		public static Publishes Publishes { get; set; }
 
 		public static bool T2A => Expansion >= Expansion.T2A;
 
@@ -159,6 +160,49 @@ namespace Server
 		public static bool HS => Expansion >= Expansion.HS;
 
 		public static bool TOL => Expansion >= Expansion.TOL;
+
+		public static bool EJ => Expansion >= Expansion.EJ;
+
+		public static bool I => Publishes >= Publishes.I;
+		public static bool II => Publishes >= Publishes.II;
+		public static bool III => Publishes >= Publishes.III;
+		public static bool IV => Publishes >= Publishes.IV;
+		public static bool V => Publishes >= Publishes.V;
+		public static bool VI => Publishes >= Publishes.VI;
+		public static bool VII => Publishes >= Publishes.VII;
+		public static bool VIII => Publishes >= Publishes.VIII;
+		public static bool IX => Publishes >= Publishes.IX;
+		public static bool X => Publishes >= Publishes.X;
+		public static bool XI => Publishes >= Publishes.XI;
+		public static bool XII => Publishes >= Publishes.XII;
+		public static bool XIII => Publishes >= Publishes.XIII;
+		public static bool XIV => Publishes >= Publishes.XIV;
+		public static bool XV => Publishes >= Publishes.XV;
+		public static bool XVI => Publishes >= Publishes.XVI;
+		public static bool XVII => Publishes >= Publishes.XVII;
+		public static bool XVIII => Publishes >= Publishes.XVIII;
+		public static bool XIX => Publishes >= Publishes.XIX;
+		public static bool XX => Publishes >= Publishes.XX;
+		public static bool XXI => Publishes >= Publishes.XXI;
+		public static bool XXII => Publishes >= Publishes.XXII;
+		public static bool XXIII => Publishes >= Publishes.XXIII;
+		public static bool XXIV => Publishes >= Publishes.XXIV;
+		public static bool XXV => Publishes >= Publishes.XXV;
+		public static bool XXVI => Publishes >= Publishes.XXVI;
+		public static bool XXVII => Publishes >= Publishes.XXVII;
+		public static bool XXVIII => Publishes >= Publishes.XXVIII;
+		public static bool XXIX => Publishes >= Publishes.XXIX;
+		public static bool XXX => Publishes >= Publishes.XXX;
+		public static bool XXXI => Publishes >= Publishes.XXXI;
+		public static bool XXXII => Publishes >= Publishes.XXXII;
+		public static bool XXXIII => Publishes >= Publishes.XXXIII;
+		public static bool XXXIV => Publishes >= Publishes.XXXIV;
+		public static bool XXXV => Publishes >= Publishes.XXXV;
+		public static bool XXXVI => Publishes >= Publishes.XXXVI;
+		public static bool XXXVII => Publishes >= Publishes.XXXVII;
+		public static bool XXXVIII => Publishes >= Publishes.XXXVIII;
+		public static bool XXXIX => Publishes >= Publishes.XXXIX;
+		public static bool XL => Publishes >= Publishes.XL;
 
 		#endregion
 

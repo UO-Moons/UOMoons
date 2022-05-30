@@ -18,9 +18,14 @@ namespace Server.Items
 
 		public override int BaseMana => 15;
 
-		public override bool RequiresTactics(Mobile from)
+		public override bool RequiresSecondarySkill(Mobile from)
 		{
 			return false;
+		}
+
+		public override SkillName GetSecondarySkill(Mobile from)
+		{
+			return SkillName.Poisoning;
 		}
 
 		public override void OnHit(Mobile attacker, Mobile defender, int damage)

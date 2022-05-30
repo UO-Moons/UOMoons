@@ -79,7 +79,7 @@ namespace Server.Mobiles
 					case 0: PackItem(new Blight()); break;
 					case 1: PackItem(new Scourge()); break;
 					case 2: PackItem(new Taint()); break;
-					case 3: PackItem(new Putrefication()); break;
+					case 3: PackItem(new Putrefaction()); break;
 					case 4: PackItem(new Corruption()); break;
 					case 5: PackItem(new Muculent()); break;
 				}
@@ -278,9 +278,9 @@ namespace Server.Mobiles
 			if (Combatant != null)
 			{
 				if (corrosive)
-					Combatant.SendLocalizedMessage(1072071); // A corrosive gas seeps out of your enemy's skin!
+					((PlayerMobile)Combatant).SendLocalizedMessage(1072071); // A corrosive gas seeps out of your enemy's skin!
 				else
-					Combatant.SendLocalizedMessage(1072072); // A poisonous gas seeps out of your enemy's skin!
+					((PlayerMobile)Combatant).SendLocalizedMessage(1072072); // A poisonous gas seeps out of your enemy's skin!
 			}
 		}
 

@@ -83,7 +83,7 @@ namespace Server.Items
 		}
 
 		#region ICraftable
-		public virtual ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
 			Type resourceType = typeRes;
 
@@ -147,8 +147,18 @@ namespace Server.Items
 					if (res == AddonFitResult.Valid)
 					{
 						m_Deed.Delete();
-						house.Addons.Add(addon);
-						house.AddSecure(from, addon);
+						house.Addons[addon] = from;
+
+						if (addon is GardenShedAddon)
+						{
+							GardenShedAddon ad = addon as GardenShedAddon;
+							house.Addons[ad.SecondContainer] = from;
+						}
+
+						if (addon.Security)
+						{
+							house.AddSecure(from, addon);
+						}
 					}
 					else
 					{

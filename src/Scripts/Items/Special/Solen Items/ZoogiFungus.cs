@@ -2,7 +2,7 @@ namespace Server.Items
 {
 	public class ZoogiFungus : BaseItem, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => (Core.ML);
 
 		[Constructable]

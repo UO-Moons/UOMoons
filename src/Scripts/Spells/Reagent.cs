@@ -42,7 +42,7 @@ namespace Server.Spells
 				typeof(PigIron),
 				typeof(Bone),
 				typeof(FertileDirt),
-				typeof(DragonsBlood),
+				typeof(DragonBlood),
 				typeof(DaemonBone)
 			};
 
@@ -136,7 +136,7 @@ namespace Server.Spells
 			set => Types[14] = value;
 		}
 
-		public static Type DragonsBlood
+		public static Type DragonBlood
 		{
 			get => Types[15];
 			set => Types[15] = value;

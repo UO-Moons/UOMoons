@@ -1,8 +1,12 @@
 namespace Server.Mobiles
 {
+	public interface IAcidCreature
+	{
+	}
+
 	[TypeAlias("Server.Mobiles.ToxicElemental")]
 	[CorpseName("an acid elemental corpse")]
-	public class AcidElemental : BaseCreature
+	public class AcidElemental : BaseCreature, IAcidCreature
 	{
 		[Constructable]
 		public AcidElemental() : base(AIType.AI_Mage, FightMode.Closest, 10, 1, 0.2, 0.4)
@@ -50,8 +54,7 @@ namespace Server.Mobiles
 
 		public override bool BleedImmune => true;
 		public override Poison HitPoison => Poison.Lethal;
-		public override double HitPoisonChance => 0.6;
-
+		public override double HitPoisonChance => Core.AOS ? 0.75 : 0.6;
 		public override int TreasureMapLevel => Core.AOS ? 2 : 3;
 
 		public AcidElemental(Serial serial)

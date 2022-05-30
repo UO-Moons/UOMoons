@@ -1,14 +1,25 @@
+using Server.Engines.XmlSpawner2;
 using Server.Items;
 using Server.Mobiles;
 using Server.Spells;
 using Server.Spells.Fifth;
+using Server.Spells.Necromancy;
 using Server.Spells.Ninjitsu;
 using Server.Spells.Seventh;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server
 {
+	public enum DamageType
+	{
+		Melee,
+		Ranged,
+		Spell,
+		SpellAOE
+	}
+
 	public class AOS
 	{
 		public static void DisableStatInfluences()
@@ -24,39 +35,61 @@ namespace Server
 			}
 		}
 
-		public static int Damage(Mobile m, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy)
+		public static int Damage(IDamageable m, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy)
 		{
 			return Damage(m, null, damage, ignoreArmor, phys, fire, cold, pois, nrgy);
 		}
 
-		public static int Damage(Mobile m, int damage, int phys, int fire, int cold, int pois, int nrgy)
+		public static int Damage(IDamageable m, int damage, int phys, int fire, int cold, int pois, int nrgy)
 		{
 			return Damage(m, null, damage, phys, fire, cold, pois, nrgy);
 		}
 
-		public static int Damage(Mobile m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy)
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy)
 		{
-			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, false, false, false);
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, false);
 		}
 
-		public static int Damage(Mobile m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos)
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos)
 		{
-			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos, 0, false, false, false);
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos, 0, false);
 		}
 
-		public static int Damage(Mobile m, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy)
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct)
 		{
-			return Damage(m, from, damage, ignoreArmor, phys, fire, cold, pois, nrgy, 0, 0, false, false, false);
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos, direct, false);
 		}
 
-		public static int Damage(Mobile m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, bool keepAlive)
+		public static int Damage(IDamageable m, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy)
 		{
-			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, keepAlive, false, false);
+			return Damage(m, from, damage, ignoreArmor, phys, fire, cold, pois, nrgy, 0, 0, false);
 		}
 
-		public static int Damage(Mobile m, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, bool keepAlive, bool archer, bool deathStrike)
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, bool keepAlive)
 		{
-			if (m == null || m.Deleted || !m.Alive || damage <= 0)
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, keepAlive);
+		}
+
+		public static int Damage(IDamageable m, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, bool keepAlive, bool archer, bool deathStrike)
+		{
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos, direct, keepAlive, archer ? DamageType.Ranged : DamageType.Melee); // old deathStrike damage, kept for compatibility
+		}
+
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, DamageType type)
+		{
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, 0, 0, false, type);
+		}
+
+		public static int Damage(IDamageable m, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, DamageType type)
+		{
+			return Damage(m, from, damage, false, phys, fire, cold, pois, nrgy, chaos, direct, false, type);
+		}
+
+		public static int Damage(IDamageable damageable, Mobile from, int damage, bool ignoreArmor, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, bool keepAlive, DamageType type = DamageType.Melee)
+		{
+			Mobile m = damageable as Mobile;
+
+			if (damageable == null || damageable.Deleted || !damageable.Alive || damage <= 0)
 				return 0;
 
 			if (phys == 0 && fire == 100 && cold == 0 && pois == 0 && nrgy == 0)
@@ -67,6 +100,19 @@ namespace Server
 				m.Damage(damage, from);
 				return damage;
 			}
+
+			#region Mondain's Legacy
+			if (m != null)
+			{
+				m.Items.ForEach(i =>
+				{
+					ITalismanProtection prot = i as ITalismanProtection;
+
+					if (prot != null)
+						damage = prot.Protection.ScaleDamage(from, damage);
+				});
+			}
+			#endregion
 
 			Fix(ref phys);
 			Fix(ref fire);
@@ -88,9 +134,10 @@ namespace Server
 				}
 			}
 
+			bool ranged = type == DamageType.Ranged;
 			BaseQuiver quiver = null;
 
-			if (archer && from != null)
+			if (ranged && from.Race != Race.Gargoyle)
 				quiver = from.FindItemOnLayer(Layer.Cloak) as BaseQuiver;
 
 			int totalDamage;
@@ -98,18 +145,13 @@ namespace Server
 			if (!ignoreArmor)
 			{
 				// Armor Ignore on OSI ignores all defenses, not just physical.
-				int resPhys = m.PhysicalResistance;
-				int resFire = m.FireResistance;
-				int resCold = m.ColdResistance;
-				int resPois = m.PoisonResistance;
-				int resNrgy = m.EnergyResistance;
+				int physDamage = damage * phys * (100 - damageable.PhysicalResistance);
+				int fireDamage = damage * fire * (100 - damageable.FireResistance);
+				int coldDamage = damage * cold * (100 - damageable.ColdResistance);
+				int poisonDamage = damage * pois * (100 - damageable.PoisonResistance);
+				int energyDamage = damage * nrgy * (100 - damageable.EnergyResistance);
 
-				totalDamage = damage * phys * (100 - resPhys);
-				totalDamage += damage * fire * (100 - resFire);
-				totalDamage += damage * cold * (100 - resCold);
-				totalDamage += damage * pois * (100 - resPois);
-				totalDamage += damage * nrgy * (100 - resNrgy);
-
+				totalDamage = physDamage + fireDamage + coldDamage + poisonDamage + energyDamage;
 				totalDamage /= 10000;
 
 				if (Core.ML)
@@ -128,10 +170,7 @@ namespace Server
 				if (quiver != null)
 					damage += damage * quiver.DamageIncrease / 100;
 
-				if (!deathStrike)
-					totalDamage = Math.Min(damage, 35); // Direct Damage cap of 35
-				else
-					totalDamage = Math.Min(damage, 70); // Direct Damage cap of 70
+				totalDamage = Math.Min(damage, Core.TOL && ranged ? 30 : 35);   // Direct Damage cap of 30/35
 			}
 			else
 			{
@@ -139,6 +178,12 @@ namespace Server
 
 				if (Core.ML && quiver != null)
 					totalDamage += totalDamage * quiver.DamageIncrease / 100;
+			}
+
+			// object being damaged is not a mobile, so we will end here
+			if (damageable is Item)
+			{
+				return damageable.Damage(totalDamage, from);
 			}
 
 			if ((from == null || !from.Player) && m.Player && m.Mount is SwampDragon)
@@ -164,25 +209,6 @@ namespace Server
 			if (keepAlive && totalDamage > m.Hits)
 				totalDamage = m.Hits;
 
-			if (from != null && !from.Deleted && from.Alive)
-			{
-				int reflectPhys = AosAttributes.GetValue(m, AosAttribute.ReflectPhysical);
-
-				if (reflectPhys != 0)
-				{
-					if (from is ExodusMinion minion && minion.FieldActive || from is ExodusOverseer overseer && overseer.FieldActive)
-					{
-						from.FixedParticles(0x376A, 20, 10, 0x2530, EffectLayer.Waist);
-						from.PlaySound(0x2F4);
-						m.SendAsciiMessage("Your weapon cannot penetrate the creature's magical barrier");
-					}
-					else
-					{
-						from.Damage(Scale((damage * phys * (100 - (ignoreArmor ? 0 : m.PhysicalResistance))) / 10000, reflectPhys), m);
-					}
-				}
-			}
-
 			m.Damage(totalDamage, from);
 			return totalDamage;
 		}
@@ -196,6 +222,34 @@ namespace Server
 		public static int Scale(int input, int percent)
 		{
 			return input * percent / 100;
+		}
+
+		public static void DoLeech(int damageGiven, Mobile from, Mobile target)
+		{
+			TransformContext context = TransformationSpellHelper.GetContext(from);
+
+			if (context != null)
+			{
+				if (context.Type == typeof(WraithFormSpell))
+				{
+					//    int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, (int)from.Skills.SpiritSpeak.Value / 5)); // Wraith form gives 5-20% mana leech
+					int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, Math.Max(8, 5 + (int)(0.16 * from.Skills.SpiritSpeak.Value))));
+
+					if (manaLeech != 0)
+					{
+						from.Mana += manaLeech;
+						from.PlaySound(0x44D);
+
+						target.Mana -= manaLeech;
+					}
+				}
+				else if (context.Type == typeof(VampiricEmbraceSpell))
+				{
+					from.Hits += Scale(damageGiven, 20);
+					from.PlaySound(0x44D);
+
+				}
+			}
 		}
 
 		public static int GetStatus(Mobile from, int index)
@@ -249,7 +303,10 @@ namespace Server
 		Luck = 0x00100000,
 		SpellChanneling = 0x00200000,
 		NightSight = 0x00400000,
-		IncreasedKarmaLoss = 0x00800000
+		IncreasedKarmaLoss = 0x00800000,
+		Brittle = 0x01000000,
+		LowerAmmoCost = 0x02000000,
+		BalancedWeapon = 0x04000000
 	}
 
 	public interface IAosAttribute
@@ -427,10 +484,31 @@ namespace Server
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int IncreasedKarmaLoss { get => this[AosAttribute.IncreasedKarmaLoss]; set => this[AosAttribute.IncreasedKarmaLoss] = value; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int Brittle
+		{
+			get => this[AosAttribute.Brittle];
+			set => this[AosAttribute.Brittle] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int LowerAmmoCost
+		{
+			get => this[AosAttribute.LowerAmmoCost];
+			set => this[AosAttribute.LowerAmmoCost] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int BalancedWeapon
+		{
+			get => this[AosAttribute.BalancedWeapon];
+			set => this[AosAttribute.BalancedWeapon] = value;
+		}
 	}
 
 	[Flags]
-	public enum AosWeaponAttribute
+	public enum AosWeaponAttribute : long
 	{
 		LowerStatReq = 0x00000001,
 		SelfRepair = 0x00000002,
@@ -456,24 +534,46 @@ namespace Server
 		ResistEnergyBonus = 0x00200000,
 		UseBestSkill = 0x00400000,
 		MageWeapon = 0x00800000,
-		DurabilityBonus = 0x01000000
+		DurabilityBonus = 0x01000000,
+		BloodDrinker = 0x02000000,
+		BattleLust = 0x04000000,
+		HitCurse = 0x08000000,
+		HitFatigue = 0x10000000,
+		HitManaDrain = 0x20000000,
+		SplinteringWeapon = 0x40000000,
+		ReactiveParalyze = 0x80000000,
 	}
 
 	public sealed class AosWeaponAttributes : BaseAttributes
 	{
-		public AosWeaponAttributes(Item owner)
-			: base(owner)
+		public static bool IsValid(AosWeaponAttribute attribute)
 		{
+			if (!Core.AOS)
+			{
+				return false;
+			}
+
+			if (!Core.SA && attribute >= AosWeaponAttribute.BloodDrinker)
+			{
+				return false;
+			}
+
+			return true;
 		}
 
-		public AosWeaponAttributes(Item owner, AosWeaponAttributes other)
-			: base(owner, other)
+		public static int[] GetValues(Mobile m, params AosWeaponAttribute[] attributes)
 		{
+			return EnumerateValues(m, attributes).ToArray();
 		}
 
-		public AosWeaponAttributes(Item owner, GenericReader reader)
-			: base(owner, reader)
+		public static int[] GetValues(Mobile m, IEnumerable<AosWeaponAttribute> attributes)
 		{
+			return EnumerateValues(m, attributes).ToArray();
+		}
+
+		public static IEnumerable<int> EnumerateValues(Mobile m, IEnumerable<AosWeaponAttribute> attributes)
+		{
+			return attributes.Select(a => GetValue(m, a));
 		}
 
 		public static int GetValue(Mobile m, AosWeaponAttribute attribute)
@@ -507,10 +607,90 @@ namespace Server
 			return value;
 		}
 
+		public override void SetValue(int bitmask, int value)
+		{
+			if (bitmask == (int)AosWeaponAttribute.DurabilityBonus && Owner is BaseWeapon)
+			{
+				((BaseWeapon)Owner).UnscaleDurability();
+			}
+
+			base.SetValue(bitmask, value);
+
+			if (bitmask == (int)AosWeaponAttribute.DurabilityBonus && Owner is BaseWeapon)
+			{
+				((BaseWeapon)Owner).ScaleDurability();
+			}
+		}
+
+		public AosWeaponAttributes(Item owner)
+			: base(owner)
+		{
+		}
+
+		public AosWeaponAttributes(Item owner, AosWeaponAttributes other)
+			: base(owner, other)
+		{
+		}
+
+		public AosWeaponAttributes(Item owner, GenericReader reader)
+			: base(owner, reader)
+		{
+		}
+
 		public int this[AosWeaponAttribute attribute]
 		{
-			get => GetValue((int)attribute);
+			get => ExtendedGetValue((int)attribute);
 			set => SetValue((int)attribute, value);
+		}
+
+        public int ExtendedGetValue(int bitmask)
+		{
+			int value = GetValue(bitmask);
+
+			XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
+
+			if (xaos != null)
+			{
+				value += xaos.GetValue(bitmask);
+			}
+
+			return (value);
+		}
+
+		public void ScaleLeech(int weaponSpeed)
+		{
+			BaseWeapon wep = Owner as BaseWeapon;
+
+			if (wep == null || wep.IsArtifact)
+				return;
+
+			if (HitLeechHits > 0)
+			{
+				double postcap = HitLeechHits;
+				if (postcap < 1.0) postcap = 1.0;
+
+				int newhits = (int)(wep.Speed * 2500 / (100 + weaponSpeed) * postcap);
+
+				if (wep is BaseRanged)
+					newhits /= 2;
+
+				if (HitLeechHits > newhits)
+					HitLeechHits = newhits;
+			}
+
+			if (HitLeechMana > 0)
+			{
+				double postcap = HitLeechMana;
+				if (postcap < 1.0) postcap = 1.0;
+
+				int newmana = (int)(wep.Speed * 2500 / (100 + weaponSpeed) * postcap);
+
+				if (wep is BaseRanged)
+					newmana /= 2;
+
+				if (HitLeechMana > newmana)
+					HitLeechMana = newmana;
+			}
 		}
 
 		public override string ToString()
@@ -592,6 +772,57 @@ namespace Server
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int DurabilityBonus { get => this[AosWeaponAttribute.DurabilityBonus]; set => this[AosWeaponAttribute.DurabilityBonus] = value; }
+
+		#region SA
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int BloodDrinker
+		{
+			get => this[AosWeaponAttribute.BloodDrinker];
+			set => this[AosWeaponAttribute.BloodDrinker] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int BattleLust
+		{
+			get => this[AosWeaponAttribute.BattleLust];
+			set => this[AosWeaponAttribute.BattleLust] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int HitCurse
+		{
+			get => this[AosWeaponAttribute.HitCurse];
+			set => this[AosWeaponAttribute.HitCurse] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int HitFatigue
+		{
+			get => this[AosWeaponAttribute.HitFatigue];
+			set => this[AosWeaponAttribute.HitFatigue] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int HitManaDrain
+		{
+			get => this[AosWeaponAttribute.HitManaDrain];
+			set => this[AosWeaponAttribute.HitManaDrain] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int SplinteringWeapon
+		{
+			get => this[AosWeaponAttribute.SplinteringWeapon];
+			set => this[AosWeaponAttribute.SplinteringWeapon] = value;
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int ReactiveParalyze
+		{
+			get => this[AosWeaponAttribute.ReactiveParalyze];
+			set => this[AosWeaponAttribute.ReactiveParalyze] = value;
+		}
+		#endregion
 	}
 
 	[Flags]
@@ -651,10 +882,68 @@ namespace Server
 			return value;
 		}
 
+		public static int[] GetValues(Mobile m, params AosArmorAttribute[] attributes)
+		{
+			return EnumerateValues(m, attributes).ToArray();
+		}
+
+		public static int[] GetValues(Mobile m, IEnumerable<AosArmorAttribute> attributes)
+		{
+			return EnumerateValues(m, attributes).ToArray();
+		}
+
+		public static IEnumerable<int> EnumerateValues(Mobile m, IEnumerable<AosArmorAttribute> attributes)
+		{
+			return attributes.Select(a => GetValue(m, a));
+		}
+
 		public int this[AosArmorAttribute attribute]
 		{
-			get => GetValue((int)attribute);
+			get => ExtendedGetValue((int)attribute);
 			set => SetValue((int)attribute, value);
+		}
+
+		public override void SetValue(int bitmask, int value)
+		{
+			if (bitmask == (int)AosArmorAttribute.DurabilityBonus)
+			{
+				if (Owner is BaseArmor)
+				{
+					((BaseArmor)Owner).UnscaleDurability();
+				}
+				else if (Owner is BaseClothing)
+				{
+					((BaseClothing)Owner).UnscaleDurability();
+				}
+			}
+
+			base.SetValue(bitmask, value);
+
+			if (bitmask == (int)AosArmorAttribute.DurabilityBonus)
+			{
+				if (Owner is BaseArmor)
+				{
+					((BaseArmor)Owner).ScaleDurability();
+				}
+				else if (Owner is BaseClothing)
+				{
+					((BaseClothing)Owner).ScaleDurability();
+				}
+			}
+		}
+
+		public int ExtendedGetValue(int bitmask)
+		{
+			int value = GetValue(bitmask);
+
+			XmlAosAttributes xaos = (XmlAosAttributes)XmlAttach.FindAttachment(Owner, typeof(XmlAosAttributes));
+
+			if (xaos != null)
+			{
+				value += xaos.GetValue(bitmask);
+			}
+
+			return (value);
 		}
 
 		public override string ToString()
@@ -1053,21 +1342,8 @@ namespace Server
 			return 0;
 		}
 
-		public void SetValue(int bitmask, int value)
+		public virtual void SetValue(int bitmask, int value)
 		{
-			if ((bitmask == (int)AosWeaponAttribute.DurabilityBonus) && (this is AosWeaponAttributes))
-			{
-				if (Owner is BaseWeapon weapon)
-					weapon.UnscaleDurability();
-			}
-			else if ((bitmask == (int)AosArmorAttribute.DurabilityBonus) && (this is AosArmorAttributes))
-			{
-				if (Owner is BaseArmor armor)
-					armor.UnscaleDurability();
-				else if (Owner is BaseClothing clothing)
-					clothing.UnscaleDurability();
-			}
-
 			uint mask = (uint)bitmask;
 
 			if (value != 0)

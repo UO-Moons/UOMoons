@@ -43,7 +43,7 @@ namespace Server.Mobiles
 			{
 				case 0: PackItem(new Lockpick()); break;
 				case 1: PackItem(new MortarPestle()); break;
-				case 2: PackItem(new Bottle()); break;
+				case 2: PackItem(new EmptyBottle()); break;
 				case 3: PackItem(new RawRibs()); break;
 				case 4: PackItem(new Shovel()); break;
 			}

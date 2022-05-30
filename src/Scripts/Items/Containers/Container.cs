@@ -1,32 +1,66 @@
+using Server.Accounting;
 using Server.ContextMenus;
 using Server.Mobiles;
 using Server.Multis;
 using Server.Network;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Items
 {
-	public abstract class BaseContainer : Container
+	public abstract class BaseContainer : Container, IEngravable
 	{
+		public BaseContainer(int itemID)
+			: base(itemID)
+		{
+		}
+
+		public BaseContainer(Serial serial)
+			: base(serial)
+		{
+		}
+
 		public override int DefaultMaxWeight
 		{
 			get
 			{
 				if (IsSecure)
+				{
 					return 0;
+				}
 
 				return base.DefaultMaxWeight;
 			}
 		}
 
-		public BaseContainer(int itemID) : base(itemID)
+		private string m_EngravedText = string.Empty;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public string EngravedText
 		{
+			get => m_EngravedText;
+			set
+			{
+				if (value != null)
+				{
+					m_EngravedText = value;
+				}
+				else
+				{
+					m_EngravedText = string.Empty;
+				}
+
+				InvalidateProperties();
+			}
 		}
 
 		public override bool IsAccessibleTo(Mobile m)
 		{
 			if (!BaseHouse.CheckAccessible(m, this))
+			{
 				return false;
+			}
 
 			return base.IsAccessibleTo(m);
 		}
@@ -34,7 +68,9 @@ namespace Server.Items
 		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
 		{
 			if (IsSecure && !BaseHouse.CheckHold(m, this, item, message, checkItems, plusItems, plusWeight))
+			{
 				return false;
+			}
 
 			return base.CheckHold(m, item, message, checkItems, plusItems, plusWeight);
 		}
@@ -42,34 +78,88 @@ namespace Server.Items
 		public override bool CheckItemUse(Mobile from, Item item)
 		{
 			if (IsDecoContainer && item is BaseBook)
+			{
 				return true;
+			}
 
 			return base.CheckItemUse(from, item);
 		}
 
+		public virtual bool Security => true;
+
 		public override void GetContextMenuEntries(Mobile from, List<ContextMenuEntry> list)
 		{
 			base.GetContextMenuEntries(from, list);
-			SetSecureLevelEntry.AddTo(from, this, list);
+
+			if (Security)
+			{
+				SetSecureLevelEntry.AddTo(from, this, list);
+			}
+		}
+
+		public override void GetChildContextMenuEntries(Mobile from, List<ContextMenuEntry> list, Item item)
+		{
+			if (IsLockedDown)
+			{
+				BaseHouse house = BaseHouse.FindHouseAt(this);
+
+				if (house != null && house.IsOwner(from) && house.IsLockedDown(this) && house.IsLockedDown(item))
+				{
+					list.Add(new ReleaseEntry(from, item, house));
+				}
+			}
+			else
+			{
+				base.GetChildContextMenuEntries(from, list, item);
+			}
+		}
+
+		public virtual void DropItemStacked(Item dropped)
+		{
+			List<Item> list = Items;
+
+			ItemFlags.SetTaken(dropped, true);
+
+			for (int i = 0; i < list.Count; ++i)
+			{
+				Item item = list[i];
+
+				if (!(item is Container) && item.StackWith(null, dropped, false))
+				{
+					return;
+				}
+			}
+
+			DropItem(dropped);
 		}
 
 		public override bool TryDropItem(Mobile from, Item dropped, bool sendFullMessage)
 		{
-			if (!CheckHold(from, dropped, sendFullMessage, true))
+			if (!CheckHold(from, dropped, sendFullMessage, !CheckStack(from, dropped)))
+			{
 				return false;
+			}
+
+			if (dropped.QuestItem && from.Backpack != this)
+			{
+				from.SendLocalizedMessage(1074769); // An item must be in your backpack (and not in a container within) to be toggled as a quest item.
+				return false;
+			}
 
 			BaseHouse house = BaseHouse.FindHouseAt(this);
 
 			if (house != null && house.IsLockedDown(this))
 			{
-				if (dropped is VendorRentalContract || (dropped is Container container && container.FindItemByType(typeof(VendorRentalContract)) != null))
+				if (dropped is VendorRentalContract || (dropped is Container && ((Container)dropped).FindItemByType(typeof(VendorRentalContract)) != null))
 				{
 					from.SendLocalizedMessage(1062492); // You cannot place a rental contract in a locked down container.
 					return false;
 				}
 
 				if (!house.LockDown(from, dropped, false))
+				{
 					return false;
+				}
 			}
 
 			List<Item> list = Items;
@@ -79,10 +169,16 @@ namespace Server.Items
 				Item item = list[i];
 
 				if (!(item is Container) && item.StackWith(from, dropped, false))
+				{
 					return true;
+				}
 			}
 
 			DropItem(dropped);
+
+			ItemFlags.SetTaken(dropped, true);
+
+			EventSink.InvokeContainerDroppedTo(new ContainerDroppedToEventArgs(from, this, dropped));
 
 			return true;
 		}
@@ -90,44 +186,93 @@ namespace Server.Items
 		public override bool OnDragDropInto(Mobile from, Item item, Point3D p)
 		{
 			if (!CheckHold(from, item, true, true))
+			{
 				return false;
+			}
+
+			if (item.QuestItem && from.Backpack != this)
+			{
+				from.SendLocalizedMessage(1074769); // An item must be in your backpack (and not in a container within) to be toggled as a quest item.
+				return false;
+			}
 
 			BaseHouse house = BaseHouse.FindHouseAt(this);
 
 			if (house != null && house.IsLockedDown(this))
 			{
-				if (item is VendorRentalContract || (item is Container container && container.FindItemByType(typeof(VendorRentalContract)) != null))
+				if (item is VendorRentalContract || (item is Container && ((Container)item).FindItemByType(typeof(VendorRentalContract)) != null))
 				{
 					from.SendLocalizedMessage(1062492); // You cannot place a rental contract in a locked down container.
 					return false;
 				}
 
 				if (!house.LockDown(from, item, false))
+				{
 					return false;
+				}
 			}
 
 			item.Location = new Point3D(p.X, p.Y, 0);
+
 			AddItem(item);
 
 			from.SendSound(GetDroppedSound(item), GetWorldLocation());
 
+			ItemFlags.SetTaken(item, true);
+
+			EventSink.InvokeContainerDroppedTo(new ContainerDroppedToEventArgs(from, this, item));
+
 			return true;
+		}
+
+		public override bool OnDroppedInto(Mobile from, Container target, Point3D p)
+		{
+			bool canDrop = base.OnDroppedInto(from, target, p);
+
+			if (canDrop && target is BankBox)
+			{
+				CheckBank((BankBox)target, from);
+			}
+
+			return canDrop;
 		}
 
 		public override void UpdateTotal(Item sender, TotalType type, int delta)
 		{
 			base.UpdateTotal(sender, type, delta);
 
-			if (type == TotalType.Weight && RootParent is Mobile mobile)
-				mobile.InvalidateProperties();
+			if (type == TotalType.Weight && RootParent is Mobile)
+			{
+				((Mobile)RootParent).InvalidateProperties();
+			}
 		}
 
 		public override void OnDoubleClick(Mobile from)
 		{
-			if (from.AccessLevel > AccessLevel.Player || from.InRange(GetWorldLocation(), 2) || RootParent is PlayerVendor)
+			if (from.IsStaff() || RootParent is PlayerVendor ||
+				(from.InRange(GetWorldLocation(), 2) && (Parent != null || (Z >= from.Z - 8 && Z <= from.Z + 16))))
+			{
 				Open(from);
+			}
 			else
+			{
 				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that.
+			}
+		}
+
+		public override void AddNameProperty(ObjectPropertyList list)
+		{
+			base.AddNameProperty(list);
+
+			if (!string.IsNullOrEmpty(EngravedText))
+			{
+				list.Add(1072305, Utility.FixHtml(EngravedText)); // Engraved: ~1_INSCRIPTION~
+			}
+		}
+
+		public override bool DropToWorld(Mobile m, Point3D p)
+		{
+			return base.DropToWorld(m, p);
 		}
 
 		public virtual void Open(Mobile from)
@@ -135,19 +280,51 @@ namespace Server.Items
 			DisplayTo(from);
 		}
 
-		public BaseContainer(Serial serial) : base(serial)
+		public void CheckBank(BankBox bank, Mobile from)
 		{
+			if (AccountGold.Enabled && bank.Owner == from && from.Account != null)
+			{
+				List<BankCheck> checks = new List<BankCheck>(Items.OfType<BankCheck>());
+
+				foreach (BankCheck check in checks)
+				{
+					if (from.Account.DepositGold(check.Worth))
+					{
+						from.SendLocalizedMessage(1042672, true, check.Worth.ToString("#,0"));
+						check.Delete();
+					}
+					else
+					{
+						from.AddToBackpack(check);
+					}
+				}
+
+				checks.Clear();
+				checks.TrimExcess();
+
+				UpdateTotals();
+			}
 		}
 
-		/* Note: base class insertion; we cannot serialize anything here */
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
+			writer.Write(1000);
+			writer.Write(m_EngravedText);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
+
+			int version = reader.PeekInt();
+			switch (version)
+			{
+				case 1000:
+					reader.ReadInt();
+					m_EngravedText = reader.ReadString();
+					break;
+			}
 		}
 	}
 

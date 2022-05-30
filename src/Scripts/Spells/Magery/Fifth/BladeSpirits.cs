@@ -6,7 +6,7 @@ namespace Server.Spells.Fifth
 {
 	public class BladeSpiritsSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Blade Spirits", "In Jux Hur Ylem",
 				266,
 				9040,
@@ -62,7 +62,7 @@ namespace Server.Spells.Fifth
 
 		public void Target(IPoint3D p)
 		{
-			if (p is IPoint3D)
+			if (p is not null)
 			{
 				Map map = Caster.Map;
 
@@ -88,7 +88,7 @@ namespace Server.Spells.Fifth
 			FinishSequence();
 		}
 
-		private class InternalTarget : Target
+		public class InternalTarget : Target
 		{
 			private BladeSpiritsSpell m_Owner;
 
@@ -99,8 +99,8 @@ namespace Server.Spells.Fifth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is IPoint3D)
-					m_Owner.Target((IPoint3D)o);
+				if (o is IPoint3D d)
+					m_Owner.Target(d);
 			}
 
 			protected override void OnTargetOutOfLOS(Mobile from, object o)

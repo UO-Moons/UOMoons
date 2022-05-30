@@ -32,12 +32,18 @@ namespace Server.Engines.Craft
 			m_CraftSystem = this;
 		}
 
-		public override int CanCraft(Mobile from, BaseTool tool, Type itemType)
+		public override int CanCraft(Mobile from, ITool tool, Type itemType)
 		{
-			if (tool == null || tool.Deleted || tool.UsesRemaining < 0)
+			int num = 0;
+
+			if (tool == null || tool.Deleted || tool.UsesRemaining <= 0)
+			{
 				return 1044038; // You have worn out your tool!
-			else if (!BaseTool.CheckAccessible(tool, from))
-				return 1044263; // The tool must be on your person to use.
+			}
+			else if (!tool.CheckAccessible(from, ref num))
+			{
+				return num; // The tool must be on your person to use.
+			}
 
 			return 0;
 		}
@@ -51,28 +57,42 @@ namespace Server.Engines.Craft
 			from.PlaySound(0x55);
 		}
 
-		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item)
+		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item)
 		{
 			if (toolBroken)
+			{
 				from.SendLocalizedMessage(1044038); // You have worn out your tool
+			}
 
 			if (failed)
 			{
 				if (lostMaterial)
+				{
 					return 1044043; // You failed to create the item, and some of your materials are lost.
+				}
 				else
+				{
 					return 1044157; // You failed to create the item, but no materials were lost.
+				}
 			}
 			else
 			{
 				if (quality == 0)
+				{
 					return 502785; // You were barely able to make this item.  It's quality is below average.
-				else if (makersMark && quality == ItemQuality.Exceptional)
+				}
+				else if (makersMark && quality == 2)
+				{
 					return 1044156; // You create an exceptional quality item and affix your maker's mark.
-				else if (quality == ItemQuality.Exceptional)
+				}
+				else if (quality == 2)
+				{
 					return 1044155; // You create an exceptional quality item.
+				}
 				else
+				{
 					return 1044154; // You create the item.
+				}
 			}
 		}
 
@@ -91,7 +111,7 @@ namespace Server.Engines.Craft
 			AddRes(index, typeof(Feather), 1044562, 1, 1044563);
 			SetUseAllRes(index, true);
 
-			index = AddCraft(typeof(Bolt), 1044565, 1027163, 0.0, 40.0, typeof(Shaft), 1044560, 1, 1044561);
+			index = AddCraft(typeof(CrossBowBolt), 1044565, 1027163, 0.0, 40.0, typeof(Shaft), 1044560, 1, 1044561);
 			AddRes(index, typeof(Feather), 1044562, 1, 1044563);
 			SetUseAllRes(index, true);
 
@@ -119,95 +139,113 @@ namespace Server.Engines.Craft
 				SetNeededExpansion(index, Expansion.SE);
 			}
 
+			#region Mondain's Legacy
 			if (Core.ML)
 			{
-				index = AddCraft(typeof(BlightGrippedLongbow), 1044566, 1072907, 75.0, 125.0, typeof(Log), 1044041, 20, 1044351);
+				index = AddCraft(typeof(ElvenCompositeLongbow), 1044566, 1031562, 95.0, 145.0, typeof(Board), 1044041, 20, 1044351);
+				SetNeededExpansion(index, Expansion.ML);
+
+				index = AddCraft(typeof(MagicalShortbow), 1044566, 1031551, 85.0, 135.0, typeof(Board), 1044041, 15, 1044351);
+				SetNeededExpansion(index, Expansion.ML);
+
+				index = AddCraft(typeof(BlightGrippedLongbow), 1044566, 1072907, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
 				AddRes(index, typeof(LardOfParoxysmus), 1032681, 1, 1053098);
 				AddRes(index, typeof(Blight), 1032675, 10, 1053098);
 				AddRes(index, typeof(Corruption), 1032676, 10, 1053098);
-				AddRareRecipe(index, 200);
+				AddRecipe(index, (int)BowRecipes.BlightGrippedLongbow);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
-				/* TODO
-				index = AddCraft( typeof( FaerieFire ), 1044566, 1072908, 75.0, 125.0, typeof( Log ), 1044041, 20, 1044351 );
-				AddRes( index, typeof( LardOfParoxysmus ), 1032681, 1, 1053098 );
-				AddRes( index, typeof( Putrefication ), 1032678, 10, 1053098 );
-				AddRes( index, typeof( Taint ), 1032679, 10, 1053098 );
-				AddRareRecipe( index, 201 );
-				ForceNonExceptional( index );
-				SetNeededExpansion( index, Expansion.ML );
-				*/
+				index = AddCraft(typeof(FaerieFire), 1044566, 1072908, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
+				AddRes(index, typeof(LardOfParoxysmus), 1032681, 1, 1053098);
+				AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
+				AddRes(index, typeof(Taint), 1032679, 10, 1053098);
+				AddRecipe(index, (int)BowRecipes.FaerieFire);
+				ForceNonExceptional(index);
+				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(SilvanisFeywoodBow), 1044566, 1072955, 75.0, 125.0, typeof(Log), 1044041, 20, 1044351);
+				index = AddCraft(typeof(SilvanisFeywoodBow), 1044566, 1072955, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
 				AddRes(index, typeof(LardOfParoxysmus), 1032681, 1, 1053098);
 				AddRes(index, typeof(Scourge), 1032677, 10, 1053098);
 				AddRes(index, typeof(Muculent), 1032680, 10, 1053098);
-				AddRareRecipe(index, 202);
+				AddRecipe(index, (int)BowRecipes.SilvanisFeywoodBow);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
-				/* TODO
-				index = AddCraft( typeof( MischiefMaker ), 1044566, 1072910, 75.0, 125.0, typeof( Log ), 1044041, 15, 1044351 );
-				AddRes( index, typeof( DreadHornMane ), 1032682, 1, 1053098 );
-				AddRes( index, typeof( Corruption ), 1032676, 10, 1053098 );
-				AddRes( index, typeof( Putrefication ), 1032678, 10, 1053098 );
-				AddRareRecipe( index, 203 );
-				ForceNonExceptional( index );
-				SetNeededExpansion( index, Expansion.ML );
-				*/
+				index = AddCraft(typeof(MischiefMaker), 1044566, 1072910, 75.0, 125.0, typeof(Board), 1044041, 15, 1044351);
+				AddRes(index, typeof(DreadHornMane), 1032682, 1, 1053098);
+				AddRes(index, typeof(Corruption), 1032676, 10, 1053098);
+				AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
+				AddRecipe(index, (int)BowRecipes.MischiefMaker);
+				ForceNonExceptional(index);
+				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(TheNightReaper), 1044566, 1072912, 75.0, 125.0, typeof(Log), 1044041, 10, 1044351);
+				index = AddCraft(typeof(TheNightReaper), 1044566, 1072912, 75.0, 125.0, typeof(Board), 1044041, 10, 1044351);
 				AddRes(index, typeof(DreadHornMane), 1032682, 1, 1053098);
 				AddRes(index, typeof(Blight), 1032675, 10, 1053098);
 				AddRes(index, typeof(Scourge), 1032677, 10, 1053098);
-				AddRareRecipe(index, 204);
+				AddRecipe(index, (int)BowRecipes.TheNightReaper);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(BarbedLongbow), 1044566, 1073505, 75.0, 125.0, typeof(Log), 1044041, 20, 1044351);
+				index = AddCraft(typeof(BarbedLongbow), 1044566, 1073505, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
 				AddRes(index, typeof(FireRuby), 1026254, 1, 1053098);
-				AddRecipe(index, 205);
+				AddRecipe(index, (int)BowRecipes.BarbedLongbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(SlayerLongbow), 1044566, 1073506, 75.0, 125.0, typeof(Log), 1044041, 20, 1044351);
+				index = AddCraft(typeof(SlayerLongbow), 1044566, 1073506, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
 				AddRes(index, typeof(BrilliantAmber), 1026256, 1, 1053098);
-				AddRecipe(index, 206);
+				AddRecipe(index, (int)BowRecipes.SlayerLongbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(FrozenLongbow), 1044566, 1073507, 75.0, 125.0, typeof(Log), 1044041, 20, 1044351);
+				index = AddCraft(typeof(FrozenLongbow), 1044566, 1073507, 75.0, 125.0, typeof(Board), 1044041, 20, 1044351);
 				AddRes(index, typeof(Turquoise), 1026250, 1, 1053098);
-				AddRecipe(index, 207);
+				AddRecipe(index, (int)BowRecipes.FrozenLongbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(LongbowOfMight), 1044566, 1073508, 75.0, 125.0, typeof(Log), 1044041, 10, 1044351);
+				index = AddCraft(typeof(LongbowOfMight), 1044566, 1073508, 75.0, 125.0, typeof(Board), 1044041, 10, 1044351);
 				AddRes(index, typeof(BlueDiamond), 1026255, 1, 1053098);
-				AddRecipe(index, 208);
+				AddRecipe(index, (int)BowRecipes.LongbowOfMight);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(RangersShortbow), 1044566, 1073509, 75.0, 125.0, typeof(Log), 1044041, 15, 1044351);
+				index = AddCraft(typeof(RangersShortbow), 1044566, 1073509, 75.0, 125.0, typeof(Board), 1044041, 15, 1044351);
 				AddRes(index, typeof(PerfectEmerald), 1026251, 1, 1053098);
-				AddRecipe(index, 209);
+				AddRecipe(index, (int)BowRecipes.RangersShortbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(LightweightShortbow), 1044566, 1073510, 75.0, 125.0, typeof(Log), 1044041, 15, 1044351);
+				index = AddCraft(typeof(LightweightShortbow), 1044566, 1073510, 75.0, 125.0, typeof(Board), 1044041, 15, 1044351);
 				AddRes(index, typeof(WhitePearl), 1026253, 1, 1053098);
-				AddRecipe(index, 210);
+				AddRecipe(index, (int)BowRecipes.LightweightShortbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(MysticalShortbow), 1044566, 1073511, 75.0, 125.0, typeof(Log), 1044041, 15, 1044351);
+				index = AddCraft(typeof(MysticalShortbow), 1044566, 1073511, 75.0, 125.0, typeof(Board), 1044041, 15, 1044351);
 				AddRes(index, typeof(EcruCitrine), 1026252, 1, 1053098);
-				AddRecipe(index, 211);
+				AddRecipe(index, (int)BowRecipes.MysticalShortbow);
 				SetNeededExpansion(index, Expansion.ML);
 
-				index = AddCraft(typeof(AssassinsShortbow), 1044566, 1073512, 75.0, 125.0, typeof(Log), 1044041, 15, 1044351);
+				index = AddCraft(typeof(AssassinsShortbow), 1044566, 1073512, 75.0, 125.0, typeof(Board), 1044041, 15, 1044351);
 				AddRes(index, typeof(DarkSapphire), 1026249, 1, 1053098);
-				AddRecipe(index, 212);
+				AddRecipe(index, (int)BowRecipes.AssassinsShortbow);
 				SetNeededExpansion(index, Expansion.ML);
 			}
 
+			SetSubRes(typeof(Board), 1072643);
+
+
+			// Add every material you want the player to be able to choose from
+			// This will override the overridable material	TODO: Verify the required skill amount
+			AddSubRes(typeof(Board), 1072643, 00.0, 1044041, 1072652);
+			AddSubRes(typeof(OakBoard), 1072644, 65.0, 1044041, 1072652);
+			AddSubRes(typeof(AshBoard), 1072645, 75.0, 1044041, 1072652);
+			AddSubRes(typeof(YewBoard), 1072646, 85.0, 1044041, 1072652);
+			AddSubRes(typeof(HeartwoodBoard), 1072647, 95.0, 1044041, 1072652);
+			AddSubRes(typeof(BloodwoodBoard), 1072648, 95.0, 1044041, 1072652);
+			AddSubRes(typeof(FrostwoodBoard), 1072649, 95.0, 1044041, 1072652);
+			#endregion
+
 			MarkOption = true;
 			Repair = Core.AOS;
+			CanEnhance = Core.ML;
 		}
 	}
 }

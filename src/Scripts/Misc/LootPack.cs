@@ -195,6 +195,12 @@ namespace Server
 				new LootPackItem( typeof( LesserPoisonPotion ), 1 )
 			};
 
+		#region Mondain's Legacy
+		public static readonly LootPackItem[] ParrotItem = new[] { new LootPackItem(typeof(ParrotItem), 1) };
+
+		public static readonly LootPack Parrot = new LootPack(new[] { new LootPackEntry(false, ParrotItem, 10.00, 1) });
+		#endregion
+
 		#region Old Magic Items
 		public static readonly LootPackItem[] OldMagicItems = new LootPackItem[]
 			{

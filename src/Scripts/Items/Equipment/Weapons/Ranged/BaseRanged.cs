@@ -46,7 +46,7 @@ namespace Server.Items
 		{
 		}
 
-		public override TimeSpan OnSwing(Mobile attacker, Mobile defender)
+		public override TimeSpan OnSwing(Mobile attacker, IDamageable damageable)
 		{
 			_ = WeaponAbility.GetCurrentAbility(attacker);
 
@@ -73,17 +73,17 @@ namespace Server.Items
 				}
 				#endregion
 
-				if (canSwing && attacker.HarmfulCheck(defender))
+				if (canSwing && attacker.HarmfulCheck(damageable))
 				{
 					attacker.DisruptiveAction();
-					_ = attacker.Send(new Swing(0, attacker, defender));
+					_ = attacker.Send(new Swing(0, attacker, damageable));
 
-					if (OnFired(attacker, defender))
+					if (OnFired(attacker, damageable))
 					{
-						if (CheckHit(attacker, defender))
-							OnHit(attacker, defender);
+						if (CheckHit(attacker, damageable))
+							OnHit(attacker, damageable);
 						else
-							OnMiss(attacker, defender);
+							OnMiss(attacker, damageable);
 					}
 				}
 
@@ -99,78 +99,101 @@ namespace Server.Items
 			}
 		}
 
-		public override void OnHit(Mobile attacker, Mobile defender, double damageBonus)
+		public override void OnHit(Mobile attacker, IDamageable damageable, double damageBonus)
 		{
-			if (attacker.Player && !defender.Player && (defender.Body.IsAnimal || defender.Body.IsMonster) && 0.4 >= Utility.RandomDouble())
-				_ = defender.AddToBackpack(Ammo);
-
-			if (Core.ML && m_Velocity > 0)
+			if (AmmoType != null && attacker.Player && damageable is Mobile && !((Mobile)damageable).Player && (((Mobile)damageable).Body.IsAnimal || ((Mobile)damageable).Body.IsMonster) &&
+				0.4 >= Utility.RandomDouble())
 			{
-				int bonus = (int)attacker.GetDistanceToSqrt(defender);
+				var ammo = Ammo;
 
-				if (bonus > 0 && m_Velocity > Utility.Random(100))
+				if (ammo != null)
 				{
-					_ = AOS.Damage(defender, attacker, bonus * 3, 100, 0, 0, 0, 0);
-
-					if (attacker.Player)
-						attacker.SendLocalizedMessage(1072794); // Your arrow hits its mark with velocity!
-
-					if (defender.Player)
-						defender.SendLocalizedMessage(1072795); // You have been hit by an arrow with velocity!
+					((Mobile)damageable).AddToBackpack(ammo);
 				}
 			}
 
-			base.OnHit(attacker, defender, damageBonus);
+			base.OnHit(attacker, damageable, damageBonus);
 		}
 
-		public override void OnMiss(Mobile attacker, Mobile defender)
+		public override void OnMiss(Mobile attacker, IDamageable damageable)
 		{
 			if (attacker.Player && 0.4 >= Utility.RandomDouble())
 			{
 				if (Core.SE)
 				{
-					if (attacker is PlayerMobile p)
+					if (attacker is PlayerMobile p && AmmoType != null)
 					{
 						Type ammo = AmmoType;
 
 						if (p.RecoverableAmmo.ContainsKey(ammo))
+						{
 							p.RecoverableAmmo[ammo]++;
+						}
 						else
+						{
 							p.RecoverableAmmo.Add(ammo, 1);
+						}
 
 						if (!p.Warmode)
 						{
 							if (m_RecoveryTimer == null)
-								m_RecoveryTimer = Timer.DelayCall(TimeSpan.FromSeconds(10), new TimerCallback(p.RecoverAmmo));
+							{
+								m_RecoveryTimer = Timer.DelayCall(TimeSpan.FromSeconds(10), p.RecoverAmmo);
+							}
 
 							if (!m_RecoveryTimer.Running)
+							{
 								m_RecoveryTimer.Start();
+							}
 						}
 					}
 				}
 				else
 				{
-					Ammo.MoveToWorld(new Point3D(defender.X + Utility.RandomMinMax(-1, 1), defender.Y + Utility.RandomMinMax(-1, 1), defender.Z), defender.Map);
+					Point3D loc = damageable.Location;
+
+					var ammo = Ammo;
+
+					if (ammo != null)
+					{
+						ammo.MoveToWorld(
+							new Point3D(loc.X + Utility.RandomMinMax(-1, 1), loc.Y + Utility.RandomMinMax(-1, 1), loc.Z),
+							damageable.Map);
+					}
 				}
 			}
 
-			base.OnMiss(attacker, defender);
+			base.OnMiss(attacker, damageable);
 		}
 
-		public virtual bool OnFired(Mobile attacker, Mobile defender)
+		public virtual bool OnFired(Mobile attacker, IDamageable damageable)
 		{
+			WeaponAbility ability = WeaponAbility.GetCurrentAbility(attacker);
+
+			// Respect special moves that use no ammo
+			if (ability != null && ability.ConsumeAmmo == false)
+			{
+				return true;
+			}
+
 			if (attacker.Player)
 			{
 				BaseQuiver quiver = attacker.FindItemOnLayer(Layer.Cloak) as BaseQuiver;
 				Container pack = attacker.Backpack;
 
-				if (quiver == null || Utility.Random(100) >= quiver.LowerAmmoCost)
+				int lowerAmmo = AosAttributes.GetValue(attacker, AosAttribute.LowerAmmoCost);
+
+				if (quiver == null || Utility.Random(100) >= lowerAmmo)
 				{
 					// consume ammo
 					if (quiver != null && quiver.ConsumeTotal(AmmoType, 1))
+					{
 						quiver.InvalidateWeight();
+					}
 					else if (pack == null || !pack.ConsumeTotal(AmmoType, 1))
+					{
 						return false;
+					}
 				}
 				else if (quiver.FindItemByType(AmmoType) == null && (pack == null || pack.FindItemByType(AmmoType) == null))
 				{
@@ -179,7 +202,7 @@ namespace Server.Items
 				}
 			}
 
-			attacker.MovingEffect(defender, EffectID, 18, 1, false, false);
+			attacker.MovingEffect(damageable, EffectID, 18, 1, false, false);
 
 			return true;
 		}

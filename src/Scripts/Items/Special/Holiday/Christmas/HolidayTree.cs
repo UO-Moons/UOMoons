@@ -10,103 +10,17 @@ namespace Server.Items
 		Modern
 	}
 
-	public class HolidayTree : BaseItem, IAddon
+	public class HolidayTree : Item, IAddon
 	{
 		private ArrayList m_Components;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Placer { get; set; }
-
-		private class Ornament : BaseItem
-		{
-			public override int LabelNumber => 1041118;  // a tree ornament
-
-			public Ornament(int itemID) : base(itemID)
-			{
-				Movable = false;
-			}
-
-			public Ornament(Serial serial) : base(serial)
-			{
-			}
-
-			public override void Serialize(GenericWriter writer)
-			{
-				base.Serialize(writer);
-
-				writer.Write(0); // version
-			}
-
-			public override void Deserialize(GenericReader reader)
-			{
-				base.Deserialize(reader);
-
-				int version = reader.ReadInt();
-			}
-		}
-
-		private class TreeTrunk : BaseItem
-		{
-			private HolidayTree m_Tree;
-
-			public override int LabelNumber => 1041117;  // a tree for the holidays
-
-			public TreeTrunk(HolidayTree tree, int itemID) : base(itemID)
-			{
-				Movable = false;
-				MoveToWorld(tree.Location, tree.Map);
-
-				m_Tree = tree;
-			}
-
-			public TreeTrunk(Serial serial) : base(serial)
-			{
-			}
-
-			public override void OnDoubleClick(Mobile from)
-			{
-				if (m_Tree != null && !m_Tree.Deleted)
-					m_Tree.OnDoubleClick(from);
-			}
-
-			public override void Serialize(GenericWriter writer)
-			{
-				base.Serialize(writer);
-
-				writer.Write(0); // version
-
-				writer.Write(m_Tree);
-			}
-
-			public override void Deserialize(GenericReader reader)
-			{
-				base.Deserialize(reader);
-
-				int version = reader.ReadInt();
-
-				switch (version)
-				{
-					case 0:
-						{
-							m_Tree = reader.ReadItem() as HolidayTree;
-
-							if (m_Tree == null)
-								Delete();
-
-							break;
-						}
-				}
-			}
-		}
-
-		public override int LabelNumber => 1041117;  // a tree for the holidays
-
-		public HolidayTree(Mobile from, HolidayTreeType type, Point3D loc) : base(1)
+		private Mobile m_Placer;
+		public HolidayTree(Mobile from, HolidayTreeType type, Point3D loc)
+			: base(1)
 		{
 			Movable = false;
 			MoveToWorld(loc, from.Map);
 
-			Placer = from;
+			m_Placer = from;
 			m_Components = new ArrayList();
 
 			switch (type)
@@ -180,26 +94,29 @@ namespace Server.Items
 			}
 		}
 
+		public HolidayTree(Serial serial)
+			: base(serial)
+		{
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Mobile Placer
+		{
+			get
+			{
+				return m_Placer;
+			}
+			set
+			{
+				m_Placer = value;
+			}
+		}
+		public override int LabelNumber => 1041117;// a tree for the holidays
+		Item IAddon.Deed => new HolidayTreeDeed();
 		public override void OnAfterDelete()
 		{
 			for (int i = 0; i < m_Components.Count; ++i)
 				((Item)m_Components[i]).Delete();
-		}
-
-		private void AddOrnament(int x, int y, int z, int itemID)
-		{
-			AddItem(x + 1, y + 1, z + 11, new Ornament(itemID));
-		}
-
-		private void AddItem(int x, int y, int z, Item item)
-		{
-			item.MoveToWorld(new Point3D(Location.X + x, Location.Y + y, Location.Z + z), Map);
-
-			m_Components.Add(item);
-		}
-
-		public HolidayTree(Serial serial) : base(serial)
-		{
 		}
 
 		public bool CouldFit(IPoint3D p, Map map)
@@ -207,15 +124,13 @@ namespace Server.Items
 			return map.CanFit((Point3D)p, 20);
 		}
 
-		Item IAddon.Deed => new HolidayTreeDeed();
-
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(1); // version
 
-			writer.Write(Placer);
+			writer.Write(m_Placer);
 
 			writer.Write(m_Components.Count);
 
@@ -231,10 +146,14 @@ namespace Server.Items
 
 			switch (version)
 			{
+				case 1:
+					{
+						m_Placer = reader.ReadMobile();
+
+						goto case 0;
+					}
 				case 0:
 					{
-						Placer = reader.ReadMobile();
-
 						int count = reader.ReadInt();
 
 						m_Components = new ArrayList(count);
@@ -260,18 +179,22 @@ namespace Server.Items
 
 			if (house == null)
 			{
-				HolidayTreeDeed deed = new HolidayTreeDeed();
+				HolidayTreeDeed deed = new();
 				deed.MoveToWorld(Location, Map);
 				Delete();
 			}
 		}
 
+		void IChopable.OnChop(Mobile user)
+		{
+			OnDoubleClick(user);
+		}
 
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (from.InRange(GetWorldLocation(), 1))
 			{
-				if (Placer == null || from == Placer || from.AccessLevel >= AccessLevel.GameMaster)
+				if (m_Placer == null || from == m_Placer || from.AccessLevel >= AccessLevel.GameMaster)
 				{
 					from.AddToBackpack(new HolidayTreeDeed());
 
@@ -279,7 +202,7 @@ namespace Server.Items
 
 					BaseHouse house = BaseHouse.FindHouseAt(this);
 
-					if (house != null && house.Addons.Contains(this))
+					if (house != null && house.Addons.ContainsKey(this))
 					{
 						house.Addons.Remove(this);
 					}
@@ -294,6 +217,100 @@ namespace Server.Items
 			else
 			{
 				from.SendLocalizedMessage(500446); // That is too far away.
+			}
+		}
+
+		private void AddOrnament(int x, int y, int z, int itemID)
+		{
+			AddItem(x + 1, y + 1, z + 11, new Ornament(itemID));
+		}
+
+		private void AddItem(int x, int y, int z, Item item)
+		{
+			item.MoveToWorld(new Point3D(Location.X + x, Location.Y + y, Location.Z + z), Map);
+
+			m_Components.Add(item);
+		}
+
+		private class Ornament : Item
+		{
+			public Ornament(int itemID)
+				: base(itemID)
+			{
+				Movable = false;
+			}
+
+			public Ornament(Serial serial)
+				: base(serial)
+			{
+			}
+
+			public override int LabelNumber => 1041118;// a tree ornament
+			public override void Serialize(GenericWriter writer)
+			{
+				base.Serialize(writer);
+
+				writer.Write(0); // version
+			}
+
+			public override void Deserialize(GenericReader reader)
+			{
+				base.Deserialize(reader);
+				_ = reader.ReadInt();
+			}
+		}
+
+		private class TreeTrunk : Item
+		{
+			private HolidayTree m_Tree;
+			public TreeTrunk(HolidayTree tree, int itemID)
+				: base(itemID)
+			{
+				Movable = false;
+				MoveToWorld(tree.Location, tree.Map);
+
+				m_Tree = tree;
+			}
+
+			public TreeTrunk(Serial serial)
+				: base(serial)
+			{
+			}
+
+			public override int LabelNumber => 1041117;// a tree for the holidays
+			public override void OnDoubleClick(Mobile from)
+			{
+				if (m_Tree != null && !m_Tree.Deleted)
+					m_Tree.OnDoubleClick(from);
+			}
+
+			public override void Serialize(GenericWriter writer)
+			{
+				base.Serialize(writer);
+
+				writer.Write(0); // version
+
+				writer.Write(m_Tree);
+			}
+
+			public override void Deserialize(GenericReader reader)
+			{
+				base.Deserialize(reader);
+
+				int version = reader.ReadInt();
+
+				switch (version)
+				{
+					case 0:
+						{
+							m_Tree = reader.ReadItem() as HolidayTree;
+
+							if (m_Tree == null)
+								Delete();
+
+							break;
+						}
+				}
 			}
 		}
 	}

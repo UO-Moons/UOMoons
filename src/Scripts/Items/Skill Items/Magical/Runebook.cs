@@ -381,9 +381,9 @@ namespace Server.Items
 		}
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			int charges = 5 + (int)Quality + (int)(from.Skills[SkillName.Inscribe].Value / 30);
 

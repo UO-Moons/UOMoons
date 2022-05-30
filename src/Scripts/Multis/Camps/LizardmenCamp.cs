@@ -108,7 +108,7 @@ namespace Server.Multis
 
 			crates.DropItem(new Gold(Utility.RandomMinMax(100, 400)));
 			crates.DropItem(new Arrow(10));
-			crates.DropItem(new Bolt(10));
+			crates.DropItem(new CrossBowBolt(10));
 
 			crates.LiftOverride = true;
 

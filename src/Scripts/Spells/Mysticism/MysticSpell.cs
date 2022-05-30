@@ -1,91 +1,134 @@
-﻿using System;
+using System;
+using Server;
+using Server.Targeting;
 
 namespace Server.Spells.Mysticism
 {
-	public abstract class MysticSpell : Spell
-	{
-		public abstract double RequiredSkill { get; }
-		public abstract int RequiredMana { get; }
+    public abstract class MysticSpell : Spell
+    {
+        public MysticSpell(Mobile caster, Item scroll, SpellInfo info)
+            : base(caster, scroll, info)
+        {
+        }
 
-		public override SkillName CastSkill => SkillName.Mysticism;
+        public abstract SpellCircle Circle { get; }
 
-		/*
-		 * As per OSI Publish 64:
-		 * Imbuing is not the only skill associated with Mysticism now.
-		 * Players can use EITHER their Focus skill or Imbuing skill.
-		 * Evaluate Intelligence no longer has any effect on a Mystic’s spell power.
-		 */
-		public override double GetDamageSkill(Mobile m)
-		{
-			return Math.Max(m.Skills[SkillName.Imbuing].Value, m.Skills[SkillName.Focus].Value);
-		}
+        private static int[] m_ManaTable = new int[] { 4, 6, 9, 11, 14, 20, 40, 50 };
 
-		public override int GetDamageFixed(Mobile m)
-		{
-			return Math.Max(m.Skills[SkillName.Imbuing].Fixed, m.Skills[SkillName.Focus].Fixed);
-		}
+        public override TimeSpan CastDelayBase => TimeSpan.FromMilliseconds(((4 + (int)Circle) * CastDelaySecondsPerTick) * 1000);
+        public override double CastDelayFastScalar => 1.0;
 
-		public MysticSpell(Mobile caster, Item scroll, SpellInfo info)
-			: base(caster, scroll, info)
-		{
-		}
+        public double ChanceOffset => Caster is Server.Mobiles.PlayerMobile ? 20.0 : 30.0;
+        private const double ChanceLength = 100.0 / 7.0;
 
-		public override void GetCastSkills(out double min, out double max)
-		{
-			// As per Mysticism page at the UO Herald Playguide
-			// This means that we have 25% success chance at min Required Skill
+        public override void GetCastSkills(out double min, out double max)
+        {
+            int circle = (int)Circle;
 
-			min = RequiredSkill - 12.5;
-			max = RequiredSkill + 37.5;
-		}
+            if (Scroll != null)
+                circle -= 2;
 
-		public override int GetMana()
-		{
-			return RequiredMana;
-		}
+            double avg = ChanceLength * circle;
 
-		public override bool CheckCast()
-		{
-			if (!base.CheckCast())
-				return false;
+            min = avg - ChanceOffset;
+            max = avg + ChanceOffset;
+        }
 
-			int mana = ScaleMana(RequiredMana);
+        public override SkillName CastSkill => SkillName.Mysticism;
 
-			if (Caster.Mana < mana)
-			{
-				Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
-				return false;
-			}
+        public override SkillName DamageSkill
+        {
+            get
+            {
+                if (Caster.Skills[SkillName.Imbuing].Value >= Caster.Skills[SkillName.Focus].Value)
+                    return SkillName.Imbuing;
+                return SkillName.Focus;
+            }
+        }
 
-			if (Caster.Skills[CastSkill].Value < RequiredSkill)
-			{
-				Caster.SendLocalizedMessage(1063013, string.Format("{0}\t{1}\t ", RequiredSkill.ToString("F1"), CastSkill.ToString())); // You need at least ~1_SKILL_REQUIREMENT~ ~2_SKILL_NAME~ skill to use that ability.
-				return false;
-			}
+        public override void SendCastEffect()
+        {
+            if (Caster.Player)
+                Caster.FixedEffect(0x37C4, 87, (int)(GetCastDelay().TotalSeconds * 28), 0x66C, 3);
+        }
 
-			return true;
-		}
+        public override int GetMana()
+        {
+            if (Core.TOL && this is HailStormSpell)
+                return 50;
 
-		public override void OnBeginCast()
-		{
-			base.OnBeginCast();
+            return m_ManaTable[(int)Circle];
+        }
 
-			SendCastEffect();
-		}
+        public override TimeSpan GetCastRecovery()
+        {
+            if (Scroll is SpellStone)
+                return TimeSpan.Zero;
 
-		public virtual void SendCastEffect()
-		{
-			Caster.FixedEffect(0x37C4, 10, (int)(GetCastDelay().TotalSeconds * 28), 0x66C, 3);
-		}
+            return base.GetCastRecovery();
+        }
 
-		public static double GetBaseSkill(Mobile m)
-		{
-			return m.Skills[SkillName.Mysticism].Value;
-		}
+        public override TimeSpan GetCastDelay()
+        {
+            if (Scroll is SpellStone)
+                return TimeSpan.Zero;
 
-		public static double GetBoostSkill(Mobile m)
-		{
-			return Math.Max(m.Skills[SkillName.Imbuing].Value, m.Skills[SkillName.Focus].Value);
-		}
-	}
+            return base.GetCastDelay();
+        }
+
+        public override bool CheckCast()
+        {
+            if (!base.CheckCast())
+                return false;
+
+            return true;
+        }
+
+        public virtual bool CheckResisted(Mobile target)
+        {
+            double n = GetResistPercent(target);
+
+            n /= 100.0;
+
+            if (n <= 0.0)
+                return false;
+
+            if (n >= 1.0)
+                return true;
+
+            int circle = Math.Max(5, 1 + (int)Circle);
+
+            int maxSkill = circle * 10;
+            maxSkill += (circle / 6) * 25;
+
+            if (target.Skills[SkillName.MagicResist].Value < maxSkill)
+                target.CheckSkill(SkillName.MagicResist, 0.0, target.Skills[SkillName.MagicResist].Cap);
+
+            return (n >= Utility.RandomDouble());
+        }
+
+        public virtual double GetResistPercentForCircle(Mobile target, SpellCircle circle)
+        {
+            double value = GetResistSkill(target);
+            double firstPercent = value / 5.0;
+            double secondPercent = value - (((Caster.Skills[CastSkill].Value - 20.0) / 5.0) + (Math.Max(5, 1 + (int)circle)) * 5.0);
+
+            return (firstPercent > secondPercent ? firstPercent : secondPercent) / 2.0; // Seems should be about half of what stratics says.
+        }
+
+        public virtual double GetResistPercent(Mobile target)
+        {
+            return GetResistPercentForCircle(target, Circle);
+        }
+
+        public static double GetBaseSkill(Mobile m)
+        {
+            return m.Skills[SkillName.Mysticism].Value;
+        }
+
+        public static double GetBoostSkill(Mobile m)
+        {
+            return Math.Max(m.Skills[SkillName.Imbuing].Value, m.Skills[SkillName.Focus].Value);
+        }
+    }
 }

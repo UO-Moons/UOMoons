@@ -5,285 +5,299 @@ using System.Linq;
 
 namespace Server.Engines.Craft
 {
-	public enum CraftECA
-	{
-		ChanceMinusSixty,
-		FiftyPercentChanceMinusTenPercent,
-		ChanceMinusSixtyToFourtyFive
-	}
+    public enum CraftECA
+    {
+        ChanceMinusSixty,
+        FiftyPercentChanceMinusTenPercent,
+        ChanceMinusSixtyToFourtyFive
+    }
 
-	public abstract class CraftSystem
-	{
-		public static List<CraftSystem> Systems { get; set; }
+    public abstract class CraftSystem
+    {
+        public static List<CraftSystem> Systems { get; set; }
 
-		private readonly List<int> m_Recipes;
-		private readonly List<int> m_RareRecipes;
+        public int MinCraftEffect { get; }
+        public int MaxCraftEffect { get; }
+        public double Delay { get; }
 
-		private readonly Dictionary<Mobile, CraftContext> m_ContextTable = new();
+        public CraftItemCol CraftItems { get; }
+        public CraftGroupCol CraftGroups { get; }
+        public CraftSubResCol CraftSubRes { get; }
+        public CraftSubResCol CraftSubRes2 { get; }
 
-		public abstract SkillName MainSkill { get; }
+        public abstract SkillName MainSkill { get; }
 
-		public int MinCraftEffect { get; }
-		public int MaxCraftEffect { get; }
-		public double Delay { get; }
-		public bool Resmelt { get; set; }
-		public bool Repair { get; set; }
-		public bool MarkOption { get; set; }
-		public bool CanEnhance { get; set; }
+        public virtual int GumpTitleNumber => 0;
+        public virtual string GumpTitleString => "";
 
-		public CraftItemCol CraftItems { get; }
-		public CraftGroupCol CraftGroups { get; }
-		public CraftSubResCol CraftSubRes { get; }
-		public CraftSubResCol CraftSubRes2 { get; }
+        public virtual CraftECA ECA => CraftECA.ChanceMinusSixty;
 
-		public virtual int GumpTitleNumber => 0;
-		public virtual string GumpTitleString => "";
+        private readonly Dictionary<Mobile, CraftContext> m_ContextTable = new Dictionary<Mobile, CraftContext>();
 
-		public virtual CraftECA ECA => CraftECA.ChanceMinusSixty;
+        public abstract double GetChanceAtMin(CraftItem item);
 
-		public static void Configure()
-		{
-			List<CraftSystem> temp = new();
-			foreach (System.Reflection.Assembly asm in Assembler.Assemblies)
-			{
-				foreach (Type type in asm.GetTypes().Where(t => t.IsSubclassOf(typeof(CraftSystem))))
-				{
-					if (type.GetConstructor(Type.EmptyTypes) != null && !type.IsAbstract)
-					{
-						try
-						{
-							CraftSystem craftSystem = (CraftSystem)Activator.CreateInstance(type);
-						}
-						catch { }
-					}
-				}
-			}
-		}
+        public virtual bool RetainsColorFrom(CraftItem item, Type type)
+        {
+            return false;
+        }
 
-		public CraftSystem(int minCraftEffect, int maxCraftEffect, double delay)
-		{
-			MinCraftEffect = minCraftEffect;
-			MaxCraftEffect = maxCraftEffect;
-			Delay = delay;
+        public void AddContext(Mobile m, CraftContext c)
+        {
+            if (c == null || m == null || c.System != this)
+            {
+                return;
+            }
 
-			CraftItems = new CraftItemCol();
-			CraftGroups = new CraftGroupCol();
-			CraftSubRes = new CraftSubResCol();
-			CraftSubRes2 = new CraftSubResCol();
+            m_ContextTable[m] = c;
+        }
 
-			m_Recipes = new List<int>();
-			m_RareRecipes = new List<int>();
+        public CraftContext GetContext(Mobile m)
+        {
+            if (m == null)
+            {
+                return null;
+            }
 
-			InitCraftList();
+            if (m.Deleted)
+            {
+                m_ContextTable.Remove(m);
+                return null;
+            }
 
-			AddSystem(this);
-		}
+            m_ContextTable.TryGetValue(m, out CraftContext c);
 
-		private static void AddSystem(CraftSystem system)
-		{
-			if (Systems == null)
-				Systems = new List<CraftSystem>();
+            if (c == null)
+            {
+                m_ContextTable[m] = c = new CraftContext(m, this);
+            }
 
-			Systems.Add(system);
-		}
+            return c;
+        }
 
-		public abstract double GetChanceAtMin(CraftItem item);
+        public void OnMade(Mobile m, CraftItem item)
+        {
+            CraftContext c = GetContext(m);
 
-		public virtual bool RetainsColorFrom(CraftItem item, Type type)
-		{
-			return false;
-		}
+            if (c != null)
+            {
+                c.OnMade(item);
+            }
+        }
 
-		public void AddContext(Mobile m, CraftContext c)
-		{
-			if (c == null || m == null || c.System != this)
-			{
-				return;
-			}
+        public void OnRepair(Mobile m, ITool tool, Item deed, Item addon, IEntity e)
+        {
+            Item source;
 
-			m_ContextTable[m] = c;
-		}
+            if (tool is Item)
+            {
+                source = (Item)tool;
+            }
+            else
+            {
+                source = deed ?? addon;
+            }
 
-		public CraftContext GetContext(Mobile m)
-		{
-			if (m == null)
-			{
-				return null;
-			}
+            //EventSink.InvokeRepairItem(new RepairItemEventArgs(m, source, e));
+        }
 
-			if (m.Deleted)
-			{
-				m_ContextTable.Remove(m);
-				return null;
-			}
+        public bool Resmelt { get; set; }
+        public bool Repair { get; set; }
+        public bool MarkOption { get; set; }
+        public bool CanEnhance { get; set; }
+        public bool QuestOption { get; set; }
+        public bool CanAlter { get; set; }
 
-			m_ContextTable.TryGetValue(m, out CraftContext c);
+        public CraftSystem(int minCraftEffect, int maxCraftEffect, double delay)
+        {
+            MinCraftEffect = minCraftEffect;
+            MaxCraftEffect = maxCraftEffect;
+            Delay = delay;
 
-			if (c == null)
-			{
-				m_ContextTable[m] = c = new CraftContext(m, this);
-			}
+            CraftItems = new CraftItemCol();
+            CraftGroups = new CraftGroupCol();
+            CraftSubRes = new CraftSubResCol();
+            CraftSubRes2 = new CraftSubResCol();
 
-			return c;
-		}
+            InitCraftList();
+            AddSystem(this);
+        }
 
-		public void OnMade(Mobile m, CraftItem item)
-		{
-			CraftContext c = GetContext(m);
+        private void AddSystem(CraftSystem system)
+        {
+            if (Systems == null)
+            {
+                Systems = new List<CraftSystem>();
+            }
 
-			if (c != null)
-			{
-				c.OnMade(item);
-			}
-		}
+            Systems.Add(system);
+        }
 
-		public static void OnRepair(Mobile m, BaseTool tool, Item deed, Item addon, IEntity e)
-		{
-			Item source;
+        private readonly Type[] _GlobalNoConsume =
+        {
+            typeof(CapturedEssence), typeof(EyeOfTheTravesty), typeof(DiseasedBark),  typeof(LardOfParoxysmus), typeof(GrizzledBones), typeof(DreadHornMane),
 
-			if (tool is Item item)
-			{
-				source = item;
-			}
-			else
-			{
-				source = deed ?? addon;
-			}
+            typeof(Blight), typeof(Corruption), typeof(Muculent), typeof(Scourge), typeof(Putrefaction), typeof(Taint),
 
-			EventSink.InvokeOnRepairItem(m, source, e);
-		}
+            // Tailoring
+            typeof(MidnightBracers), typeof(CrimsonCincture), typeof(LeurociansMempoOfFortune),
 
-		public virtual bool ConsumeOnFailure(Mobile from, Type resourceType, CraftItem craftItem)
-		{
-			return true;
-		}
+            // Blacksmithy
+            typeof(LeggingsOfBane), typeof(GauntletsOfNobility),
 
-		public void CreateItem(Mobile from, Type type, Type typeRes, BaseTool tool, CraftItem realCraftItem)
-		{
-			// Verify if the type is in the list of the craftable item
-			CraftItem craftItem = CraftItems.SearchFor(type);
-			if (craftItem != null)
-			{
-				// The item is in the list, try to create it
-				// Test code: items like sextant parts can be crafted either directly from ingots, or from different parts
-				realCraftItem.Craft(from, this, typeRes, tool);
-				//craftItem.Craft( from, this, typeRes, tool );
-			}
-		}
+            // Carpentry
+            typeof(StaffOfTheMagi),
 
-		public int RandomRecipe()
-		{
-			if (m_Recipes.Count == 0)
-				return -1;
+            // Tinkering
+            typeof(Server.Factions.Silver), typeof(RingOfTheElements), typeof(HatOfTheMagi),
+        };
 
-			return m_Recipes[Utility.Random(m_Recipes.Count)];
-		}
+        public virtual bool ConsumeOnFailure(Mobile from, Type resourceType, CraftItem craftItem)
+        {
+            return !_GlobalNoConsume.Any(t => t == resourceType);
+        }
 
-		public int RandomRareRecipe()
-		{
-			if (m_RareRecipes.Count == 0)
-				return -1;
+        public virtual bool ConsumeOnFailure(Mobile from, Type resourceType, CraftItem craftItem, ref MasterCraftsmanTalisman talisman)
+        {
+            if (!ConsumeOnFailure(from, resourceType, craftItem))
+            {
+                return false;
+            }
 
-			return m_RareRecipes[Utility.Random(m_RareRecipes.Count)];
-		}
+            Item item = from.FindItemOnLayer(Layer.Talisman);
 
+            if (item is MasterCraftsmanTalisman mct)
+            {
+                if (mct.Charges > 0)
+                {
+                    talisman = mct;
+                    return false;
+                }
+            }
 
-		public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount)
-		{
-			return AddCraft(typeItem, group, name, MainSkill, minSkill, maxSkill, typeRes, nameRes, amount, "");
-		}
+            return true;
+        }
 
-		public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount, TextDefinition message)
-		{
-			return AddCraft(typeItem, group, name, MainSkill, minSkill, maxSkill, typeRes, nameRes, amount, message);
-		}
+        public void CreateItem(Mobile from, Type type, Type typeRes, ITool tool, CraftItem realCraftItem)
+        {
+            CraftItem craftItem = CraftItems.SearchFor(type);
+            if (craftItem != null)
+            {
+                realCraftItem.Craft(from, this, typeRes, tool);
+            }
+        }
 
-		public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, SkillName skillToMake, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount)
-		{
-			return AddCraft(typeItem, group, name, skillToMake, minSkill, maxSkill, typeRes, nameRes, amount, "");
-		}
+        public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount)
+        {
+            return AddCraft(typeItem, group, name, MainSkill, minSkill, maxSkill, typeRes, nameRes, amount, "");
+        }
 
-		public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, SkillName skillToMake, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount, TextDefinition message)
-		{
-			CraftItem craftItem = new(typeItem, group, name);
-			craftItem.AddRes(typeRes, nameRes, amount, message);
-			craftItem.AddSkill(skillToMake, minSkill, maxSkill);
+        public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount, TextDefinition message)
+        {
+            return AddCraft(typeItem, group, name, MainSkill, minSkill, maxSkill, typeRes, nameRes, amount, message);
+        }
 
-			DoGroup(group, craftItem);
-			return CraftItems.Add(craftItem);
-		}
+        public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, SkillName skillToMake, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount)
+        {
+            return AddCraft(typeItem, group, name, skillToMake, minSkill, maxSkill, typeRes, nameRes, amount, "");
+        }
 
+        public int AddCraft(Type typeItem, TextDefinition group, TextDefinition name, SkillName skillToMake, double minSkill, double maxSkill, Type typeRes, TextDefinition nameRes, int amount, TextDefinition message)
+        {
+            CraftItem craftItem = new CraftItem(typeItem, group, name);
+            craftItem.AddRes(typeRes, nameRes, amount, message);
+            craftItem.AddSkill(skillToMake, minSkill, maxSkill);
 
-		private void DoGroup(TextDefinition groupName, CraftItem craftItem)
-		{
-			int index = CraftGroups.SearchFor(groupName);
+            DoGroup(group, craftItem);
+            return CraftItems.Add(craftItem);
+        }
 
-			if (index == -1)
-			{
-				CraftGroup craftGroup = new(groupName);
-				craftGroup.AddCraftItem(craftItem);
-				CraftGroups.Add(craftGroup);
-			}
-			else
-			{
-				CraftGroups.GetAt(index).AddCraftItem(craftItem);
-			}
-		}
+        private void DoGroup(TextDefinition groupName, CraftItem craftItem)
+        {
+            int index = CraftGroups.SearchFor(groupName);
 
+            if (index == -1)
+            {
+                CraftGroup craftGroup = new CraftGroup(groupName);
+                craftGroup.AddCraftItem(craftItem);
+                CraftGroups.Add(craftGroup);
+            }
+            else
+            {
+                CraftGroups.GetAt(index).AddCraftItem(craftItem);
+            }
+        }
 
-		public void SetItemHue(int index, int hue)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.ItemHue = hue;
-		}
+        public void SetItemHue(int index, int hue)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ItemHue = hue;
+        }
 
-		public void SetManaReq(int index, int mana)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.Mana = mana;
-		}
+        public void SetManaReq(int index, int mana)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.Mana = mana;
+        }
 
-		public void SetStamReq(int index, int stam)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.Stam = stam;
-		}
+        public void SetStamReq(int index, int stam)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.Stam = stam;
+        }
 
-		public void SetHitsReq(int index, int hits)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.Hits = hits;
-		}
+        public void SetHitsReq(int index, int hits)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.Hits = hits;
+        }
 
-		public void SetUseAllRes(int index, bool useAll)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.UseAllRes = useAll;
-		}
+        public void SetUseAllRes(int index, bool useAll)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.UseAllRes = useAll;
+        }
 
-		public void SetNeedHeat(int index, bool needHeat)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.NeedHeat = needHeat;
-		}
+        public void SetForceTypeRes(int index, bool value)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ForceTypeRes = value;
+        }
 
-		public void SetNeedOven(int index, bool needOven)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.NeedOven = needOven;
-		}
+        public void SetNeedHeat(int index, bool needHeat)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.NeedHeat = needHeat;
+        }
 
-		public void SetBeverageType(int index, BeverageType requiredBeverage)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.RequiredBeverage = requiredBeverage;
-		}
+        public void SetNeedOven(int index, bool needOven)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.NeedOven = needOven;
+        }
 
-		public void SetNeedMill(int index, bool needMill)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.NeedMill = needMill;
-		}
+        public void SetNeedMaker(int index, bool needMaker)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.NeedMaker = needMaker;
+        }
+
+        public void SetNeedWater(int index, bool needWater)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.NeedWater = needWater;
+        }
+
+        public void SetBeverageType(int index, BeverageType requiredBeverage)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.RequiredBeverage = requiredBeverage;
+        }
+
+        public void SetNeedMill(int index, bool needMill)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.NeedMill = needMill;
+        }
 
 		public void SetNeededExpansion(int index, Expansion expansion)
 		{
@@ -291,129 +305,186 @@ namespace Server.Engines.Craft
 			craftItem.RequiredExpansion = expansion;
 		}
 
-		public void AddRes(int index, Type type, TextDefinition name, int amount)
-		{
-			AddRes(index, type, name, amount, "");
-		}
+		public void SetNeededThemePack(int index, ThemePack pack)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.RequiredThemePack = pack;
+        }
 
-		public void AddRes(int index, Type type, TextDefinition name, int amount, TextDefinition message)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.AddRes(type, name, amount, message);
-		}
+        public void SetRequiresBasketWeaving(int index)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.RequiresBasketWeaving = true;
+        }
 
-		public void AddSkill(int index, SkillName skillToMake, double minSkill, double maxSkill)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.AddSkill(skillToMake, minSkill, maxSkill);
-		}
+        public void SetRequireResTarget(int index)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.RequiresResTarget = true;
+        }
 
-		public void SetUseSubRes2(int index, bool val)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.UseSubRes2 = val;
-		}
+        public void SetRequiresMechanicalLife(int index)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.RequiresMechanicalLife = true;
+        }
 
-		private void AddRecipeBase(int index, int id)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.AddRecipe(id, this);
-		}
+        public void SetData(int index, object data)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.Data = data;
+        }
 
-		public void AddRecipe(int index, int id)
-		{
-			AddRecipeBase(index, id);
-			m_Recipes.Add(id);
-		}
+        public void SetDisplayID(int index, int id)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.DisplayID = id;
+        }
 
-		public void AddRareRecipe(int index, int id)
-		{
-			AddRecipeBase(index, id);
-			m_RareRecipes.Add(id);
-		}
+        public void SetMutateAction(int index, Action<Mobile, Item, ITool> action)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.MutateAction = action;
+        }
 
-		public void AddQuestRecipe(int index, int id)
-		{
-			AddRecipeBase(index, id);
-		}
+        public void SetForceSuccess(int index, int success)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ForceSuccessChance = success;
+        }
 
-		public void ForceNonExceptional(int index)
-		{
-			CraftItem craftItem = CraftItems.GetAt(index);
-			craftItem.ForceNonExceptional = true;
-		}
+        public void AddRes(int index, Type type, TextDefinition name, int amount)
+        {
+            AddRes(index, type, name, amount, "");
+        }
 
+        public void AddRes(int index, Type type, TextDefinition name, int amount, TextDefinition message)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.AddRes(type, name, amount, message);
+        }
 
-		public void SetSubRes(Type type, string name)
-		{
-			CraftSubRes.ResType = type;
-			CraftSubRes.NameString = name;
-			CraftSubRes.Init = true;
-		}
+        public void AddResCallback(int index, Func<Mobile, ConsumeType, int> func)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ConsumeResCallback = func;
+        }
 
-		public void SetSubRes(Type type, int name)
-		{
-			CraftSubRes.ResType = type;
-			CraftSubRes.NameNumber = name;
-			CraftSubRes.Init = true;
-		}
+        public void AddSkill(int index, SkillName skillToMake, double minSkill, double maxSkill)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.AddSkill(skillToMake, minSkill, maxSkill);
+        }
 
-		public void AddSubRes(Type type, int name, double reqSkill, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, message);
-			CraftSubRes.Add(craftSubRes);
-		}
+        public void SetUseSubRes2(int index, bool val)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.UseSubRes2 = val;
+        }
 
-		public void AddSubRes(Type type, int name, double reqSkill, int genericName, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, genericName, message);
-			CraftSubRes.Add(craftSubRes);
-		}
+        public void AddRecipe(int index, int id)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.AddRecipe(id, this);
+        }
 
-		public void AddSubRes(Type type, string name, double reqSkill, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, message);
-			CraftSubRes.Add(craftSubRes);
-		}
+        public void ForceNonExceptional(int index)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ForceNonExceptional = true;
+        }
 
+        public void ForceExceptional(int index)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.ForceExceptional = true;
+        }
 
-		public void SetSubRes2(Type type, string name)
-		{
-			CraftSubRes2.ResType = type;
-			CraftSubRes2.NameString = name;
-			CraftSubRes2.Init = true;
-		}
+        public void SetMinSkillOffset(int index, double skillOffset)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.MinSkillOffset = skillOffset;
+        }
 
-		public void SetSubRes2(Type type, int name)
-		{
-			CraftSubRes2.ResType = type;
-			CraftSubRes2.NameNumber = name;
-			CraftSubRes2.Init = true;
-		}
+        public void AddCraftAction(int index, Action<Mobile, CraftItem, ITool> action)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.TryCraft = action;
+        }
 
-		public void AddSubRes2(Type type, int name, double reqSkill, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, message);
-			CraftSubRes2.Add(craftSubRes);
-		}
+        public void AddCreateItem(int index, Func<Mobile, CraftItem, ITool, Item> func)
+        {
+            CraftItem craftItem = CraftItems.GetAt(index);
+            craftItem.CreateItem = func;
+        }
 
-		public void AddSubRes2(Type type, int name, double reqSkill, int genericName, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, genericName, message);
-			CraftSubRes2.Add(craftSubRes);
-		}
+        public void SetSubRes(Type type, string name)
+        {
+            CraftSubRes.ResType = type;
+            CraftSubRes.NameString = name;
+            CraftSubRes.Init = true;
+        }
 
-		public void AddSubRes2(Type type, string name, double reqSkill, object message)
-		{
-			CraftSubRes craftSubRes = new(type, name, reqSkill, message);
-			CraftSubRes2.Add(craftSubRes);
-		}
+        public void SetSubRes(Type type, int name)
+        {
+            CraftSubRes.ResType = type;
+            CraftSubRes.NameNumber = name;
+            CraftSubRes.Init = true;
+        }
 
-		public abstract void InitCraftList();
+        public void AddSubRes(Type type, int name, double reqSkill, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, message);
+            CraftSubRes.Add(craftSubRes);
+        }
 
-		public abstract void PlayCraftEffect(Mobile from);
-		public abstract int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item);
+        public void AddSubRes(Type type, int name, double reqSkill, int genericName, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, genericName, message);
+            CraftSubRes.Add(craftSubRes);
+        }
 
-		public abstract int CanCraft(Mobile from, BaseTool tool, Type itemType);
-	}
+        public void AddSubRes(Type type, string name, double reqSkill, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, message);
+            CraftSubRes.Add(craftSubRes);
+        }
+
+        public void SetSubRes2(Type type, string name)
+        {
+            CraftSubRes2.ResType = type;
+            CraftSubRes2.NameString = name;
+            CraftSubRes2.Init = true;
+        }
+
+        public void SetSubRes2(Type type, int name)
+        {
+            CraftSubRes2.ResType = type;
+            CraftSubRes2.NameNumber = name;
+            CraftSubRes2.Init = true;
+        }
+
+        public void AddSubRes2(Type type, int name, double reqSkill, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, message);
+            CraftSubRes2.Add(craftSubRes);
+        }
+
+        public void AddSubRes2(Type type, int name, double reqSkill, int genericName, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, genericName, message);
+            CraftSubRes2.Add(craftSubRes);
+        }
+
+        public void AddSubRes2(Type type, string name, double reqSkill, object message)
+        {
+            CraftSubRes craftSubRes = new CraftSubRes(type, name, reqSkill, message);
+            CraftSubRes2.Add(craftSubRes);
+        }
+
+        public abstract void InitCraftList();
+        public abstract void PlayCraftEffect(Mobile from);
+        public abstract int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item);
+        public abstract int CanCraft(Mobile from, ITool tool, Type itemType);
+    }
 }

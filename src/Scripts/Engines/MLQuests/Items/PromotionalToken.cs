@@ -59,10 +59,10 @@ namespace Server.Items
         {
             Mobile m = null;
 
-            if (parent is Item)
-                m = ((Item)parent).RootParent as Mobile;
-            else if (parent is Mobile)
-                m = (Mobile)parent;
+            if (parent is Item item)
+                m = item.RootParent as Mobile;
+            else if (parent is Mobile mobile)
+                m = mobile;
 
             if (m != null)
                 m.CloseGump(typeof(PromotionalTokenGump));
@@ -78,9 +78,8 @@ namespace Server.Items
         public override void Deserialize(GenericReader reader)
         {
             base.Deserialize(reader);
-
-            int version = reader.ReadInt();
-        }
+			_ = reader.ReadInt();
+		}
 
         private class PromotionalTokenGump : Gump
         {

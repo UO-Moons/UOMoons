@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Server.Items
 {
@@ -9,7 +10,7 @@ namespace Server.Items
 	/// </summary>
 	public class Feint : WeaponAbility
 	{
-		public static Hashtable Registry { get; } = new Hashtable();
+		public static Dictionary<Mobile, FeintTimer> Registry { get; } = new Dictionary<Mobile, FeintTimer>();
 
 		public Feint()
 		{
@@ -17,15 +18,9 @@ namespace Server.Items
 
 		public override int BaseMana => 30;
 
-		public override bool CheckSkills(Mobile from)
+		public override SkillName GetSecondarySkill(Mobile from)
 		{
-			if (GetSkill(from, SkillName.Ninjitsu) < 50.0 && GetSkill(from, SkillName.Bushido) < 50.0)
-			{
-				from.SendLocalizedMessage(1063347, "50"); // You need ~1_SKILL_REQUIREMENT~ Bushido or Ninjitsu skill to perform that attack!
-				return false;
-			}
-
-			return base.CheckSkills(from);
+			return from.Skills[SkillName.Ninjitsu].Base > from.Skills[SkillName.Bushido].Base ? SkillName.Ninjitsu : SkillName.Bushido;
 		}
 
 		public override void OnHit(Mobile attacker, Mobile defender, int damage)
@@ -33,11 +28,12 @@ namespace Server.Items
 			if (!Validate(attacker) || !CheckMana(attacker, true))
 				return;
 
-			if (Registry.Contains(defender))
+			if (Registry.ContainsKey(attacker))
 			{
-				FeintTimer existingtimer = (FeintTimer)Registry[defender];
-				existingtimer.Stop();
-				Registry.Remove(defender);
+				if (Registry[attacker] != null)
+					Registry[attacker].Stop();
+
+				Registry.Remove(attacker);
 			}
 
 			ClearCurrentAbility(attacker);
@@ -46,30 +42,38 @@ namespace Server.Items
 			defender.SendLocalizedMessage(1063361); // You were deceived by an attacker's feint!
 
 			attacker.FixedParticles(0x3728, 1, 13, 0x7F3, 0x962, 0, EffectLayer.Waist);
+			double skill = Math.Max(attacker.Skills[SkillName.Ninjitsu].Value, attacker.Skills[SkillName.Bushido].Value);
 
-			Timer t = new FeintTimer(defender, (int)(20.0 + 3.0 * (Math.Max(attacker.Skills[SkillName.Ninjitsu].Value, attacker.Skills[SkillName.Bushido].Value) - 50.0) / 7.0));   //20-50 % decrease
+			int bonus = (int)(20.0 + 3.0 * (skill - 50.0) / 7.0);
+
+			FeintTimer t = new FeintTimer(attacker, defender, bonus);   //20-50 % decrease
 
 			t.Start();
 			Registry.Add(defender, t);
+
+			string args = string.Format("{0}\t{1}", defender.Name, bonus);
+			BuffInfo.AddBuff(attacker, new BuffInfo(BuffIcon.Feint, 1151308, 1151307, TimeSpan.FromSeconds(6), attacker, args));
 		}
 
 		public class FeintTimer : Timer
 		{
-			private readonly Mobile m_Defender;
+			public Mobile Owner { get; }
+			public Mobile Enemy { get; }
 
-			public int SwingSpeedReduction { get; }
+			public int DamageReduction { get; }
 
-			public FeintTimer(Mobile defender, int swingSpeedReduction)
+			public FeintTimer(Mobile owner, Mobile enemy, int _DamageReduction)
 				: base(TimeSpan.FromSeconds(6.0))
 			{
-				m_Defender = defender;
-				SwingSpeedReduction = swingSpeedReduction;
+				Owner = owner;
+				Enemy = enemy;
+				DamageReduction = _DamageReduction;
 				Priority = TimerPriority.FiftyMS;
 			}
 
 			protected override void OnTick()
 			{
-				Registry.Remove(m_Defender);
+				Registry.Remove(Owner);
 			}
 		}
 	}

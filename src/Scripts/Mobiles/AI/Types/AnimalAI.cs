@@ -42,7 +42,7 @@ namespace Server.Mobiles
 
 		public override bool DoActionCombat()
 		{
-			Mobile combatant = m_Mobile.Combatant;
+			Mobile combatant = (Mobile)m_Mobile.Combatant;
 
 			if (combatant == null || combatant.Deleted || combatant.Map != m_Mobile.Map)
 			{

@@ -3,7 +3,7 @@ namespace Server.Items
 	[Flipable(0x11EA, 0x11EB)]
 	public class Sand : BaseItem, ICommodity
 	{
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		public override int LabelNumber => 1044626;  // sand

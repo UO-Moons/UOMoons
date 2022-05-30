@@ -8,13 +8,9 @@ namespace Server.Items
 	public class DragonBardingDeed : BaseItem, ICraftable, IResource
 	{
 		private bool m_Exceptional;
-		private Mobile m_Crafter;
 		private CraftResource m_Resource;
 
 		public override int LabelNumber => m_Exceptional ? 1053181 : 1053012;  // dragon barding deed
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter { get => m_Crafter; set { m_Crafter = value; InvalidateProperties(); } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public CraftResource Resource { get => m_Resource; set { m_Resource = value; Hue = CraftResources.GetHue(value); InvalidateProperties(); } }
@@ -28,8 +24,8 @@ namespace Server.Items
 		{
 			base.GetProperties(list);
 
-			if (Quality == ItemQuality.Exceptional && m_Crafter != null)
-				list.Add(1050043, m_Crafter.Name); // crafted by ~1_NAME~
+			if (Quality == ItemQuality.Exceptional && Crafter != null)
+				list.Add(1050043, Crafter.Name); // crafted by ~1_NAME~
 		}
 
 		public override void OnDoubleClick(Mobile from)
@@ -88,7 +84,6 @@ namespace Server.Items
 			writer.Write(0); // version
 
 			writer.Write(m_Exceptional);
-			writer.Write(m_Crafter);
 			writer.Write((int)m_Resource);
 		}
 
@@ -103,7 +98,6 @@ namespace Server.Items
 				case 0:
 					{
 						m_Exceptional = reader.ReadBool();
-						m_Crafter = reader.ReadMobile();
 
 						m_Resource = (CraftResource)reader.ReadInt();
 						break;
@@ -112,9 +106,9 @@ namespace Server.Items
 		}
 		#region ICraftable Members
 
-		public ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			if (makersMark)
 				Crafter = from;

@@ -61,7 +61,7 @@ namespace Server.Factions
 			public InternalBuyInfo()
 			{
 				for (int i = 0; i < 5; ++i)
-					Add(new GenericBuyInfo(typeof(Bottle), 5, 20, 0xF0E, 0));
+					Add(new GenericBuyInfo(typeof(EmptyBottle), 5, 20, 0xF0E, 0));
 			}
 		}
 

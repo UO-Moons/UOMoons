@@ -107,7 +107,7 @@ namespace Server.Items
 			HolidayTree tree = new(from, type, loc);
 			BaseHouse house = BaseHouse.FindHouseAt(tree);
 			if (house != null)
-				house.Addons.Add(tree);
+				house.Addons[tree] = from;
 		}
 
 		public override void OnDoubleClick(Mobile from)

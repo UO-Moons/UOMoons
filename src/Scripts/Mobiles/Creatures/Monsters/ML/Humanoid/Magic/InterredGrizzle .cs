@@ -91,12 +91,12 @@ namespace Server.Mobiles
 			return (mid + Utility.RandomMinMax(-2, 2));
 		}
 
-		public virtual Point3D GetSpawnPosition(int range)
+		public override Point3D GetSpawnPosition(int range)
 		{
 			return GetSpawnPosition(Location, Map, range);
 		}
 
-		public virtual Point3D GetSpawnPosition(Point3D from, Map map, int range)
+		public new virtual Point3D GetSpawnPosition(Point3D from, Map map, int range)
 		{
 			if (map == null)
 				return from;
@@ -140,9 +140,9 @@ namespace Server.Mobiles
 			if (Combatant != null)
 			{
 				if (corrosive)
-					Combatant.SendLocalizedMessage(1072071); // A corrosive gas seeps out of your enemy's skin!
+					((PlayerMobile)Combatant).SendLocalizedMessage(1072071); // A corrosive gas seeps out of your enemy's skin!
 				else
-					Combatant.SendLocalizedMessage(1072072); // A poisonous gas seeps out of your enemy's skin!
+					((PlayerMobile)Combatant).SendLocalizedMessage(1072072); // A poisonous gas seeps out of your enemy's skin!
 			}
 		}
 		/*

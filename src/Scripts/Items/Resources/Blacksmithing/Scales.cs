@@ -15,7 +15,7 @@ namespace Server.Items
 
 		public override double DefaultWeight => 0.1;
 
-		int ICommodity.DescriptionNumber => LabelNumber;
+		TextDefinition ICommodity.Description => LabelNumber;
 		bool ICommodity.IsDeedable => true;
 
 		public override void Serialize(GenericWriter writer)

@@ -1,12 +1,10 @@
-using Server.Spells;
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Server.Spells;
 
 namespace Server.Items
 {
-	/// <summary>
-	/// A godsend to a warrior surrounded, the Whirlwind Attack allows the fighter to strike at all nearby targets in one mighty spinning swing.
-	/// </summary>
 	public class WhirlwindAttack : WeaponAbility
 	{
 		public WhirlwindAttack()
@@ -15,9 +13,19 @@ namespace Server.Items
 
 		public override int BaseMana => 15;
 
+		public static List<WhirlwindAttackContext> Contexts { get; set; }
+
+		public override bool OnBeforeDamage(Mobile attacker, Mobile defender)
+		{
+			if (attacker.Weapon is BaseWeapon wep)
+				wep.ProcessingMultipleHits = true;
+
+			return true;
+		}
+
 		public override void OnHit(Mobile attacker, Mobile defender, int damage)
 		{
-			if (!Validate(attacker))
+			if (!Validate(attacker) || (Contexts != null && Contexts.Any(c => c.Attacker == attacker)))
 				return;
 
 			ClearCurrentAbility(attacker);
@@ -27,9 +35,8 @@ namespace Server.Items
 			if (map == null)
 				return;
 
-			BaseWeapon weapon = attacker.Weapon as BaseWeapon;
 
-			if (weapon == null)
+			if (!(attacker.Weapon is BaseWeapon weapon))
 				return;
 
 			if (!CheckMana(attacker, true))
@@ -38,49 +45,92 @@ namespace Server.Items
 			attacker.FixedEffect(0x3728, 10, 15);
 			attacker.PlaySound(0x2A1);
 
-			ArrayList list = new ArrayList();
+			var list = SpellHelper.AcquireIndirectTargets(attacker, attacker, attacker.Map, 1)
+				.OfType<Mobile>()
+				.Where(m => attacker.InRange(m, weapon.MaxRange) && m != defender).ToList();
 
-			foreach (Mobile m in attacker.GetMobilesInRange(1))
-				list.Add(m);
+			int count = list.Count;
 
-			ArrayList targets = new ArrayList();
-
-			for (int i = 0; i < list.Count; ++i)
-			{
-				Mobile m = (Mobile)list[i];
-
-				if (m != defender && m != attacker && SpellHelper.ValidIndirectTarget(attacker, m))
-				{
-					if (m == null || m.Deleted || m.Map != attacker.Map || !m.Alive || !attacker.CanSee(m) || !attacker.CanBeHarmful(m))
-						continue;
-
-					if (!attacker.InRange(m, weapon.MaxRange))
-						continue;
-
-					if (attacker.InLOS(m))
-						targets.Add(m);
-				}
-			}
-
-			if (targets.Count > 0)
+			if (count > 0)
 			{
 				double bushido = attacker.Skills.Bushido.Value;
-				double damageBonus = 1.0 + Math.Pow((targets.Count * bushido) / 60, 2) / 100;
 
-				if (damageBonus > 2.0)
-					damageBonus = 2.0;
+				//   double damageBonus = 1.0 + Math.Pow((count * bushido) / 60, 2) / 100;
+
+				int damagebonus = 0;
+
+				if (bushido > 0)
+				{
+					damagebonus = (int)Math.Min(100, ((list.Count * bushido) * (list.Count * bushido)) / 3600);
+				}
+
+				if (damagebonus > 2) damagebonus = 2;
+
+				var context = new WhirlwindAttackContext(attacker, list, damagebonus);
+				AddContext(context);
 
 				attacker.RevealingAction();
 
-				for (int i = 0; i < targets.Count; ++i)
+				foreach (var m in list)
 				{
-					Mobile m = (Mobile)targets[i];
-
 					attacker.SendLocalizedMessage(1060161); // The whirling attack strikes a target!
 					m.SendLocalizedMessage(1060162); // You are struck by the whirling attack and take damage!
 
-					weapon.OnHit(attacker, m, damageBonus);
+					weapon.OnHit(attacker, m); // , damageBonus
 				}
+
+				RemoveContext(context);
+			}
+
+			ColUtility.Free(list);
+
+			weapon.ProcessingMultipleHits = false;
+		}
+
+		private static void AddContext(WhirlwindAttackContext context)
+		{
+			if (Contexts == null)
+			{
+				Contexts = new List<WhirlwindAttackContext>();
+			}
+
+			Contexts.Add(context);
+		}
+
+		private static void RemoveContext(WhirlwindAttackContext context)
+		{
+			if (Contexts != null)
+			{
+				Contexts.Remove(context);
+			}
+		}
+
+		public static int DamageBonus(Mobile attacker, Mobile defender)
+		{
+			if (Contexts == null)
+				return 0;
+
+			var context = Contexts.FirstOrDefault(c => c.Attacker == attacker && c.Victims.Contains(defender));
+
+			if (context != null)
+			{
+				return context.DamageBonus;
+			}
+
+			return 0;
+		}
+
+		public class WhirlwindAttackContext
+		{
+			public Mobile Attacker { get; set; }
+			public List<Mobile> Victims { get; set; }
+			public int DamageBonus { get; set; }
+
+			public WhirlwindAttackContext(Mobile attacker, List<Mobile> list, int bonus)
+			{
+				Attacker = attacker;
+				Victims = list;
+				DamageBonus = bonus;
 			}
 		}
 	}

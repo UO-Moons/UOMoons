@@ -1,10 +1,14 @@
+using Server.Items;
+using Server.Mobiles;
 using Server.Targeting;
-using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Server.Spells.Seventh
 {
 	public class MeteorSwarmSpell : MagerySpell
 	{
+		public Item Item { get; set; }
 		private static readonly SpellInfo m_Info = new SpellInfo(
 				"Meteor Swarm", "Flam Kal Des Ylem",
 				233,
@@ -22,16 +26,26 @@ namespace Server.Spells.Seventh
 		{
 		}
 
+		public override int GetMana()
+		{
+			if (Item != null)
+			{
+				return 0;
+			}
+
+			return base.GetMana();
+		}
+
 		public override void OnCast()
 		{
 			if (Precast)
 			{
-				Caster.Target = new InternalTarget(this);
+				Caster.Target = new InternalTarget(this, Item);
 			}
 			else
 			{
 				if (SpellTarget is IPoint3D target)
-					Target(target);
+					Target(target, Item);
 				else
 					FinishSequence();
 			}
@@ -39,82 +53,95 @@ namespace Server.Spells.Seventh
 
 		public override bool DelayedDamage => true;
 
-		public void Target(IPoint3D p)
+		public void Target(IPoint3D p, Item item)
 		{
 			if (!Caster.CanSee(p))
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (SpellHelper.CheckTown(p, Caster) && CheckSequence())
+			else if (SpellHelper.CheckTown(p, Caster) && (item != null || CheckSequence()))
 			{
+				/*if (item != null)
+				{
+					if (item is MaskOfKhalAnkur)
+					{
+						((MaskOfKhalAnkur)item).Charges--;
+					}
+
+					if (item is PendantOfKhalAnkur)
+					{
+						((PendantOfKhalAnkur)item).Charges--;
+					}
+				}*/
+
 				SpellHelper.Turn(Caster, p);
 
 				if (p is Item)
-					p = ((Item)p).GetWorldLocation();
-
-				List<Mobile> targets = new List<Mobile>();
-
-				Map map = Caster.Map;
-
-				bool playerVsPlayer = false;
-
-				if (map != null)
 				{
-					IPooledEnumerable eable = map.GetMobilesInRange(new Point3D(p), 2);
-
-					foreach (Mobile m in eable)
-					{
-						if (Caster != m && SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanBeHarmful(m, false))
-						{
-							if (Core.AOS && !Caster.InLOS(m))
-								continue;
-
-							targets.Add(m);
-
-							if (m.Player)
-								playerVsPlayer = true;
-						}
-					}
-
-					eable.Free();
+					p = ((Item)p).GetWorldLocation();
 				}
 
-				double damage;
+				var targets = AcquireIndirectTargets(p, 2).ToList();
+				var count = Math.Max(1, targets.Count);
 
-				if (Core.AOS)
-					damage = GetNewAosDamage(51, 1, 5, playerVsPlayer);
-				else
-					damage = Utility.Random(27, 22);
-
-				if (targets.Count > 0)
+				if (count > 0)
 				{
 					Effects.PlaySound(p, Caster.Map, 0x160);
-
-					if (Core.AOS && targets.Count > 2)
-						damage = (damage * 2) / targets.Count;
-					else if (!Core.AOS)
-						damage /= targets.Count;
-
-					double toDeal;
-					for (int i = 0; i < targets.Count; ++i)
-					{
-						Mobile m = targets[i];
-
-						toDeal = damage;
-
-						if (!Core.AOS && CheckResisted(m))
-						{
-							damage *= 0.5;
-
-							m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
-						}
-						toDeal *= GetDamageScalar(m);
-						Caster.DoHarmful(m);
-						SpellHelper.Damage(this, m, toDeal, 0, 100, 0, 0, 0);
-
-						Caster.MovingParticles(m, 0x36D4, 7, 0, false, true, 9501, 1, 0, 0x100);
-					}
 				}
+
+				foreach (var id in targets)
+				{
+					Mobile m = id as Mobile;
+					double damage;
+
+					if (Core.AOS)
+					{
+						damage = GetNewAosDamage(51, 1, 5, id is PlayerMobile, id);
+					}
+					else
+					{
+						damage = Utility.Random(27, 22);
+					}
+
+					if (Core.AOS && count > 2)
+					{
+						damage = (damage * 2) / count;
+					}
+					else if (!Core.AOS)
+					{
+						damage /= count;
+					}
+
+					if (!Core.AOS && m != null && CheckResisted(m))
+					{
+						damage *= 0.5;
+
+						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
+					}
+
+					IDamageable source = Caster;
+					IDamageable target = id;
+
+					if (SpellHelper.CheckReflect((int)Circle, ref source, ref target, SpellDamageType))
+					{
+						Timer.DelayCall(TimeSpan.FromSeconds(.5), () =>
+						{
+							source.MovingParticles(target, item != null ? 0xA1ED : 0x36D4, 7, 0, false, true, 9501, 1, 0, 0x100);
+						});
+					}
+
+					if (m != null)
+					{
+						damage *= GetDamageScalar(m);
+					}
+
+					Caster.DoHarmful(id);
+					SpellHelper.Damage(this, target, damage, 0, 100, 0, 0, 0);
+
+					Caster.MovingParticles(id, item != null ? 0xA1ED : 0x36D4, 7, 0, false, true, 9501, 1, 0, 0x100);
+				}
+
+				ColUtility.Free(targets);
 			}
 
 			FinishSequence();
@@ -123,10 +150,13 @@ namespace Server.Spells.Seventh
 		private class InternalTarget : Target
 		{
 			private readonly MeteorSwarmSpell m_Owner;
+			private readonly Item m_Item;
 
-			public InternalTarget(MeteorSwarmSpell owner) : base(owner.SpellRange, true, TargetFlags.None)
+			public InternalTarget(MeteorSwarmSpell owner, Item item)
+				: base(Core.ML ? 10 : 12, true, TargetFlags.None)
 			{
 				m_Owner = owner;
+				m_Item = item;
 			}
 
 			protected override void OnTarget(Mobile from, object o)
@@ -134,7 +164,9 @@ namespace Server.Spells.Seventh
 				IPoint3D p = o as IPoint3D;
 
 				if (p != null)
-					m_Owner.Target(p);
+				{
+					m_Owner.Target(p, m_Item);
+				}
 			}
 
 			protected override void OnTargetFinish(Mobile from)

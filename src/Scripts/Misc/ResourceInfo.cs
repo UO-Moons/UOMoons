@@ -58,6 +58,11 @@ namespace Server.Items
 		public int WeaponLuck { get; set; }
 		public int WeaponGoldIncrease { get; set; }
 		public int WeaponLowerRequirements { get; set; }
+		public int WeaponDamage { get; set; }
+		public int WeaponHitChance { get; set; }
+		public int WeaponHitLifeLeech { get; set; }
+		public int WeaponRegenHits { get; set; }
+		public int WeaponSwingSpeed { get; set; }
 
 		public int ArmorPhysicalResist { get; set; }
 		public int ArmorFireResist { get; set; }
@@ -68,6 +73,31 @@ namespace Server.Items
 		public int ArmorLuck { get; set; }
 		public int ArmorGoldIncrease { get; set; }
 		public int ArmorLowerRequirements { get; set; }
+		public int ArmorDamage { get; set; }
+		public int ArmorHitChance { get; set; }
+		public int ArmorRegenHits { get; set; }
+		public int ArmorMage { get; set; }
+
+		public int ShieldPhysicalResist { get; set; }
+		public int ShieldFireResist { get; set; }
+		public int ShieldColdResist { get; set; }
+		public int ShieldPoisonResist { get; set; }
+		public int ShieldEnergyResist { get; set; }
+		public int ShieldPhysicalRandom { get; set; }
+		public int ShieldColdRandom { get; set; }
+		public int ShieldSpellChanneling { get; set; }
+		public int ShieldLuck { get; set; }
+		public int ShieldLowerRequirements { get; set; }
+		public int ShieldRegenHits { get; set; }
+		public int ShieldBonusDex { get; set; }
+		public int ShieldBonusStr { get; set; }
+		public int ShieldReflectPhys { get; set; }
+		public int ShieldSelfRepair { get; set; }
+
+		public int OtherSpellChanneling { get; set; }
+		public int OtherLuck { get; set; }
+		public int OtherRegenHits { get; set; }
+		public int OtherLowerRequirements { get; set; }
 
 		public int RunicMinAttributes { get; set; }
 		public int RunicMaxAttributes { get; set; }

@@ -10,6 +10,7 @@ using Server.Prompts;
 using Server.Targeting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -435,12 +436,22 @@ namespace Server.Network
 
 	public sealed class StatLockInfo : Packet
 	{
-		public StatLockInfo(Mobile m) : base(0xBF)
+		public StatLockInfo(Mobile m)
+			: base(0xBF)
 		{
 			EnsureCapacity(12);
 
 			m_Stream.Write((short)0x19);
-			m_Stream.Write((byte)2);
+
+			if (m.NetState.IsEnhancedClient)
+			{
+				m_Stream.Write((byte)5);
+			}
+			else
+			{
+				m_Stream.Write((byte)2);
+			}
+
 			m_Stream.Write(m.Serial);
 			m_Stream.Write((byte)0);
 
@@ -557,7 +568,8 @@ namespace Server.Network
 
 	public sealed class ChangeCombatant : Packet
 	{
-		public ChangeCombatant(Mobile combatant) : base(0xAA, 5)
+		public ChangeCombatant(IEntity combatant)
+			: base(0xAA, 5)
 		{
 			m_Stream.Write(combatant != null ? combatant.Serial : Serial.Zero);
 		}
@@ -593,15 +605,18 @@ namespace Server.Network
 
 	public sealed class UnicodePrompt : Packet
 	{
-		public UnicodePrompt(Prompt prompt) : base(0xC2)
+		public UnicodePrompt(Prompt prompt, Mobile to)
+			: base(0xC2)
 		{
 			EnsureCapacity(21);
 
-			m_Stream.Write(prompt.Serial);
-			m_Stream.Write(prompt.Serial);
-			m_Stream.Write(0);
-			m_Stream.Write(0);
-			m_Stream.Write((short)0);
+			Serial senderSerial = prompt.Sender != null ? prompt.Sender.Serial : to.Serial;
+
+			m_Stream.Write((int)senderSerial);
+			m_Stream.Write((int)prompt.TypeId); //0x2C
+			m_Stream.Write((int)0); // type
+			m_Stream.Write((int)0); // language
+			m_Stream.Write((short)0); // text
 		}
 	}
 
@@ -660,19 +675,30 @@ namespace Server.Network
 		}
 	}
 
+	public enum SpeedControlType : byte
+	{
+		Disable,
+		MountSpeed,
+		WalkSpeed,
+		WalkSpeedFast,
+		TeleportSpeed
+	}
+
 	public sealed class SpeedControl : Packet
 	{
-		public static readonly Packet WalkSpeed = Packet.SetStatic(new SpeedControl(2));
-		public static readonly Packet MountSpeed = Packet.SetStatic(new SpeedControl(1));
-		public static readonly Packet Disable = Packet.SetStatic(new SpeedControl(0));
+		public static readonly Packet TeleportSpeed = SetStatic(new SpeedControl(SpeedControlType.TeleportSpeed));
+		public static readonly Packet WalkSpeedFast = SetStatic(new SpeedControl(SpeedControlType.WalkSpeedFast));
+		public static readonly Packet WalkSpeed = SetStatic(new SpeedControl(SpeedControlType.WalkSpeed));
+		public static readonly Packet MountSpeed = SetStatic(new SpeedControl(SpeedControlType.MountSpeed));
+		public static readonly Packet Disable = SetStatic(new SpeedControl(SpeedControlType.Disable));
 
-		public SpeedControl(int speedControl)
+		public SpeedControl(SpeedControlType type)
 			: base(0xBF)
 		{
 			EnsureCapacity(3);
 
 			m_Stream.Write((short)0x26);
-			m_Stream.Write((byte)speedControl);
+			m_Stream.Write((byte)type);
 		}
 	}
 
@@ -1169,7 +1195,8 @@ namespace Server.Network
 
 	public sealed class WorldItemHS : Packet
 	{
-		public WorldItemHS(Item item) : base(0xF3, 26)
+		public WorldItemHS(Item item)
+			: base(0xF3, 26)
 		{
 			m_Stream.Write((short)0x1);
 
@@ -1178,7 +1205,6 @@ namespace Server.Network
 			if (item is BaseMulti)
 			{
 				m_Stream.Write((byte)0x02);
-
 				m_Stream.Write(item.Serial);
 
 				itemID &= 0x3FFF;
@@ -1186,18 +1212,17 @@ namespace Server.Network
 				m_Stream.Write((ushort)itemID);
 
 				m_Stream.Write((byte)0);
-				/*} else if (  ) {
-					m_Stream.Write( (byte) 0x01 );
-
-					m_Stream.Write( (int) item.Serial );
-
-					m_Stream.Write( (ushort) itemID );
-
-					m_Stream.Write( (byte) item.Direction );*/
 			}
 			else
 			{
-				m_Stream.Write((byte)0x00);
+				if (item is IDamageable)
+				{
+					m_Stream.Write((byte)0x03);
+				}
+				else
+				{
+					m_Stream.Write((byte)0x00);
+				}
 
 				m_Stream.Write(item.Serial);
 
@@ -1224,6 +1249,84 @@ namespace Server.Network
 			m_Stream.Write((byte)item.GetPacketFlags());
 
 			m_Stream.Write((short)0x00); // ??
+		}
+
+		public WorldItemHS(Item item, PacketWriter stream)
+			: base(0xF3, 26, stream)
+		{
+			stream.Write((short)0x1);
+
+			int itemID = item.ItemID;
+
+			if (item is BaseMulti)
+			{
+				m_Stream.Write((byte)0x02);
+				stream.Write((int)item.Serial);
+				itemID &= 0x3FFF;
+				stream.Write((ushort)itemID);
+				stream.Write((byte)0);
+			}
+			else
+			{
+				if (item is IDamageable)
+				{
+					m_Stream.Write((byte)0x03);
+				}
+				else
+				{
+					m_Stream.Write((byte)0x00);
+				}
+
+				stream.Write((int)item.Serial);
+				itemID &= 0xFFFF;
+				stream.Write((ushort)itemID);
+				stream.Write((byte)0);
+			}
+
+			int amount = item.Amount;
+			stream.Write((short)amount);
+			stream.Write((short)amount);
+
+			Point3D loc = item.Location;
+			int x = loc.m_X & 0x7FFF;
+			int y = loc.m_Y & 0x3FFF;
+			stream.Write((short)x);
+			stream.Write((short)y);
+			stream.Write((sbyte)loc.m_Z);
+
+			stream.Write((byte)item.Light);
+			stream.Write((short)item.Hue);
+			stream.Write((byte)item.GetPacketFlags());
+
+			stream.Write((short)0x00); // ??
+		}
+
+		public WorldItemHS(Mobile mob, PacketWriter stream)
+			: base(0xF3, 26, stream)
+		{
+			stream.Write((short)0x1);
+
+			stream.Write((byte)0x01);
+			stream.Write((int)mob.Serial);
+			stream.Write((ushort)mob.BodyValue);
+			stream.Write((byte)0);
+
+			int amount = 1;
+			stream.Write((short)amount);
+			stream.Write((short)amount);
+
+			Point3D loc = mob.Location;
+			int x = loc.m_X & 0x7FFF;
+			int y = loc.m_Y & 0x3FFF;
+			stream.Write((short)x);
+			stream.Write((short)y);
+			stream.Write((sbyte)loc.m_Z);
+
+			stream.Write((byte)mob.LightLevel);
+			stream.Write((short)mob.Hue);
+			stream.Write((byte)mob.GetPacketFlags());
+
+			stream.Write((short)0x00); // ??
 		}
 	}
 
@@ -1440,6 +1543,35 @@ namespace Server.Network
 			m_Stream.Write(serial);
 			m_Stream.Write((byte)layer);
 			m_Stream.Write((short)unknown);
+		}
+	}
+
+	public class GraphicalEffect : Packet
+	{
+		public GraphicalEffect(EffectType type, Serial from, Serial to, int itemID, Point3D fromPoint, Point3D toPoint, int speed, int duration, bool fixedDirection, bool explode)
+			: this(type, from, to, itemID, fromPoint, toPoint, speed, duration, fixedDirection, explode ? 1 : 0)
+		{
+		}
+
+		public GraphicalEffect(EffectType type, Serial from, Serial to, int itemID, Point3D fromPoint, Point3D toPoint, int speed, int duration, bool fixedDirection, int explode)
+			: base(0x70, 28)
+		{
+			m_Stream.Write((byte)type);
+			m_Stream.Write((int)from);
+			m_Stream.Write((int)to);
+			m_Stream.Write((short)itemID);
+			m_Stream.Write((short)fromPoint.X);
+			m_Stream.Write((short)fromPoint.Y);
+			m_Stream.Write((sbyte)fromPoint.Z);
+			m_Stream.Write((short)toPoint.X);
+			m_Stream.Write((short)toPoint.Y);
+			m_Stream.Write((sbyte)toPoint.Z);
+			m_Stream.Write((byte)speed);
+			m_Stream.Write((byte)duration);
+			m_Stream.Write((byte)0);
+			m_Stream.Write((byte)0);
+			m_Stream.Write((bool)fixedDirection);
+			m_Stream.Write((byte)explode);
 		}
 	}
 
@@ -1695,6 +1827,29 @@ namespace Server.Network
 		}
 	}
 
+	public sealed class BoltEffectNew : Packet
+	{
+		public BoltEffectNew(IEntity target)
+			: base(0x70, 28)
+		{
+			m_Stream.Write((byte)0x01); // type
+			m_Stream.Write(target.Serial);
+			m_Stream.Write(Serial.Zero);
+			m_Stream.Write((short)0); // itemID
+			m_Stream.Write((short)target.X);
+			m_Stream.Write((short)target.Y);
+			m_Stream.Write((sbyte)target.Z);
+			m_Stream.Write((short)target.X);
+			m_Stream.Write((short)target.Y);
+			m_Stream.Write((sbyte)target.Z);
+			m_Stream.Write((byte)0); // speed
+			m_Stream.Write((byte)0); // duration
+			m_Stream.Write((short)0); // unk
+			m_Stream.Write(true); // fixed direction
+			m_Stream.Write(true); // explode
+		}
+	}
+
 	public sealed class DisplaySpellbook : Packet
 	{
 		public DisplaySpellbook(Item book) : base(0x24, 7)
@@ -1822,13 +1977,14 @@ namespace Server.Network
 
 	public sealed class ContainerContentUpdate : Packet
 	{
-		public ContainerContentUpdate(Item item) : base(0x25, 20)
+		public ContainerContentUpdate(Item item)
+			: base(0x25, 20)
 		{
 			Serial parentSerial;
 
-			if (item.Parent is Item parentItem)
+			if (item.Parent is Item)
 			{
-				parentSerial = parentItem.Serial;
+				parentSerial = ((Item)item.Parent).Serial;
 			}
 			else
 			{
@@ -1843,19 +1999,20 @@ namespace Server.Network
 			m_Stream.Write((short)item.X);
 			m_Stream.Write((short)item.Y);
 			m_Stream.Write(parentSerial);
-			m_Stream.Write((ushort)(item.QuestItem ? Item.QuestItemHue : item.Hue));
+			m_Stream.Write((ushort)(item.QuestItem ? item.QuestItemHue : item.Hue));
 		}
 	}
 
 	public sealed class ContainerContentUpdate6017 : Packet
 	{
-		public ContainerContentUpdate6017(Item item) : base(0x25, 21)
+		public ContainerContentUpdate6017(Item item)
+			: base(0x25, 21)
 		{
 			Serial parentSerial;
 
-			if (item.Parent is Item parentItem)
+			if (item.Parent is Item)
 			{
-				parentSerial = parentItem.Serial;
+				parentSerial = ((Item)item.Parent).Serial;
 			}
 			else
 			{
@@ -1869,17 +2026,18 @@ namespace Server.Network
 			m_Stream.Write((ushort)item.Amount);
 			m_Stream.Write((short)item.X);
 			m_Stream.Write((short)item.Y);
-			m_Stream.Write((byte)0); // Grid Location?
+			m_Stream.Write((byte)item.GridLocation);
 			m_Stream.Write(parentSerial);
-			m_Stream.Write((ushort)(item.QuestItem ? Item.QuestItemHue : item.Hue));
+			m_Stream.Write((ushort)(item.QuestItem ? item.QuestItemHue : item.Hue));
 		}
 	}
 
 	public sealed class ContainerContent : Packet
 	{
-		public ContainerContent(Mobile beholder, Item beheld) : base(0x3C)
+		public ContainerContent(Mobile beholder, Item beheld)
+			: base(0x3C)
 		{
-			List<Item> items = beheld.Items;
+			var items = beheld.Items;
 			int count = items.Count;
 
 			EnsureCapacity(5 + (count * 19));
@@ -1896,6 +2054,11 @@ namespace Server.Network
 
 				if (!child.Deleted && beholder.CanSee(child))
 				{
+					if (child.GridLocation == 0xFF)
+					{
+						child.GridLocation = (byte)(count - written);
+					}
+
 					Point3D loc = child.Location;
 
 					m_Stream.Write(child.Serial);
@@ -1904,8 +2067,9 @@ namespace Server.Network
 					m_Stream.Write((ushort)child.Amount);
 					m_Stream.Write((short)loc.m_X);
 					m_Stream.Write((short)loc.m_Y);
+					m_Stream.Write((byte)child.GridLocation);
 					m_Stream.Write(beheld.Serial);
-					m_Stream.Write((ushort)(child.QuestItem ? Item.QuestItemHue : child.Hue));
+					m_Stream.Write((ushort)(child.QuestItem ? child.QuestItemHue : child.Hue));
 
 					++written;
 				}
@@ -1918,9 +2082,10 @@ namespace Server.Network
 
 	public sealed class ContainerContent6017 : Packet
 	{
-		public ContainerContent6017(Mobile beholder, Item beheld) : base(0x3C)
+		public ContainerContent6017(Mobile beholder, Item beheld)
+			: base(0x3C)
 		{
-			List<Item> items = beheld.Items;
+			var items = beheld.Items;
 			int count = items.Count;
 
 			EnsureCapacity(5 + (count * 20));
@@ -1939,15 +2104,20 @@ namespace Server.Network
 				{
 					Point3D loc = child.Location;
 
+					if (child.GridLocation == 0xFF)
+					{
+						child.GridLocation = (byte)(count - written);
+					}
+
 					m_Stream.Write(child.Serial);
 					m_Stream.Write((ushort)child.ItemID);
 					m_Stream.Write((byte)0); // signed, itemID offset
 					m_Stream.Write((ushort)child.Amount);
 					m_Stream.Write((short)loc.m_X);
 					m_Stream.Write((short)loc.m_Y);
-					m_Stream.Write((byte)0); // Grid Location?
+					m_Stream.Write((byte)child.GridLocation);
 					m_Stream.Write(beheld.Serial);
-					m_Stream.Write((ushort)(child.QuestItem ? Item.QuestItemHue : child.Hue));
+					m_Stream.Write((ushort)(child.QuestItem ? child.QuestItemHue : child.Hue));
 
 					++written;
 				}
@@ -1980,7 +2150,7 @@ namespace Server.Network
 
 	public sealed class Swing : Packet
 	{
-		public Swing(int flag, Mobile attacker, Mobile defender) : base(0x2F, 10)
+		public Swing(int flag, Mobile attacker, IDamageable defender) : base(0x2F, 10)
 		{
 			m_Stream.Write((byte)flag);
 			m_Stream.Write(attacker.Serial);
@@ -2845,7 +3015,7 @@ namespace Server.Network
 
 	public sealed class MobileHitsN : Packet
 	{
-		public MobileHitsN(Mobile m) : base(0xA1, 9)
+		public MobileHitsN(IDamageable m) : base(0xA1, 9)
 		{
 			m_Stream.Write(m.Serial);
 			AttributeNormalizer.Write(m_Stream, m.Hits, m.HitsMax);
@@ -2961,28 +3131,29 @@ namespace Server.Network
 
 	public sealed class NewMobileAnimation : Packet
 	{
-		public NewMobileAnimation(Mobile m, int action, int frameCount, int delay) : base(0xE2, 10)
+		public NewMobileAnimation(Mobile m, AnimationType type, int action, int delay)
+			: base(0xE2, 10)
 		{
 			m_Stream.Write(m.Serial);
+			m_Stream.Write((short)type);
 			m_Stream.Write((short)action);
-			m_Stream.Write((short)frameCount);
 			m_Stream.Write((byte)delay);
 		}
 	}
 
 	public sealed class MobileStatusCompact : Packet
 	{
-		public MobileStatusCompact(bool canBeRenamed, Mobile m) : base(0x11)
+		public MobileStatusCompact(bool canBeRenamed, IDamageable d)
+			: base(0x11)
 		{
-			string name = m.Name;
-			if (name == null) name = "";
+			string name = d.Name ?? "";
 
 			EnsureCapacity(43);
 
-			m_Stream.Write(m.Serial);
+			m_Stream.Write(d.Serial);
 			m_Stream.WriteAsciiFixed(name, 30);
 
-			AttributeNormalizer.WriteReverse(m_Stream, m.Hits, m.HitsMax);
+			AttributeNormalizer.WriteReverse(m_Stream, d.Hits, d.HitsMax);
 
 			m_Stream.Write(canBeRenamed);
 
@@ -2992,21 +3163,25 @@ namespace Server.Network
 
 	public sealed class MobileStatusExtended : Packet
 	{
-		public MobileStatusExtended(Mobile m) : this(m, m.NetState)
-		{
-		}
+		public MobileStatusExtended(Mobile m)
+			: this(m, m.NetState)
+		{ }
 
-		public MobileStatusExtended(Mobile m, NetState ns) : base(0x11)
+		public MobileStatusExtended(Mobile m, NetState ns)
+			: base(0x11)
 		{
 			string name = m.Name;
-			if (name == null) name = "";
+			if (name == null)
+			{
+				name = "";
+			}
 
 			int type;
 
-			if (Core.HS && ns != null && ns.ExtendedStatus)
+			if (Core.ML && ns != null && ns.ExtendedStatus)
 			{
 				type = 6;
-				EnsureCapacity(121);
+				EnsureCapacity(ns.IsEnhancedClient ? 151 : 121);
 			}
 			else if (Core.ML && ns != null && ns.SupportsExpansion(Expansion.ML))
 			{
@@ -3042,13 +3217,13 @@ namespace Server.Network
 			m_Stream.Write((short)m.ManaMax);
 
 			m_Stream.Write(m.TotalGold);
-			m_Stream.Write((short)(Core.AOS ? m.PhysicalResistance : m.ArmorRating + 0.5));
+			m_Stream.Write((short)(Core.AOS ? m.PhysicalResistance : (int)(m.ArmorRating + 0.5)));
 			m_Stream.Write((short)(Mobile.BodyWeight + m.TotalWeight));
 
 			if (type >= 5)
 			{
 				m_Stream.Write((short)m.MaxWeight);
-				m_Stream.Write((byte)(m.Race.RaceID + 1));  // Would be 0x00 if it's a non-ML enabled account but...
+				m_Stream.Write((byte)(m.Race.RaceID + 1)); // Would be 0x00 if it's a non-ML enabled account but...
 			}
 
 			m_Stream.Write((short)m.StatCap);
@@ -3069,7 +3244,9 @@ namespace Server.Network
 				int min = 0, max = 0;
 
 				if (weapon != null)
+				{
 					weapon.GetStatusDamage(m, out min, out max);
+				}
 
 				m_Stream.Write((short)min); // Damage min
 				m_Stream.Write((short)max); // Damage max
@@ -3079,34 +3256,43 @@ namespace Server.Network
 
 			if (type >= 6)
 			{
-				for (int i = 0; i < 15; ++i)
+				int count = ns.IsEnhancedClient ? 28 : 14;
+
+				for (int i = 0; i <= count; ++i)
+				{
 					m_Stream.Write((short)m.GetAOSStatus(i));
+				}
 			}
 		}
 	}
 
 	public sealed class MobileStatus : Packet
 	{
-		public MobileStatus(Mobile beholder, Mobile beheld) : this(beholder, beheld, beheld.NetState)
-		{
-		}
+		public MobileStatus(Mobile beholder, Mobile beheld)
+			: this(beholder, beheld, beheld.NetState)
+		{ }
 
-		public MobileStatus(Mobile beholder, Mobile beheld, NetState ns) : base(0x11)
+		public MobileStatus(Mobile beholder, Mobile beheld, NetState ns)
+			: base(0x11)
 		{
 			string name = beheld.Name;
-			if (name == null) name = "";
+			if (name == null)
+			{
+				name = "";
+			}
 
 			int type;
+			bool isEnhancedClient = beholder.NetState != null && beholder.NetState.IsEnhancedClient;
 
 			if (beholder != beheld)
 			{
 				type = 0;
 				EnsureCapacity(43);
 			}
-			else if (Core.HS && ns != null && ns.ExtendedStatus)
+			else if (Core.ML && ns != null && ns.ExtendedStatus)
 			{
 				type = 6;
-				EnsureCapacity(121);
+				EnsureCapacity(isEnhancedClient ? 151 : 121);
 			}
 			else if (Core.ML && ns != null && ns.SupportsExpansion(Expansion.ML))
 			{
@@ -3124,9 +3310,13 @@ namespace Server.Network
 			m_Stream.WriteAsciiFixed(name, 30);
 
 			if (beholder == beheld)
+			{
 				WriteAttr(beheld.Hits, beheld.HitsMax);
+			}
 			else
+			{
 				WriteAttrNorm(beheld.Hits, beheld.HitsMax);
+			}
 
 			m_Stream.Write(beheld.CanBeRenamedBy(beholder));
 
@@ -3144,7 +3334,7 @@ namespace Server.Network
 				WriteAttr(beheld.Mana, beheld.ManaMax);
 
 				m_Stream.Write(beheld.TotalGold);
-				m_Stream.Write((short)(Core.AOS ? beheld.PhysicalResistance : beheld.ArmorRating + 0.5));
+				m_Stream.Write((short)(Core.AOS ? beheld.PhysicalResistance : (int)(beheld.ArmorRating + 0.5)));
 				m_Stream.Write((short)(Mobile.BodyWeight + beheld.TotalWeight));
 
 				if (type >= 5)
@@ -3171,7 +3361,9 @@ namespace Server.Network
 					int min = 0, max = 0;
 
 					if (weapon != null)
+					{
 						weapon.GetStatusDamage(beheld, out min, out max);
+					}
 
 					m_Stream.Write((short)min); // Damage min
 					m_Stream.Write((short)max); // Damage max
@@ -3181,8 +3373,12 @@ namespace Server.Network
 
 				if (type >= 6)
 				{
-					for (int i = 0; i < 15; ++i)
+					int count = isEnhancedClient ? 28 : 14;
+
+					for (int i = 0; i <= count; ++i)
+					{
 						m_Stream.Write((short)beheld.GetAOSStatus(i));
+					}
 				}
 			}
 		}
@@ -3237,6 +3433,54 @@ namespace Server.Network
 			if (m.Blessed || m.YellowHealthbar)
 			{
 				m_Stream.Write((byte)1);
+			}
+			else
+			{
+				m_Stream.Write((byte)0);
+			}
+		}
+	}
+
+	public sealed class HealthbarYellowEC : Packet
+	{
+		public HealthbarYellowEC(Mobile m)
+			: base(0x16)
+		{
+			EnsureCapacity(12);
+
+			m_Stream.Write(m.Serial);
+
+			m_Stream.Write((short)1);
+			m_Stream.Write((short)2);
+
+			if (m.Blessed || m.YellowHealthbar)
+			{
+				m_Stream.Write((byte)1);
+			}
+			else
+			{
+				m_Stream.Write((byte)0);
+			}
+		}
+	}
+
+	public sealed class HealthbarPoisonEC : Packet
+	{
+		public HealthbarPoisonEC(Mobile m)
+			: base(0x16)
+		{
+			EnsureCapacity(12);
+
+			m_Stream.Write(m.Serial);
+
+			m_Stream.Write((short)1);
+			m_Stream.Write((short)1);
+
+			Poison p = m.Poison;
+
+			if (p != null)
+			{
+				m_Stream.Write((byte)(p.Level + 1));
 			}
 			else
 			{
@@ -3975,7 +4219,8 @@ namespace Server.Network
 
 	public sealed class CharacterList : Packet
 	{
-		public CharacterList(IAccount a, CityInfo[] info) : base(0xA9)
+		public CharacterList(IAccount a, CityInfo[] info, bool IsEnhancedClient)
+			: base(0xA9)
 		{
 			EnsureCapacity(11 + (a.Length * 60) + (info.Length * 89));
 
@@ -3984,7 +4229,9 @@ namespace Server.Network
 			for (int i = 0; i < a.Length; ++i)
 			{
 				if (a[i] != null)
+				{
 					highSlot = i;
+				}
 			}
 
 			int count = Math.Max(Math.Max(highSlot + 1, a.Limit), 5);
@@ -4024,13 +4271,29 @@ namespace Server.Network
 			CharacterListFlags flags = ExpansionInfo.CoreExpansion.CharacterListFlags;
 
 			if (count > 6)
-				flags |= (CharacterListFlags.SeventhCharacterSlot | CharacterListFlags.SixthCharacterSlot); // 7th Character Slot - TODO: Is SixthCharacterSlot Required?
+			{
+				flags |= (CharacterListFlags.SeventhCharacterSlot | CharacterListFlags.SixthCharacterSlot);
+			}
+			// 7th Character Slot - TODO: Is SixthCharacterSlot Required?
 			else if (count == 6)
+			{
 				flags |= CharacterListFlags.SixthCharacterSlot; // 6th Character Slot
+			}
 			else if (a.Limit == 1)
-				flags |= (CharacterListFlags.SlotLimit & CharacterListFlags.OneCharacterSlot); // Limit Characters & One Character
+			{
+				flags |= (CharacterListFlags.SlotLimit | CharacterListFlags.OneCharacterSlot); // Limit Characters & One Character
+			}
 
-			m_Stream.Write((int)(flags | AdditionalFlags)); // Additional Flags
+			if (IsEnhancedClient)
+			{
+				flags |= CharacterListFlags.KR; // Suppport Enhanced Client / KR flag 1 and 2 (0x200 + 0x400)
+			}
+
+			flags |= AdditionalFlags;
+
+			Console.WriteLine("{0}: {1} / {2} [{3}]", a.Username, a.Count, a.Limit, flags);
+
+			m_Stream.Write((int)flags);
 
 			m_Stream.Write((short)-1);
 
@@ -4192,14 +4455,64 @@ namespace Server.Network
 
 	public sealed class MessageLocalizedAffix : Packet
 	{
-		public MessageLocalizedAffix(Serial serial, int graphic, MessageType messageType, int hue, int font, int number, string name, AffixType affixType, string affix, string args) : base(0xCC)
+		public MessageLocalizedAffix(
+			Serial serial,
+			int graphic,
+			MessageType messageType,
+			int hue,
+			int font,
+			int number,
+			string name,
+			AffixType affixType,
+			string affix,
+			string args)
+			: this(null,
+				serial,
+				graphic,
+				messageType,
+				hue,
+				font,
+				number,
+				name,
+				affixType,
+				affix,
+				args)
 		{
-			if (name == null) name = "";
-			if (affix == null) affix = "";
-			if (args == null) args = "";
+		}
+
+		public MessageLocalizedAffix(
+			NetState state,
+			Serial serial,
+			int graphic,
+			MessageType messageType,
+			int hue,
+			int font,
+			int number,
+			string name,
+			AffixType affixType,
+			string affix,
+			string args)
+			: base(0xCC)
+		{
+			if (name == null)
+			{
+				name = "";
+			}
+
+			if (affix == null)
+			{
+				affix = "";
+			}
+
+			if (args == null)
+			{
+				args = "";
+			}
 
 			if (hue == 0)
+			{
 				hue = 0x3B2;
+			}
 
 			EnsureCapacity(52 + affix.Length + (args.Length * 2));
 
@@ -4212,7 +4525,15 @@ namespace Server.Network
 			m_Stream.Write((byte)affixType);
 			m_Stream.WriteAsciiFixed(name, 30);
 			m_Stream.WriteAsciiNull(affix);
-			m_Stream.WriteBigUniNull(args);
+
+			if (state != null && state.IsEnhancedClient)
+			{
+				m_Stream.WriteLittleUniNull(args);
+			}
+			else
+			{
+				m_Stream.WriteBigUniNull(args);
+			}
 		}
 	}
 
@@ -4308,28 +4629,52 @@ namespace Server.Network
 		}
 	}
 
+	[Flags]
+	public enum PacketState
+	{
+		Inactive = 0x00,
+		Static = 0x01,
+		Acquired = 0x02,
+		Accessed = 0x04,
+		Buffered = 0x08,
+		Warned = 0x10
+	}
+
 	public abstract class Packet
 	{
-		[Flags]
-		private enum State
-		{
-			Inactive = 0x00,
-			Static = 0x01,
-			Acquired = 0x02,
-			Accessed = 0x04,
-			Buffered = 0x08,
-			Warned = 0x10
-		}
-
 		protected PacketWriter m_Stream;
-		private readonly int m_Length;
-		private State m_State;
 
-		public int PacketID { get; }
+		private readonly int m_PacketID;
+		private readonly int m_Length;
+
+		private PacketState m_State;
+
+		public int PacketID => m_PacketID;
+
+		public PacketState State => m_State;
 
 		protected Packet(int packetID)
 		{
-			PacketID = packetID;
+			m_PacketID = packetID;
+
+			if (Core.Profiling)
+			{
+				PacketSendProfile prof = PacketSendProfile.Acquire(GetType());
+				prof.Increment();
+			}
+		}
+
+		protected Packet(int packetID, int length)
+			: this(packetID, length, PacketWriter.CreateInstance(length))
+		{ }
+
+		protected Packet(int packetID, int length, PacketWriter stream)
+		{
+			m_PacketID = packetID;
+			m_Length = length;
+
+			m_Stream = stream;
+			m_Stream.Write((byte)packetID);
 
 			if (Core.Profiling)
 			{
@@ -4341,23 +4686,8 @@ namespace Server.Network
 		public void EnsureCapacity(int length)
 		{
 			m_Stream = PacketWriter.CreateInstance(length);// new PacketWriter( length );
-			m_Stream.Write((byte)PacketID);
+			m_Stream.Write((byte)m_PacketID);
 			m_Stream.Write((short)0);
-		}
-
-		protected Packet(int packetID, int length)
-		{
-			PacketID = packetID;
-			m_Length = length;
-
-			m_Stream = PacketWriter.CreateInstance(length);// new PacketWriter( length );
-			m_Stream.Write((byte)packetID);
-
-			if (Core.Profiling)
-			{
-				PacketSendProfile prof = PacketSendProfile.Acquire(GetType());
-				prof.Increment();
-			}
 		}
 
 		public PacketWriter UnderlyingStream => m_Stream;
@@ -4383,7 +4713,9 @@ namespace Server.Network
 		public static void Release(ref ObjectPropertyList p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 
 			p = null;
 		}
@@ -4391,7 +4723,9 @@ namespace Server.Network
 		public static void Release(ref RemoveItem p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 
 			p = null;
 		}
@@ -4399,7 +4733,9 @@ namespace Server.Network
 		public static void Release(ref RemoveMobile p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 
 			p = null;
 		}
@@ -4407,7 +4743,9 @@ namespace Server.Network
 		public static void Release(ref OPLInfo p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 
 			p = null;
 		}
@@ -4415,7 +4753,9 @@ namespace Server.Network
 		public static void Release(ref Packet p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 
 			p = null;
 		}
@@ -4423,17 +4763,19 @@ namespace Server.Network
 		public static void Release(Packet p)
 		{
 			if (p != null)
+			{
 				p.Release();
+			}
 		}
 
 		public void SetStatic()
 		{
-			m_State |= State.Static | State.Acquired;
+			m_State |= PacketState.Static | PacketState.Acquired;
 		}
 
 		public void Acquire()
 		{
-			m_State |= State.Acquired;
+			m_State |= PacketState.Acquired;
 		}
 
 		public void OnSend()
@@ -4442,28 +4784,36 @@ namespace Server.Network
 
 			lock (this)
 			{
-				if ((m_State & (State.Acquired | State.Static)) == 0)
+				if ((m_State & (PacketState.Acquired | PacketState.Static)) == 0)
+				{
 					Free();
+				}
 			}
 		}
 
 		private void Free()
 		{
 			if (m_CompiledBuffer == null)
+			{
 				return;
+			}
 
-			if ((m_State & State.Buffered) != 0)
+			if ((m_State & PacketState.Buffered) != 0)
+			{
 				m_Buffers.ReleaseBuffer(m_CompiledBuffer);
+			}
 
-			m_State &= ~(State.Static | State.Acquired | State.Buffered);
+			m_State &= ~(PacketState.Static | PacketState.Acquired | PacketState.Buffered);
 
 			m_CompiledBuffer = null;
 		}
 
 		public void Release()
 		{
-			if ((m_State & State.Acquired) != 0)
+			if ((m_State & PacketState.Acquired) != 0)
+			{
 				Free();
+			}
 		}
 
 		private byte[] m_CompiledBuffer;
@@ -4475,28 +4825,29 @@ namespace Server.Network
 			{
 				if (m_CompiledBuffer == null)
 				{
-					if ((m_State & State.Accessed) == 0)
+					if ((m_State & PacketState.Accessed) == 0)
 					{
-						m_State |= State.Accessed;
+						m_State |= PacketState.Accessed;
 					}
 					else
 					{
-						if ((m_State & State.Warned) == 0)
+						if ((m_State & PacketState.Warned) == 0)
 						{
-							m_State |= State.Warned;
+							m_State |= PacketState.Warned;
 
 							try
 							{
-								using StreamWriter op = new StreamWriter("net_opt.log", true);
-								op.WriteLine("Redundant compile for packet {0}, use Acquire() and Release()", GetType());
-								op.WriteLine(new System.Diagnostics.StackTrace());
+								using (StreamWriter op = new StreamWriter("net_opt.log", true))
+								{
+									op.WriteLine("Redundant compile for packet {0}, use Acquire() and Release()", GetType());
+									op.WriteLine(new StackTrace());
+								}
 							}
 							catch
-							{
-							}
+							{ }
 						}
 
-						m_CompiledBuffer = Array.Empty<byte>();
+						m_CompiledBuffer = new byte[0];
 						m_CompiledLength = 0;
 
 						length = m_CompiledLength;
@@ -4524,7 +4875,7 @@ namespace Server.Network
 			{
 				int diff = (int)m_Stream.Length - m_Length;
 
-				Console.WriteLine("Packet: 0x{0:X2}: Bad packet length! ({1}{2} bytes)", PacketID, diff >= 0 ? "+" : "", diff);
+				Console.WriteLine("Packet: 0x{0:X2}: Bad packet length! ({1}{2} bytes)", m_PacketID, diff >= 0 ? "+" : "", diff);
 			}
 
 			MemoryStream ms = m_Stream.UnderlyingStream;
@@ -4535,6 +4886,7 @@ namespace Server.Network
 			if (compress)
 			{
 				byte[] buffer;
+
 				lock (m_CompressorBuffers)
 					buffer = m_CompressorBuffers.AcquireBuffer();
 
@@ -4542,16 +4894,27 @@ namespace Server.Network
 
 				if (length <= 0)
 				{
-					Console.WriteLine("Warning: Compression buffer overflowed on packet 0x{0:X2} ('{1}') (length={2})", PacketID, GetType().Name, length);
-					using StreamWriter op = new StreamWriter("compression_overflow.log", true);
-					op.WriteLine("{0} Warning: Compression buffer overflowed on packet 0x{1:X2} ('{2}') (length={3})", DateTime.UtcNow, PacketID, GetType().Name, length);
-					op.WriteLine(new System.Diagnostics.StackTrace());
+					Console.WriteLine(
+						"Warning: Compression buffer overflowed on packet 0x{0:X2} ('{1}') (length={2})",
+						m_PacketID,
+						GetType().Name,
+						length);
+					using (StreamWriter op = new StreamWriter("compression_overflow.log", true))
+					{
+						op.WriteLine(
+							"{0} Warning: Compression buffer overflowed on packet 0x{1:X2} ('{2}') (length={3})",
+							DateTime.UtcNow,
+							m_PacketID,
+							GetType().Name,
+							length);
+						op.WriteLine(new StackTrace());
+					}
 				}
 				else
 				{
 					m_CompiledLength = length;
 
-					if (length > BufferSize || (m_State & State.Static) != 0)
+					if (length > BufferSize || (m_State & PacketState.Static) != 0)
 					{
 						m_CompiledBuffer = new byte[length];
 					}
@@ -4559,7 +4922,7 @@ namespace Server.Network
 					{
 						lock (m_Buffers)
 							m_CompiledBuffer = m_Buffers.AcquireBuffer();
-						m_State |= State.Buffered;
+						m_State |= PacketState.Buffered;
 					}
 
 					Buffer.BlockCopy(buffer, 0, m_CompiledBuffer, 0, length);
@@ -4570,10 +4933,10 @@ namespace Server.Network
 			}
 			else if (length > 0)
 			{
-				byte[] old = m_CompiledBuffer;
+				var old = m_CompiledBuffer;
 				m_CompiledLength = length;
 
-				if (length > BufferSize || (m_State & State.Static) != 0)
+				if (length > BufferSize || (m_State & PacketState.Static) != 0)
 				{
 					m_CompiledBuffer = new byte[length];
 				}
@@ -4581,7 +4944,7 @@ namespace Server.Network
 				{
 					lock (m_Buffers)
 						m_CompiledBuffer = m_Buffers.AcquireBuffer();
-					m_State |= State.Buffered;
+					m_State |= PacketState.Buffered;
 				}
 
 				Buffer.BlockCopy(old, 0, m_CompiledBuffer, 0, length);

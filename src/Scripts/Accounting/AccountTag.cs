@@ -4,7 +4,6 @@ namespace Server.Accounting
 {
 	public class AccountTag
 	{
-
 		/// <summary>
 		/// Gets or sets the name of this tag.
 		/// </summary>

@@ -1,5 +1,6 @@
 using Server.Engines.Craft;
 using Server.Factions;
+using Server.Misc;
 using Server.Network;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,8 @@ namespace Server.Items
 		private enum SaveFlag
 		{
 			None = 0x00000000,
-			Attributes = 0x00000001
+			Attributes = 0x00000001,
+			Altered = 0x00000002
 		}
 
 		private AosAttributes m_AosAttributes;
@@ -22,6 +24,54 @@ namespace Server.Items
 			get => m_AosAttributes;
 			set { }
 		}
+
+		private bool m_Altered;
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Altered
+		{
+			get => m_Altered;
+			set
+			{
+				m_Altered = value;
+				InvalidateProperties();
+			}
+		}
+
+		private Mobile _Owner;
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Mobile Owner
+		{
+			get => _Owner;
+			set { _Owner = value; if (_Owner != null) { _OwnerName = _Owner.Name; } InvalidateProperties(); }
+		}
+
+		private string _OwnerName;
+		public virtual string OwnerName
+		{
+			get => _OwnerName;
+			set { _OwnerName = value; InvalidateProperties(); }
+		}
+
+		private FactionItem m_FactionState;
+		public FactionItem FactionItemState
+		{
+			get => m_FactionState;
+			set
+			{
+				m_FactionState = value;
+
+				LootType = m_FactionState == null ? LootType.Regular : LootType.Blessed;
+			}
+		}
+
+		public virtual Race RequiredRace => null;
+		public virtual bool CanBeWornByGargoyles => false;
+		public virtual bool AllowMaleWearer => true;
+		public virtual bool AllowFemaleWearer => true;
+		public virtual bool CanFortify => true;
+		public virtual bool CanRepair => true;
+		public virtual bool CanAlter => true;
+		public virtual int ArtifactRarity => 0;
 
 		public BaseEquipment(int itemID) : base(itemID)
 		{
@@ -36,7 +86,7 @@ namespace Server.Items
 		{
 			base.OnSingleClick(from);
 
-			List<EquipInfoAttribute> attrs = new List<EquipInfoAttribute>();
+			List<EquipInfoAttribute> attrs = new();
 
 			#region Factions
 			if (this is IFactionItem factionItem && factionItem != null && factionItem.FactionItemState != null)
@@ -110,7 +160,7 @@ namespace Server.Items
 			if (attrs.Count == 0 && crafter != null && Name != null)
 				return;
 
-			EquipmentInfo eqInfo = new EquipmentInfo(1041000, crafter, false, attrs.ToArray());
+			EquipmentInfo eqInfo = new(1041000, crafter, false, attrs.ToArray());
 			_ = from.Send(new DisplayEquipmentInfo(this, eqInfo));
 		}
 
@@ -188,16 +238,89 @@ namespace Server.Items
 			}
 		}
 
+		public static void ValidateMobile(Mobile m)
+		{
+			for (int i = m.Items.Count - 1; i >= 0; --i)
+			{
+				if (i >= m.Items.Count)
+				{
+					continue;
+				}
+
+				Item item = m.Items[i];
+
+				if (item is BaseArmor armor)
+				{
+					if (Core.SA && !RaceDefinitions.ValidateEquipment(m, item))
+					{
+						m.AddToBackpack(armor);
+					}
+					else if (!armor.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
+					{
+						if (armor.AllowFemaleWearer)
+						{
+							m.SendLocalizedMessage(1010388); // Only females can wear this
+						}
+
+						m.AddToBackpack(armor);
+					}
+					else if (!armor.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
+					{
+						if (armor.AllowMaleWearer)
+						{
+							m.SendLocalizedMessage(1063343); // Only males can wear 
+						}
+
+						m.AddToBackpack(armor);
+					}
+				}
+				else if (item is BaseClothing clothing)
+				{
+					if (Core.SA && !RaceDefinitions.ValidateEquipment(m, clothing))
+					{
+						m.AddToBackpack(clothing);
+					}
+					else if (!clothing.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
+					{
+						if (clothing.AllowFemaleWearer)
+						{
+							m.SendLocalizedMessage(1010388); // Only females can wear this.
+						}
+						else
+						{
+							m.SendLocalizedMessage(1071936); // You cannot equip that.
+						}
+
+						m.AddToBackpack(clothing);
+					}
+					else if (!clothing.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
+					{
+						if (clothing.AllowMaleWearer)
+						{
+							m.SendLocalizedMessage(1063343); // Only males can wear this.
+						}
+						else
+						{
+							m.SendLocalizedMessage(1071936); // You cannot equip that.
+						}
+
+						m.AddToBackpack(clothing);
+					}
+				}
+			}
+		}
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 
 			writer.Write(0);
+			writer.Write(_Owner);
+			writer.Write(_OwnerName);
 
 			SaveFlag flags = SaveFlag.None;
-
 			Utility.SetSaveFlag(ref flags, SaveFlag.Attributes, !m_AosAttributes.IsEmpty);
-
+			Utility.SetSaveFlag(ref flags, SaveFlag.Altered, m_Altered);
 			writer.WriteEncodedInt((int)flags);
 
 			if (flags.HasFlag(SaveFlag.Attributes))
@@ -214,12 +337,20 @@ namespace Server.Items
 			{
 				case 0:
 					{
+						_Owner = reader.ReadMobile();
+						_OwnerName = reader.ReadString();
+
 						SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
 						if (flags.HasFlag(SaveFlag.Attributes))
 							m_AosAttributes = new AosAttributes(this, reader);
 						else
 							m_AosAttributes = new AosAttributes(this);
+
+						if (flags.HasFlag(SaveFlag.Altered))
+						{
+							m_Altered = true;
+						}
 
 						break;
 					}

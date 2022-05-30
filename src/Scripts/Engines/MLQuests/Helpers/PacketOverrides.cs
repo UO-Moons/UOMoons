@@ -34,14 +34,12 @@ namespace Server.Engines.Quests
 
         public static void QuestButton(NetState state, IEntity e, EncodedReader reader)
         {
-            if (state.Mobile is PlayerMobile)
-            {
-                PlayerMobile from = (PlayerMobile)state.Mobile;
-
-                from.CloseGump(typeof(MondainQuestGump));
-                from.SendGump(new MondainQuestGump(from));
-            }
-        }
+			if (state.Mobile is PlayerMobile from)
+			{
+				from.CloseGump(typeof(MondainQuestGump));
+				from.SendGump(new MondainQuestGump(from));
+			}
+		}
 
         public static void HeritageTransform(NetState state, PacketReader reader)
         {

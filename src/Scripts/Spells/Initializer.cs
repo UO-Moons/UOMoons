@@ -153,34 +153,13 @@ namespace Server.Spells
 					Register(606, typeof(Spellweaving.SummonFeySpell));
 					Register(607, typeof(Spellweaving.SummonFiendSpell));
 					Register(608, typeof(Spellweaving.ReaperFormSpell));
-					//Register( 609, typeof( Spellweaving.WildfireSpell ) );
+					Register( 609, typeof( Spellweaving.WildfireSpell ) );
 					Register(610, typeof(Spellweaving.EssenceOfWindSpell));
-					//Register( 611, typeof( Spellweaving.DryadAllureSpell ) );
+					Register( 611, typeof( Spellweaving.DryadAllureSpell ) );
 					Register(612, typeof(Spellweaving.EtherealVoyageSpell));
 					Register(613, typeof(Spellweaving.WordOfDeathSpell));
 					Register(614, typeof(Spellweaving.GiftOfLifeSpell));
-					//Register( 615, typeof( Spellweaving.ArcaneEmpowermentSpell ) );
-				}
-
-				if (Core.SA)
-				{
-					// Mysticism spells
-					//Register( 677, typeof( Mysticism.NetherBoltSpell ) );
-					//Register( 678, typeof( Mysticism.HealingStoneSpell ) );
-					//Register( 679, typeof( Mysticism.PurgeMagicSpell ) );
-					//Register( 680, typeof( Mysticism.EnchantSpell ) );
-					//Register( 681, typeof( Mysticism.SleepSpell ) );
-					Register(682, typeof(Mysticism.EagleStrikeSpell));
-					Register(683, typeof(Mysticism.AnimatedWeaponSpell));
-					Register(684, typeof(Mysticism.StoneFormSpell));
-					//Register( 685, typeof( Mysticism.SpellTriggerSpell ) );
-					//Register( 686, typeof( Mysticism.MassSleepSpell ) );
-					//Register( 687, typeof( Mysticism.CleansingWindsSpell ) );
-					//Register( 688, typeof( Mysticism.BombardSpell ) );
-					Register(689, typeof(Mysticism.SpellPlagueSpell));
-					Register(690, typeof(Mysticism.HailStormSpell));
-					Register(691, typeof(Mysticism.NetherCycloneSpell));
-					//Register( 692, typeof( Mysticism.RisingColossusSpell ) );
+					Register( 615, typeof( Spellweaving.ArcaneEmpowermentSpell ) );
 				}
 			}
 		}

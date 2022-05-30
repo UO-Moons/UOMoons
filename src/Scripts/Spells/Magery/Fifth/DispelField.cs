@@ -7,7 +7,7 @@ namespace Server.Spells.Fifth
 {
 	public class DispelFieldSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Dispel Field", "An Grav",
 				206,
 				9002,
@@ -50,7 +50,7 @@ namespace Server.Spells.Fifth
 			{
 				Caster.SendLocalizedMessage(1005049); // That cannot be dispelled.
 			}
-			else if (item is Moongate && !((Moongate)item).Dispellable)
+			else if (item is Moongate moongate && !moongate.Dispellable)
 			{
 				Caster.SendLocalizedMessage(1005047); // That magic is too chaotic
 			}
@@ -67,7 +67,7 @@ namespace Server.Spells.Fifth
 			FinishSequence();
 		}
 
-		private class InternalTarget : Target
+		public class InternalTarget : Target
 		{
 			private readonly DispelFieldSpell m_Owner;
 
@@ -78,9 +78,9 @@ namespace Server.Spells.Fifth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Item)
+				if (o is Item item)
 				{
-					m_Owner.Target((Item)o);
+					m_Owner.Target(item);
 				}
 				else
 				{

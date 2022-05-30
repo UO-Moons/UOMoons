@@ -41,15 +41,27 @@ namespace Server.Items
 		public int MaxArcaneCharges
 		{
 			get => m_MaxArcaneCharges;
-			set { m_MaxArcaneCharges = value; InvalidateProperties(); Update(); }
+			set
+			{
+				m_MaxArcaneCharges = value;
+				InvalidateProperties();
+				Update();
+			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int CurArcaneCharges
 		{
 			get => m_CurArcaneCharges;
-			set { m_CurArcaneCharges = value; InvalidateProperties(); Update(); }
+			set
+			{
+				m_CurArcaneCharges = value;
+				InvalidateProperties();
+				Update();
+			}
 		}
+		public int TempHue { get; set; }
+
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool IsArcane => (m_MaxArcaneCharges > 0 && m_CurArcaneCharges >= 0);
@@ -57,20 +69,29 @@ namespace Server.Items
 		public void Update()
 		{
 			if (IsArcane)
+			{
 				ItemID = 0x26AD;
+			}
 			else if (ItemID == 0x26AD)
+			{
 				ItemID = 0x1515;
+			}
 
 			if (IsArcane && CurArcaneCharges == 0)
+			{
+				TempHue = Hue;
 				Hue = 0;
+			}
 		}
 
-		public override void GetProperties(ObjectPropertyList list)
+		public override void AddCraftedProperties(ObjectPropertyList list)
 		{
-			base.GetProperties(list);
+			base.AddCraftedProperties(list);
 
 			if (IsArcane)
+			{
 				list.Add(1061837, "{0}\t{1}", m_CurArcaneCharges, m_MaxArcaneCharges); // arcane charges: ~1_val~ / ~2_val~
+			}
 		}
 
 		public override void OnSingleClick(Mobile from)
@@ -78,16 +99,23 @@ namespace Server.Items
 			base.OnSingleClick(from);
 
 			if (IsArcane)
+			{
 				LabelTo(from, 1061837, string.Format("{0}\t{1}", m_CurArcaneCharges, m_MaxArcaneCharges));
+			}
 		}
 
 		public void Flip()
 		{
 			if (ItemID == 0x1515)
+			{
 				ItemID = 0x1530;
+			}
 			else if (ItemID == 0x1530)
+			{
 				ItemID = 0x1515;
+			}
 		}
+
 		#endregion
 
 		[Constructable]

@@ -48,7 +48,7 @@ namespace Server.Mobiles
 
 			PackScroll(1, 7);
 			PackItem(new Arrow(35));
-			PackItem(new Bolt(25));
+			PackItem(new CrossBowBolt(25));
 			PackGem(2);
 
 			PackArcaneScroll(0, 1);
@@ -109,8 +109,8 @@ namespace Server.Mobiles
 					m_NextFireRing = DateTime.UtcNow + TimeSpan.FromMinutes(2);
 				}
 
-				if (Combatant.Player && m_MorphedInto != Combatant && Utility.RandomDouble() < 0.05)
-					MorphedInto = Combatant;
+				if (Combatant is Mobile && m_MorphedInto != Combatant && Utility.RandomDouble() < 0.05)
+					MorphedInto = (Mobile)Combatant;
 			}
 		}
 

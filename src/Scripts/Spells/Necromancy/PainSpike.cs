@@ -1,138 +1,151 @@
-using Server.Targeting;
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using Server.Targeting;
 
 namespace Server.Spells.Necromancy
 {
-	public class PainSpikeSpell : NecromancerSpell
-	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Pain Spike", "In Sar",
-				203,
-				9031,
-				Reagent.GraveDust,
-				Reagent.PigIron
-			);
+    public class PainSpikeSpell : NecromancerSpell
+    {
+        private static readonly SpellInfo m_Info = new SpellInfo(
+            "Pain Spike", "In Sar",
+            203,
+            9031,
+            Reagent.GraveDust,
+            Reagent.PigIron);
 
-		public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.0);
+        private static readonly Dictionary<Mobile, InternalTimer> m_Table = new Dictionary<Mobile, InternalTimer>();
 
-		public override double RequiredSkill => 20.0;
-		public override int RequiredMana => 5;
+        public PainSpikeSpell(Mobile caster, Item scroll)
+            : base(caster, scroll, m_Info)
+        {
+        }
 
-		public PainSpikeSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
-		{
-		}
+        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.25);
+        public override double RequiredSkill => 20.0;
+        public override int RequiredMana => 5;
+        public override bool DelayedDamage => false;
 
-		public override void OnCast()
-		{
-			Caster.Target = new InternalTarget(this);
-		}
+        public override void OnCast()
+        {
+            Caster.Target = new InternalTarget(this);
+        }
 
-		public override bool DelayedDamage => false;
+        public void Target(Mobile m)
+        {
+            if (CheckHSequence(m))
+            {
+                SpellHelper.Turn(Caster, m);
 
-		public void Target(Mobile m)
-		{
-			if (CheckHSequence(m))
-			{
-				SpellHelper.Turn(Caster, m);
+                ApplyEffects(m);
+            }
 
-				//SpellHelper.CheckReflect( (int)this.Circle, Caster, ref m ); //Irrelevent asfter AoS
+            FinishSequence();
+        }
 
-				/* Temporarily causes intense physical pain to the target, dealing direct damage.
-				 * After 10 seconds the spell wears off, and if the target is still alive,
-				 * some of the Hit Points lost through Pain Spike are restored.
-				 */
+        public void ApplyEffects(Mobile m, double strength = 1.0)
+        {
+            //SpellHelper.CheckReflect( (int)Circle, Caster, ref m ); //Irrelevent asfter AoS
 
-				m.FixedParticles(0x37C4, 1, 8, 9916, 39, 3, EffectLayer.Head);
-				m.FixedParticles(0x37C4, 1, 8, 9502, 39, 4, EffectLayer.Head);
-				m.PlaySound(0x210);
+            /* Temporarily causes intense physical pain to the target, dealing direct damage.
+             * After 10 seconds the spell wears off, and if the target is still alive, 
+             * some of the Hit Points lost through Pain Spike are restored.
+             */
 
-				double damage = ((GetDamageSkill(Caster) - GetResistSkill(m)) / 10) + (m.Player ? 18 : 30);
-				m.CheckSkill(SkillName.MagicResist, 0.0, 120.0);    //Skill check for gain
+            m.FixedParticles(0x37C4, 1, 8, 9916, 39, 3, EffectLayer.Head);
+            m.FixedParticles(0x37C4, 1, 8, 9502, 39, 4, EffectLayer.Head);
+            m.PlaySound(0x210);
 
-				if (damage < 1)
-					damage = 1;
+            double damage = (((GetDamageSkill(Caster) - GetResistSkill(m)) / 10) + (m.Player ? 18 : 30)) * strength;
+            m.CheckSkill(SkillName.MagicResist, 0.0, 120.0);	//Skill check for gain
 
-				TimeSpan buffTime = TimeSpan.FromSeconds(10.0);
+            if (damage < 1)
+                damage = 1;
 
-				if (m_Table.Contains(m))
-				{
-					damage = Utility.RandomMinMax(3, 7);
-					Timer t = m_Table[m] as Timer;
+            _ = TimeSpan.FromSeconds(10.0 * strength);
+            InternalTimer t;
 
-					if (t != null)
-					{
-						t.Delay += TimeSpan.FromSeconds(2.0);
+            if (m_Table.ContainsKey(m))
+            {
+                damage = Utility.RandomMinMax(3, 7);
+                t = m_Table[m];
 
-						buffTime = t.Next - DateTime.UtcNow;
-					}
-				}
-				else
-				{
-					new InternalTimer(m, damage).Start();
-				}
+                if (t != null)
+                {
+                    t.Expires += TimeSpan.FromSeconds(2);
+                }
+            }
+            else
+            {
+                t = new InternalTimer(m, damage);
+                t.Start();
+            }
 
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.PainSpike, 1075667, buffTime, m, Convert.ToString((int)damage)));
+            BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.PainSpike, 1075667, t.Expires - DateTime.UtcNow, m, Convert.ToString((int)damage)));
 
-				Misc.WeightOverloading.DFA = Misc.DFAlgorithm.PainSpike;
-				m.Damage((int)damage, Caster);
-				SpellHelper.DoLeech((int)damage, Caster, m);
-				Misc.WeightOverloading.DFA = Misc.DFAlgorithm.Standard;
+            m.DFA = DFAlgorithm.PainSpike;
+            AOS.Damage(m, Caster, (int)damage, 0, 0, 0, 0, 0, 0, 100);
+            AOS.DoLeech((int)damage, Caster, m);
+            m.DFA = DFAlgorithm.Standard;
 
-				//SpellHelper.Damage( this, m, damage, 100, 0, 0, 0, 0, Misc.DFAlgorithm.PainSpike );
-				HarmfulSpell(m);
-			}
+            HarmfulSpell(m);
+        }
 
-			FinishSequence();
-		}
+        private class InternalTimer : Timer
+        {
+            private readonly Mobile m_Mobile;
+            private readonly int m_ToRestore;
 
-		private static readonly Hashtable m_Table = new Hashtable();
+            public DateTime Expires { get; set; }
 
-		private class InternalTimer : Timer
-		{
-			private readonly Mobile m_Mobile;
-			private readonly int m_ToRestore;
+            public InternalTimer(Mobile m, double toRestore)
+                : base(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250))
+            {
+                Priority = TimerPriority.FiftyMS;
 
-			public InternalTimer(Mobile m, double toRestore) : base(TimeSpan.FromSeconds(10.0))
-			{
-				Priority = TimerPriority.OneSecond;
+                m_Mobile = m;
+                m_ToRestore = (int)toRestore;
 
-				m_Mobile = m;
-				m_ToRestore = (int)toRestore;
+                Expires = DateTime.UtcNow + TimeSpan.FromSeconds(10);
 
-				m_Table[m] = this;
-			}
+                m_Table[m] = this;
+            }
 
-			protected override void OnTick()
-			{
-				m_Table.Remove(m_Mobile);
+            protected override void OnTick()
+            {
+                if (DateTime.UtcNow >= Expires)
+                {
+                    if (m_Table.ContainsKey(m_Mobile))
+                        m_Table.Remove(m_Mobile);
 
-				if (m_Mobile.Alive && !m_Mobile.IsDeadBondedPet)
-					m_Mobile.Hits += m_ToRestore;
+                    if (m_Mobile.Alive && !m_Mobile.IsDeadBondedPet)
+                        m_Mobile.Hits += m_ToRestore;
 
-				BuffInfo.RemoveBuff(m_Mobile, BuffIcon.PainSpike);
-			}
-		}
+                    BuffInfo.RemoveBuff(m_Mobile, BuffIcon.PainSpike);
 
-		private class InternalTarget : Target
-		{
-			private readonly PainSpikeSpell m_Owner;
+                    Stop();
+                }
+            }
+        }
 
-			public InternalTarget(PainSpikeSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
-			{
-				m_Owner = owner;
-			}
+        private class InternalTarget : Target
+        {
+            private readonly PainSpikeSpell m_Owner;
+            public InternalTarget(PainSpikeSpell owner)
+                : base(Core.ML ? 10 : 12, false, TargetFlags.Harmful)
+            {
+                m_Owner = owner;
+            }
 
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
-			}
+            protected override void OnTarget(Mobile from, object o)
+            {
+                if (o is Mobile)
+                    m_Owner.Target((Mobile)o);
+            }
 
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
-		}
-	}
+            protected override void OnTargetFinish(Mobile from)
+            {
+                m_Owner.FinishSequence();
+            }
+        }
+    }
 }

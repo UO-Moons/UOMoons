@@ -1,4 +1,5 @@
 using Server.Targeting;
+using System;
 
 namespace Server.Spells.First
 {
@@ -12,13 +13,13 @@ namespace Server.Spells.First
 			);
 
 		public override SpellCircle Circle => SpellCircle.First;
+		public override bool DelayedDamageStacking => !Core.AOS;
+		public override bool DelayedDamage => true;
 		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
 
 		public MagicArrowSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
 		}
-
-		public override bool DelayedDamageStacking => !Core.AOS;
 
 		public override void OnCast()
 		{
@@ -28,53 +29,62 @@ namespace Server.Spells.First
 			}
 			else
 			{
-				if (SpellTarget is Mobile target)
+				if (SpellTarget is IDamageable target)
 					Target(target);
 				else
 					FinishSequence();
 			}
 		}
 
-		public override bool DelayedDamage => true;
-
-		public void Target(Mobile m)
+		public void Target(IDamageable d)
 		{
-			if (!Caster.CanSee(m))
+			if (!Caster.CanSee(d))
 			{
 				Caster.SendLocalizedMessage(500237); // Target can not be seen.
 			}
-			else if (CheckHSequence(m))
+			else if (CheckHSequence(d))
 			{
-				Mobile source = Caster;
+				IDamageable source = Caster;
+				IDamageable target = d;
 
-				SpellHelper.Turn(source, m);
+				SpellHelper.Turn(Caster, d);
 
-				SpellHelper.CheckReflect((int)Circle, ref source, ref m);
+				if (SpellHelper.CheckReflect((int)Circle, ref source, ref target))
+				{
+					Timer.DelayCall(TimeSpan.FromSeconds(.5), () =>
+					{
+						source.MovingParticles(target, 0x36E4, 5, 0, false, true, 3043, 4043, 0x211);
+						source.PlaySound(0x1E5);
+					});
+				}
 
-				double damage;
+				double damage = 0;
 
 				if (Core.AOS)
 				{
-					damage = GetNewAosDamage(10, 1, 4, m);
+					damage = GetNewAosDamage(10, 1, 4, d);
 				}
-				else
+				else if (target is Mobile)
 				{
 					damage = Utility.Random(4, 4);
 
-					if (CheckResisted(m))
+					if (CheckResisted((Mobile)target))
 					{
 						damage *= 0.75;
 
-						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
+						((Mobile)target).SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
 					}
 
-					damage *= GetDamageScalar(m);
+					damage *= GetDamageScalar((Mobile)target);
 				}
 
-				source.MovingParticles(m, 0x36E4, 5, 0, false, false, 3006, 0, 0);
-				source.PlaySound(0x1E5);
+				if (damage > 0)
+				{
+					Caster.MovingParticles(d, 0x36E4, 5, 0, false, false, 3006, 0, 0);
+					Caster.PlaySound(0x1E5);
 
-				SpellHelper.Damage(this, m, damage, 0, 100, 0, 0, 0);
+					SpellHelper.Damage(this, target, damage, 0, 100, 0, 0, 0);
+				}
 			}
 
 			FinishSequence();
@@ -91,9 +101,9 @@ namespace Server.Spells.First
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is IDamageable)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target((IDamageable)o);
 				}
 			}
 

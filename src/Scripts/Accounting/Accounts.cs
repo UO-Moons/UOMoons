@@ -87,16 +87,13 @@ namespace Server.Accounting
 			};
 
 			xml.WriteStartDocument(true);
-
 			xml.WriteStartElement("accounts");
-
 			xml.WriteAttributeString("count", m_Accounts.Count.ToString());
 
 			foreach (Account a in GetAccounts())
 				a.Save(xml);
 
 			xml.WriteEndElement();
-
 			xml.Close();
 		}
 	}

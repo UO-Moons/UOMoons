@@ -79,7 +79,7 @@ namespace Server.Mobiles
 		{
 			if (DateTime.UtcNow >= m_NextAbilityTime)
 			{
-				Mobile combatant = Combatant;
+				Mobile combatant = Combatant as Mobile;
 
 				if (combatant != null && combatant.Map == Map && combatant.InRange(this, 12) && IsEnemy(combatant) && !UnderEffect(combatant))
 				{

@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{863CB287-E2F8-49AC-8BF1-F416E8C6D3F7}"
 	ProjectSection(SolutionItems) = preProject
 		bin\Data\bodyTable.cfg = bin\Data\bodyTable.cfg
+		bin\Data\ChampionSpawns.xml = bin\Data\ChampionSpawns.xml
 		bin\Data\Common.map = bin\Data\Common.map
 		bin\Data\containers.cfg = bin\Data\containers.cfg
 		bin\Data\items.cfg = bin\Data\items.cfg

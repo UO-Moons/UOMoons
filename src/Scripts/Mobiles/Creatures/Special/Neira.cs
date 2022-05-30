@@ -125,29 +125,30 @@ namespace Server.Mobiles
 		private class VirtualMount : IMount
 		{
 			private readonly VirtualMountItem m_Item;
-
-			public Mobile Rider
-			{
-				get => m_Item.Rider;
-				set { }
-			}
-
 			public VirtualMount(VirtualMountItem item)
 			{
 				m_Item = item;
 			}
 
-			public virtual void OnRiderDamaged(int amount, Mobile from, bool willKill)
+			public Mobile Rider
+			{
+				get
+				{
+					return m_Item.Rider;
+				}
+				set
+				{
+				}
+			}
+			public virtual void OnRiderDamaged(Mobile from, ref int amount, bool willKill)
 			{
 			}
 		}
 
-		private class VirtualMountItem : BaseItem, IMountItem
+		private class VirtualMountItem : Item, IMountItem
 		{
 			private readonly VirtualMount m_Mount;
-
-			public Mobile Rider { get; private set; }
-
+			private Mobile m_Rider;
 			public VirtualMountItem(Mobile mob)
 				: base(0x3EBB)
 			{
@@ -155,11 +156,9 @@ namespace Server.Mobiles
 
 				Movable = false;
 
-				Rider = mob;
+				m_Rider = mob;
 				m_Mount = new VirtualMount(this);
 			}
-
-			public IMount Mount => m_Mount;
 
 			public VirtualMountItem(Serial serial)
 				: base(serial)
@@ -167,23 +166,26 @@ namespace Server.Mobiles
 				m_Mount = new VirtualMount(this);
 			}
 
+			public Mobile Rider => m_Rider;
+			public IMount Mount => m_Mount;
 			public override void Serialize(GenericWriter writer)
 			{
 				base.Serialize(writer);
 
 				writer.Write(0); // version
 
-				writer.Write(Rider);
+				writer.Write(m_Rider);
 			}
 
 			public override void Deserialize(GenericReader reader)
 			{
 				base.Deserialize(reader);
-				_ = reader.ReadInt();
 
-				Rider = reader.ReadMobile();
+				int version = reader.ReadInt();
 
-				if (Rider == null)
+				m_Rider = reader.ReadMobile();
+
+				if (m_Rider == null)
 					Delete();
 			}
 		}

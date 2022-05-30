@@ -86,11 +86,14 @@ namespace Server.Mobiles
 			return (int)Math.Max(0, Math.Min(int.MaxValue, balance));
 		}
 
-		public static bool Withdraw(Mobile from, int amount)
+		public static bool Withdraw(Mobile from, int amount, bool message = false)
 		{
 			// If for whatever reason the TOL checks fail, we should still try old methods for withdrawing currency.
 			if (AccountGold.Enabled && from.Account != null && from.Account.WithdrawGold(amount))
 			{
+				if (message)
+					from.SendLocalizedMessage(1155856, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold has been removed from your bank box.
+
 				return true;
 			}
 
@@ -131,14 +134,20 @@ namespace Server.Mobiles
 				}
 			}
 
+			if (message)
+				from.SendLocalizedMessage(1155856, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold has been removed from your bank box.
+
 			return true;
 		}
 
-		public static bool Deposit(Mobile from, int amount)
+		public static bool Deposit(Mobile from, int amount, bool message = false)
 		{
 			// If for whatever reason the TOL checks fail, we should still try old methods for depositing currency.
 			if (AccountGold.Enabled && from.Account != null && from.Account.DepositGold(amount))
 			{
+				if (message)
+					from.SendLocalizedMessage(1042763, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold was deposited in your account.
+
 				return true;
 			}
 
@@ -186,14 +195,20 @@ namespace Server.Mobiles
 				}
 			}
 
+			if (message)
+				from.SendLocalizedMessage(1042763, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold was deposited in your account.
+
 			return true;
 		}
 
-		public static int DepositUpTo(Mobile from, int amount)
+		public static int DepositUpTo(Mobile from, int amount, bool message = false)
 		{
 			// If for whatever reason the TOL checks fail, we should still try old methods for depositing currency.
 			if (AccountGold.Enabled && from.Account != null && from.Account.DepositGold(amount))
 			{
+				if (message)
+					from.SendLocalizedMessage(1042763, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US"))); // ~1_AMOUNT~ gold was deposited in your account.
+
 				return amount;
 			}
 

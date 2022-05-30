@@ -1,4 +1,5 @@
 using Server.Network;
+using System.IO;
 using System.Text;
 
 namespace Server
@@ -14,14 +15,10 @@ namespace Server
 		public int Header { get; set; }
 		public string HeaderArgs { get; set; }
 
-		public static bool Enabled { get; set; } = false;
-		public static int[] StringNumbers { get; set; } = new int[]
-			{
-				1042971,
-				1070722
-			};
+		public static bool Enabled { get; set; }
 
-		public ObjectPropertyList(IEntity e) : base(0xD6)
+		public ObjectPropertyList(IEntity e)
+			: base(0xD6)
 		{
 			EnsureCapacity(128);
 
@@ -37,7 +34,9 @@ namespace Server
 		public void Add(int number)
 		{
 			if (number == 0)
+			{
 				return;
+			}
 
 			AddHash(number);
 
@@ -55,7 +54,7 @@ namespace Server
 		{
 			m_Stream.Write(0);
 
-			m_Stream.Seek(11, System.IO.SeekOrigin.Begin);
+			m_Stream.Seek(11, SeekOrigin.Begin);
 			m_Stream.Write(m_Hash);
 		}
 
@@ -71,10 +70,14 @@ namespace Server
 		public void Add(int number, string arguments)
 		{
 			if (number == 0)
+			{
 				return;
+			}
 
 			if (arguments == null)
+			{
 				arguments = "";
+			}
 
 			if (Header == 0)
 			{
@@ -90,7 +93,9 @@ namespace Server
 			int byteCount = m_Encoding.GetByteCount(arguments);
 
 			if (byteCount > m_Buffer.Length)
+			{
 				m_Buffer = new byte[byteCount];
+			}
 
 			byteCount = m_Encoding.GetBytes(arguments, 0, arguments.Length, m_Buffer, 0);
 
@@ -118,9 +123,12 @@ namespace Server
 			Add(number, string.Format(format, args));
 		}
 
+		// Each of these are localized to "~1_NOTHING~" which allows the string argument to be used
+		private static readonly int[] m_StringNumbers = new[] { 1042971, 1070722 };
+
 		private int GetStringNumber()
 		{
-			return StringNumbers[m_Strings++ % StringNumbers.Length];
+			return m_StringNumbers[m_Strings++ % m_StringNumbers.Length];
 		}
 
 		public void Add(string text)
@@ -160,7 +168,8 @@ namespace Server
 			m_Stream.Write( (int) list.Hash );
 		}*/
 
-		public OPLInfo(ObjectPropertyList list) : base(0xDC, 9)
+		public OPLInfo(ObjectPropertyList list)
+			: base(0xDC, 9)
 		{
 			m_Stream.Write(list.Entity.Serial);
 			m_Stream.Write(list.Hash);

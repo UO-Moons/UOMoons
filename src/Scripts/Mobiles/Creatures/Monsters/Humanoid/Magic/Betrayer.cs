@@ -142,7 +142,7 @@ namespace Server.Mobiles
 
 		public override void OnActionCombat()
 		{
-			Mobile combatant = Combatant;
+			Mobile combatant = Combatant as Mobile;
 
 			if (DateTime.UtcNow < m_NextAbilityTime || combatant == null || combatant.Deleted || combatant.Map != Map || !InRange(combatant, 3) || !CanBeHarmful(combatant) || !InLOS(combatant))
 				return;

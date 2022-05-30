@@ -1,126 +1,125 @@
+using System;
 using Server.Mobiles;
 using Server.Network;
-using System;
 
 namespace Server.Spells.Bushido
 {
-	public abstract class SamuraiSpell : Spell
-	{
-		public abstract double RequiredSkill { get; }
-		public abstract int RequiredMana { get; }
+    public abstract class SamuraiSpell : Spell
+    {
+        public SamuraiSpell(Mobile caster, Item scroll, SpellInfo info)
+            : base(caster, scroll, info)
+        {
+        }
 
-		public override SkillName CastSkill => SkillName.Bushido;
-		public override SkillName DamageSkill => SkillName.Bushido;
+        public abstract double RequiredSkill { get; }
+        public abstract int RequiredMana { get; }
+        public override SkillName CastSkill => SkillName.Bushido;
+        public override SkillName DamageSkill => SkillName.Bushido;
+        public override bool ClearHandsOnCast => false;
+        public override bool BlocksMovement => false;
+        public override bool ShowHandMovement => false;
+        //public override int CastDelayBase{ get{ return 1; } }
+        public override double CastDelayFastScalar => 0;
+        public override int CastRecoveryBase => 7;
+        public static bool CheckExpansion(Mobile from)
+        {
+            if (!Core.SE)
+                return false;
 
-		public override bool ClearHandsOnCast => false;
-		public override bool BlocksMovement => false;
-		public override bool ShowHandMovement => false;
+            if (from is not PlayerMobile)
+                return true;
 
-		//public override int CastDelayBase{ get{ return 1; } }
-		public override double CastDelayFastScalar => 0;
+            if (from.NetState == null)
+                return false;
 
-		public override int CastRecoveryBase => 7;
+            return from.NetState.SupportsExpansion(Expansion.SE);
+        }
 
-		public SamuraiSpell(Mobile caster, Item scroll, SpellInfo info) : base(caster, scroll, info)
-		{
-		}
+        public static void OnEffectEnd(Mobile caster, Type type)
+        {
+            int spellID = SpellRegistry.GetRegistryNumber(type);
 
-		public static bool CheckExpansion(Mobile from)
-		{
-			if (!(from is PlayerMobile))
-				return true;
+            if (spellID > 0)
+                caster.Send(new ToggleSpecialAbility(spellID + 1, false));
+        }
 
-			if (from.NetState == null)
-				return false;
+        public override bool CheckCast()
+        {
+            int mana = ScaleMana(RequiredMana);
 
-			return from.NetState.SupportsExpansion(Expansion.SE);
-		}
+            if (!base.CheckCast())
+                return false;
 
-		public override bool CheckCast()
-		{
-			int mana = ScaleMana(RequiredMana);
+            if (!CheckExpansion(Caster))
+            {
+                Caster.SendLocalizedMessage(1063456); // You must upgrade to Samurai Empire in order to use that ability.
+                return false;
+            }
 
-			if (!base.CheckCast())
-				return false;
+            if (Caster.Skills[CastSkill].Value < RequiredSkill)
+            {
+                string args = string.Format("{0}\t{1}\t ", RequiredSkill.ToString("F1"), CastSkill.ToString());
+                Caster.SendLocalizedMessage(1063013, args); // You need at least ~1_SKILL_REQUIREMENT~ ~2_SKILL_NAME~ skill to use that ability.
+                return false;
+            }
+            else if (Caster.Mana < mana)
+            {
+                Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
+                return false;
+            }
 
-			if (!CheckExpansion(Caster))
-			{
-				Caster.SendLocalizedMessage(1063456); // You must upgrade to Samurai Empire in order to use that ability.
-				return false;
-			}
+            return true;
+        }
 
-			if (Caster.Skills[CastSkill].Value < RequiredSkill)
-			{
-				string args = string.Format("{0}\t{1}\t ", RequiredSkill.ToString("F1"), CastSkill.ToString());
-				Caster.SendLocalizedMessage(1063013, args); // You need at least ~1_SKILL_REQUIREMENT~ ~2_SKILL_NAME~ skill to use that ability.
-				return false;
-			}
-			else if (Caster.Mana < mana)
-			{
-				Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
-				return false;
-			}
+        public override bool CheckFizzle()
+        {
+            int mana = ScaleMana(RequiredMana);
 
-			return true;
-		}
+            if (Caster.Skills[CastSkill].Value < RequiredSkill)
+            {
+                Caster.SendLocalizedMessage(1070768, RequiredSkill.ToString("F1")); // You need ~1_SKILL_REQUIREMENT~ Bushido skill to perform that attack!
+                return false;
+            }
+            else if (Caster.Mana < mana)
+            {
+                Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
+                return false;
+            }
 
-		public override bool CheckFizzle()
-		{
-			int mana = ScaleMana(RequiredMana);
+            if (!base.CheckFizzle())
+                return false;
 
-			if (Caster.Skills[CastSkill].Value < RequiredSkill)
-			{
-				Caster.SendLocalizedMessage(1070768, RequiredSkill.ToString("F1")); // You need ~1_SKILL_REQUIREMENT~ Bushido skill to perform that attack!
-				return false;
-			}
-			else if (Caster.Mana < mana)
-			{
-				Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
-				return false;
-			}
+            Caster.Mana -= mana;
 
-			if (!base.CheckFizzle())
-				return false;
+            return true;
+        }
 
-			Caster.Mana -= mana;
+        public override void GetCastSkills(out double min, out double max)
+        {
+            min = RequiredSkill - 12.5;	//per 5 on friday, 2/16/07
+            max = RequiredSkill + 37.5;
+        }
 
-			return true;
-		}
+        public override int GetMana()
+        {
+            return 0;
+        }
 
-		public override void GetCastSkills(out double min, out double max)
-		{
-			min = RequiredSkill - 12.5; //per 5 on friday, 2/16/07
-			max = RequiredSkill + 37.5;
-		}
+        public virtual void OnCastSuccessful(Mobile caster)
+        {
+            if (Evasion.IsEvading(caster))
+                Evasion.EndEvasion(caster);
 
-		public override int GetMana()
-		{
-			return 0;
-		}
+            if (Confidence.IsConfident(caster))
+                Confidence.EndConfidence(caster);
 
-		public virtual void OnCastSuccessful(Mobile caster)
-		{
-			if (Evasion.IsEvading(caster))
-				Evasion.EndEvasion(caster);
+            if (CounterAttack.IsCountering(caster))
+                CounterAttack.StopCountering(caster);
 
-			if (Confidence.IsConfident(caster))
-				Confidence.EndConfidence(caster);
+            int spellID = SpellRegistry.GetRegistryNumber(this);
 
-			if (CounterAttack.IsCountering(caster))
-				CounterAttack.StopCountering(caster);
-
-			int spellID = SpellRegistry.GetRegistryNumber(this);
-
-			if (spellID > 0)
-				caster.Send(new ToggleSpecialAbility(spellID + 1, true));
-		}
-
-		public static void OnEffectEnd(Mobile caster, Type type)
-		{
-			int spellID = SpellRegistry.GetRegistryNumber(type);
-
-			if (spellID > 0)
-				caster.Send(new ToggleSpecialAbility(spellID + 1, false));
-		}
-	}
+            if (spellID > 0)
+                caster.Send(new ToggleSpecialAbility(spellID + 1, true));
+        }
+    }
 }

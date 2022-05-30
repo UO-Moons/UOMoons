@@ -31,7 +31,7 @@ namespace Server.Misc
 
 		public static AccessLevel LockdownLevel { get; set; }
 
-		private static CityInfo[] StartingCities = {
+		private static readonly CityInfo[] StartingCities = {
 				new( "New Haven",  "New Haven Bank",   1150168, 3667,  2625,   0  ),
 				new( "Yew",        "The Empath Abbey", 1075072, 633,   858,    0  ),
 				new( "Minoc",      "The Barnacle",     1075073, 2476,  413,    15 ),

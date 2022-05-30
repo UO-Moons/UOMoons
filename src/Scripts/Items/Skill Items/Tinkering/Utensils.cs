@@ -1,275 +1,390 @@
+using Server.Engines.Craft;
+using System;
+
 namespace Server.Items
 {
-	[Flipable(0x9F4, 0x9F5, 0x9A3, 0x9A4)]
-	public class Fork : BaseItem
-	{
-		[Constructable]
-		public Fork() : base(0x9F4)
-		{
-			Weight = 1.0;
-		}
+    public class BaseUtensil : Item, IResource, IQuality
+    {
+        private CraftResource _Resource;
+        private Mobile _Crafter;
+        private ItemQuality _Quality;
 
-		public Fork(Serial serial) : base(serial)
-		{
-		}
+        [CommandProperty(AccessLevel.GameMaster)]
+        public CraftResource Resource { get => _Resource; set { _Resource = value; Hue = CraftResources.GetHue(_Resource); InvalidateProperties(); } }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        [CommandProperty(AccessLevel.GameMaster)]
+        public Mobile Crafter { get => _Crafter; set { _Crafter = value; InvalidateProperties(); } }
 
-			writer.Write(0); // version
-		}
+        [CommandProperty(AccessLevel.GameMaster)]
+        public ItemQuality Quality { get => _Quality; set { _Quality = value; InvalidateProperties(); } }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public bool PlayerConstructed => true;
 
-			int version = reader.ReadInt();
-		}
-	}
+        #region Old Item Serialization Vars
+        /* DO NOT USE! Only used in serialization of special scrolls that originally derived from Item */
 
-	public class ForkLeft : BaseItem
-	{
-		[Constructable]
-		public ForkLeft() : base(0x9F4)
-		{
-			Weight = 1.0;
-		}
+        protected bool InheritsItem { get; private set; }
+        #endregion
 
-		public ForkLeft(Serial serial) : base(serial)
-		{
-		}
+        public BaseUtensil(int itemID)
+            : base(itemID)
+        {
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void AddCraftedProperties(ObjectPropertyList list)
+        {
+            if (_Crafter != null)
+            {
+                list.Add(1050043, _Crafter.TitleName); // crafted by ~1_NAME~
+            }
 
-			writer.Write(0); // version
-		}
+            if (_Quality == ItemQuality.Exceptional)
+            {
+                list.Add(1060636); // Exceptional
+            }
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public override void AddNameProperty(ObjectPropertyList list)
+        {
+            if (_Resource > CraftResource.Iron)
+            {
+                list.Add(1053099, "#{0}\t{1}", CraftResources.GetLocalizationNumber(_Resource), $"#{LabelNumber.ToString()}"); // ~1_oretype~ ~2_armortype~
+            }
+            else
+            {
+                base.AddNameProperty(list);
+            }
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
+        {
+            Quality = (ItemQuality)quality;
 
-	public class ForkRight : BaseItem
-	{
-		[Constructable]
-		public ForkRight() : base(0x9F5)
-		{
-			Weight = 1.0;
-		}
+            if (makersMark)
+            {
+                Crafter = from;
+            }
 
-		public ForkRight(Serial serial) : base(serial)
-		{
-		}
+            if (!craftItem.ForceNonExceptional)
+            {
+                if (typeRes == null)
+                {
+                    typeRes = craftItem.Resources.GetAt(0).ItemType;
+                }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+                Resource = CraftResources.GetFromType(typeRes);
+            }
 
-			writer.Write(0); // version
-		}
+            return quality;
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public BaseUtensil(Serial serial)
+            : base(serial)
+        {
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
 
-	[Flipable(0x9F8, 0x9F9, 0x9C2, 0x9C3)]
-	public class Spoon : BaseItem
-	{
-		[Constructable]
-		public Spoon() : base(0x9F8)
-		{
-			Weight = 1.0;
-		}
+            writer.Write(1);
 
-		public Spoon(Serial serial) : base(serial)
-		{
-		}
+            writer.Write((int)_Resource);
+            writer.Write(_Crafter);
+            writer.Write((int)_Quality);
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
+            int version = reader.ReadInt();
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+            switch (version)
+            {
+                case 1:
+                    _Resource = (CraftResource)reader.ReadInt();
+                    _Crafter = reader.ReadMobile();
+                    _Quality = (ItemQuality)reader.ReadInt();
 
-			int version = reader.ReadInt();
-		}
-	}
+                    break;
+                case 0:
+                    InheritsItem = true;
+                    break;
+            }
+        }
+    }
 
-	public class SpoonLeft : BaseItem
-	{
-		[Constructable]
-		public SpoonLeft() : base(0x9F8)
-		{
-			Weight = 1.0;
-		}
+    [Flipable(0x9F4, 0x9F5, 0x9A3, 0x9A4)]
+    public class Fork : BaseUtensil
+    {
+        [Constructable]
+        public Fork()
+            : base(0x9F4)
+        {
+            Weight = 1.0;
+        }
 
-		public SpoonLeft(Serial serial) : base(serial)
-		{
-		}
+        public Fork(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			writer.Write(0); // version
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+    public class ForkLeft : BaseUtensil
+    {
+        [Constructable]
+        public ForkLeft()
+            : base(0x9F4)
+        {
+            Weight = 1.0;
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public ForkLeft(Serial serial)
+            : base(serial)
+        {
+        }
 
-	public class SpoonRight : BaseItem
-	{
-		[Constructable]
-		public SpoonRight() : base(0x9F9)
-		{
-			Weight = 1.0;
-		}
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-		public SpoonRight(Serial serial) : base(serial)
-		{
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+    public class ForkRight : BaseUtensil
+    {
+        [Constructable]
+        public ForkRight()
+            : base(0x9F5)
+        {
+            Weight = 1.0;
+        }
 
-			writer.Write(0); // version
-		}
+        public ForkRight(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-	[Flipable(0x9F6, 0x9F7, 0x9A5, 0x9A6)]
-	public class Knife : BaseItem
-	{
-		[Constructable]
-		public Knife() : base(0x9F6)
-		{
-			Weight = 1.0;
-		}
+    [Flipable(0x9F8, 0x9F9, 0x9C2, 0x9C3)]
+    public class Spoon : BaseUtensil
+    {
+        [Constructable]
+        public Spoon()
+            : base(0x9F8)
+        {
+            Weight = 1.0;
+        }
 
-		public Knife(Serial serial) : base(serial)
-		{
-		}
+        public Spoon(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			writer.Write(0); // version
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+    public class SpoonLeft : BaseUtensil
+    {
+        [Constructable]
+        public SpoonLeft()
+            : base(0x9F8)
+        {
+            Weight = 1.0;
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public SpoonLeft(Serial serial)
+            : base(serial)
+        {
+        }
 
-	public class KnifeLeft : BaseItem
-	{
-		[Constructable]
-		public KnifeLeft() : base(0x9F6)
-		{
-			Weight = 1.0;
-		}
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-		public KnifeLeft(Serial serial) : base(serial)
-		{
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+    public class SpoonRight : BaseUtensil
+    {
+        [Constructable]
+        public SpoonRight()
+            : base(0x9F9)
+        {
+            Weight = 1.0;
+        }
 
-			writer.Write(0); // version
-		}
+        public SpoonRight(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-	public class KnifeRight : BaseItem
-	{
-		[Constructable]
-		public KnifeRight() : base(0x9F7)
-		{
-			Weight = 1.0;
-		}
+    [Flipable(0x9F6, 0x9F7, 0x9A5, 0x9A6)]
+    public class Knife : BaseUtensil
+    {
+        [Constructable]
+        public Knife()
+            : base(0x9F6)
+        {
+            Weight = 1.0;
+        }
 
-		public KnifeRight(Serial serial) : base(serial)
-		{
-		}
+        public Knife(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			writer.Write(0); // version
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+    public class KnifeLeft : BaseUtensil
+    {
+        [Constructable]
+        public KnifeLeft()
+            : base(0x9F6)
+        {
+            Weight = 1.0;
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public KnifeLeft(Serial serial)
+            : base(serial)
+        {
+        }
 
-	public class Plate : BaseItem
-	{
-		[Constructable]
-		public Plate() : base(0x9D7)
-		{
-			Weight = 1.0;
-		}
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-		public Plate(Serial serial) : base(serial)
-		{
-		}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+    public class KnifeRight : BaseUtensil
+    {
+        [Constructable]
+        public KnifeRight()
+            : base(0x9F7)
+        {
+            Weight = 1.0;
+        }
 
-			writer.Write(0); // version
-		}
+        public KnifeRight(Serial serial)
+            : base(serial)
+        {
+        }
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
 
-			int version = reader.ReadInt();
-		}
-	}
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
+
+    public class Plate : BaseUtensil
+    {
+        [Constructable]
+        public Plate()
+            : base(0x9D7)
+        {
+            Weight = 1.0;
+        }
+
+        public Plate(Serial serial)
+            : base(serial)
+        {
+        }
+
+        public override void Serialize(GenericWriter writer)
+        {
+            base.Serialize(writer);
+            writer.Write(0);
+        }
+
+        public override void Deserialize(GenericReader reader)
+        {
+            base.Deserialize(reader);
+            _ = InheritsItem ? 0 : reader.ReadInt();
+        }
+    }
 }

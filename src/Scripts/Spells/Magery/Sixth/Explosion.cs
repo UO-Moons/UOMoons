@@ -5,7 +5,7 @@ namespace Server.Spells.Sixth
 {
 	public class ExplosionSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Explosion", "Vas Ort Flam",
 				230,
 				9041,
@@ -54,7 +54,7 @@ namespace Server.Spells.Sixth
 
 				SpellHelper.CheckReflect((int)Circle, Caster, ref m);
 
-				InternalTimer t = new InternalTimer(this, attacker, defender, m);
+				InternalTimer t = new(this, attacker, defender, m);
 				t.Start();
 			}
 
@@ -127,8 +127,8 @@ namespace Server.Spells.Sixth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
+				if (o is Mobile mobile)
+					m_Owner.Target(mobile);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

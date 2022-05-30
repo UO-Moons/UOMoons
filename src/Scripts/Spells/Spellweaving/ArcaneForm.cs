@@ -1,47 +1,47 @@
+using System;
+
 namespace Server.Spells.Spellweaving
 {
-	public abstract class ArcaneForm : ArcanistSpell, ITransformationSpell
-	{
-		public abstract int Body { get; }
-		public virtual int Hue => 0;
+    public abstract class ArcaneForm : ArcanistSpell, ITransformationSpell
+    {
+        public ArcaneForm(Mobile caster, Item scroll, SpellInfo info)
+            : base(caster, scroll, info)
+        {
+        }
 
-		public virtual int PhysResistOffset => 0;
-		public virtual int FireResistOffset => 0;
-		public virtual int ColdResistOffset => 0;
-		public virtual int PoisResistOffset => 0;
-		public virtual int NrgyResistOffset => 0;
+        public abstract int Body { get; }
+        public virtual int Hue => 0;
+        public virtual int PhysResistOffset => 0;
+        public virtual int FireResistOffset => 0;
+        public virtual int ColdResistOffset => 0;
+        public virtual int PoisResistOffset => 0;
+        public virtual int NrgyResistOffset => 0;
+        public virtual double TickRate => 1.0;
+        public override bool CheckCast()
+        {
+            if (!TransformationSpellHelper.CheckCast(Caster, this))
+                return false;
 
-		public ArcaneForm(Mobile caster, Item scroll, SpellInfo info) : base(caster, scroll, info)
-		{
-		}
+            return base.CheckCast();
+        }
 
-		public override bool CheckCast()
-		{
-			if (!TransformationSpellHelper.CheckCast(Caster, this))
-				return false;
+        public override void OnCast()
+        {
+            TransformationSpellHelper.OnCast(Caster, this);
 
-			return base.CheckCast();
-		}
+            FinishSequence();
+        }
 
-		public override void OnCast()
-		{
-			TransformationSpellHelper.OnCast(Caster, this);
+        public virtual void OnTick(Mobile m)
+        {
+        }
 
-			FinishSequence();
-		}
+        public virtual void DoEffect(Mobile m)
+        {
+        }
 
-		public virtual double TickRate => 1.0;
-
-		public virtual void OnTick(Mobile m)
-		{
-		}
-
-		public virtual void DoEffect(Mobile m)
-		{
-		}
-
-		public virtual void RemoveEffect(Mobile m)
-		{
-		}
-	}
+        public virtual void RemoveEffect(Mobile m)
+        {
+        }
+    }
 }

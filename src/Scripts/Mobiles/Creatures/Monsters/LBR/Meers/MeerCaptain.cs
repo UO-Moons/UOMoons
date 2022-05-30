@@ -43,8 +43,8 @@ namespace Server.Mobiles
 
 			Container pack = new Backpack();
 
-			pack.DropItem(new Bolt(Utility.RandomMinMax(10, 20)));
-			pack.DropItem(new Bolt(Utility.RandomMinMax(10, 20)));
+			pack.DropItem(new CrossBowBolt(Utility.RandomMinMax(10, 20)));
+			pack.DropItem(new CrossBowBolt(Utility.RandomMinMax(10, 20)));
 
 			switch (Utility.Random(6))
 			{

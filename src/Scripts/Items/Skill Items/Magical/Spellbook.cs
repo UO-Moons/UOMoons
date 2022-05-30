@@ -22,15 +22,6 @@ namespace Server.Items
 
 	public class Spellbook : BaseEquipment, ICraftable, ISlayer
 	{
-		private string m_EngravedText;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public string EngravedText
-		{
-			get => m_EngravedText;
-			set { m_EngravedText = value; InvalidateProperties(); }
-		}
-
 		public static void Initialize()
 		{
 			EventSink.OnOpenSpellbookRequest += EventSink_OpenSpellbookRequest;
@@ -528,15 +519,6 @@ namespace Server.Items
 			}
 		}
 
-		private Mobile m_Crafter;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter
-		{
-			get => m_Crafter;
-			set { m_Crafter = value; InvalidateProperties(); }
-		}
-
 		public override bool DisplayLootType => Core.AOS;
 
 		public override void GetProperties(ObjectPropertyList list)
@@ -546,11 +528,11 @@ namespace Server.Items
 			if (Quality == ItemQuality.Exceptional)
 				list.Add(1063341); // exceptional
 
-			if (m_EngravedText != null)
-				list.Add(1072305, m_EngravedText); // Engraved: ~1_INSCRIPTION~
+			if (EngravedText != null)
+				list.Add(1072305, EngravedText); // Engraved: ~1_INSCRIPTION~
 
-			if (m_Crafter != null)
-				list.Add(1050043, m_Crafter.Name); // crafted by ~1_NAME~
+			if (Crafter != null)
+				list.Add(1050043, Crafter.Name); // crafted by ~1_NAME~
 
 			m_AosSkillBonuses.GetProperties(list);
 
@@ -649,8 +631,8 @@ namespace Server.Items
 		{
 			base.OnSingleClick(from);
 
-			if (m_Crafter != null)
-				LabelTo(from, 1050043, m_Crafter.Name); // crafted by ~1_NAME~
+			if (Crafter != null)
+				LabelTo(from, 1050043, Crafter.Name); // crafted by ~1_NAME~
 
 			LabelTo(from, 1042886, SpellCount.ToString());
 		}
@@ -690,10 +672,6 @@ namespace Server.Items
 
 			writer.Write(0); // version
 
-			writer.Write(m_EngravedText);
-
-			writer.Write(m_Crafter);
-
 			writer.Write((int)m_Slayer);
 			writer.Write((int)m_Slayer2);
 
@@ -713,10 +691,6 @@ namespace Server.Items
 			{
 				case 0:
 					{
-						m_EngravedText = reader.ReadString();
-
-						m_Crafter = reader.ReadMobile();
-
 						m_Slayer = (SlayerName)reader.ReadInt();
 						m_Slayer2 = (SlayerName)reader.ReadInt();
 
@@ -795,7 +769,7 @@ namespace Server.Items
 				1								// 1 property   : 1/4 : 25%
 			};
 
-		public virtual ItemQuality OnCraft(ItemQuality quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, BaseTool tool, CraftItem craftItem, int resHue)
+		public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
 			int magery = from.Skills.Magery.BaseFixedPoint;
 
@@ -838,7 +812,7 @@ namespace Server.Items
 			if (makersMark)
 				Crafter = from;
 
-			Quality = quality;
+			Quality = ItemQuality.Normal;
 
 			return quality;
 		}

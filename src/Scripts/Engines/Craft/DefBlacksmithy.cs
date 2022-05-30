@@ -109,19 +109,31 @@ namespace Server.Engines.Craft
 			}
 		}
 
-		public override int CanCraft(Mobile from, BaseTool tool, Type itemType)
+		public override int CanCraft(Mobile from, ITool tool, Type itemType)
 		{
-			if (tool == null || tool.Deleted || tool.UsesRemaining < 0)
+			int num = 0;
+
+			if (tool == null || tool.Deleted || tool.UsesRemaining <= 0)
+			{
 				return 1044038; // You have worn out your tool!
-			else if (!BaseTool.CheckTool(tool, from))
+			}
+
+			if (tool is Item && !BaseTool.CheckTool((Item)tool, from))
+			{
 				return 1048146; // If you have a tool equipped, you must use that tool.
-			else if (!BaseTool.CheckAccessible(tool, from))
-				return 1044263; // The tool must be on your person to use.
+			}
+
+			else if (!tool.CheckAccessible(from, ref num))
+			{
+				return num; // The tool must be on your person to use.
+			}
 
 			CheckAnvilAndForge(from, 2, out bool anvil, out bool forge);
 
 			if (anvil && forge)
+			{
 				return 0;
+			}
 
 			return 1044267; // You must be near an anvil and a forge to smith items.
 		}
@@ -152,51 +164,43 @@ namespace Server.Engines.Craft
 			}
 		}
 
-		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item)
+		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item)
 		{
 			if (toolBroken)
+			{
 				from.SendLocalizedMessage(1044038); // You have worn out your tool
+			}
 
 			if (failed)
 			{
 				if (lostMaterial)
+				{
 					return 1044043; // You failed to create the item, and some of your materials are lost.
-				else
-					return 1044157; // You failed to create the item, but no materials were lost.
+				}
+
+				return 1044157; // You failed to create the item, but no materials were lost.
 			}
-			else
+
+			if (quality == 0)
 			{
-				if (quality == 0)
-					return 502785; // You were barely able to make this item.  It's quality is below average.
-				else if (makersMark && quality == ItemQuality.Exceptional)
-					return 1044156; // You create an exceptional quality item and affix your maker's mark.
-				else if (quality == ItemQuality.Exceptional)
-					return 1044155; // You create an exceptional quality item.
-				else
-					return 1044154; // You create the item.
+				return 502785; // You were barely able to make this item.  It's quality is below average.
 			}
+
+			if (makersMark && quality == 2)
+			{
+				return 1044156; // You create an exceptional quality item and affix your maker's mark.
+			}
+
+			if (quality == 2)
+			{
+				return 1044155; // You create an exceptional quality item.
+			}
+
+			return 1044154; // You create the item.
 		}
 
 		public override void InitCraftList()
 		{
-			/*
-			Synthax for a SIMPLE craft item
-			AddCraft( ObjectType, Group, MinSkill, MaxSkill, ResourceType, Amount, Message )
-
-			ObjectType		: The type of the object you want to add to the build list.
-			Group			: The group in wich the object will be showed in the craft menu.
-			MinSkill		: The minimum of skill value
-			MaxSkill		: The maximum of skill value
-			ResourceType	: The type of the resource the mobile need to create the item
-			Amount			: The amount of the ResourceType it need to create the item
-			Message			: String or Int for Localized.  The message that will be sent to the mobile, if the specified resource is missing.
-
-			Synthax for a COMPLEXE craft item.  A complexe item is an item that need either more than
-			only one skill, or more than only one resource.
-
-			Coming soon....
-			*/
-
 			#region Ringmail
 			AddCraft(typeof(RingmailGloves), 1011076, 1025099, 12.0, 62.0, typeof(IronIngot), 1044036, 10, 1044037);
 			AddCraft(typeof(RingmailLegs), 1011076, 1025104, 19.4, 69.4, typeof(IronIngot), 1044036, 16, 1044037);
@@ -208,9 +212,9 @@ namespace Server.Engines.Craft
 			AddCraft(typeof(ChainCoif), 1011077, 1025051, 14.5, 64.5, typeof(IronIngot), 1044036, 10, 1044037);
 			AddCraft(typeof(ChainLegs), 1011077, 1025054, 36.7, 86.7, typeof(IronIngot), 1044036, 18, 1044037);
 			AddCraft(typeof(ChainChest), 1011077, 1025055, 39.1, 89.1, typeof(IronIngot), 1044036, 20, 1044037);
-			#endregion
 
-			int index = -1;
+
+			#endregion
 
 			#region Platemail
 			AddCraft(typeof(PlateArms), 1011078, 1025136, 66.3, 116.3, typeof(IronIngot), 1044036, 18, 1044037);
@@ -223,6 +227,8 @@ namespace Server.Engines.Craft
 			if (Core.AOS) // exact pre-aos functionality unknown
 				AddCraft(typeof(DragonBardingDeed), 1011078, 1053012, 72.5, 122.5, typeof(IronIngot), 1044036, 750, 1044037);
 
+
+			int index;
 			if (Core.SE)
 			{
 				index = AddCraft(typeof(PlateMempo), 1011078, 1030180, 80.0, 130.0, typeof(IronIngot), 1044036, 18, 1044037);
@@ -370,9 +376,9 @@ namespace Server.Engines.Craft
 
 					index = AddCraft(typeof(RuneCarvingKnife), 1011081, 1072915, 70.0, 120.0, typeof(IronIngot), 1044036, 9, 1044037);
 					AddRes(index, typeof(DreadHornMane), 1032682, 1, 1053098);
-					AddRes(index, typeof(Putrefication), 1032678, 10, 1053098);
+					AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
 					AddRes(index, typeof(Muculent), 1032680, 10, 1053098);
-					AddRareRecipe(index, 0);
+					AddRecipe(index, (int)SmithRecipes.RuneCarvingKnife);
 					ForceNonExceptional(index);
 					SetNeededExpansion(index, Expansion.ML);
 
@@ -380,7 +386,7 @@ namespace Server.Engines.Craft
 					AddRes(index, typeof(GrizzledBones), 1032684, 1, 1053098);
 					AddRes(index, typeof(Taint), 1032684, 10, 1053098);
 					AddRes(index, typeof(Blight), 1032675, 10, 1053098);
-					AddRareRecipe(index, 1);
+					AddRecipe(index, (int)SmithRecipes.ColdForgedBlade);
 					ForceNonExceptional(index);
 					SetNeededExpansion(index, Expansion.ML);
 
@@ -388,163 +394,161 @@ namespace Server.Engines.Craft
 					AddRes(index, typeof(GrizzledBones), 1032684, 1, 1053098);
 					AddRes(index, typeof(Blight), 1032675, 10, 1053098);
 					AddRes(index, typeof(Scourge), 1032677, 10, 1053098);
-					AddRareRecipe(index, 2);
+					AddRecipe(index, (int)SmithRecipes.OverseerSunderedBlade);
 					ForceNonExceptional(index);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(LuminousRuneBlade), 1011081, 1072922, 70.0, 120.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(GrizzledBones), 1032684, 1, 1053098);
 					AddRes(index, typeof(Corruption), 1032676, 10, 1053098);
-					AddRes(index, typeof(Putrefication), 1032678, 10, 1053098);
-					AddRareRecipe(index, 3);
+					AddRes(index, typeof(Putrefaction), 1032678, 10, 1053098);
+					AddRecipe(index, (int)SmithRecipes.LuminousRuneBlade);
 					ForceNonExceptional(index);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TrueSpellblade), 1011081, 1073513, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(BlueDiamond), 1032696, 1, 1044240);
-					AddRecipe(index, 4);
+					AddRecipe(index, (int)SmithRecipes.TrueSpellblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(IcySpellblade), 1011081, 1073514, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(Turquoise), 1032691, 1, 1044240);
-					AddRecipe(index, 5);
+					AddRecipe(index, (int)SmithRecipes.IcySpellblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(FierySpellblade), 1011081, 1073515, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(FireRuby), 1032695, 1, 1044240);
-					AddRecipe(index, 6);
+					AddRecipe(index, (int)SmithRecipes.FierySpellblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(SpellbladeOfDefense), 1011081, 1073516, 75.0, 125.0, typeof(IronIngot), 1044036, 18, 1044037);
 					AddRes(index, typeof(WhitePearl), 1032694, 1, 1044240);
-					AddRecipe(index, 7);
+					AddRecipe(index, (int)SmithRecipes.SpellbladeOfDefense);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TrueAssassinSpike), 1011081, 1073517, 75.0, 125.0, typeof(IronIngot), 1044036, 9, 1044037);
 					AddRes(index, typeof(DarkSapphire), 1032690, 1, 1044240);
-					AddRecipe(index, 8);
+					AddRecipe(index, (int)SmithRecipes.TrueAssassinSpike);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(ChargedAssassinSpike), 1011081, 1073518, 75.0, 125.0, typeof(IronIngot), 1044036, 9, 1044037);
 					AddRes(index, typeof(EcruCitrine), 1032693, 1, 1044240);
-					AddRecipe(index, 9);
+					AddRecipe(index, (int)SmithRecipes.ChargedAssassinSpike);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(MagekillerAssassinSpike), 1011081, 1073519, 75.0, 125.0, typeof(IronIngot), 1044036, 9, 1044037);
 					AddRes(index, typeof(BrilliantAmber), 1032697, 1, 1044240);
-					AddRecipe(index, 10);
+					AddRecipe(index, (int)SmithRecipes.MagekillerAssassinSpike);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(WoundingAssassinSpike), 1011081, 1073520, 75.0, 125.0, typeof(IronIngot), 1044036, 9, 1044037);
 					AddRes(index, typeof(PerfectEmerald), 1032692, 1, 1044240);
-					AddRecipe(index, 11);
+					AddRecipe(index, (int)SmithRecipes.WoundingAssassinSpike);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TrueLeafblade), 1011081, 1073521, 75.0, 125.0, typeof(IronIngot), 1044036, 12, 1044037);
 					AddRes(index, typeof(BlueDiamond), 1032696, 1, 1044240);
-					AddRecipe(index, 12);
+					AddRecipe(index, (int)SmithRecipes.TrueLeafblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(Luckblade), 1011081, 1073522, 75.0, 125.0, typeof(IronIngot), 1044036, 12, 1044037);
 					AddRes(index, typeof(WhitePearl), 1032694, 1, 1044240);
-					AddRecipe(index, 13);
+					AddRecipe(index, (int)SmithRecipes.Luckblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(MagekillerLeafblade), 1011081, 1073523, 75.0, 125.0, typeof(IronIngot), 1044036, 12, 1044037);
 					AddRes(index, typeof(FireRuby), 1032695, 1, 1044240);
-					AddRecipe(index, 14);
+					AddRecipe(index, (int)SmithRecipes.MagekillerLeafblade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(LeafbladeOfEase), 1011081, 1073524, 75.0, 125.0, typeof(IronIngot), 1044036, 12, 1044037);
 					AddRes(index, typeof(PerfectEmerald), 1032692, 1, 1044240);
-					AddRecipe(index, 15);
+					AddRecipe(index, (int)SmithRecipes.LeafbladeOfEase);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(KnightsWarCleaver), 1011081, 1073525, 75.0, 125.0, typeof(IronIngot), 1044036, 18, 1044037);
 					AddRes(index, typeof(PerfectEmerald), 1032692, 1, 1044240);
-					AddRecipe(index, 16);
+					AddRecipe(index, (int)SmithRecipes.KnightsWarCleaver);
 					SetNeededExpansion(index, Expansion.ML);
 
-					// TODO
 					index = AddCraft(typeof(ButchersWarCleaver), 1011081, 1073526, 75.0, 125.0, typeof(IronIngot), 1044036, 18, 1044037);
 					AddRes(index, typeof(Turquoise), 1032691, 1, 1044240);
-					AddRecipe(index, 17);
+					AddRecipe(index, (int)SmithRecipes.ButchersWarCleaver);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(SerratedWarCleaver), 1011081, 1073527, 75.0, 125.0, typeof(IronIngot), 1044036, 18, 1044037);
 					AddRes(index, typeof(EcruCitrine), 1032693, 1, 1044240);
-					AddRecipe(index, 18);
+					AddRecipe(index, (int)SmithRecipes.SerratedWarCleaver);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TrueWarCleaver), 1011081, 1073528, 75.0, 125.0, typeof(IronIngot), 1044036, 18, 1044037);
 					AddRes(index, typeof(BrilliantAmber), 1032697, 1, 1044240);
-					AddRecipe(index, 19);
+					AddRecipe(index, (int)SmithRecipes.TrueWarCleaver);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(AdventurersMachete), 1011081, 1073533, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(WhitePearl), 1032694, 1, 1044240);
-					AddRecipe(index, 20);
+					AddRecipe(index, (int)SmithRecipes.AdventurersMachete);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(OrcishMachete), 1011081, 1073534, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(Scourge), 1072136, 1, 1042081);
-					AddRecipe(index, 21);
+					AddRecipe(index, (int)SmithRecipes.OrcishMachete);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(MacheteOfDefense), 1011081, 1073535, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(BrilliantAmber), 1032697, 1, 1044240);
-					AddRecipe(index, 22);
+					AddRecipe(index, (int)SmithRecipes.MacheteOfDefense);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(DiseasedMachete), 1011081, 1073536, 75.0, 125.0, typeof(IronIngot), 1044036, 14, 1044037);
 					AddRes(index, typeof(Blight), 1072134, 1, 1042081);
-					AddRecipe(index, 23);
+					AddRecipe(index, (int)SmithRecipes.DiseasedMachete);
 					SetNeededExpansion(index, Expansion.ML);
 
-					// TODO
 					index = AddCraft(typeof(Runesabre), 1011081, 1073537, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(Turquoise), 1032691, 1, 1044240);
-					AddRecipe(index, 24);
+					AddRecipe(index, (int)SmithRecipes.Runesabre);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(MagesRuneBlade), 1011081, 1073538, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(BlueDiamond), 1032696, 1, 1044240);
-					AddRecipe(index, 25);
+					AddRecipe(index, (int)SmithRecipes.MagesRuneBlade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(RuneBladeOfKnowledge), 1011081, 1073539, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(EcruCitrine), 1032693, 1, 1044240);
-					AddRecipe(index, 26);
+					AddRecipe(index, (int)SmithRecipes.RuneBladeOfKnowledge);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(CorruptedRuneBlade), 1011081, 1073540, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(Corruption), 1072135, 1, 1042081);
-					AddRecipe(index, 27);
+					AddRecipe(index, (int)SmithRecipes.CorruptedRuneBlade);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TrueRadiantScimitar), 1011081, 1073541, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(BrilliantAmber), 1032697, 1, 1044240);
-					AddRecipe(index, 28);
+					AddRecipe(index, (int)SmithRecipes.TrueRadiantScimitar);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(DarkglowScimitar), 1011081, 1073542, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(DarkSapphire), 1032690, 1, 1044240);
-					AddRecipe(index, 29);
+					AddRecipe(index, (int)SmithRecipes.DarkglowScimitar);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(IcyScimitar), 1011081, 1073543, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(DarkSapphire), 1032690, 1, 1044240);
-					AddRecipe(index, 30);
+					AddRecipe(index, (int)SmithRecipes.IcyScimitar);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(TwinklingScimitar), 1011081, 1073544, 75.0, 125.0, typeof(IronIngot), 1044036, 15, 1044037);
 					AddRes(index, typeof(DarkSapphire), 1032690, 1, 1044240);
-					AddRecipe(index, 31);
+					AddRecipe(index, (int)SmithRecipes.TwinklingScimitar);
 					SetNeededExpansion(index, Expansion.ML);
 
 					index = AddCraft(typeof(BoneMachete), 1011081, 1020526, 45.0, 95.0, typeof(IronIngot), 1044036, 20, 1044037);
 					AddRes(index, typeof(Bone), 1049064, 6, 1049063);
-					AddQuestRecipe(index, 32);
+					AddRecipe(index, (int)SmithRecipes.BoneMachete);
 					SetNeededExpansion(index, Expansion.ML);
 				}
 			}
@@ -638,35 +642,35 @@ namespace Server.Engines.Craft
 
 			if (Core.ML)
 			{
-				index = AddCraft(typeof(DiamondMace), 1011084, 1031556, 70.0, 120.0, typeof(IronIngot), 1044036, 20, 1044037);
+				index = AddCraft(typeof(DiamondMace), 1011084, 1031568, 70.0, 120.0, typeof(IronIngot), 1044036, 20, 1044037);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(ShardThrasher), 1011084, 1072918, 70.0, 120.0, typeof(IronIngot), 1044036, 20, 1044037);
 				AddRes(index, typeof(EyeOfTheTravesty), 1073126, 1, 1042081);
 				AddRes(index, typeof(Muculent), 1072139, 10, 1042081);
 				AddRes(index, typeof(Corruption), 1072135, 10, 1042081);
-				AddRareRecipe(index, 37);
+				AddRecipe(index, (int)SmithRecipes.ShardTrasher);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(RubyMace), 1011084, 1073529, 75.0, 125.0, typeof(IronIngot), 1044036, 20, 1044037);
 				AddRes(index, typeof(FireRuby), 1032695, 1, 1044240);
-				AddRecipe(index, 38);
+				AddRecipe(index, (int)SmithRecipes.RubyMace);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(EmeraldMace), 1011084, 1073530, 75.0, 125.0, typeof(IronIngot), 1044036, 20, 1044037);
 				AddRes(index, typeof(PerfectEmerald), 1032692, 1, 1044240);
-				AddRecipe(index, 39);
+				AddRecipe(index, (int)SmithRecipes.EmeraldMace);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(SapphireMace), 1011084, 1073531, 75.0, 125.0, typeof(IronIngot), 1044036, 20, 1044037);
 				AddRes(index, typeof(DarkSapphire), 1032690, 1, 1044240);
-				AddRecipe(index, 40);
+				AddRecipe(index, (int)SmithRecipes.SapphireMace);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(SilverEtchedMace), 1011084, 1073532, 75.0, 125.0, typeof(IronIngot), 1044036, 20, 1044037);
 				AddRes(index, typeof(BlueDiamond), 1032696, 1, 1044240);
-				AddRecipe(index, 41);
+				AddRecipe(index, (int)SmithRecipes.SilverEtchedMace);
 				SetNeededExpansion(index, Expansion.ML);
 			}
 			#endregion

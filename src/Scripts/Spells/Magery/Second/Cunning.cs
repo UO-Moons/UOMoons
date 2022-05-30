@@ -5,7 +5,7 @@ namespace Server.Spells.Second
 {
 	public class CunningSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Cunning", "Uus Wis",
 				212,
 				9061,
@@ -54,17 +54,25 @@ namespace Server.Spells.Second
 			}
 			else if (CheckBSequence(m))
 			{
-				SpellHelper.Turn(Caster, m);
+				int oldInt = SpellHelper.GetBuffOffset(m, StatType.Int);
+				int newInt = SpellHelper.GetOffset(Caster, m, StatType.Int, false, true);
 
-				SpellHelper.AddStatBonus(Caster, m, StatType.Int);
+				if (newInt < oldInt || newInt == 0)
+				{
+					DoHurtFizzle();
+				}
+				else
+				{
+					SpellHelper.Turn(Caster, m);
 
-				m.FixedParticles(0x375A, 10, 15, 5011, EffectLayer.Head);
-				m.PlaySound(0x1EB);
+					SpellHelper.AddStatBonus(Caster, m, false, StatType.Int);
+					int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
+					TimeSpan length = SpellHelper.GetDuration(Caster, m);
+					BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Cunning, 1075843, length, m, percentage.ToString()));
 
-				int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, false) * 100);
-				TimeSpan length = SpellHelper.GetDuration(Caster, m);
-
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Cunning, 1075843, length, m, percentage.ToString()));
+					m.FixedParticles(0x375A, 10, 15, 5011, EffectLayer.Head);
+					m.PlaySound(0x1EB);
+				}
 			}
 
 			FinishSequence();
@@ -81,9 +89,9 @@ namespace Server.Spells.Second
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 

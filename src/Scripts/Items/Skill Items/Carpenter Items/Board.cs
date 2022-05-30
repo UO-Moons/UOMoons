@@ -12,23 +12,9 @@ namespace Server.Items
 			set { m_Resource = value; InvalidateProperties(); }
 		}
 
-		int ICommodity.DescriptionNumber
-		{
-			get
-			{
-				if (m_Resource >= CraftResource.OakWood && m_Resource <= CraftResource.YewWood)
-					return 1075052 + ((int)m_Resource - (int)CraftResource.OakWood);
+		TextDefinition ICommodity.Description => LabelNumber;
 
-				switch (m_Resource)
-				{
-					case CraftResource.Bloodwood: return 1075055;
-					case CraftResource.Frostwood: return 1075056;
-					case CraftResource.Heartwood: return 1075062;   //WHY Osi.  Why?
-				}
-
-				return LabelNumber;
-			}
-		}
+		public override int LabelNumber => 1015101;
 
 		bool ICommodity.IsDeedable => true;
 
@@ -60,7 +46,6 @@ namespace Server.Items
 		{
 			Stackable = true;
 			Amount = amount;
-
 			m_Resource = resource;
 			Hue = CraftResources.GetHue(resource);
 		}
@@ -74,40 +59,56 @@ namespace Server.Items
 				int num = CraftResources.GetLocalizationNumber(m_Resource);
 
 				if (num > 0)
+				{
 					list.Add(num);
+				}
 				else
+				{
 					list.Add(CraftResources.GetName(m_Resource));
+				}
 			}
 		}
-
-
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0);
-
+			writer.Write(4);
 			writer.Write((int)m_Resource);
 		}
 
+		public static bool UpdatingBaseClass;
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
 
 			int version = reader.ReadInt();
+			if (version == 3)
+			{
+				UpdatingBaseClass = true;
+			}
 
 			switch (version)
 			{
-				case 0:
+				case 4:
+				case 3:
+				case 2:
 					{
 						m_Resource = (CraftResource)reader.ReadInt();
 						break;
 					}
 			}
+
+			if ((version == 0 && Weight == 0.1) || (version <= 2 && Weight == 2))
+			{
+				Weight = -1;
+			}
+
+			if (version <= 1)
+			{
+				m_Resource = CraftResource.RegularWood;
+			}
 		}
 	}
-
 
 	public class HeartwoodBoard : Board
 	{

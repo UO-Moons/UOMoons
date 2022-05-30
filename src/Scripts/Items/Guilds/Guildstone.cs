@@ -104,9 +104,9 @@ namespace Server.Items
 		{
 			BaseHouse house = BaseHouse.FindHouseAt(this);
 
-			if (Guild.NewGuildSystem && m_BeforeChangeover && house != null && !house.Addons.Contains(this))
+			if (Guild.NewGuildSystem && m_BeforeChangeover && house != null && !house.Addons.ContainsKey(this))
 			{
-				house.Addons.Add(this);
+				house.Addons[this] = house.Owner;
 				m_BeforeChangeover = false;
 			}
 		}
@@ -221,19 +221,23 @@ namespace Server.Items
 		public void OnChop(Mobile from)
 		{
 			if (!Guild.NewGuildSystem)
+			{
 				return;
+			}
 
 			BaseHouse house = BaseHouse.FindHouseAt(this);
 
-			if ((house == null && m_BeforeChangeover) || (house != null && house.IsOwner(from) && house.Addons.Contains(this)))
+			if ((house == null && m_BeforeChangeover) || (house != null && house.IsOwner(from) && house.Addons.ContainsKey(this)))
 			{
 				Effects.PlaySound(GetWorldLocation(), Map, 0x3B3);
 				from.SendLocalizedMessage(500461); // You destroy the item.
 
 				Delete();
 
-				if (house != null && house.Addons.Contains(this))
+				if (house != null && house.Addons.ContainsKey(this))
+				{
 					house.Addons.Remove(this);
+				}
 
 				Item deed = Deed;
 
@@ -243,7 +247,6 @@ namespace Server.Items
 				}
 			}
 		}
-
 		#endregion
 	}
 
@@ -396,7 +399,7 @@ namespace Server.Items
 
 					addon.MoveToWorld(loc, from.Map);
 
-					house.Addons.Add(addon);
+					house.Addons[addon] = from;
 					Delete();
 				}
 				else

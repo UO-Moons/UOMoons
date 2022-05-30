@@ -13,6 +13,7 @@ using Server.Misc;
 using Server.Multis;
 using Server.Network;
 using Server.Regions;
+using Server.SkillHandlers;
 using Server.Spells;
 using Server.Spells.Bushido;
 using Server.Spells.Fifth;
@@ -40,16 +41,37 @@ namespace Server.Mobiles
 		KarmaLocked = 0x00000020,
 		AutoRenewInsurance = 0x00000040,
 		UseOwnFilter = 0x00000080,
-		Uused = 0x00000100,
+		Unused = 0x00000100,
 		PagingSquelched = 0x00000200,
 		Young = 0x00000400,
 		AcceptGuildInvites = 0x00000800,
 		DisplayChampionTitle = 0x00001000,
 		HasStatReward = 0x00002000,
-		RefuseTrades = 0x00004000,
-		Bedlam = 0x00006000,
-		LibraryFriend = 0x00008000,
-		Spellweaving = 0x00010000
+		Bedlam = 0x00010000,
+		LibraryFriend = 0x00020000,
+		Spellweaving = 0x00040000,
+		GemMining = 0x00080000,
+		ToggleMiningGem = 0x00100000,
+		BasketWeaving = 0x00200000,
+		AbyssEntry = 0x00400000,
+		ToggleClippings = 0x00800000,
+		ToggleCutClippings = 0x01000000,
+		ToggleCutReeds = 0x02000000,
+		MechanicalLife = 0x04000000,
+		Unusesd = 0x08000000,
+		ToggleCutTopiaries = 0x10000000,
+		HasValiantStatReward = 0x20000000,
+		RefuseTrades = 0x40000000,
+	}
+
+	[Flags]
+	public enum ExtendedPlayerFlag
+	{
+		Unused = 0x00000001,
+		ToggleStoneOnly = 0x00000002,
+		CanBuyCarpets = 0x00000004,
+		VoidPool = 0x00000008,
+		DisabledPvpWarning = 0x00000010,
 	}
 
 	public enum NpcGuild
@@ -76,14 +98,6 @@ namespace Server.Mobiles
 		Black
 	}
 
-	public enum BlockMountType
-	{
-		None = -1,
-		Dazed = 1040024,
-		BolaRecovery = 1062910,
-		DismountRecovery = 1070859
-	}
-
 	#endregion
 
 	public partial class PlayerMobile : BaseMobile, IHonorTarget
@@ -91,72 +105,81 @@ namespace Server.Mobiles
 		private static readonly TimeSpan m_KillShortTermDelay = TimeSpan.FromHours(Settings.Configuration.Get<double>("Gameplay", "KillShortTermDelay"));
 		private static readonly TimeSpan m_KillLongTermDelay = TimeSpan.FromHours(Settings.Configuration.Get<double>("Gameplay", "KillLongTermDelay"));
 
+		public static List<PlayerMobile> Instances { get; private set; }
+
+		static PlayerMobile()
+		{
+			Instances = new List<PlayerMobile>(0x1000);
+		}
+
+		#region Mount Blocking
+		public void SetMountBlock(BlockMountType type, TimeSpan duration, bool dismount)
+		{
+			if (dismount)
+			{
+				BaseMount.BaseDismount(this, this, type, duration, false);
+			}
+			else
+			{
+				BaseMount.SetMountPrevention(this, type, duration);
+			}
+		}
+		#endregion
+
 		#region Stygian Abyss
 		public override void ToggleFlying()
 		{
 			if (Race != Race.Gargoyle)
-			{
 				return;
-			}
-			else if (Flying)
-			{
-				Freeze(TimeSpan.FromSeconds(1));
-				Animate(61, 10, 1, true, false, 0);
-				Flying = false;
-				BuffInfo.RemoveBuff(this, BuffIcon.Fly);
-				SendMessage("You have landed.");
 
-				BaseMount.Dismount(this);
+			if (Frozen)
+			{
+				SendLocalizedMessage(1060170); // You cannot use this ability while frozen.
 				return;
 			}
 
-			BlockMountType type = MountBlockReason;
-
-			if (!Alive)
+			if (!Flying)
 			{
-				SendLocalizedMessage(1113082); // You may not fly while dead.
-			}
-			else if (IsBodyMod && !(BodyMod == 666 || BodyMod == 667))
-			{
-				SendLocalizedMessage(1112453); // You can't fly in your current form!
-			}
-			else if (type != BlockMountType.None)
-			{
-				switch (type)
+				if (BeginAction(typeof(FlySpell)))
 				{
-					case BlockMountType.Dazed:
-						SendLocalizedMessage(1112457);
-						break; // You are still too dazed to fly.
-					case BlockMountType.BolaRecovery:
-						SendLocalizedMessage(1112455);
-						break; // You cannot fly while recovering from a bola throw.
-					case BlockMountType.DismountRecovery:
-						SendLocalizedMessage(1112456);
-						break; // You cannot fly while recovering from a dismount maneuver.
-				}
-				return;
-			}
-			else if (Hits < 25) // TODO confirm
-			{
-				SendLocalizedMessage(1112454); // You must heal before flying.
-			}
-			else
-			{
-				if (!Flying)
-				{
-					// No message?
-					if (Spell is FlySpell spell)
-					{
-						spell.Stop();
-					}
-					new FlySpell(this).Cast();
+					if (Spell is Spell)
+						((Spell)Spell).Disturb(DisturbType.Unspecified, false, false);
+
+					Spell spell = new FlySpell(this);
+					spell.Cast();
+
+					Timer.DelayCall(TimeSpan.FromSeconds(3), () => EndAction(typeof(FlySpell)));
 				}
 				else
 				{
-					Flying = false;
-					BuffInfo.RemoveBuff(this, BuffIcon.Fly);
+					LocalOverheadMessage(MessageType.Regular, 0x3B2, 1075124); // You must wait before casting that spell again.
 				}
 			}
+			else if (IsValidLandLocation(Location, Map))
+			{
+				if (BeginAction(typeof(FlySpell)))
+				{
+					if (Spell is Spell)
+						((Spell)Spell).Disturb(DisturbType.Unspecified, false, false);
+
+					Animate(AnimationType.Land, 0);
+					Flying = false;
+					BuffInfo.RemoveBuff(this, BuffIcon.Fly);
+
+					Timer.DelayCall(TimeSpan.FromSeconds(3), () => EndAction(typeof(FlySpell)));
+				}
+				else
+				{
+					LocalOverheadMessage(MessageType.Regular, 0x3B2, 1075124); // You must wait before casting that spell again.
+				}
+			}
+			else
+				LocalOverheadMessage(MessageType.Regular, 0x3B2, 1113081); // You may not land here.
+		}
+
+		public static bool IsValidLandLocation(Point3D p, Map map)
+		{
+			return map.CanFit(p.X, p.Y, p.Z, 16, false, false);
 		}
 		#endregion
 
@@ -223,24 +246,6 @@ namespace Server.Mobiles
 		public int StepsTaken { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IsStealthing // IsStealthing should be moved to Server.Mobiles
-		{ get; set; }
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IgnoreMobiles // IgnoreMobiles should be moved to Server.Mobiles
-		{
-			get => m_IgnoreMobiles;
-			set
-			{
-				if (m_IgnoreMobiles != value)
-				{
-					m_IgnoreMobiles = value;
-					Delta(MobileDelta.Flags);
-				}
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
 		public NpcGuild NpcGuild { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -273,10 +278,14 @@ namespace Server.Mobiles
 			set => CandyCane.SetToothAche(this, value);
 		}
 
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool MechanicalLife { get => GetFlag(PlayerFlag.MechanicalLife); set => SetFlag(PlayerFlag.MechanicalLife, value); }
+
 		#endregion
 
 		#region PlayerFlags
 		public PlayerFlag Flags { get; set; }
+		public ExtendedPlayerFlag ExtendedFlags { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool PagingSquelched
@@ -312,6 +321,15 @@ namespace Server.Mobiles
 			get => GetFlag(PlayerFlag.StoneMining);
 			set => SetFlag(PlayerFlag.StoneMining, value);
 		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool GemMining { get => GetFlag(PlayerFlag.GemMining); set => SetFlag(PlayerFlag.GemMining, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleMiningGem { get => GetFlag(PlayerFlag.ToggleMiningGem); set => SetFlag(PlayerFlag.ToggleMiningGem, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool BasketWeaving { get => GetFlag(PlayerFlag.BasketWeaving); set => SetFlag(PlayerFlag.BasketWeaving, value); }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool ToggleMiningStone
@@ -361,6 +379,48 @@ namespace Server.Mobiles
 			get => GetFlag(PlayerFlag.RefuseTrades);
 			set => SetFlag(PlayerFlag.RefuseTrades, value);
 		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool CanBuyCarpets
+		{
+			get => GetFlag(ExtendedPlayerFlag.CanBuyCarpets);
+			set => SetFlag(ExtendedPlayerFlag.CanBuyCarpets, value);
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleStoneOnly
+		{
+			get => GetFlag(ExtendedPlayerFlag.ToggleStoneOnly);
+			set => SetFlag(ExtendedPlayerFlag.ToggleStoneOnly, value);
+		}
+		#endregion
+
+		#region UOLRB
+		#region Plant system
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleClippings { get => GetFlag(PlayerFlag.ToggleClippings); set => SetFlag(PlayerFlag.ToggleClippings, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleCutReeds { get => GetFlag(PlayerFlag.ToggleCutReeds); set => SetFlag(PlayerFlag.ToggleCutReeds, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleCutClippings { get => GetFlag(PlayerFlag.ToggleCutClippings); set => SetFlag(PlayerFlag.ToggleCutClippings, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool ToggleCutTopiaries { get => GetFlag(PlayerFlag.ToggleCutTopiaries); set => SetFlag(PlayerFlag.ToggleCutTopiaries, value); }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public DateTime SSNextSeed { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public DateTime SSSeedExpire { get; set; }
+
+		private Point3D m_SSSeedLocation;
+
+		public Point3D SSSeedLocation { get => m_SSSeedLocation; set => m_SSSeedLocation = value; }
+
+		public Map SSSeedMap { get; set; }
+		#endregion
 		#endregion
 
 		#region Auto Arrow Recovery
@@ -393,7 +453,7 @@ namespace Server.Mobiles
 							{
 								if (ammo is Arrow)
 									name = "arrow";
-								else if (ammo is Bolt)
+								else if (ammo is CrossBowBolt)
 									name = "bolt";
 							}
 
@@ -561,7 +621,7 @@ namespace Server.Mobiles
 
 		public bool GetFlag(PlayerFlag flag)
 		{
-			return ((Flags & flag) != 0);
+			return (Flags & flag) != 0;
 		}
 
 		public void SetFlag(PlayerFlag flag, bool value)
@@ -570,6 +630,23 @@ namespace Server.Mobiles
 				Flags |= flag;
 			else
 				Flags &= ~flag;
+		}
+
+		public bool GetFlag(ExtendedPlayerFlag flag)
+		{
+			return ((ExtendedFlags & flag) != 0);
+		}
+
+		public void SetFlag(ExtendedPlayerFlag flag, bool value)
+		{
+			if (value)
+			{
+				ExtendedFlags |= flag;
+			}
+			else
+			{
+				ExtendedFlags &= ~flag;
+			}
 		}
 
 		public DesignContext DesignContext { get; set; }
@@ -584,11 +661,111 @@ namespace Server.Mobiles
 			EventSink.OnConnected += EventSink_Connected;
 			EventSink.OnDisconnected += EventSink_Disconnected;
 
+			#region Enchanced Client
+			//EventSink.TargetedSkill += Targeted_Skill;
+			//EventSink.EquipMacro += EquipMacro;
+			//EventSink.UnequipMacro += UnequipMacro;
+			#endregion
+
 			if (Core.SE)
 			{
 				Timer.DelayCall(TimeSpan.Zero, new TimerCallback(CheckPets));
 			}
 		}
+
+		#region Enhanced Client
+		/*private static void Targeted_Skill(TargetedSkillEventArgs e)
+		{
+			Mobile from = e.Mobile;
+			int SkillId = e.SkillID;
+			IEntity target = e.Target;
+
+			if (from == null || target == null)
+				return;
+
+			from.TargetLocked = true;
+
+			if (e.SkillID == 35)
+			{
+				AnimalTaming.DisableMessage = true;
+				AnimalTaming.DeferredTarget = false;
+			}
+
+			if (from.UseSkill(e.SkillID) && from.Target != null)
+			{
+				from.Target.Invoke(from, target);
+			}
+
+			if (e.SkillID == 35)
+			{
+				AnimalTaming.DeferredTarget = true;
+				AnimalTaming.DisableMessage = false;
+			}
+
+			from.TargetLocked = false;
+		}
+
+		public static void EquipMacro(EquipMacroEventArgs e)
+		{
+			PlayerMobile pm = e.Mobile as PlayerMobile;
+
+			if (pm != null && pm.Backpack != null && pm.Alive && e.List != null && e.List.Count > 0)
+			{
+				Container pack = pm.Backpack;
+
+				e.List.ForEach(serial =>
+				{
+					Item item = pack.Items.FirstOrDefault(i => i.Serial == serial);
+
+					if (item != null)
+					{
+						Item toMove = pm.FindItemOnLayer(item.Layer);
+
+						if (toMove != null)
+						{
+							//pack.DropItem(toMove);
+							toMove.Internalize();
+
+							if (!pm.EquipItem(item))
+							{
+								pm.EquipItem(toMove);
+							}
+							else
+							{
+								pack.DropItem(toMove);
+							}
+						}
+						else
+						{
+							pm.EquipItem(item);
+						}
+					}
+				});
+			}
+		}
+
+		public static void UnequipMacro(UnequipMacroEventArgs e)
+		{
+			PlayerMobile pm = e.Mobile as PlayerMobile;
+
+			if (pm != null && pm.Backpack != null && pm.Alive && e.List != null && e.List.Count > 0)
+			{
+				Container pack = pm.Backpack;
+
+				List<Item> worn = new List<Item>(pm.Items);
+
+				foreach (var item in worn)
+				{
+					if (e.List.Contains((int)item.Layer))
+					{
+						pack.TryDropItem(pm, item, false);
+					}
+				}
+
+				ColUtility.Free(worn);
+			}
+		}*/
+		#endregion
 
 		private static void CheckPets()
 		{
@@ -629,26 +806,6 @@ namespace Server.Mobiles
 			private void RemoveBlock(Mobile mobile)
 			{
 				(mobile as PlayerMobile).m_MountBlock = null;
-			}
-		}
-
-		public void SetMountBlock(BlockMountType type, TimeSpan duration, bool dismount)
-		{
-			if (dismount)
-			{
-				if (Mount != null)
-				{
-					Mount.Rider = null;
-				}
-				else if (AnimalForm.UnderTransformation(this))
-				{
-					AnimalForm.RemoveContext(this, true);
-				}
-			}
-
-			if ((m_MountBlock == null) || !m_MountBlock.m_Timer.Running || (m_MountBlock.m_Timer.Next < (DateTime.UtcNow + duration)))
-			{
-				m_MountBlock = new MountBlock(duration, type, this);
 			}
 		}
 
@@ -839,6 +996,7 @@ namespace Server.Mobiles
 						continue;
 
 					Item item = items[i];
+					bool drop = false;
 
 					#region Ethics
 					if ((item.SavedFlags & 0x100) != 0)
@@ -869,11 +1027,16 @@ namespace Server.Mobiles
 					}
 					#endregion
 
+					if (!RaceDefinitions.ValidateEquipment(from, item, false))
+					{
+						drop = true;
+					}
+
 					if (item is BaseWeapon weapon)
 					{
-						bool drop = false;
-
-						if (dex < weapon.DexRequirement)
+						if (!drop)
+						{
+							if (dex < weapon.DexRequirement)
 							drop = true;
 						else if (str < AOS.Scale(weapon.StrRequirement, 100 - weapon.GetLowerStatReq()))
 							drop = true;
@@ -881,6 +1044,7 @@ namespace Server.Mobiles
 							drop = true;
 						else if (weapon.RequiredRace != null && weapon.RequiredRace != Race)
 							drop = true;
+						}
 
 						if (drop)
 						{
@@ -896,32 +1060,38 @@ namespace Server.Mobiles
 					}
 					else if (item is BaseArmor armor)
 					{
-						bool drop = false;
 
-						if (!armor.AllowMaleWearer && !from.Female && from.AccessLevel < AccessLevel.GameMaster)
-						{
-							drop = true;
-						}
-						else if (!armor.AllowFemaleWearer && from.Female && from.AccessLevel < AccessLevel.GameMaster)
-						{
-							drop = true;
-						}
-						else if (armor.RequiredRace != null && armor.RequiredRace != Race)
+						if (!drop)
 						{
 							drop = true;
 						}
 						else
 						{
-							int strBonus = armor.ComputeStatBonus(StatType.Str), strReq = armor.ComputeStatReq(StatType.Str);
-							int dexBonus = armor.ComputeStatBonus(StatType.Dex), dexReq = armor.ComputeStatReq(StatType.Dex);
-							int intBonus = armor.ComputeStatBonus(StatType.Int), intReq = armor.ComputeStatReq(StatType.Int);
+							if (!armor.AllowMaleWearer && !from.Female && from.AccessLevel < AccessLevel.GameMaster)
+							{
+								drop = true;
+							}
+							else if (!armor.AllowFemaleWearer && from.Female && from.AccessLevel < AccessLevel.GameMaster)
+							{
+								drop = true;
+							}
+							else if (armor.RequiredRace != null && armor.RequiredRace != Race)
+							{
+								drop = true;
+							}
+							else
+							{
+								int strBonus = armor.ComputeStatBonus(StatType.Str), strReq = armor.ComputeStatReq(StatType.Str);
+								int dexBonus = armor.ComputeStatBonus(StatType.Dex), dexReq = armor.ComputeStatReq(StatType.Dex);
+								int intBonus = armor.ComputeStatBonus(StatType.Int), intReq = armor.ComputeStatReq(StatType.Int);
 
-							if (dex < dexReq || (dex + dexBonus) < 1)
-								drop = true;
-							else if (str < strReq || (str + strBonus) < 1)
-								drop = true;
-							else if (intel < intReq || (intel + intBonus) < 1)
-								drop = true;
+								if (dex < dexReq || (dex + dexBonus) < 1)
+									drop = true;
+								else if (str < strReq || (str + strBonus) < 1)
+									drop = true;
+								else if (intel < intReq || (intel + intBonus) < 1)
+									drop = true;
+							}
 						}
 
 						if (drop)
@@ -942,27 +1112,29 @@ namespace Server.Mobiles
 					}
 					else if (item is BaseClothing clothing)
 					{
-						bool drop = false;
+						if (!drop)
+						{
 
-						if (!clothing.AllowMaleWearer && !from.Female && from.AccessLevel < AccessLevel.GameMaster)
-						{
-							drop = true;
-						}
-						else if (!clothing.AllowFemaleWearer && from.Female && from.AccessLevel < AccessLevel.GameMaster)
-						{
-							drop = true;
-						}
-						else if (clothing.RequiredRace != null && clothing.RequiredRace != Race)
-						{
-							drop = true;
-						}
-						else
-						{
-							int strBonus = clothing.ComputeStatBonus(StatType.Str);
-							int strReq = clothing.ComputeStatReq(StatType.Str);
-
-							if (str < strReq || (str + strBonus) < 1)
+							if (!clothing.AllowMaleWearer && !from.Female && from.AccessLevel < AccessLevel.GameMaster)
+							{
 								drop = true;
+							}
+							else if (!clothing.AllowFemaleWearer && from.Female && from.AccessLevel < AccessLevel.GameMaster)
+							{
+								drop = true;
+							}
+							else if (clothing.RequiredRace != null && clothing.RequiredRace != Race)
+							{
+								drop = true;
+							}
+							else
+							{
+								int strBonus = clothing.ComputeStatBonus(StatType.Str);
+								int strReq = clothing.ComputeStatReq(StatType.Str);
+
+								if (str < strReq || (str + strBonus) < 1)
+									drop = true;
+							}
 						}
 
 						if (drop)
@@ -983,7 +1155,6 @@ namespace Server.Mobiles
 
 					if (factionItem != null)
 					{
-						bool drop = false;
 
 						Faction ourFaction = Faction.Find(this);
 
@@ -1152,10 +1323,20 @@ namespace Server.Mobiles
 			base.OnSubItemAdded(item);
 		}
 
-		public override bool CanBeHarmful(Mobile target, bool message, bool ignoreOurBlessedness)
+		public override bool CanBeHarmful(IDamageable damageable, bool message, bool ignoreOurBlessedness, bool ignorePeaceCheck)
 		{
+			Mobile target = damageable as Mobile;
+
 			if (DesignContext != null || (target is PlayerMobile pm && pm.DesignContext != null))
 				return false;
+
+			#region Mondain's Legacy
+			if (Peaced && !ignorePeaceCheck)
+			{
+				//!+ TODO: message
+				return false;
+			}
+			#endregion
 
 			if ((target is BaseCreature creature && creature.IsInvulnerable) || target is PlayerVendor || target is TownCrier)
 			{
@@ -1170,7 +1351,15 @@ namespace Server.Mobiles
 				return false;
 			}
 
-			return base.CanBeHarmful(target, message, ignoreOurBlessedness);
+			/*if (damageable is IDamageableItem && !((IDamageableItem)damageable).CanDamage)
+			{
+				if (message)
+					SendMessage("That cannot be harmed.");
+
+				return false;
+			}*/ //High Seas Item
+
+			return base.CanBeHarmful(damageable, message, ignoreOurBlessedness, ignorePeaceCheck);
 		}
 
 		public override bool CanBeBeneficial(Mobile target, bool message, bool allowDead)
@@ -1183,7 +1372,7 @@ namespace Server.Mobiles
 
 		public override bool CheckContextMenuDisplay(IEntity target)
 		{
-			return (DesignContext == null);
+			return DesignContext == null;
 		}
 
 		public override void OnItemAdded(Item item)
@@ -2843,6 +3032,7 @@ namespace Server.Mobiles
 
 		public PlayerMobile()
 		{
+			Instances.Add(this);
 			AutoStabled = new List<Mobile>();
 
 			VisibilityList = new List<Mobile>();
@@ -2953,7 +3143,7 @@ namespace Server.Mobiles
 			SendToStaffMessage(from, string.Format(format, args));
 		}
 
-		public override void Damage(int amount, Mobile from)
+		/*public override void Damage(int amount, Mobile from)
 		{
 			if (EvilOmenSpell.TryEndEffect(this))
 				amount = (int)(amount * 1.25);
@@ -2964,12 +3154,12 @@ namespace Server.Mobiles
 			 * ((resist spellsx10)/20 + 10=percentage of damage resisted)
 			 */
 
-			if (oath == this)
+			/*if (oath == this)
 			{
 				amount = (int)(amount * 1.1);
 
 				if (amount > 35 && from is PlayerMobile)  /* capped @ 35, seems no expansion */
-				{
+				/*{
 					amount = 35;
 				}
 
@@ -2995,7 +3185,7 @@ namespace Server.Mobiles
 			}
 
 			base.Damage(amount, from);
-		}
+		}*/
 
 		#region Poison
 
@@ -3035,6 +3225,7 @@ namespace Server.Mobiles
 
 		public PlayerMobile(Serial s) : base(s)
 		{
+			Instances.Add(this);
 			VisibilityList = new List<Mobile>();
 			m_AntiMacroTable = new Hashtable();
 		}
@@ -3045,9 +3236,11 @@ namespace Server.Mobiles
 
 		public override int Luck => AosAttributes.GetValue(this, AosAttribute.Luck);
 
-		public override bool IsHarmfulCriminal(Mobile target)
+		public override bool IsHarmfulCriminal(IDamageable damageable)
 		{
-			if (SkillHandlers.Stealing.ClassicMode && target is PlayerMobile pm && pm.PermaFlags.Count > 0)
+			Mobile target = damageable as Mobile;
+
+			if (Stealing.ClassicMode && target is PlayerMobile && ((PlayerMobile)target).PermaFlags.Count > 0)
 			{
 				int noto = Notoriety.Compute(this, target);
 
@@ -3063,7 +3256,12 @@ namespace Server.Mobiles
 			if (Core.ML && target is BaseCreature targetBc && targetBc.Controlled && this == targetBc.ControlMaster)
 				return false;
 
-			return base.IsHarmfulCriminal(target);
+			if (target is BaseCreature && ((BaseCreature)target).Summoned && ((BaseCreature)target).SummonMaster == this)
+			{
+				return false;
+			}
+
+			return base.IsHarmfulCriminal(damageable);
 		}
 
 		public bool AntiMacroCheck(Skill skill, object obj)
@@ -3112,6 +3310,7 @@ namespace Server.Mobiles
 			{
 				case 0:
 					{
+						ExtendedFlags = (ExtendedPlayerFlag)reader.ReadInt();
 						Collections = new Dictionary<Collection, int>();
 						RewardTitles = new List<object>();
 
@@ -3338,8 +3537,8 @@ namespace Server.Mobiles
 
 			writer.Write(0); // version
 
+			writer.Write((int)ExtendedFlags);
 			#region Mondain's Legacy
-
 			if (Collections == null)
 			{
 				writer.Write(0);

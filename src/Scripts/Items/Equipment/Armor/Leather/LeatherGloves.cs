@@ -3,6 +3,69 @@ namespace Server.Items
 	[Flipable]
 	public class LeatherGloves : BaseArmor, IArcaneEquip
 	{
+		#region Arcane Impl
+		private int m_MaxArcaneCharges, m_CurArcaneCharges;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int MaxArcaneCharges
+		{
+			get { return m_MaxArcaneCharges; }
+			set
+			{
+				m_MaxArcaneCharges = value;
+				InvalidateProperties();
+				Update();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int CurArcaneCharges
+		{
+			get { return m_CurArcaneCharges; }
+			set
+			{
+				m_CurArcaneCharges = value;
+				InvalidateProperties();
+				Update();
+			}
+		}
+
+		public int TempHue { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool IsArcane => m_MaxArcaneCharges > 0 && m_CurArcaneCharges >= 0;
+
+		public void Update()
+		{
+			if (IsArcane)
+				ItemID = 0x26B0;
+			else if (ItemID == 0x26B0)
+				ItemID = 0x13C6;
+
+			if (IsArcane && CurArcaneCharges == 0)
+			{
+				TempHue = Hue;
+				Hue = 0;
+			}
+		}
+
+		public override void AddCraftedProperties(ObjectPropertyList list)
+		{
+			base.AddCraftedProperties(list);
+
+			if (IsArcane)
+				list.Add(1061837, "{0}\t{1}", m_CurArcaneCharges, m_MaxArcaneCharges); // arcane charges: ~1_val~ / ~2_val~
+		}
+
+		public void Flip()
+		{
+			if (ItemID == 0x13C6)
+				ItemID = 0x13CE;
+			else if (ItemID == 0x13CE)
+				ItemID = 0x13C6;
+		}
+		#endregion
+
 		public override int BasePhysicalResistance => 2;
 		public override int BaseFireResistance => 4;
 		public override int BaseColdResistance => 3;
@@ -72,61 +135,5 @@ namespace Server.Items
 					}
 			}
 		}
-
-		#region Arcane Impl
-		private int m_MaxArcaneCharges, m_CurArcaneCharges;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int MaxArcaneCharges
-		{
-			get => m_MaxArcaneCharges;
-			set { m_MaxArcaneCharges = value; InvalidateProperties(); Update(); }
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int CurArcaneCharges
-		{
-			get => m_CurArcaneCharges;
-			set { m_CurArcaneCharges = value; InvalidateProperties(); Update(); }
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IsArcane => (m_MaxArcaneCharges > 0 && m_CurArcaneCharges >= 0);
-
-		public void Update()
-		{
-			if (IsArcane)
-				ItemID = 0x26B0;
-			else if (ItemID == 0x26B0)
-				ItemID = 0x13C6;
-
-			if (IsArcane && CurArcaneCharges == 0)
-				Hue = 0;
-		}
-
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
-
-			if (IsArcane)
-				list.Add(1061837, "{0}\t{1}", m_CurArcaneCharges, m_MaxArcaneCharges); // arcane charges: ~1_val~ / ~2_val~
-		}
-
-		public override void OnSingleClick(Mobile from)
-		{
-			base.OnSingleClick(from);
-
-			if (IsArcane)
-				LabelTo(from, 1061837, string.Format("{0}\t{1}", m_CurArcaneCharges, m_MaxArcaneCharges));
-		}
-
-		public void Flip()
-		{
-			if (ItemID == 0x13C6)
-				ItemID = 0x13CE;
-			else if (ItemID == 0x13CE)
-				ItemID = 0x13C6;
-		}
-		#endregion
 	}
 }

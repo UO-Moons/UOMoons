@@ -1,5 +1,6 @@
 using Server.Items;
 using System;
+using System.Collections.Generic;
 
 namespace Server.Engines.Craft
 {
@@ -34,23 +35,30 @@ namespace Server.Engines.Craft
 			m_CraftSystem = this;
 		}
 
-		public override int CanCraft(Mobile from, BaseTool tool, Type itemType)
+		public override int CanCraft(Mobile from, ITool tool, Type itemType)
 		{
-			if (tool == null || tool.Deleted || tool.UsesRemaining < 0)
+			int num = 0;
+
+			if (tool == null || tool.Deleted || tool.UsesRemaining <= 0)
+			{
 				return 1044038; // You have worn out your tool!
-			else if (!BaseTool.CheckAccessible(tool, from))
-				return 1044263; // The tool must be on your person to use.
+			}
+			else if (!tool.CheckAccessible(from, ref num))
+			{
+				return num; // The tool must be on your person to use.
+			}
 
 			return 0;
 		}
 
 		private static readonly Type[] m_TailorColorables = new Type[]
-			{
-				typeof( GozaMatEastDeed ), typeof( GozaMatSouthDeed ),
-				typeof( SquareGozaMatEastDeed ), typeof( SquareGozaMatSouthDeed ),
-				typeof( BrocadeGozaMatEastDeed ), typeof( BrocadeGozaMatSouthDeed ),
-				typeof( BrocadeSquareGozaMatEastDeed ), typeof( BrocadeSquareGozaMatSouthDeed )
-			};
+		{
+			typeof(GozaMatEastDeed), typeof(GozaMatSouthDeed),
+			typeof(SquareGozaMatEastDeed), typeof(SquareGozaMatSouthDeed),
+			typeof(BrocadeGozaMatEastDeed), typeof(BrocadeGozaMatSouthDeed),
+			typeof(BrocadeSquareGozaMatEastDeed), typeof(BrocadeSquareGozaMatSouthDeed),
+			typeof(SquareGozaMatDeed)
+		};
 
 		public override bool RetainsColorFrom(CraftItem item, Type type)
 		{
@@ -72,34 +80,54 @@ namespace Server.Engines.Craft
 			from.PlaySound(0x248);
 		}
 
-		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, ItemQuality quality, bool makersMark, CraftItem item)
+		public override int PlayEndingEffect(Mobile from, bool failed, bool lostMaterial, bool toolBroken, int quality, bool makersMark, CraftItem item)
 		{
 			if (toolBroken)
+			{
 				from.SendLocalizedMessage(1044038); // You have worn out your tool
+			}
 
 			if (failed)
 			{
 				if (lostMaterial)
+				{
 					return 1044043; // You failed to create the item, and some of your materials are lost.
+				}
 				else
+				{
 					return 1044157; // You failed to create the item, but no materials were lost.
+				}
 			}
 			else
 			{
 				if (quality == 0)
+				{
 					return 502785; // You were barely able to make this item.  It's quality is below average.
-				else if (makersMark && quality == ItemQuality.Exceptional)
+				}
+				else if (makersMark && quality == 2)
+				{
 					return 1044156; // You create an exceptional quality item and affix your maker's mark.
-				else if (quality == ItemQuality.Exceptional)
+				}
+				else if (quality == 2)
+				{
 					return 1044155; // You create an exceptional quality item.
+				}
 				else
+				{
 					return 1044154; // You create the item.
+				}
 			}
 		}
 
 		public override void InitCraftList()
 		{
 			int index = -1;
+
+			index = AddCraft(typeof(CutUpCloth), 1044457, 1044458, 0.0, 0.0, typeof(BoltOfCloth), 1044453, 1, 1044253);
+			AddCraftAction(index, CutUpCloth);
+
+			index = AddCraft(typeof(CombineCloth), 1044457, 1044459, 0.0, 0.0, typeof(Cloth), 1044455, 1, 1044253);
+			AddCraftAction(index, CombineCloth);
 
 			#region Hats
 			AddCraft(typeof(SkullCap), 1011375, 1025444, 0.0, 25.0, typeof(Cloth), 1044286, 2, 1044287);
@@ -198,27 +226,33 @@ namespace Server.Engines.Craft
 			if (Core.ML)
 			{
 				index = AddCraft(typeof(ElvenQuiver), 1015283, 1032657, 65.0, 115.0, typeof(Leather), 1044462, 28, 1044463);
-				AddRecipe(index, 501);
+				AddRecipe(index, (int)TailorRecipe.ElvenQuiver);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(QuiverOfFire), 1015283, 1073109, 65.0, 115.0, typeof(Leather), 1044462, 28, 1044463);
 				AddRes(index, typeof(FireRuby), 1032695, 15, 1042081);
-				AddRecipe(index, 502);
+				AddRecipe(index, (int)TailorRecipe.QuiverOfFire);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(QuiverOfIce), 1015283, 1073110, 65.0, 115.0, typeof(Leather), 1044462, 28, 1044463);
 				AddRes(index, typeof(WhitePearl), 1032694, 15, 1042081);
-				AddRecipe(index, 503);
+				AddRecipe(index, (int)TailorRecipe.QuiverOfIce);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(QuiverOfBlight), 1015283, 1073111, 65.0, 115.0, typeof(Leather), 1044462, 28, 1044463);
 				AddRes(index, typeof(Blight), 1032675, 10, 1042081);
-				AddRecipe(index, 504);
+				AddRecipe(index, (int)TailorRecipe.QuiverOfBlight);
 				SetNeededExpansion(index, Expansion.ML);
 
 				index = AddCraft(typeof(QuiverOfLightning), 1015283, 1073112, 65.0, 115.0, typeof(Leather), 1044462, 28, 1044463);
 				AddRes(index, typeof(Corruption), 1032676, 10, 1042081);
-				AddRecipe(index, 505);
+				AddRecipe(index, (int)TailorRecipe.QuiverOfLightning);
+				SetNeededExpansion(index, Expansion.ML);
+
+				index = AddCraft(typeof(LeatherContainerEngraver), 1015283, 1072152, 75.0, 100.0, typeof(Bone), 1049064, 1, 1049063);
+				AddRes(index, typeof(Leather), 1044462, 6, 1044463);
+				AddRes(index, typeof(SpoolOfThread), 1073462, 2, 1073463);
+				AddRes(index, typeof(Dyes), 1024009, 1, 1044253);
 				SetNeededExpansion(index, Expansion.ML);
 			}
 
@@ -266,13 +300,14 @@ namespace Server.Engines.Craft
 
 			#region Leather Armor
 
+			#region Mondain's Legacy
 			if (Core.ML)
 			{
 				index = AddCraft(typeof(SpellWovenBritches), 1015293, 1072929, 92.5, 117.5, typeof(Leather), 1044462, 15, 1044463);
 				AddRes(index, typeof(EyeOfTheTravesty), 1032685, 1, 1044253);
-				AddRes(index, typeof(Putrefication), 1032678, 10, 1044253);
+				AddRes(index, typeof(Putrefaction), 1032678, 10, 1044253);
 				AddRes(index, typeof(Scourge), 1032677, 10, 1044253);
-				AddRareRecipe(index, 506);
+				AddRecipe(index, (int)TailorRecipe.SpellWovenBritches);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
@@ -280,7 +315,7 @@ namespace Server.Engines.Craft
 				AddRes(index, typeof(EyeOfTheTravesty), 1032685, 1, 1044253);
 				AddRes(index, typeof(Blight), 1032675, 10, 1044253);
 				AddRes(index, typeof(Muculent), 1032680, 10, 1044253);
-				AddRareRecipe(index, 507);
+				AddRecipe(index, (int)TailorRecipe.SongWovenMantle);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 
@@ -288,10 +323,11 @@ namespace Server.Engines.Craft
 				AddRes(index, typeof(CapturedEssence), 1032686, 1, 1044253);
 				AddRes(index, typeof(Corruption), 1032676, 10, 1044253);
 				AddRes(index, typeof(Taint), 1032679, 10, 1044253);
-				AddRareRecipe(index, 508);
+				AddRecipe(index, (int)TailorRecipe.StitchersMittens);
 				ForceNonExceptional(index);
 				SetNeededExpansion(index, Expansion.ML);
 			}
+			#endregion
 
 			AddCraft(typeof(LeatherGorget), 1015293, 1025063, 53.9, 78.9, typeof(Leather), 1044462, 4, 1044463);
 			AddCraft(typeof(LeatherCap), 1015293, 1027609, 6.2, 31.2, typeof(Leather), 1044462, 2, 1044463);
@@ -326,6 +362,24 @@ namespace Server.Engines.Craft
 				SetNeededExpansion(index, Expansion.SE);
 			}
 
+			#region Mondain's Legacy
+			if (Core.ML)
+			{
+				index = AddCraft(typeof(LeafChest), 1015293, 1032667, 75.0, 100.0, typeof(Leather), 1044462, 15, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(LeafArms), 1015293, 1032670, 60.0, 85.0, typeof(Leather), 1044462, 12, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(LeafGloves), 1015293, 1032668, 60.0, 85.0, typeof(Leather), 1044462, 10, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(LeafLegs), 1015293, 1032671, 75.0, 100.0, typeof(Leather), 1044462, 15, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(LeafGorget), 1015293, 1032669, 65.0, 90.0, typeof(Leather), 1044462, 12, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(LeafTonlet), 1015293, 1032672, 70.0, 95.0, typeof(Leather), 1044462, 12, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+			}
+			#endregion
+
 			#endregion
 
 			#region Studded Armor
@@ -349,6 +403,21 @@ namespace Server.Engines.Craft
 				SetNeededExpansion(index, Expansion.SE);
 			}
 
+			#region Mondain's Legacy
+			if (Core.ML)
+			{
+				index = AddCraft(typeof(HideChest), 1015300, 1032651, 85.0, 110.0, typeof(Leather), 1044462, 15, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(HidePauldrons), 1015300, 1032654, 75.0, 100.0, typeof(Leather), 1044462, 12, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(HideGloves), 1015300, 1032652, 75.0, 100.0, typeof(Leather), 1044462, 10, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(HidePants), 1015300, 1032655, 92.0, 117.0, typeof(Leather), 1044462, 15, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+				index = AddCraft(typeof(HideGorget), 1015300, 1032653, 90.0, 115.0, typeof(Leather), 1044462, 12, 1044463);
+				SetNeededExpansion(index, Expansion.ML);
+			}
+			#endregion
 			#endregion
 
 			#region Female Armor
@@ -392,7 +461,185 @@ namespace Server.Engines.Craft
 
 			MarkOption = true;
 			Repair = Core.AOS;
-			CanEnhance = Core.AOS;
+			CanEnhance = Core.ML;
+			CanAlter = Core.SA;
+		}
+
+		private void CutUpCloth(Mobile m, CraftItem craftItem, ITool tool)
+		{
+			PlayCraftEffect(m);
+
+			Timer.DelayCall(TimeSpan.FromSeconds(Delay), () =>
+			{
+				if (m.Backpack == null)
+				{
+					m.SendGump(new CraftGump(m, this, tool, null));
+				}
+
+				Dictionary<int, int> bolts = new Dictionary<int, int>();
+				List<Item> toConsume = new List<Item>();
+				object num = null;
+				Container pack = m.Backpack;
+
+				foreach (var item in pack.Items)
+				{
+					if (item.GetType() == typeof(BoltOfCloth))
+					{
+						if (!bolts.ContainsKey(item.Hue))
+						{
+							toConsume.Add(item);
+							bolts[item.Hue] = item.Amount;
+						}
+						else
+						{
+							toConsume.Add(item);
+							bolts[item.Hue] += item.Amount;
+						}
+					}
+				}
+
+				if (bolts.Count == 0)
+				{
+					num = 1044253; // You don't have the components needed to make that.
+				}
+				else
+				{
+					foreach (var item in toConsume)
+					{
+						item.Delete();
+					}
+
+					foreach (var kvp in bolts)
+					{
+						var cloth = new UncutCloth(kvp.Value * 50)
+						{
+							Hue = kvp.Key
+						};
+
+						DropItem(m, cloth, tool);
+					}
+				}
+
+				if (tool != null)
+				{
+					tool.UsesRemaining--;
+
+					if (tool.UsesRemaining <= 0 && !tool.Deleted)
+					{
+						tool.Delete();
+						m.SendLocalizedMessage(1044038);
+					}
+					else
+					{
+						m.SendGump(new CraftGump(m, this, tool, num));
+					}
+				}
+
+				ColUtility.Free(toConsume);
+				bolts.Clear();
+			});
+		}
+
+		private void CombineCloth(Mobile m, CraftItem craftItem, ITool tool)
+		{
+			PlayCraftEffect(m);
+
+			Timer.DelayCall(TimeSpan.FromSeconds(Delay), () =>
+			{
+				if (m.Backpack == null)
+				{
+					m.SendGump(new CraftGump(m, this, tool, null));
+				}
+
+				Container pack = m.Backpack;
+
+				Dictionary<int, int> cloth = new Dictionary<int, int>();
+				List<Item> toConsume = new List<Item>();
+				object num = null;
+
+				foreach (var item in pack.Items)
+				{
+					Type t = item.GetType();
+
+					if (t == typeof(UncutCloth) || t == typeof(Cloth) || t == typeof(CutUpCloth))
+					{
+						if (!cloth.ContainsKey(item.Hue))
+						{
+							toConsume.Add(item);
+							cloth[item.Hue] = item.Amount;
+						}
+						else
+						{
+							toConsume.Add(item);
+							cloth[item.Hue] += item.Amount;
+						}
+					}
+				}
+
+				if (cloth.Count == 0)
+				{
+					num = 1044253; // You don't have the components needed to make that.
+				}
+				else
+				{
+					foreach (var item in toConsume)
+					{
+						item.Delete();
+					}
+
+					foreach (var kvp in cloth)
+					{
+						var c = new UncutCloth(kvp.Value)
+						{
+							Hue = kvp.Key
+						};
+
+						DropItem(m, c, tool);
+					}
+				}
+
+				if (tool != null)
+				{
+					tool.UsesRemaining--;
+
+					if (tool.UsesRemaining <= 0 && !tool.Deleted)
+					{
+						tool.Delete();
+						m.SendLocalizedMessage(1044038);
+					}
+					else
+					{
+						m.SendGump(new CraftGump(m, this, tool, num));
+					}
+				}
+
+				ColUtility.Free(toConsume);
+				cloth.Clear();
+			});
+		}
+
+		private void DropItem(Mobile from, Item item, ITool tool)
+		{
+			if (tool is Item && ((Item)tool).Parent is Container)
+			{
+				Container cntnr = (Container)((Item)tool).Parent;
+
+				if (!cntnr.TryDropItem(from, item, false))
+				{
+					if (cntnr != from.Backpack)
+					{
+						from.AddToBackpack(item);
+					}
+					else
+					{
+						item.MoveToWorld(from.Location, from.Map);
+					}
+				}
+			}
+			else
+			{
+				from.AddToBackpack(item);
+			}
 		}
 	}
 }

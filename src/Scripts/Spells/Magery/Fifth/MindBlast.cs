@@ -5,7 +5,7 @@ namespace Server.Spells.Fifth
 {
 	public class MindBlastSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Mind Blast", "Por Corp Wis",
 				218,
 				Core.AOS ? 9002 : 9032,
@@ -152,8 +152,8 @@ namespace Server.Spells.Fifth
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
-					m_Owner.Target((Mobile)o);
+				if (o is Mobile mobile)
+					m_Owner.Target(mobile);
 			}
 
 			protected override void OnTargetFinish(Mobile from)

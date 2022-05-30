@@ -5,7 +5,7 @@ namespace Server.Items
 {
 	public interface ICommodity /* added IsDeedable prop so expansion-based deedables can determine true/false */
 	{
-		int DescriptionNumber { get; }
+		TextDefinition Description { get; }
 		bool IsDeedable { get; }
 	}
 
@@ -175,7 +175,7 @@ namespace Server.Items
 				string args;
 
 				if (Commodity.Name == null)
-					args = string.Format("#{0}\t{1}", (Commodity is ICommodity commodity) ? commodity.DescriptionNumber : Commodity.LabelNumber, Commodity.Amount);
+					args = string.Format("#{0}\t{1}", (Commodity is ICommodity commodity) ? commodity.Description : Commodity.LabelNumber, Commodity.Amount);
 				else
 					args = string.Format("{0}\t{1}", Commodity.Name, Commodity.Amount);
 
@@ -196,7 +196,7 @@ namespace Server.Items
 				string args;
 
 				if (Commodity.Name == null)
-					args = string.Format("#{0}\t{1}", (Commodity is ICommodity commodity) ? commodity.DescriptionNumber : Commodity.LabelNumber, Commodity.Amount);
+					args = string.Format("#{0}\t{1}", (Commodity is ICommodity commodity) ? commodity.Description : Commodity.LabelNumber, Commodity.Amount);
 				else
 					args = string.Format("{0}\t{1}", Commodity.Name, Commodity.Amount);
 

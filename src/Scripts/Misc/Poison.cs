@@ -29,6 +29,22 @@ namespace Server
 				Register(new PoisonImpl("Deadly", 3, 7, 26, 12.500, 3.5, 4.0, 10, 2));
 				Register(new PoisonImpl("Lethal", 4, 9, 26, 25.000, 3.5, 5.0, 10, 2));
 			}
+
+			#region Mondain's Legacy
+			if (Core.ML)
+			{
+				Register(new PoisonImpl("LesserDarkglow", 10, 4, 16, 7.5, 3.0, 2.25, 10, 4));
+				Register(new PoisonImpl("RegularDarkglow", 11, 8, 18, 10.0, 3.0, 3.25, 10, 3));
+				Register(new PoisonImpl("GreaterDarkglow", 12, 12, 20, 15.0, 3.0, 4.25, 10, 2));
+				Register(new PoisonImpl("DeadlyDarkglow", 13, 16, 30, 30.0, 3.0, 5.25, 15, 2));
+
+				Register(new PoisonImpl("LesserParasitic", 14, 4, 16, 7.5, 3.0, 2.25, 10, 4));
+				Register(new PoisonImpl("RegularParasitic", 15, 8, 18, 10.0, 3.0, 3.25, 10, 3));
+				Register(new PoisonImpl("GreaterParasitic", 16, 12, 20, 15.0, 3.0, 4.25, 10, 2));
+				Register(new PoisonImpl("DeadlyParasitic", 17, 16, 30, 30.0, 3.0, 5.25, 15, 2));
+				Register(new PoisonImpl("LethalParasitic", 18, 20, 50, 35.0, 3.0, 5.25, 20, 2));
+			}
+			#endregion
 		}
 
 		public static Poison IncreaseLevel(Poison oldPoison)
@@ -50,6 +66,44 @@ namespace Server
 		private readonly TimeSpan m_Delay;
 		private readonly TimeSpan m_Interval;
 		private readonly int m_Count, m_MessageInterval;
+
+		#region Mondain's Legacy
+		public override int RealLevel
+		{
+			get
+			{
+				if (m_Level >= 14)
+				{
+					return m_Level - 14;
+				}
+
+				if (m_Level >= 10)
+				{
+					return m_Level - 10;
+				}
+
+				return m_Level;
+			}
+		}
+
+		public override int LabelNumber
+		{
+			get
+			{
+				if (m_Level >= 14)
+				{
+					return 1072852; // parasitic poison charges: ~1_val~
+				}
+
+				if (m_Level >= 10)
+				{
+					return 1072853; // darkglow poison charges: ~1_val~
+				}
+
+				return 1062412 + m_Level; // ~poison~ poison charges: ~1_val~
+			}
+		}
+		#endregion
 
 		public PoisonImpl(string name, int level, int min, int max, double percent, double delay, double interval, int count, int messageInterval)
 		{

@@ -1,30 +1,57 @@
 namespace Server.Items
 {
-	[Flipable(0xec6, 0xec7)]
-	public class Dressform : BaseItem
+	[TypeAlias("Server.Items.Dressform")]
+	public class DressformFront : BaseItem
 	{
 		[Constructable]
-		public Dressform() : base(0xec6)
+		public DressformFront()
+			: base(0xec6)
 		{
 			Weight = 10;
 		}
 
-		public Dressform(Serial serial) : base(serial)
+		public DressformFront(Serial serial)
+			: base(serial)
 		{
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
 			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
+			_ = reader.ReadInt();
+		}
+	}
 
-			int version = reader.ReadInt();
+	public class DressformSide : BaseItem
+	{
+		[Constructable]
+		public DressformSide()
+			: base(0xec7)
+		{
+			Weight = 10;
+		}
+
+		public DressformSide(Serial serial)
+			: base(serial)
+		{
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(0);
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			_ = reader.ReadInt();
 		}
 	}
 }

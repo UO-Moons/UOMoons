@@ -5,11 +5,12 @@ namespace Server.Mobiles
 {
 	public class SBTinker : SBInfo
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
+		private readonly List<GenericBuyInfo> m_BuyInfo;
 		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
 
-		public SBTinker()
+		public SBTinker(BaseVendor owner)
 		{
+			m_BuyInfo = new InternalBuyInfo(owner);
 		}
 
 		public override IShopSellInfo SellInfo => m_SellInfo;
@@ -17,7 +18,7 @@ namespace Server.Mobiles
 
 		public class InternalBuyInfo : List<GenericBuyInfo>
 		{
-			public InternalBuyInfo()
+			public InternalBuyInfo(BaseVendor owner)
 			{
 				Add(new GenericBuyInfo(typeof(Clock), 22, 20, 0x104B, 0));
 				Add(new GenericBuyInfo(typeof(Nails), 3, 20, 0x102E, 0));

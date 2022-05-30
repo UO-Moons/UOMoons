@@ -1,11 +1,12 @@
 using Server.Targeting;
 using System;
+using System.Collections.Generic;
 
 namespace Server.Spells.First
 {
 	public class ClumsySpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Clumsy", "Uus Jux",
 				212,
 				9031,
@@ -13,12 +14,41 @@ namespace Server.Spells.First
 				Reagent.Nightshade
 			);
 
-		public override SpellCircle Circle => SpellCircle.First;
-		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
-
 		public ClumsySpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 		{
 		}
+		public static readonly Dictionary<Mobile, Timer> m_Table = new();
+
+		public static bool IsUnderEffects(Mobile m)
+		{
+			return m_Table.ContainsKey(m);
+		}
+
+		public static void RemoveEffects(Mobile m, bool removeMod = true)
+		{
+			if (m_Table.ContainsKey(m))
+			{
+				Timer t = m_Table[m];
+
+				if (t != null && t.Running)
+				{
+					t.Stop();
+				}
+
+				BuffInfo.RemoveBuff(m, BuffIcon.Clumsy);
+
+				if (removeMod)
+				{
+					m.RemoveStatMod("[Magic] Dex Curse");
+				}
+
+				m_Table.Remove(m);
+			}
+		}
+
+		public override SpellCircle Circle => SpellCircle.First;
+
+		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
 
 		public override void OnCast()
 		{
@@ -44,25 +74,43 @@ namespace Server.Spells.First
 			else if (CheckHSequence(m))
 			{
 				SpellHelper.Turn(Caster, m);
-
 				SpellHelper.CheckReflect((int)Circle, Caster, ref m);
+				int oldOffset = SpellHelper.GetCurseOffset(m, StatType.Dex);
+				int newOffset = SpellHelper.GetOffset(Caster, m, StatType.Dex, true, false);
+				if (-newOffset > oldOffset || newOffset == 0)
+				{
+					DoHurtFizzle();
+				}
+				else
+				{
+					if (m.Spell != null)
+						m.Spell.OnCasterHurt();
 
-				SpellHelper.AddStatCurse(Caster, m, StatType.Dex);
+					m.Paralyzed = false;
 
-				if (m.Spell != null)
-					m.Spell.OnCasterHurt();
+					m.FixedParticles(0x3779, 10, 15, 5002, EffectLayer.Head);
+					m.PlaySound(0x1DF);
+					HarmfulSpell(m);
 
-				m.Paralyzed = false;
+					if (-newOffset < oldOffset)
+					{
+						SpellHelper.AddStatCurse(Caster, m, StatType.Dex, false, newOffset);
 
-				m.FixedParticles(0x3779, 10, 15, 5002, EffectLayer.Head);
-				m.PlaySound(0x1DF);
+						int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, true) * 100);
+						TimeSpan length = SpellHelper.GetDuration(Caster, m);
+						BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Clumsy, 1075831, length, m, percentage.ToString()));
 
-				int percentage = (int)(SpellHelper.GetOffsetScalar(Caster, m, true) * 100);
-				TimeSpan length = SpellHelper.GetDuration(Caster, m);
+						if (m_Table.ContainsKey(m))
+						{
+							m_Table[m].Stop();
+						}
 
-				BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.Clumsy, 1075831, length, m, percentage.ToString()));
-
-				HarmfulSpell(m);
+						m_Table[m] = Timer.DelayCall(length, () =>
+						{
+							RemoveEffects(m);
+						});
+					}
+				}
 			}
 
 			FinishSequence();
@@ -79,9 +127,9 @@ namespace Server.Spells.First
 
 			protected override void OnTarget(Mobile from, object o)
 			{
-				if (o is Mobile)
+				if (o is Mobile mobile)
 				{
-					m_Owner.Target((Mobile)o);
+					m_Owner.Target(mobile);
 				}
 			}
 

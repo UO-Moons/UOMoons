@@ -9,7 +9,7 @@ namespace Server.Spells.Fourth
 {
 	public class RecallSpell : MagerySpell
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
+		private static readonly SpellInfo m_Info = new(
 				"Recall", "Kal Ort Por",
 				239,
 				9031,
@@ -22,7 +22,7 @@ namespace Server.Spells.Fourth
 
 		private readonly RunebookEntry m_Entry;
 		private readonly Runebook m_Book;
-
+		public bool NoSkillRequirement => (Core.SE && (m_Book != null)) || TransformationSpellHelper.UnderTransformation(Caster, typeof(WraithFormSpell));
 		public RecallSpell(Mobile caster, Item scroll) : this(caster, scroll, null, null)
 		{
 		}
@@ -35,12 +35,14 @@ namespace Server.Spells.Fourth
 
 		public override void GetCastSkills(out double min, out double max)
 		{
-			if (TransformationSpellHelper.UnderTransformation(Caster, typeof(WraithFormSpell)))
+			if (NoSkillRequirement)
+			{
 				min = max = 0;
-			else if (Core.SE && m_Book != null) //recall using Runebook charge
-				min = max = 0;
+			}
 			else
+			{
 				base.GetCastSkills(out min, out max);
+			}
 		}
 
 		public override bool Cast()
