@@ -386,9 +386,7 @@ namespace Server.Items
 		{
 			Layer = Layer.Talisman;
 			Weight = 1.0;
-
 			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
-
 			m_Protection = new TalismanAttribute();
 			m_Killer = new TalismanAttribute();
 			m_Summoner = new TalismanAttribute();

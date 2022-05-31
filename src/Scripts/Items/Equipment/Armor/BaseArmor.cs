@@ -15,7 +15,6 @@ namespace Server.Items
 		private int m_HitPoints;
 		private DurabilityLevel m_Durability;
 		private ArmorProtectionLevel m_Protection;
-		private CraftResource m_Resource;
 		private int m_PhysicalBonus, m_FireBonus, m_ColdBonus, m_PoisonBonus, m_EnergyBonus;
 		private AosArmorAttributes m_AosArmorAttributes;
 		private AosSkillBonuses m_AosSkillBonuses;
@@ -105,20 +104,20 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public CraftResource Resource
+		public override CraftResource Resource
 		{
-			get => m_Resource;
+			get => base.Resource;
 			set
 			{
-				if (m_Resource != value)
+				if (Resource != value)
 				{
 					UnscaleDurability();
 
-					m_Resource = value;
+					base.Resource = value;
 
 					if (CraftItem.RetainsColor(GetType()))
 					{
-						Hue = CraftResources.GetHue(m_Resource);
+						Hue = CraftResources.GetHue(Resource);
 					}
 
 					Invalidate();
@@ -245,7 +244,7 @@ namespace Server.Items
 				if (m_Protection != ArmorProtectionLevel.Regular)
 					ar += 10 + (5 * (int)m_Protection);
 
-				switch (m_Resource)
+				switch (Resource)
 				{
 					case CraftResource.DullCopper: ar += 2; break;
 					case CraftResource.ShadowIron: ar += 4; break;
@@ -365,7 +364,7 @@ namespace Server.Items
 
 		public CraftAttributeInfo GetResourceAttrs()
 		{
-			CraftResourceInfo info = CraftResources.GetInfo(m_Resource);
+			CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
 			if (info == null)
 				return CraftAttributeInfo.Blank;
@@ -428,7 +427,7 @@ namespace Server.Items
 			{
 				bonus += m_AosArmorAttributes.DurabilityBonus;
 
-				CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+				CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 				CraftAttributeInfo attrInfo = null;
 
 				if (resInfo != null)
@@ -463,7 +462,7 @@ namespace Server.Items
 			{
 				try
 				{
-					Item res = (Item)Activator.CreateInstance(CraftResources.GetInfo(m_Resource).ResourceTypes[0]);
+					Item res = (Item)Activator.CreateInstance(CraftResources.GetInfo(Resource).ResourceTypes[0]);
 
 					ScissorHelper(from, res, PlayerConstructed ? (item.Resources.GetAt(0).Amount / 2) : 1);
 					return true;
@@ -528,7 +527,7 @@ namespace Server.Items
 
 			int v = m_AosArmorAttributes.LowerStatReq;
 
-			CraftResourceInfo info = CraftResources.GetInfo(m_Resource);
+			CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
 			if (info != null)
 			{
@@ -581,7 +580,9 @@ namespace Server.Items
 		protected void Invalidate()
 		{
 			if (Parent is Mobile mobile)
+			{
 				mobile.Delta(MobileDelta.Armor); // Tell them armor rating has changed
+			}
 		}
 
 		public BaseArmor(Serial serial) : base(serial)
@@ -600,39 +601,21 @@ namespace Server.Items
 			ColdBonus = 0x00000010,
 			PoisonBonus = 0x00000020,
 			EnergyBonus = 0x00000040,
-			Identified = 0x00000080,
-			MaxHitPoints = 0x00000100,
-			HitPoints = 0x00000200,
-			Unused = 0x00000400,
-			Unused2 = 0x00000800,
-			Durability = 0x00001000,
-			Protection = 0x00002000,
-			Resource = 0x00004000,
-			BaseArmor = 0x00008000,
-			StrBonus = 0x00010000,
-			DexBonus = 0x00020000,
-			IntBonus = 0x00040000,
-			StrReq = 0x00080000,
-			DexReq = 0x00100000,
-			IntReq = 0x00200000,
-			MedAllowance = 0x00400000,
-			SkillBonuses = 0x00800000,
-			xWeaponAttributes = 0x01000000,
-			TalismanProtection = 0x02000000
-		}
-
-		#region Mondain's Legacy Sets
-		private static void SetSaveFlag(ref SetFlag flags, SetFlag toSet, bool setIf)
-		{
-			if (setIf)
-			{
-				flags |= toSet;
-			}
-		}
-
-		private static bool GetSaveFlag(SetFlag flags, SetFlag toGet)
-		{
-			return (flags & toGet) != 0;
+			MaxHitPoints = 0x00000060,
+			HitPoints = 0x00000080,
+			Durability = 0x00000100,
+			Protection = 0x00000200,
+			BaseArmor = 0x00000400,
+			StrBonus = 0x00000600,
+			DexBonus = 0x00000800,
+			IntBonus = 0x00001000,
+			StrReq = 0x00002000,
+			DexReq = 0x00004000,
+			IntReq = 0x00006000,
+			MedAllowance = 0x00008000,
+			SkillBonuses = 0x00010000,
+			xWeaponAttributes = 0x00020000,
+			TalismanProtection = 0x00040000
 		}
 
 		[Flags]
@@ -652,7 +635,6 @@ namespace Server.Items
 			SetEquipped = 0x00000400,
 			SetSelfRepair = 0x00000800,
 		}
-		#endregion
 
 		public void XWeaponAttributesDeserializeHelper(GenericReader reader, BaseArmor item)
 		{
@@ -694,57 +676,57 @@ namespace Server.Items
 
 			writer.WriteEncodedInt((int)sflags);
 
-			if (GetSaveFlag(sflags, SetFlag.Attributes))
+			if (sflags.HasFlag(SetFlag.Attributes))
 			{
 				m_SetAttributes.Serialize(writer);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.SkillBonuses))
+			if (sflags.HasFlag(SetFlag.SkillBonuses))
 			{
 				m_SetSkillBonuses.Serialize(writer);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.PhysicalBonus))
+			if (sflags.HasFlag(SetFlag.PhysicalBonus))
 			{
 				writer.WriteEncodedInt(m_SetPhysicalBonus);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.FireBonus))
+			if (sflags.HasFlag(SetFlag.FireBonus))
 			{
 				writer.WriteEncodedInt(m_SetFireBonus);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.ColdBonus))
+			if (sflags.HasFlag(SetFlag.ColdBonus))
 			{
 				writer.WriteEncodedInt(m_SetColdBonus);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.PoisonBonus))
+			if (sflags.HasFlag(SetFlag.PoisonBonus))
 			{
 				writer.WriteEncodedInt(m_SetPoisonBonus);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.EnergyBonus))
+			if (sflags.HasFlag(SetFlag.EnergyBonus))
 			{
 				writer.WriteEncodedInt(m_SetEnergyBonus);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.Hue))
+			if (sflags.HasFlag(SetFlag.Hue))
 			{
 				writer.WriteEncodedInt(m_SetHue);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.LastEquipped))
+			if (sflags.HasFlag(SetFlag.LastEquipped))
 			{
 				writer.Write(LastEquipped);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.SetEquipped))
+			if (sflags.HasFlag(SetFlag.SetEquipped))
 			{
 				writer.Write(SetEquipped);
 			}
 
-			if (GetSaveFlag(sflags, SetFlag.SetSelfRepair))
+			if (sflags.HasFlag(SetFlag.SetSelfRepair))
 			{
 				writer.WriteEncodedInt(m_SetSelfRepair);
 			}
@@ -762,7 +744,6 @@ namespace Server.Items
 			Utility.SetSaveFlag(ref flags, SaveFlag.HitPoints, m_HitPoints != 0);
 			Utility.SetSaveFlag(ref flags, SaveFlag.Durability, m_Durability != DurabilityLevel.Regular);
 			Utility.SetSaveFlag(ref flags, SaveFlag.Protection, m_Protection != ArmorProtectionLevel.Regular);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Resource, m_Resource != DefaultResource);
 			Utility.SetSaveFlag(ref flags, SaveFlag.BaseArmor, m_ArmorBase != -1);
 			Utility.SetSaveFlag(ref flags, SaveFlag.StrBonus, m_StrBonus != -1);
 			Utility.SetSaveFlag(ref flags, SaveFlag.DexBonus, m_DexBonus != -1);
@@ -815,9 +796,6 @@ namespace Server.Items
 			if (flags.HasFlag(SaveFlag.Protection))
 				writer.WriteEncodedInt((int)m_Protection);
 
-			if (flags.HasFlag(SaveFlag.Resource))
-				writer.WriteEncodedInt((int)m_Resource);
-
 			if (flags.HasFlag(SaveFlag.BaseArmor))
 				writer.WriteEncodedInt(m_ArmorBase);
 
@@ -858,7 +836,7 @@ namespace Server.Items
 					{
 						SetFlag sflags = (SetFlag)reader.ReadEncodedInt();
 
-						if (GetSaveFlag(sflags, SetFlag.Attributes))
+						if (sflags.HasFlag(SetFlag.Attributes))
 						{
 							m_SetAttributes = new AosAttributes(this, reader);
 						}
@@ -867,12 +845,12 @@ namespace Server.Items
 							m_SetAttributes = new AosAttributes(this);
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.ArmorAttributes))
+						if (sflags.HasFlag(SetFlag.ArmorAttributes))
 						{
 							m_SetSelfRepair = (new AosArmorAttributes(this, reader)).SelfRepair;
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.SkillBonuses))
+						if (sflags.HasFlag(SetFlag.SkillBonuses))
 						{
 							m_SetSkillBonuses = new AosSkillBonuses(this, reader);
 						}
@@ -881,47 +859,47 @@ namespace Server.Items
 							m_SetSkillBonuses = new AosSkillBonuses(this);
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.PhysicalBonus))
+						if (sflags.HasFlag(SetFlag.PhysicalBonus))
 						{
 							m_SetPhysicalBonus = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.FireBonus))
+						if (sflags.HasFlag(SetFlag.FireBonus))
 						{
 							m_SetFireBonus = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.ColdBonus))
+						if (sflags.HasFlag(SetFlag.ColdBonus))
 						{
 							m_SetColdBonus = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.PoisonBonus))
+						if (sflags.HasFlag(SetFlag.PoisonBonus))
 						{
 							m_SetPoisonBonus = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.EnergyBonus))
+						if (sflags.HasFlag(SetFlag.EnergyBonus))
 						{
 							m_SetEnergyBonus = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.Hue))
+						if (sflags.HasFlag(SetFlag.Hue))
 						{
 							m_SetHue = reader.ReadEncodedInt();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.LastEquipped))
+						if (sflags.HasFlag(SetFlag.LastEquipped))
 						{
 							LastEquipped = reader.ReadBool();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.SetEquipped))
+						if (sflags.HasFlag(SetFlag.SetEquipped))
 						{
 							SetEquipped = reader.ReadBool();
 						}
 
-						if (GetSaveFlag(sflags, SetFlag.SetSelfRepair))
+						if (sflags.HasFlag(SetFlag.SetSelfRepair))
 						{
 							m_SetSelfRepair = reader.ReadEncodedInt();
 						}
@@ -987,14 +965,6 @@ namespace Server.Items
 							if (m_Protection > ArmorProtectionLevel.Invulnerability)
 								m_Protection = ArmorProtectionLevel.Defense;
 						}
-
-						if (flags.HasFlag(SaveFlag.Resource))
-							m_Resource = (CraftResource)reader.ReadEncodedInt();
-						else
-							m_Resource = DefaultResource;
-
-						if (m_Resource == CraftResource.None)
-							m_Resource = DefaultResource;
 
 						if (flags.HasFlag(SaveFlag.BaseArmor))
 							m_ArmorBase = reader.ReadEncodedInt();
@@ -1073,25 +1043,15 @@ namespace Server.Items
 
 		public BaseArmor(int itemID) : base(itemID)
 		{
-			//Quality = ItemQuality.Normal;
-			m_Durability = DurabilityLevel.Regular;
-			Crafter = null;
-
-			m_Resource = DefaultResource;
-			Hue = CraftResources.GetHue(m_Resource);
-
-			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
-
 			Layer = (Layer)ItemData.Quality;
-
+			m_Durability = DurabilityLevel.Regular;
+			base.Resource = DefaultResource;
+			Hue = CraftResources.GetHue(Resource);
+			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 			m_AosArmorAttributes = new AosArmorAttributes(this);
 			m_AosSkillBonuses = new AosSkillBonuses(this);
-
-			#region Mondain's Legacy Sets
 			m_SetAttributes = new AosAttributes(this);
 			m_SetSkillBonuses = new AosSkillBonuses(this);
-			#endregion
-
 			m_AosWeaponAttributes = new AosWeaponAttributes(this);
 			m_TalismanProtection = new TalismanAttribute();
 		}
@@ -1293,7 +1253,7 @@ namespace Server.Items
 
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
-			int oreType = CraftResources.GetResourceLabel(m_Resource);
+			int oreType = CraftResources.GetResourceLabel(Resource);
 
 			if (Quality == ItemQuality.Exceptional)
 			{
@@ -1315,7 +1275,7 @@ namespace Server.Items
 
 		public override int GetLuckBonus()
 		{
-			CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+			CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 
 			if (resInfo == null)
 				return 0;
@@ -1824,7 +1784,7 @@ namespace Server.Items
 			#region Mondain's Legacy
 			if (Core.ML && !craftItem.ForceNonExceptional)
 			{
-				CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+				CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 
 				if (resInfo == null)
 				{
@@ -1906,7 +1866,7 @@ namespace Server.Items
 				m_EnergyBonus = Math.Max(0, m_EnergyBonus - info.ArmorEnergyResist);
 			}
 
-			info = GetResourceAttrs(m_Resource);
+			info = GetResourceAttrs(Resource);
 
 			// add new bonus
 			m_PhysicalBonus += info.ArmorPhysicalResist;
@@ -1918,7 +1878,7 @@ namespace Server.Items
 
 		public virtual void DistributeMaterialBonus(CraftAttributeInfo attrInfo)
 		{
-			if (m_Resource != CraftResource.Heartwood)
+			if (Resource != CraftResource.Heartwood)
 			{
 				Attributes.WeaponDamage += attrInfo.ArmorDamage;
 				Attributes.AttackChance += attrInfo.ArmorHitChance;

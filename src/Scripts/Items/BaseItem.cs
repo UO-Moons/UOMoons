@@ -14,7 +14,8 @@ namespace Server
 			Quality = 0x00000002,
 			EngravedText = 0x00000004,
 			PlayerConstructed = 0x00000006,
-			Crafter = 0x00000008
+			Crafter = 0x00000008,
+			Resource = 0x00000010
 		}
 
 		private bool m_Identified;
@@ -45,9 +46,18 @@ namespace Server
 			}
 		}
 
+		private CraftResource m_Resource;
+		[CommandProperty(AccessLevel.GameMaster)]
+		public virtual CraftResource Resource
+		{
+			get => m_Resource;
+			set { m_Resource = value; Hue = CraftResources.GetHue(m_Resource); InvalidateProperties(); }
+		}
+
 		public BaseItem()
 		{
 			Quality = ItemQuality.Normal;
+			Crafter = null;
 		}
 
 		public BaseItem(int itemID) : base(itemID)
@@ -81,6 +91,7 @@ namespace Server
 			Utility.SetSaveFlag(ref flags, SaveFlag.EngravedText, !string.IsNullOrEmpty(m_EngravedText));
 			Utility.SetSaveFlag(ref flags, SaveFlag.PlayerConstructed, PlayerConstructed != false);
 			Utility.SetSaveFlag(ref flags, SaveFlag.Crafter, m_Crafter != null);
+			Utility.SetSaveFlag(ref flags, SaveFlag.Resource, m_Resource != CraftResource.Iron);
 
 			writer.WriteEncodedInt((int)flags);
 
@@ -95,6 +106,9 @@ namespace Server
 
 			if (flags.HasFlag(SaveFlag.Crafter))
 				writer.Write(m_Crafter);
+
+			if (flags.HasFlag(SaveFlag.Resource))
+				writer.Write((int)m_Resource);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -127,6 +141,11 @@ namespace Server
 
 						if (flags.HasFlag(SaveFlag.Crafter))
 							m_Crafter = reader.ReadMobile();
+
+						if (flags.HasFlag(SaveFlag.Resource))
+							m_Resource = (CraftResource)reader.ReadInt();
+						else
+							m_Resource = CraftResource.Iron;
 
 						break;
 					}

@@ -134,6 +134,7 @@ namespace Server.Items
 
 		public BaseJewel(int itemID, Layer layer) : base(itemID)
 		{
+			Layer = layer;
 			m_AosResistances = new AosElementAttributes(this);
 			m_AosSkillBonuses = new AosSkillBonuses(this);
 			m_SetAttributes = new AosAttributes(this);
@@ -141,9 +142,6 @@ namespace Server.Items
 			m_TalismanProtection = new TalismanAttribute();
 			m_Resource = CraftResource.Iron;
 			m_GemType = GemType.None;
-
-			Layer = layer;
-
 			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 		}
 

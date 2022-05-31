@@ -36,7 +36,7 @@ namespace Server.Items
 		private SlayerName m_Slayer;
 		private SlayerName m_Slayer2;
 		private SkillMod m_SkillMod, m_MageMod;
-		private CraftResource m_Resource;
+		//private CraftResource m_Resource;
 		private AosWeaponAttributes m_AosWeaponAttributes;
 		private AosSkillBonuses m_AosSkillBonuses;
 		private AosElementAttributes m_AosElementDamages;
@@ -192,10 +192,10 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public CraftResource Resource
+		public override CraftResource Resource
 		{
-			get => m_Resource;
-			set { UnscaleDurability(); m_Resource = value; Hue = CraftResources.GetHue(m_Resource); InvalidateProperties(); ScaleDurability(); }
+			get => base.Resource;
+			set { UnscaleDurability(); base.Resource = value; Hue = CraftResources.GetHue(Resource); InvalidateProperties(); ScaleDurability(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -215,56 +215,56 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxRange
 		{
-			get => (m_MaxRange == -1 ? DefMaxRange : m_MaxRange);
+			get => m_MaxRange == -1 ? DefMaxRange : m_MaxRange;
 			set { m_MaxRange = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public WeaponAnimation Animation
 		{
-			get => (m_Animation == (WeaponAnimation)(-1) ? DefAnimation : m_Animation);
+			get => m_Animation == (WeaponAnimation)(-1) ? DefAnimation : m_Animation;
 			set => m_Animation = value;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public WeaponType Type
 		{
-			get => (m_Type == (WeaponType)(-1) ? DefType : m_Type);
+			get => m_Type == (WeaponType)(-1) ? DefType : m_Type;
 			set => m_Type = value;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public SkillName Skill
 		{
-			get => (m_Skill == (SkillName)(-1) ? DefSkill : m_Skill);
+			get => m_Skill == (SkillName)(-1) ? DefSkill : m_Skill;
 			set { m_Skill = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int HitSound
 		{
-			get => (m_HitSound == -1 ? DefHitSound : m_HitSound);
+			get => m_HitSound == -1 ? DefHitSound : m_HitSound;
 			set => m_HitSound = value;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MissSound
 		{
-			get => (m_MissSound == -1 ? DefMissSound : m_MissSound);
+			get => m_MissSound == -1 ? DefMissSound : m_MissSound;
 			set => m_MissSound = value;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MinDamage
 		{
-			get => (m_MinDamage == -1 ? MinDamageBase : m_MinDamage);
+			get => m_MinDamage == -1 ? MinDamageBase : m_MinDamage;
 			set { m_MinDamage = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxDamage
 		{
-			get => (m_MaxDamage == -1 ? MaxDamageBase : m_MaxDamage);
+			get => m_MaxDamage == -1 ? MaxDamageBase : m_MaxDamage;
 			set { m_MaxDamage = value; InvalidateProperties(); }
 		}
 
@@ -278,21 +278,21 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int StrRequirement
 		{
-			get => (m_StrReq == -1 ? StrReq : m_StrReq);
+			get => m_StrReq == -1 ? StrReq : m_StrReq;
 			set { m_StrReq = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int DexRequirement
 		{
-			get => (m_DexReq == -1 ? DexReq : m_DexReq);
+			get => m_DexReq == -1 ? DexReq : m_DexReq;
 			set => m_DexReq = value;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int IntRequirement
 		{
-			get => (m_IntReq == -1 ? IntReq : m_IntReq);
+			get => m_IntReq == -1 ? IntReq : m_IntReq;
 			set => m_IntReq = value;
 		}
 
@@ -386,7 +386,7 @@ namespace Server.Items
 			{
 				bonus += m_AosWeaponAttributes.DurabilityBonus;
 
-				CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+				CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 				CraftAttributeInfo attrInfo = null;
 
 				if (resInfo != null)
@@ -406,7 +406,7 @@ namespace Server.Items
 
 			int v = m_AosWeaponAttributes.LowerStatReq;
 
-			CraftResourceInfo info = CraftResources.GetInfo(m_Resource);
+			CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
 			if (info != null)
 			{
@@ -1987,7 +1987,7 @@ namespace Server.Items
 			return CheckSlayerResult.None;
 		}
 
-		public CheckSlayerResult CheckSlayerOpposition(Mobile attacker, Mobile defender)
+		public static CheckSlayerResult CheckSlayerOpposition(Mobile attacker, Mobile defender)
 		{
 			ISlayer defISlayer = Spellbook.FindEquippedSpellbook(defender);
 
@@ -2139,7 +2139,7 @@ namespace Server.Items
 
 				phys = 100 - fire - cold - pois - nrgy - chaos - direct;
 
-				CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+				CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 
 				if (resInfo != null)
 				{
@@ -2671,7 +2671,6 @@ namespace Server.Items
 			Utility.SetSaveFlag(ref flags, SaveFlag.Skill, m_Skill != (SkillName)(-1));
 			Utility.SetSaveFlag(ref flags, SaveFlag.Type, m_Type != (WeaponType)(-1));
 			Utility.SetSaveFlag(ref flags, SaveFlag.Animation, m_Animation != (WeaponAnimation)(-1));
-			Utility.SetSaveFlag(ref flags, SaveFlag.Resource, m_Resource != CraftResource.Iron);
 			Utility.SetSaveFlag(ref flags, SaveFlag.xWeaponAttributes, !m_AosWeaponAttributes.IsEmpty);
 			Utility.SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !m_AosSkillBonuses.IsEmpty);
 			Utility.SetSaveFlag(ref flags, SaveFlag.Slayer2, m_Slayer2 != SlayerName.None);
@@ -2739,9 +2738,6 @@ namespace Server.Items
 			if (flags.HasFlag(SaveFlag.Animation))
 				writer.Write((int)m_Animation);
 
-			if (flags.HasFlag(SaveFlag.Resource))
-				writer.Write((int)m_Resource);
-
 			if (flags.HasFlag(SaveFlag.xWeaponAttributes))
 				m_AosWeaponAttributes.Serialize(writer);
 
@@ -2779,12 +2775,11 @@ namespace Server.Items
 			Skill = 0x00006000,
 			Type = 0x00008000,
 			Animation = 0x00010000,
-			Resource = 0x00020000,
-			xAttributes = 0x00040000,
-			xWeaponAttributes = 0x00060000,
-			SkillBonuses = 0x00080000,
-			Slayer2 = 0x00100000,
-			ElementalDamages = 0x00200000
+			xAttributes = 0x00020000,
+			xWeaponAttributes = 0x00040000,
+			SkillBonuses = 0x00060000,
+			Slayer2 = 0x00080000,
+			ElementalDamages = 0x00100000
 		}
 
 		#region Mondain's Legacy Sets
@@ -3006,11 +3001,6 @@ namespace Server.Items
 						else
 							m_Animation = (WeaponAnimation)(-1);
 
-						if (flags.HasFlag(SaveFlag.Resource))
-							m_Resource = (CraftResource)reader.ReadInt();
-						else
-							m_Resource = CraftResource.Iron;
-
 						if (flags.HasFlag(SaveFlag.xWeaponAttributes))
 							m_AosWeaponAttributes = new AosWeaponAttributes(this, reader);
 						else
@@ -3088,10 +3078,11 @@ namespace Server.Items
 		}
 		#endregion
 
+		public virtual CraftResource DefaultResource => CraftResource.Iron;
+
 		public BaseWeapon(int itemID) : base(itemID)
 		{
 			Layer = (Layer)ItemData.Quality;
-
 			m_StrReq = -1;
 			m_DexReq = -1;
 			m_IntReq = -1;
@@ -3104,19 +3095,14 @@ namespace Server.Items
 			m_Skill = (SkillName)(-1);
 			m_Type = (WeaponType)(-1);
 			m_Animation = (WeaponAnimation)(-1);
-
 			m_Hits = m_MaxHits = Utility.RandomMinMax(InitMinHits, InitMaxHits);
-
-			m_Resource = CraftResource.Iron;
-
+			base.Resource = DefaultResource;
+			Hue = CraftResources.GetHue(Resource);
 			m_AosWeaponAttributes = new AosWeaponAttributes(this);
 			m_AosSkillBonuses = new AosSkillBonuses(this);
 			m_AosElementDamages = new AosElementAttributes(this);
-
-			#region Mondain's Legacy Sets
 			m_SetAttributes = new AosAttributes(this);
 			m_SetSkillBonuses = new AosSkillBonuses(this);
-			#endregion
 		}
 
 		public BaseWeapon(Serial serial) : base(serial)
@@ -3177,7 +3163,7 @@ namespace Server.Items
 
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
-			int oreType = CraftResources.GetResourceLabel(m_Resource);
+			int oreType = CraftResources.GetResourceLabel(Resource);
 
 			if (oreType != 0)
 				list.Add(1053099, "#{0}\t{1}", oreType, GetNameString()); // ~1_oretype~ ~2_armortype~
@@ -3207,12 +3193,12 @@ namespace Server.Items
 
 		public override int GetLuckBonus()
 		{
-			if (Core.ML && m_Resource == CraftResource.Heartwood)
+			if (Core.ML && Resource == CraftResource.Heartwood)
 			{
 				return 0;
 			}
 
-			CraftResourceInfo resInfo = CraftResources.GetInfo(m_Resource);
+			CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 
 			if (resInfo == null)
 				return 0;
@@ -4206,7 +4192,7 @@ namespace Server.Items
 
 		public virtual void DistributeMaterialBonus(CraftAttributeInfo attrInfo)
 		{
-			if (m_Resource != CraftResource.Heartwood)
+			if (Resource != CraftResource.Heartwood)
 			{
 				Attributes.WeaponDamage += attrInfo.WeaponDamage;
 				Attributes.WeaponSpeed += attrInfo.WeaponSwingSpeed;

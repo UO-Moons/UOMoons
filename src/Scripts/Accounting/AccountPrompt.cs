@@ -20,7 +20,7 @@ namespace Server.Accounting
 
 					Console.Write("Password: ");
 					string password = Console.ReadLine();
-					_ = new(username, password)
+					Account a = new(username, password)
 					{
 						AccessLevel = AccessLevel.Owner
 					};

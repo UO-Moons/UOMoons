@@ -53,7 +53,7 @@ namespace Server.Mobiles
             if (DateTime.UtcNow > m_AuraDelay)
             {
                 DebugSay("Auraing");
-                Ability.Aura(this, MinAuraDamage, MaxAuraDamage, AuraType, AuraCreatureRange, AuraPoison, AuraMessage);
+                Ability.Aura(this, this, MinAuraDamage, MaxAuraDamage, AuraType, AuraCreatureRange, AuraPoison, AuraMessage);
 
                 m_AuraDelay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(MinAuraDelay, MaxAuraDelay));
             }

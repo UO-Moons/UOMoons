@@ -359,11 +359,8 @@ namespace Server.Items
 		{
 			Layer = layer;
 			Hue = hue;
-
 			m_Resource = DefaultResource;
-
 			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
-
 			m_AosClothingAttributes = new AosArmorAttributes(this);
 			m_AosSkillBonuses = new AosSkillBonuses(this);
 			m_AosResistances = new AosElementAttributes(this);

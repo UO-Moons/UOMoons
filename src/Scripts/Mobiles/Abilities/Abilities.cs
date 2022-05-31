@@ -38,7 +38,7 @@ namespace Server
 
 		#region Aura
 		// Support for the old Aura permaiters
-		public static void Aura(Mobile from, int min, int max, int type, int range, int poisons, string text)
+		public static void Aura(IDamageable m, Mobile from, int min, int max, int type, int range, int poisons, string text)
 		{
 			ResistanceType rt = ResistanceType.Physical;
 			Poison p = null;
@@ -78,12 +78,7 @@ namespace Server
 					break;
 			}
 
-			Aura(from.Location, from.Map, from, min, max, rt, range, p, text, true, false, false, 0, 0);
-		}
-
-		public static void Aura(IDamageable m, Mobile from, int min, int max, ResistanceType type, int range, Poison poison, string text)
-		{
-			Aura(m, from.Location, from.Map, from, min, max, type, range, poison, text, true, false, false, 0, 0);
+			Aura(m, from.Location, from.Map, from, min, max, rt, range, p, text, true, false, false, 0, 0);
 		}
 
 		// Mobile based Aura
