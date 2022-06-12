@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		public Ninja() : base(AIType.AI_Melee, FightMode.Aggressor, 10, 1, 0.2, 0.4)
 		{
 			Title = "the ninja";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			InitStats(100, 100, 25);
 
 			SetSkill(SkillName.Fencing, 64.0, 80.0);

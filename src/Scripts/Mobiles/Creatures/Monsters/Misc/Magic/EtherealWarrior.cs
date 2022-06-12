@@ -7,6 +7,7 @@ namespace Server.Mobiles
 	public class EtherealWarrior : BaseCreature
 	{
 		public override bool InitialInnocent => true;
+		private DateTime m_Delay = DateTime.UtcNow;
 
 		[Constructable]
 		public EtherealWarrior() : base(AIType.AI_Mage, FightMode.Evil, 10, 1, 0.2, 0.4)
@@ -104,6 +105,27 @@ namespace Server.Mobiles
 		public override int GetDeathSound()
 		{
 			return 0x2F7;
+		}
+
+		public override bool IsEnemy(Mobile m)
+		{
+			if (m is Nightmare || m is Dragon)
+				return true;
+
+			return base.IsEnemy(m);
+		}
+
+		public override void OnActionCombat()
+		{
+			base.OnActionCombat();
+
+			if (DateTime.Now > m_Delay)
+			{
+				if (Combatant != null)
+					Ability.EtherealDrain(this, (Mobile)Combatant, Utility.RandomMinMax(1, 3));
+
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(15, 30));
+			}
 		}
 
 		public override void OnGaveMeleeAttack(Mobile defender)

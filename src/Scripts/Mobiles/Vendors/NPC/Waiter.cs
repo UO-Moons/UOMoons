@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Waiter() : base("the waiter")
 		{
+			Job = JobFragment.waiter;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Discordance, 36.0, 68.0);
 		}
 

@@ -60,6 +60,8 @@ namespace Server
 
 		public static bool Service { get; private set; }
 		public static bool Debug { get; private set; }
+		public static bool FileLoad = false;
+		public static bool DebugLoad = false;
 		internal static bool HaltOnWarning { get; private set; }
 		internal static bool VBdotNet { get; private set; }
 		public static List<string> DataDirectories { get; } = new List<string>();

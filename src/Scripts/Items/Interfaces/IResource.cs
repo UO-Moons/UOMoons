@@ -1,9 +1,6 @@
-using Server.Items;
+namespace Server.Items;
 
-namespace Server
+public interface IResource
 {
-	public interface IResource
-	{
-		public CraftResource Resource { get; set; }
-	}
+	public CraftResource Resource { get; set; }
 }

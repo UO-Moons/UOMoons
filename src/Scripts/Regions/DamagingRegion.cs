@@ -70,17 +70,16 @@ namespace Server.Regions
                 Table = new Dictionary<Mobile, Timer>();
             }
 
-            Timer t;
 
-            if (Table.TryGetValue(m, out t) && t != null)
-            {
-                t.Start();
-            }
-            else
-            {
-                Table[m] = Timer.DelayCall(DamageInterval, DamageInterval, Damage, m);
-            }
-        }
+			if (Table.TryGetValue(m, out Timer t) && t != null)
+			{
+				t.Start();
+			}
+			else
+			{
+				Table[m] = Timer.DelayCall(DamageInterval, DamageInterval, Damage, m);
+			}
+		}
 
         protected void StopTimer(Mobile m)
         {
@@ -89,18 +88,17 @@ namespace Server.Regions
                 Table = new Dictionary<Mobile, Timer>();
             }
 
-            Timer t;
 
-            if (Table.TryGetValue(m, out t))
-            {
-                if (t != null)
-                {
-                    t.Stop();
-                }
+			if (Table.TryGetValue(m, out Timer t))
+			{
+				if (t != null)
+				{
+					t.Stop();
+				}
 
-                Table.Remove(m);
-            }
-        }
+				Table.Remove(m);
+			}
+		}
 
         public void Damage(Mobile m)
         {
@@ -126,7 +124,7 @@ namespace Server.Regions
                 return false;
             }
 
-            if (!m.Player && (!(m is BaseCreature) || !(((BaseCreature)m).GetMaster() is PlayerMobile)))
+            if (!m.Player && (m is not BaseCreature || !(((BaseCreature)m).GetMaster() is PlayerMobile)))
             {
                 return false;
             }

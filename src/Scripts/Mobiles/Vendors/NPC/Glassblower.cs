@@ -11,8 +11,10 @@ namespace Server.Mobiles
 		public override NpcGuild NpcGuild => NpcGuild.MagesGuild;
 
 		[Constructable]
-		public Glassblower() : base("the alchemist")
+		public Glassblower() : base("the Glassblower")
 		{
+			Job = JobFragment.glassblower;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Alchemy, 85.0, 100.0);
 			SetSkill(SkillName.TasteID, 85.0, 100.0);
 		}

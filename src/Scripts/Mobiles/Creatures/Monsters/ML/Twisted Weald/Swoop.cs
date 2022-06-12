@@ -40,7 +40,6 @@ namespace Server.Mobiles
 			Karma = 0;
 
 			PackReg(4);
-			PackArcaneScroll(0, 1);
 		}
 
 		public override void GenerateLoot()

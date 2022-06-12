@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Menus.ItemLists;
 using Server.Network;
 using System;
 
@@ -13,53 +14,59 @@ namespace Server.Items
 		bool CheckAccessible(Mobile from, ref int num);
 	}
 
-	public abstract class BaseTool : Item, ITool, IResource, IQuality
+	public abstract class BaseTool : BaseItem, ITool, IResource, IQuality
 	{
-		private Mobile m_Crafter;
-		private ItemQuality m_Quality;
 		private int m_UsesRemaining;
-		private CraftResource _Resource;
-		private bool _PlayerConstructed;
+		public int m_Hits;
+		public int m_MaxHits;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public CraftResource Resource
+		public int HitPoints
 		{
-			get => _Resource;
+			get { return m_Hits; }
 			set
 			{
-				_Resource = value;
-				Hue = CraftResources.GetHue(_Resource);
+				if (m_Hits == value)
+					return;
+
+				if (value > m_MaxHits)
+					value = m_MaxHits;
+
+				m_Hits = value;
+
 				InvalidateProperties();
 			}
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter
+		public int MaxHitPoints
 		{
-			get => m_Crafter;
-			set { m_Crafter = value; InvalidateProperties(); }
+			get { return m_MaxHits; }
+			set { m_MaxHits = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public ItemQuality Quality
+		public override CraftResource Resource
 		{
-			get => m_Quality;
+			get => base.Resource;
+			set
+			{
+				base.Resource = value;
+				Hue = CraftResources.GetHue(Resource);
+				InvalidateProperties();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public override ItemQuality Quality
+		{
+			get => base.Quality;
 			set
 			{
 				UnscaleUses();
-				m_Quality = value;
+				base.Quality = value;
 				InvalidateProperties();
 				ScaleUses();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool PlayerConstructed
-		{
-			get => _PlayerConstructed;
-			set
-			{
-				_PlayerConstructed = value; InvalidateProperties();
 			}
 		}
 
@@ -75,7 +82,7 @@ namespace Server.Items
 
 		public void ScaleUses()
 		{
-			m_UsesRemaining = (m_UsesRemaining * GetUsesScalar()) / 100;
+			m_UsesRemaining = m_UsesRemaining * GetUsesScalar() / 100;
 			InvalidateProperties();
 		}
 
@@ -86,7 +93,7 @@ namespace Server.Items
 
 		public int GetUsesScalar()
 		{
-			if (m_Quality == ItemQuality.Exceptional)
+			if (Quality == ItemQuality.Exceptional)
 			{
 				return 200;
 			}
@@ -113,7 +120,7 @@ namespace Server.Items
 			: base(itemID)
 		{
 			m_UsesRemaining = uses;
-			m_Quality = ItemQuality.Normal;
+			Quality = ItemQuality.Normal;
 		}
 
 		public BaseTool(Serial serial)
@@ -123,12 +130,12 @@ namespace Server.Items
 
 		public override void AddCraftedProperties(ObjectPropertyList list)
 		{
-			if (m_Crafter != null)
+			if (Crafter != null)
 			{
-				list.Add(1050043, m_Crafter.TitleName); // crafted by ~1_NAME~
+				list.Add(1050043, Crafter.TitleName); // crafted by ~1_NAME~
 			}
 
-			if (m_Quality == ItemQuality.Exceptional)
+			if (Quality == ItemQuality.Exceptional)
 			{
 				list.Add(1060636); // exceptional
 			}
@@ -214,7 +221,21 @@ namespace Server.Items
 
 		public override void OnSingleClick(Mobile from)
 		{
-			DisplayDurabilityTo(from);
+			if (Core.AOS)
+			{
+				DisplayDurabilityTo(from);
+			}
+			else
+			{
+				if (Name != null)
+				{
+					from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, 0, 3, "", Name));
+				}
+				else if (this is SmithHammer)
+				{
+					from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, 0, 3, "", "a smith's hammer"));
+				}
+			}
 
 			base.OnSingleClick(from);
 		}
@@ -223,29 +244,53 @@ namespace Server.Items
 		{
 			if (IsChildOf(from.Backpack) || Parent == from)
 			{
-				CraftSystem system = CraftSystem;
-
-				if (Core.TOL && RepairMode)
+				if (Core.AOS)
 				{
-					Repair.Do(from, system, this);
-				}
-				else
-				{
-					int num = system.CanCraft(from, this, null);
+					CraftSystem system = CraftSystem;
 
-					if (num > 0 && (num != 1044267 || !Core.SE)) // Blacksmithing shows the gump regardless of proximity of an anvil and forge after SE
+					if (Core.TOL && RepairMode)
 					{
-						from.SendLocalizedMessage(num);
+						Repair.Do(from, system, this);
 					}
 					else
 					{
-						from.SendGump(new CraftGump(from, system, this, null));
+						int num = system.CanCraft(from, this, null);
+
+						if (num > 0 && (num != 1044267 || !Core.SE)) // Blacksmithing shows the gump regardless of proximity of an anvil and forge after SE
+						{
+							from.SendLocalizedMessage(num);
+						}
+						else
+						{
+							from.SendGump(new CraftGump(from, system, this, null));
+						}
+					}
+				}
+				else
+				{
+					if (this is SmithHammer)
+					{
+						DefBlacksmithy.CheckAnvilAndForge(from, 2, out bool anvil, out bool forge);
+
+						if (anvil && forge)
+						{
+							BaseTool m_Tool = this;
+							string IsFrom = "Main";
+							from.SendMenu(new BlacksmithMenu(from, BlacksmithMenu.Main(from), IsFrom, m_Tool));
+						}
+						else
+							from.SendAsciiMessage("You must be near an anvil and a forge to smith items.");
 					}
 				}
 			}
 			else
 			{
-				from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
+				if (Core.AOS)
+				{
+					from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
+				}
+				else
+					from.SendAsciiMessage("That must be in your pack for you to use it.");
 			}
 		}
 
@@ -253,15 +298,13 @@ namespace Server.Items
 		{
 			base.Serialize(writer);
 
-			writer.Write(4);
-
-			writer.Write(_PlayerConstructed);
-
-			writer.Write((int)_Resource);
+			writer.Write(0);
+			writer.Write((int)Resource);
 			writer.Write(RepairMode);
-			writer.Write(m_Crafter);
-			writer.Write((int)m_Quality);
+			writer.Write((int)Quality);
 			writer.Write(m_UsesRemaining);
+			writer.Write((int)m_Hits);
+			writer.Write((int)m_MaxHits);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -272,30 +315,14 @@ namespace Server.Items
 
 			switch (version)
 			{
-				case 4:
-					{
-						_PlayerConstructed = reader.ReadBool();
-						goto case 3;
-					}
-				case 3:
-					{
-						_Resource = (CraftResource)reader.ReadInt();
-						goto case 2;
-					}
-				case 2:
-					{
-						RepairMode = reader.ReadBool();
-						goto case 1;
-					}
-				case 1:
-					{
-						m_Crafter = reader.ReadMobile();
-						m_Quality = (ItemQuality)reader.ReadInt();
-						goto case 0;
-					}
 				case 0:
 					{
+						Resource = (CraftResource)reader.ReadInt();
+						RepairMode = reader.ReadBool();
+						Quality = (ItemQuality)reader.ReadInt();
 						m_UsesRemaining = reader.ReadInt();
+						m_Hits = reader.ReadInt();
+						m_MaxHits = reader.ReadInt();
 						break;
 					}
 			}

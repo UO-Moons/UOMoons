@@ -60,6 +60,14 @@ namespace Server.Mobiles
 		public override bool BleedImmune => true;
 		public override int TreasureMapLevel => 1;
 
+		public override void AlterMeleeDamageTo(Mobile to, ref int damage)
+		{
+			if (0.5 >= Utility.RandomDouble())
+			{
+				Ability.DamageArmor(to, 1, 5);
+			}
+		}
+
 		public VeriteElemental(Serial serial) : base(serial)
 		{
 		}

@@ -13,6 +13,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public StoneCrafter() : base("the stone crafter")
 		{
+			Job = JobFragment.sculptor;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Carpentry, 85.0, 100.0);
 		}
 

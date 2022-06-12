@@ -14,6 +14,24 @@ using System.Xml;
 
 namespace Server.Accounting
 {
+	public class YoungTimer : Timer
+	{
+		private Account m_Account;
+
+		public YoungTimer(Account account)
+			: base(TimeSpan.FromMinutes(1.0), TimeSpan.FromMinutes(1.0))
+		{
+			m_Account = account;
+
+			Priority = TimerPriority.FiveSeconds;
+		}
+
+		protected override void OnTick()
+		{
+			m_Account.CheckYoung();
+		}
+	}
+
 	public class Account : IAccount, IComparable, IComparable<Account>
 	{
 		public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(40.0);
@@ -157,7 +175,7 @@ namespace Server.Accounting
 		private readonly Mobile[] m_Mobiles;
 
 		/// <summary>
-		/// Deletes the account, all characters of the account, and all houses of those characters
+		/// Invokes the AccountDelete delegate, deletes all of the characters on the account, and removes the account from the account collection.
 		/// </summary>
 		public void Delete()
 		{
@@ -169,11 +187,6 @@ namespace Server.Accounting
 
 				if (m == null)
 					continue;
-
-				//List<BaseHouse> list = BaseHouse.GetHouses(m);
-
-				//for (int j = 0; j < list.Count; ++j)
-				//	list[j].Delete();
 
 				m.Delete();
 
@@ -343,6 +356,10 @@ namespace Server.Accounting
 				}
 
 				return m_TotalGameTime;
+			}
+			set
+			{
+				m_TotalGameTime = value;
 			}
 		}
 
@@ -573,60 +590,8 @@ namespace Server.Accounting
 			return ok;
 		}
 
+		public Timer YoungTimer { get { return m_YoungTimer; } set { m_YoungTimer = value; } }
 		private Timer m_YoungTimer;
-
-		public static void Initialize()
-		{
-			EventSink.OnConnected += EventSink_Connected;
-			EventSink.OnDisconnected += EventSink_Disconnected;
-			EventSink.OnLogin += EventSink_Login;
-		}
-
-		private static void EventSink_Connected(Mobile mob)
-		{
-			if (mob.Account is not Account acc)
-				return;
-
-			if (acc.Young && acc.m_YoungTimer == null)
-			{
-				acc.m_YoungTimer = new YoungTimer(acc);
-				acc.m_YoungTimer.Start();
-			}
-		}
-
-		private static void EventSink_Disconnected(Mobile mob)
-		{
-			if (mob.Account is not Account acc)
-				return;
-
-			if (acc.m_YoungTimer != null)
-			{
-				acc.m_YoungTimer.Stop();
-				acc.m_YoungTimer = null;
-			}
-
-			if (mob is not PlayerMobile m)
-				return;
-
-			acc.m_TotalGameTime += DateTime.UtcNow - m.SessionStart;
-		}
-
-		private static void EventSink_Login(Mobile mob)
-		{
-			if (mob is not PlayerMobile m)
-				return;
-
-			if (m.Account is not Account acc)
-				return;
-
-			if (m.Young && acc.Young)
-			{
-				TimeSpan ts = YoungDuration - acc.TotalGameTime;
-				int hours = Math.Max((int)ts.TotalHours, 0);
-
-				m.SendAsciiMessage("You will enjoy the benefits and relatively safe status of a young player for {0} more hour{1}.", hours, hours != 1 ? "s" : "");
-			}
-		}
 
 		public void RemoveYoungStatus(int message)
 		{
@@ -653,24 +618,6 @@ namespace Server.Accounting
 		{
 			if (TotalGameTime >= YoungDuration)
 				RemoveYoungStatus(1019038); // You are old enough to be considered an adult, and have outgrown your status as a young player!
-		}
-
-		private class YoungTimer : Timer
-		{
-			private readonly Account m_Account;
-
-			public YoungTimer(Account account)
-				: base(TimeSpan.FromMinutes(1.0), TimeSpan.FromMinutes(1.0))
-			{
-				m_Account = account;
-
-				Priority = TimerPriority.FiveSeconds;
-			}
-
-			protected override void OnTick()
-			{
-				m_Account.CheckYoung();
-			}
 		}
 
 		public Account(string username, string password)

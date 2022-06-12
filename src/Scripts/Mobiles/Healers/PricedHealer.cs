@@ -16,7 +16,7 @@ namespace Server.Mobiles
 		public PricedHealer(int price)
 		{
 			Price = price;
-
+			Karma = Utility.RandomMinMax(13, -45);
 			if (!Core.AOS)
 				NameHue = 0x35;
 		}

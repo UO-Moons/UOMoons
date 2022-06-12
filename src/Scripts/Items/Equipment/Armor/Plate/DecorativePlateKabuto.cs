@@ -1,42 +1,37 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class DecorativePlateKabuto : BaseArmor
 {
-	public class DecorativePlateKabuto : BaseArmor
+	public override int BasePhysicalResistance => 6;
+	public override int BaseFireResistance => 2;
+	public override int BaseColdResistance => 2;
+	public override int BasePoisonResistance => 2;
+	public override int BaseEnergyResistance => 3;
+	public override int InitHits => Utility.RandomMinMax(55, 75);
+	public override int StrReq => Core.AOS ? 70 : 70;
+	public override int ArmorBase => 3;
+	public override ArmorMaterialType MaterialType => ArmorMaterialType.Plate;
+	public override CraftResource DefaultResource => CraftResource.Iron;
+
+	[Constructable]
+	public DecorativePlateKabuto() : base(0x2778)
 	{
-		public override int BasePhysicalResistance => 6;
-		public override int BaseFireResistance => 2;
-		public override int BaseColdResistance => 2;
-		public override int BasePoisonResistance => 2;
-		public override int BaseEnergyResistance => 3;
+		Weight = 6.0;
+	}
 
-		public override int InitMinHits => 55;
-		public override int InitMaxHits => 75;
+	public DecorativePlateKabuto(Serial serial) : base(serial)
+	{
+	}
 
-		public override int StrReq => Core.AOS ? 70 : 70;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override int ArmorBase => 3;
-
-		public override ArmorMaterialType MaterialType => ArmorMaterialType.Plate;
-
-		[Constructable]
-		public DecorativePlateKabuto() : base(0x2778)
-		{
-			Weight = 6.0;
-		}
-
-		public DecorativePlateKabuto(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

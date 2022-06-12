@@ -1,0 +1,539 @@
+<!-- ======================================================================
+LOS config options
+
+    RTFM                 whether or not you have read these docs.
+
+YOU MUST SET RTFM="true" or DELETE OR YOU WILL GET AN EXCEPTION!!!
+
+    on=                  whether or not to use LOS
+    facets=              the facets where LOS will be active, separate with commas
+    mobiles=             whether or not to LOS mobiles
+    items=               whether or not to LOS items
+    losForMobs=          do NPC mobs also use LOLS?
+    symmetric=           make the LOS algorithm "symmetric": 
+                         make it so that if A can't see B, then B can't see A
+    highWalls=           makes walls so that they can NEVER be seen over;
+                         this accounts for a visual defect in the 2D nature
+                         of the LOS algorithms
+    squelchNames=        suppresses a bug in razor, but will interfere
+                         with player single click (and all names!) on mobs 
+                         somewhat. The value is seconds to suppress new names 
+                         displays.  Set to -1 (default) to not do this.
+    edgeRange=           renge to see over edge of roof (only applies if highWalls==true)
+    windowRange=         range to window to see thru the window; <1 == unlimited
+    treeRange=           range to tree to see thru; <1 == unlimited
+    warmupOnStart=       causes the LOS system to go through an aggressive
+                         warming up process on server start. 
+                         WARNING: TAKES TIME!
+    cacheRatio=          size to divide the cache by. Warning 1=-3GIG for Trammel alone!
+======================================================================= -->
+<LOS 
+    RTFM="true" 
+    on="false" 
+    facets="Felucca,Trammel,Ilshenar,Malas,Tokuno"
+    mobiles="true" 
+    items="true" 
+    losForMobs="true" 
+    symmetric="false" 
+    highWalls="true"
+    squelchNames="-1"
+    edgeRange="2"
+    windowRange="1"
+    treeRange="1"
+    warmupOnStart="true"
+    cacheRatio="100"
+    >
+<!-- ======================================================================
+Things which LOS cannot block the view OF. 
+======================================================================= -->
+    <NotLossed>
+        <!-- <Tile id="4xxx"/> -->
+    </NotLossed>
+<!-- ======================================================================
+Things that would block LOS, but ought not. Like lamp posts. And some tiles
+which are windows, but don't have the proper Window flag.
+======================================================================= -->
+    <WhiteList>
+        <!-- <Tile id="Axxx"/> -->
+    </WhiteList>
+<!-- ======================================================================
+Things that don't have native LOS attributes, but ought to. Like trees. 
+======================================================================= -->
+    <BlackList>
+        <!-- <Tile id="Axxx"/> -->
+    </BlackList>
+<!-- ======================================================================
+Warmup regions; these regions are "prelossed" with shard startup; they are
+matched by substring on a per facet basis. Only list the ones you're sure
+you need. At the end of warmup, if the count exceeds the size of your map
+divided by your cache ratio, you're wasting your time. For Trammel and
+Felucca with a cacheRatio of 100, that will be about 240,000.
+
+Note about the warmup speed: the below set of 3, warming up LOS for all
+of easily accessible areas of JUST the below set of regions takes something
+like 20-30 seconds on my relatively fast computer. Be very careful with
+making a large warmup set unless you are okay with the warmup time.
+
+An alternative is to set warmupOnStart=false and run the [los warmup
+command after server start.
+======================================================================= -->
+    <Warmups>
+        <Warmup map="Felucca" region="Covetous"/>
+        <Warmup map="Felucca" region="Moongates"/>
+    </Warmups>
+<!-- ======================================================================
+Trees; these are like black listed items, but are treated like windows if
+tree range is > 0
+======================================================================= -->
+    <Trees>
+        <!-- Various trees begin here; one idea would be to add foliage, -->
+        <!-- which is not currently included                             -->
+        <Tile id="4C9E"/>
+        <Tile id="4CCA"/>
+        <Tile id="4CCB"/>
+        <Tile id="4CCC"/>
+        <Tile id="4CCD"/>
+        <Tile id="4CD0"/>
+        <Tile id="4CD3"/>
+        <Tile id="4CD6"/>
+        <Tile id="4CD8"/>
+        <Tile id="4CDA"/>
+        <Tile id="4CDD"/>
+        <Tile id="4CE0"/>
+        <Tile id="4CE3"/>
+        <Tile id="4CE6"/>
+        <Tile id="4CF8"/>
+        <Tile id="4CFB"/>
+        <Tile id="4CFE"/>
+        <Tile id="4D01"/>
+        <Tile id="4D41"/>
+        <Tile id="4D42"/>
+        <Tile id="4D43"/>
+        <Tile id="4D44"/>
+        <Tile id="4D57"/>
+        <Tile id="4D58"/>
+        <Tile id="4D59"/>
+        <Tile id="4D5A"/>
+        <Tile id="4D5B"/>
+        <Tile id="4D6E"/>
+        <Tile id="4D6F"/>
+        <Tile id="4D70"/>
+        <Tile id="4D71"/>
+        <Tile id="4D72"/>
+        <Tile id="4D84"/>
+        <Tile id="4D85"/>
+        <Tile id="4D86"/>
+        <Tile id="52B5"/>
+        <Tile id="52B6"/>
+        <Tile id="52B7"/>
+        <Tile id="52B8"/>
+        <Tile id="52B9"/>
+        <Tile id="52BA"/>
+        <Tile id="52BB"/>
+        <Tile id="52BC"/>
+        <Tile id="52BD"/>
+        <Tile id="4CCE"/>
+        <Tile id="4CCF"/>
+        <Tile id="4CD1"/>
+        <Tile id="4CD5"/>
+        <Tile id="4CD7"/>
+        <Tile id="4CD9"/>
+        <Tile id="4CDB"/>
+        <Tile id="4CDC"/>
+        <Tile id="4CDE"/>
+        <Tile id="4CDF"/>
+        <Tile id="4CE1"/>
+        <Tile id="4CE2"/>
+        <Tile id="4CE4"/>
+        <Tile id="4CE5"/>
+        <Tile id="4CE7"/>
+        <Tile id="4CE8"/>
+        <Tile id="4CF9"/>
+        <Tile id="4CFA"/>
+        <Tile id="4CFC"/>
+        <Tile id="4CFD"/>
+        <Tile id="4CFF"/>
+        <Tile id="4D00"/>
+        <Tile id="4D02"/>
+        <Tile id="4D03"/>
+        <Tile id="4D45"/>
+        <Tile id="4D46"/>
+        <Tile id="4D47"/>
+        <Tile id="4D48"/>
+        <Tile id="4D49"/>
+        <Tile id="4D4A"/>
+        <Tile id="4D4B"/>
+        <Tile id="4D4C"/>
+        <Tile id="4D4D"/>
+        <Tile id="4D4E"/>
+        <Tile id="4D4F"/>
+        <Tile id="4D50"/>
+        <Tile id="4D51"/>
+        <Tile id="4D52"/>
+        <Tile id="4D53"/>
+        <Tile id="4D5C"/>
+        <Tile id="4D5D"/>
+        <Tile id="4D5E"/>
+        <Tile id="4D5F"/>
+        <Tile id="4D60"/>
+        <Tile id="4D61"/>
+        <Tile id="4D62"/>
+        <Tile id="4D63"/>
+        <Tile id="4D64"/>
+        <Tile id="4D65"/>
+        <Tile id="4D66"/>
+        <Tile id="4D67"/>
+        <Tile id="4D68"/>
+        <Tile id="4D69"/>
+        <Tile id="4D73"/>
+        <Tile id="4D74"/>
+        <Tile id="4D75"/>
+        <Tile id="4D76"/>
+        <Tile id="4D77"/>
+        <Tile id="4D78"/>
+        <Tile id="4D79"/>
+        <Tile id="4D7A"/>
+        <Tile id="4D7B"/>
+        <Tile id="4D7C"/>
+        <Tile id="4D7D"/>
+        <Tile id="4D7E"/>
+        <Tile id="4D7F"/>
+        <Tile id="4D87"/>
+        <Tile id="4D88"/>
+        <Tile id="4D89"/>
+        <Tile id="4D8A"/>
+        <Tile id="4D8B"/>
+        <Tile id="4D8C"/>
+        <Tile id="4D8D"/>
+        <Tile id="4D8E"/>
+        <Tile id="4D8F"/>
+        <Tile id="4D90"/>
+        <Tile id="4D95"/>
+        <Tile id="4D96"/>
+        <Tile id="4D97"/>
+        <Tile id="4D99"/>
+        <Tile id="4D9A"/>
+        <Tile id="4D9B"/>
+        <Tile id="4D9D"/>
+        <Tile id="4D9E"/>
+        <Tile id="4D9F"/>
+        <Tile id="4DA1"/>
+        <Tile id="4DA2"/>
+        <Tile id="4DA3"/>
+        <Tile id="4DA5"/>
+        <Tile id="4DA6"/>
+        <Tile id="4DA7"/>
+        <Tile id="4DA9"/>
+        <Tile id="4DAA"/>
+        <Tile id="4DAB"/>
+        <Tile id="52BE"/>
+        <Tile id="52BF"/>
+        <Tile id="52C0"/>
+        <Tile id="52C1"/>
+        <Tile id="52C2"/>
+        <Tile id="52C3"/>
+        <Tile id="52C4"/>
+        <Tile id="52C5"/>
+        <Tile id="52C6"/>
+        <Tile id="52C7"/>
+    </Trees>
+<!-- ======================================================================
+Mountains; these are land terrain ids that ought to block LOS
+======================================================================= -->
+    <Mountains>
+        <Tile id="220"/>
+        <Tile id="221"/>
+        <Tile id="222"/>
+        <Tile id="223"/>
+        <Tile id="224"/>
+        <Tile id="225"/>
+        <Tile id="226"/>
+        <Tile id="227"/>
+        <Tile id="228"/>
+        <Tile id="229"/>
+        <Tile id="230"/>
+        <Tile id="231"/>
+        <Tile id="236"/>
+        <Tile id="237"/>
+        <Tile id="238"/>
+        <Tile id="239"/>
+        <Tile id="240"/>
+        <Tile id="241"/>
+        <Tile id="242"/>
+        <Tile id="243"/>
+        <Tile id="244"/>
+        <Tile id="245"/>
+        <Tile id="246"/>
+        <Tile id="247"/>
+        <Tile id="252"/>
+        <Tile id="253"/>
+        <Tile id="254"/>
+        <Tile id="255"/>
+        <Tile id="256"/>
+        <Tile id="257"/>
+        <Tile id="258"/>
+        <Tile id="259"/>
+        <Tile id="260"/>
+        <Tile id="261"/>
+        <Tile id="262"/>
+        <Tile id="263"/>
+        <Tile id="268"/>
+        <Tile id="269"/>
+        <Tile id="270"/>
+        <Tile id="271"/>
+        <Tile id="272"/>
+        <Tile id="273"/>
+        <Tile id="274"/>
+        <Tile id="275"/>
+        <Tile id="276"/>
+        <Tile id="277"/>
+        <Tile id="278"/>
+        <Tile id="279"/>
+        <Tile id="286"/>
+        <Tile id="287"/>
+        <Tile id="288"/>
+        <Tile id="289"/>
+        <Tile id="290"/>
+        <Tile id="291"/>
+        <Tile id="292"/>
+        <Tile id="293"/>
+        <Tile id="294"/>
+        <Tile id="296"/>
+        <Tile id="297"/>
+        <Tile id="321"/>
+        <Tile id="322"/>
+        <Tile id="323"/>
+        <Tile id="324"/>
+        <Tile id="467"/>
+        <Tile id="468"/>
+        <Tile id="469"/>
+        <Tile id="470"/>
+        <Tile id="471"/>
+        <Tile id="472"/>
+        <Tile id="473"/>
+        <Tile id="474"/>
+        <Tile id="476"/>
+        <Tile id="477"/>
+        <Tile id="478"/>
+        <Tile id="479"/>
+        <Tile id="480"/>
+        <Tile id="481"/>
+        <Tile id="482"/>
+        <Tile id="483"/>
+        <Tile id="484"/>
+        <Tile id="485"/>
+        <Tile id="486"/>
+        <Tile id="487"/>
+        <Tile id="492"/>
+        <Tile id="493"/>
+        <Tile id="494"/>
+        <Tile id="495"/>
+        <Tile id="543"/>
+        <Tile id="544"/>
+        <Tile id="545"/>
+        <Tile id="546"/>
+        <Tile id="547"/>
+        <Tile id="548"/>
+        <Tile id="549"/>
+        <Tile id="550"/>
+        <Tile id="551"/>
+        <Tile id="552"/>
+        <Tile id="553"/>
+        <Tile id="554"/>
+        <Tile id="555"/>
+        <Tile id="556"/>
+        <Tile id="557"/>
+        <Tile id="558"/>
+        <Tile id="559"/>
+        <Tile id="560"/>
+        <Tile id="561"/>
+        <Tile id="562"/>
+        <Tile id="563"/>
+        <Tile id="564"/>
+        <Tile id="565"/>
+        <Tile id="566"/>
+        <Tile id="567"/>
+        <Tile id="568"/>
+        <Tile id="569"/>
+        <Tile id="570"/>
+        <Tile id="571"/>
+        <Tile id="572"/>
+        <Tile id="573"/>
+        <Tile id="574"/>
+        <Tile id="575"/>
+        <Tile id="576"/>
+        <Tile id="577"/>
+        <Tile id="578"/>
+        <Tile id="579"/>
+        <Tile id="581"/>
+        <Tile id="582"/>
+        <Tile id="583"/>
+        <Tile id="584"/>
+        <Tile id="585"/>
+        <Tile id="586"/>
+        <Tile id="587"/>
+        <Tile id="588"/>
+        <Tile id="589"/>
+        <Tile id="590"/>
+        <Tile id="591"/>
+        <Tile id="592"/>
+        <Tile id="593"/>
+        <Tile id="594"/>
+        <Tile id="595"/>
+        <Tile id="596"/>
+        <Tile id="597"/>
+        <Tile id="598"/>
+        <Tile id="599"/>
+        <Tile id="600"/>
+        <Tile id="601"/>
+        <Tile id="610"/>
+        <Tile id="611"/>
+        <Tile id="612"/>
+        <Tile id="613"/>
+        <Tile id="1010"/>
+        <Tile id="1741"/>
+        <Tile id="1742"/>
+        <Tile id="1743"/>
+        <Tile id="1744"/>
+        <Tile id="1745"/>
+        <Tile id="1746"/>
+        <Tile id="1747"/>
+        <Tile id="1748"/>
+        <Tile id="1749"/>
+        <Tile id="1750"/>
+        <Tile id="1751"/>
+        <Tile id="1752"/>
+        <Tile id="1753"/>
+        <Tile id="1754"/>
+        <Tile id="1755"/>
+        <Tile id="1756"/>
+        <Tile id="1757"/>
+        <Tile id="1771"/>
+        <Tile id="1772"/>
+        <Tile id="1773"/>
+        <Tile id="1774"/>
+        <Tile id="1775"/>
+        <Tile id="1776"/>
+        <Tile id="1777"/>
+        <Tile id="1778"/>
+        <Tile id="1779"/>
+        <Tile id="1780"/>
+        <Tile id="1781"/>
+        <Tile id="1782"/>
+        <Tile id="1783"/>
+        <Tile id="1784"/>
+        <Tile id="1785"/>
+        <Tile id="1786"/>
+        <Tile id="1787"/>
+        <Tile id="1788"/>
+        <Tile id="1789"/>
+        <Tile id="1790"/>
+        <Tile id="1801"/>
+        <Tile id="1802"/>
+        <Tile id="1803"/>
+        <Tile id="1804"/>
+        <Tile id="1805"/>
+        <Tile id="1806"/>
+        <Tile id="1807"/>
+        <Tile id="1808"/>
+        <Tile id="1809"/>
+        <Tile id="1811"/>
+        <Tile id="1812"/>
+        <Tile id="1813"/>
+        <Tile id="1814"/>
+        <Tile id="1815"/>
+        <Tile id="1816"/>
+        <Tile id="1817"/>
+        <Tile id="1818"/>
+        <Tile id="1819"/>
+        <Tile id="1820"/>
+        <Tile id="1821"/>
+        <Tile id="1822"/>
+        <Tile id="1823"/>
+        <Tile id="1824"/>
+        <Tile id="1831"/>
+        <Tile id="1832"/>
+        <Tile id="1833"/>
+        <Tile id="1834"/>
+        <Tile id="1835"/>
+        <Tile id="1836"/>
+        <Tile id="1837"/>
+        <Tile id="1838"/>
+        <Tile id="1839"/>
+        <Tile id="1840"/>
+        <Tile id="1841"/>
+        <Tile id="1842"/>
+        <Tile id="1843"/>
+        <Tile id="1844"/>
+        <Tile id="1845"/>
+        <Tile id="1846"/>
+        <Tile id="1847"/>
+        <Tile id="1848"/>
+        <Tile id="1849"/>
+        <Tile id="1850"/>
+        <Tile id="1851"/>
+        <Tile id="1852"/>
+        <Tile id="1853"/>
+        <Tile id="1854"/>
+        <Tile id="1861"/>
+        <Tile id="1862"/>
+        <Tile id="1863"/>
+        <Tile id="1864"/>
+        <Tile id="1865"/>
+        <Tile id="1866"/>
+        <Tile id="1867"/>
+        <Tile id="1868"/>
+        <Tile id="1869"/>
+        <Tile id="1870"/>
+        <Tile id="1871"/>
+        <Tile id="1872"/>
+        <Tile id="1873"/>
+        <Tile id="1874"/>
+        <Tile id="1875"/>
+        <Tile id="1876"/>
+        <Tile id="1877"/>
+        <Tile id="1878"/>
+        <Tile id="1879"/>
+        <Tile id="1880"/>
+        <Tile id="1881"/>
+        <Tile id="1882"/>
+        <Tile id="1883"/>
+        <Tile id="1884"/>
+        <Tile id="1981"/>
+        <Tile id="1982"/>
+        <Tile id="1983"/>
+        <Tile id="1984"/>
+        <Tile id="1985"/>
+        <Tile id="1986"/>
+        <Tile id="1987"/>
+        <Tile id="1988"/>
+        <Tile id="1989"/>
+        <Tile id="1990"/>
+        <Tile id="1991"/>
+        <Tile id="1992"/>
+        <Tile id="1993"/>
+        <Tile id="1994"/>
+        <Tile id="1995"/>
+        <Tile id="1996"/>
+        <Tile id="1997"/>
+        <Tile id="1998"/>
+        <Tile id="1999"/>
+        <Tile id="2000"/>
+        <Tile id="2001"/>
+        <Tile id="2002"/>
+        <Tile id="2003"/>
+        <Tile id="2004"/>
+        <Tile id="2028"/>
+        <Tile id="2029"/>
+        <Tile id="2030"/>
+        <Tile id="2031"/>
+        <Tile id="2032"/>
+        <Tile id="2033"/>
+        <Tile id="2100"/>
+        <Tile id="2101"/>
+        <Tile id="2102"/>
+        <Tile id="2103"/>
+        <Tile id="2104"/>
+        <Tile id="2105"/>
+    </Mountains>
+</LOS>

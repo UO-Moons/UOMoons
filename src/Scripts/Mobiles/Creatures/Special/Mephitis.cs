@@ -58,11 +58,45 @@ namespace Server.Mobiles
 		public override Poison PoisonImmune => Poison.Lethal;
 		public override Poison HitPoison => Poison.Lethal;
 
+		public override void OnDamagedBySpell(Mobile from)
+		{
+			if (from != null && from != this && 0.33 > Utility.RandomDouble())
+			{
+				WebAttack(this, from);
+			}
+
+			base.OnDamagedBySpell(from);
+		}
+
 		public override void OnGotMeleeAttack(Mobile attacker)
 		{
-			base.OnGotMeleeAttack(attacker);
+			if (attacker != null && attacker != this && 0.33 > Utility.RandomDouble())
+			{
+				WebAttack(this, attacker);
+			}
 
-			// TODO: Web ability
+			base.OnGotMeleeAttack(attacker);
+		}
+
+		public static void WebAttack(Mobile from, Mobile to)
+		{
+			Map map = from.Map;
+
+			if (map == null)
+				return;
+
+			int x = from.X + Utility.RandomMinMax(-1, 1);
+			int y = from.Y + Utility.RandomMinMax(-1, 1);
+			int z = from.Z;
+
+			SelfDeletingItem web = new SelfDeletingItem(3812, "a web", 5);
+
+			to.MovingEffect(from, 0xee6, 7, 1, false, false, 0x481, 0);
+			to.Paralyze(TimeSpan.FromSeconds(6));
+			to.SendMessage("You are are caught in a web");
+			to.MoveToWorld(new Point3D(x, y, z), map);
+			web.MoveToWorld(new Point3D(x, y, z), map);
+			to.ApplyPoison(from, Poison.Lethal);
 		}
 
 		public Mephitis(Serial serial) : base(serial)

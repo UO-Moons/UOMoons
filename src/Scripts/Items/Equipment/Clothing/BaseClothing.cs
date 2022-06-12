@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Engines.XmlSpawner2;
 using Server.Factions;
 using Server.Misc;
 using Server.Network;
@@ -6,32 +7,28 @@ using System;
 
 namespace Server.Items
 {
-	public interface IArcaneEquip
-	{
-		bool IsArcane { get; }
-		int CurArcaneCharges { get; set; }
-		int MaxArcaneCharges { get; set; }
-		int TempHue { get; set; }
-	}
-
 	public abstract class BaseClothing : BaseEquipment, IDyable, IScissorable, IFactionItem, ICraftable, IWearableDurability, IResource, ISetItem
 	{
+		private static readonly bool UseNewHits = true;
 		private int m_MaxHitPoints;
 		private int m_HitPoints;
-		protected CraftResource m_Resource;
-		private int m_StrReq = -1;
-
+		private int m_StrBonus = -1, m_DexBonus = -1, m_IntBonus = -1;
+		private int m_StrReq = -1, m_DexReq = -1, m_IntReq = -1;
+		public virtual int StrReq => 0;
+		public virtual int DexReq => 0;
+		public virtual int IntReq => 0;
+		public virtual int StrBonusValue => 0;
+		public virtual int DexBonusValue => 0;
+		public virtual int IntBonusValue => 0;
 		private AosArmorAttributes m_AosClothingAttributes;
 		private AosSkillBonuses m_AosSkillBonuses;
 		private AosElementAttributes m_AosResistances;
 		private AosWeaponAttributes m_AosWeaponAttributes;
+		private TalismanAttribute m_TalismanProtection;
+		public static bool ShowDexandInt => false;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public int MaxHitPoints
-		{
-			get => m_MaxHitPoints;
-			set { m_MaxHitPoints = value; InvalidateProperties(); }
-		}
+		public int MaxHitPoints { get => m_MaxHitPoints; set { m_MaxHitPoints = value; InvalidateProperties(); } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int HitPoints
@@ -54,44 +51,104 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
+		public override ItemQuality Quality
+		{
+			get => base.Quality;
+			set
+			{
+				UnscaleDurability();
+				base.Quality = value;
+				InvalidateProperties();
+				ScaleDurability();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
 		public int StrRequirement
 		{
-			get => (m_StrReq == -1 ? (Core.AOS ? AosStrReq : OldStrReq) : m_StrReq);
+			get => m_StrReq == -1 ? StrReq : m_StrReq;
 			set { m_StrReq = value; InvalidateProperties(); }
 		}
 
-		public virtual CraftResource DefaultResource => CraftResource.None;
-
 		[CommandProperty(AccessLevel.GameMaster)]
-		public CraftResource Resource
+		public int DexRequirement
 		{
-			get => m_Resource;
-			set { m_Resource = value; Hue = CraftResources.GetHue(m_Resource); InvalidateProperties(); }
+			get => m_DexReq == -1 ? DexReq : m_DexReq;
+			set { m_DexReq = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public AosArmorAttributes ClothingAttributes
+		public int IntRequirement
 		{
-			get => m_AosClothingAttributes;
-			set { }
+			get => m_IntReq == -1 ? IntReq : m_IntReq;
+			set { m_IntReq = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public AosSkillBonuses SkillBonuses
+		public int StrBonus
 		{
-			get => m_AosSkillBonuses;
-			set { }
+			get => m_StrBonus == -1 ? StrBonusValue : m_StrBonus;
+			set { m_StrBonus = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public AosElementAttributes Resistances
+		public int DexBonus
 		{
-			get => m_AosResistances;
-			set { }
+			get => m_DexBonus == -1 ? DexBonusValue : m_DexBonus;
+			set { m_DexBonus = value; InvalidateProperties(); }
 		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int IntBonus
+		{
+			get => m_IntBonus == -1 ? IntBonusValue : m_IntBonus;
+			set { m_IntBonus = value; InvalidateProperties(); }
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public override CraftResource Resource
+		{
+			get => base.Resource;
+			set
+			{
+				if (Resource != value)
+				{
+					UnscaleDurability();
+
+					base.Resource = value;
+
+					if (CraftItem.RetainsColor(GetType()))
+					{
+						Hue = CraftResources.GetHue(Resource);
+					}
+
+					InvalidateProperties();
+
+					if (Parent is Mobile mob)
+						mob.UpdateResistances();
+
+					ScaleDurability();
+				}
+			}
+		}
+
+		//[CommandProperty(AccessLevel.GameMaster)]
+		//public override CraftResource Resource { get => base.Resource; set { base.Resource = value; Hue = CraftResources.GetHue(Resource); InvalidateProperties(); } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public AosArmorAttributes ClothingAttributes { get => m_AosClothingAttributes; set { } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public AosSkillBonuses SkillBonuses { get => m_AosSkillBonuses; set { } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public AosElementAttributes Resistances { get => m_AosResistances; set { } }
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public AosWeaponAttributes WeaponAttributes { get => m_AosWeaponAttributes; set { } }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public TalismanAttribute Protection { get => m_TalismanProtection; set { m_TalismanProtection = value; InvalidateProperties(); } }
 
 		public virtual int BasePhysicalResistance => 0;
 		public virtual int BaseFireResistance => 0;
@@ -105,31 +162,29 @@ namespace Server.Items
 		public override int PoisonResistance => BasePoisonResistance + m_AosResistances.Poison;
 		public override int EnergyResistance => BaseEnergyResistance + m_AosResistances.Energy;
 
-		public virtual int BaseStrBonus => 0;
-		public virtual int BaseDexBonus => 0;
-		public virtual int BaseIntBonus => 0;
-
-		public override bool AllowSecureTrade(Mobile from, Mobile to, Mobile newOwner, bool accepted)
-		{
-			if (!Ethics.Ethic.CheckTrade(from, to, newOwner, this))
-				return false;
-
-			return base.AllowSecureTrade(from, to, newOwner, accepted);
-		}
-
-		public virtual int AosStrReq => 10;
-		public virtual int OldStrReq => 0;
-
 		public virtual int InitMinHits => 0;
 		public virtual int InitMaxHits => 0;
+		public virtual int InitHits => Utility.RandomMinMax(0, 0);
 		public virtual bool CanBeBlessed => true;
+
+		//public override bool AllowSecureTrade(Mobile from, Mobile to, Mobile newOwner, bool accepted)
+		//{
+		//	if (!Ethics.Ethic.CheckTrade(from, to, newOwner, this))
+		//		return false;
+		//
+		//	return base.AllowSecureTrade(from, to, newOwner, accepted);
+		//}
 
 		public override int ComputeStatReq(StatType type)
 		{
 			int v;
 
-			//if ( type == StatType.Str )
-			v = StrRequirement;
+			if (type == StatType.Str)
+				v = StrRequirement;
+			else if (type == StatType.Dex)
+				v = DexRequirement;
+			else
+				v = IntRequirement;
 
 			return AOS.Scale(v, 100 - GetLowerStatReq());
 		}
@@ -137,11 +192,11 @@ namespace Server.Items
 		public override int ComputeStatBonus(StatType type)
 		{
 			if (type == StatType.Str)
-				return BaseStrBonus + Attributes.BonusStr;
+				return StrBonus + Attributes.BonusStr;
 			else if (type == StatType.Dex)
-				return BaseDexBonus + Attributes.BonusDex;
+				return DexBonus + Attributes.BonusDex;
 			else
-				return BaseIntBonus + Attributes.BonusInt;
+				return IntBonus + Attributes.BonusInt;
 		}
 
 		public override bool CanEquip(Mobile from)
@@ -350,23 +405,29 @@ namespace Server.Items
 
 			return damageTaken;
 		}
+		public virtual CraftResource DefaultResource => CraftResource.None;
 
 		public BaseClothing(int itemID, Layer layer) : this(itemID, layer, 0)
 		{
 		}
-
 		public BaseClothing(int itemID, Layer layer, int hue) : base(itemID)
 		{
 			Layer = layer;
 			Hue = hue;
-			m_Resource = DefaultResource;
-			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+			base.Resource = DefaultResource;
+			if (UseNewHits)
+			{
+				m_HitPoints = m_MaxHitPoints = InitHits;
+			}
+			else
+				m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 			m_AosClothingAttributes = new AosArmorAttributes(this);
 			m_AosSkillBonuses = new AosSkillBonuses(this);
 			m_AosResistances = new AosElementAttributes(this);
 			m_AosWeaponAttributes = new AosWeaponAttributes(this);
 			m_SetAttributes = new AosAttributes(this);
 			m_SetSkillBonuses = new AosSkillBonuses(this);
+			m_TalismanProtection = new TalismanAttribute();
 		}
 
 		public override void OnAfterDuped(Item newItem)
@@ -381,6 +442,7 @@ namespace Server.Items
 				clothing.m_AosWeaponAttributes = new AosWeaponAttributes(newItem, m_AosWeaponAttributes);
 				clothing.m_SetAttributes = new AosAttributes(newItem, m_SetAttributes);
 				clothing.m_SetSkillBonuses = new AosSkillBonuses(newItem, m_SetSkillBonuses);
+				clothing.m_TalismanProtection = new TalismanAttribute(m_TalismanProtection);
 			}
 		}
 
@@ -424,7 +486,7 @@ namespace Server.Items
 
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
-			int oreType = CraftResources.GetResourceLabel(m_Resource);
+			int oreType = CraftResources.GetResourceLabel(Resource);
 
 			if (oreType != 0)
 				list.Add(1053099, "#{0}\t{1}", oreType, GetNameString()); // ~1_oretype~ ~2_armortype~
@@ -513,12 +575,11 @@ namespace Server.Items
 			{
 				list.Add(1075086); // Elves Only
 			}
-			#region Stygian Abyss
-			else if (RequiredRace == Race.Gargoyle)
+
+			if (RequiredRace == Race.Gargoyle)
 			{
 				list.Add(1111709); // Gargoyles Only
 			}
-			#endregion
 
 			if (m_AosSkillBonuses != null)
 			{
@@ -754,6 +815,15 @@ namespace Server.Items
 				list.Add(1061170, prop.ToString()); // strength requirement ~1_val~
 			}
 
+			if (ShowDexandInt)
+			{
+				if ((prop = ComputeStatReq(StatType.Dex)) > 0)
+					list.Add(1060658, "{0}\t{1}", "dexterity requirement", prop.ToString());
+
+				if ((prop = ComputeStatReq(StatType.Int)) > 0)
+					list.Add(1060662, "{0}\t{1}", "intelligence requirement", prop.ToString());
+			}
+
 			if ((prop = m_AosClothingAttributes.DurabilityBonus) > 0)
 			{
 				list.Add(1151780, prop.ToString()); // durability +~1_VAL~%
@@ -763,6 +833,8 @@ namespace Server.Items
 			{
 				list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
 			}
+
+			XmlAttach.AddAttachmentProperties(this, list);
 
 			if (Core.ML && IsSetItem && !m_SetEquipped)
 			{
@@ -775,139 +847,25 @@ namespace Server.Items
 		{
 		}
 
-		/*public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
-
-			if (m_Crafter != null)
-				list.Add(1050043, m_Crafter.Name); // crafted by ~1_NAME~
-
-			#region Factions
-			if (m_FactionState != null)
-				list.Add(1041350); // faction item
-			#endregion
-
-			if (Quality == ItemQuality.Exceptional)
-				list.Add(1060636); // exceptional
-
-			if (RequiredRace == Race.Elf)
-				list.Add(1075086); // Elves Only
-
-			if (m_AosSkillBonuses != null)
-				m_AosSkillBonuses.GetProperties(list);
-
-			int prop;
-
-			if ((prop = ArtifactRarity) > 0)
-				list.Add(1061078, prop.ToString()); // artifact rarity ~1_val~
-
-			if ((prop = Attributes.WeaponDamage) != 0)
-				list.Add(1060401, prop.ToString()); // damage increase ~1_val~%
-
-			if ((prop = Attributes.DefendChance) != 0)
-				list.Add(1060408, prop.ToString()); // defense chance increase ~1_val~%
-
-			if ((prop = Attributes.BonusDex) != 0)
-				list.Add(1060409, prop.ToString()); // dexterity bonus ~1_val~
-
-			if ((prop = Attributes.EnhancePotions) != 0)
-				list.Add(1060411, prop.ToString()); // enhance potions ~1_val~%
-
-			if ((prop = Attributes.CastRecovery) != 0)
-				list.Add(1060412, prop.ToString()); // faster cast recovery ~1_val~
-
-			if ((prop = Attributes.CastSpeed) != 0)
-				list.Add(1060413, prop.ToString()); // faster casting ~1_val~
-
-			if ((prop = Attributes.AttackChance) != 0)
-				list.Add(1060415, prop.ToString()); // hit chance increase ~1_val~%
-
-			if ((prop = Attributes.BonusHits) != 0)
-				list.Add(1060431, prop.ToString()); // hit point increase ~1_val~
-
-			if ((prop = Attributes.BonusInt) != 0)
-				list.Add(1060432, prop.ToString()); // intelligence bonus ~1_val~
-
-			if ((prop = Attributes.LowerManaCost) != 0)
-				list.Add(1060433, prop.ToString()); // lower mana cost ~1_val~%
-
-			if ((prop = Attributes.LowerRegCost) != 0)
-				list.Add(1060434, prop.ToString()); // lower reagent cost ~1_val~%
-
-			if ((prop = m_AosClothingAttributes.LowerStatReq) != 0)
-				list.Add(1060435, prop.ToString()); // lower requirements ~1_val~%
-
-			if ((prop = Attributes.Luck) != 0)
-				list.Add(1060436, prop.ToString()); // luck ~1_val~
-
-			if ((prop = m_AosClothingAttributes.MageArmor) != 0)
-				list.Add(1060437); // mage armor
-
-			if ((prop = Attributes.BonusMana) != 0)
-				list.Add(1060439, prop.ToString()); // mana increase ~1_val~
-
-			if ((prop = Attributes.RegenMana) != 0)
-				list.Add(1060440, prop.ToString()); // mana regeneration ~1_val~
-
-			if ((prop = Attributes.NightSight) != 0)
-				list.Add(1060441); // night sight
-
-			if ((prop = Attributes.ReflectPhysical) != 0)
-				list.Add(1060442, prop.ToString()); // reflect physical damage ~1_val~%
-
-			if ((prop = Attributes.RegenStam) != 0)
-				list.Add(1060443, prop.ToString()); // stamina regeneration ~1_val~
-
-			if ((prop = Attributes.RegenHits) != 0)
-				list.Add(1060444, prop.ToString()); // hit point regeneration ~1_val~
-
-			if ((prop = m_AosClothingAttributes.SelfRepair) != 0)
-				list.Add(1060450, prop.ToString()); // self repair ~1_val~
-
-			if ((prop = Attributes.SpellChanneling) != 0)
-				list.Add(1060482); // spell channeling
-
-			if ((prop = Attributes.SpellDamage) != 0)
-				list.Add(1060483, prop.ToString()); // spell damage increase ~1_val~%
-
-			if ((prop = Attributes.BonusStam) != 0)
-				list.Add(1060484, prop.ToString()); // stamina increase ~1_val~
-
-			if ((prop = Attributes.BonusStr) != 0)
-				list.Add(1060485, prop.ToString()); // strength bonus ~1_val~
-
-			if ((prop = Attributes.WeaponSpeed) != 0)
-				list.Add(1060486, prop.ToString()); // swing speed increase ~1_val~%
-
-			if (Core.ML && (prop = Attributes.IncreasedKarmaLoss) != 0)
-				list.Add(1075210, prop.ToString()); // Increased Karma Loss ~1val~%
-
-			base.AddResistanceProperties(list);
-
-			if ((prop = m_AosClothingAttributes.DurabilityBonus) > 0)
-				list.Add(1060410, prop.ToString()); // durability ~1_val~%
-
-			if ((prop = ComputeStatReq(StatType.Str)) > 0)
-				list.Add(1061170, prop.ToString()); // strength requirement ~1_val~
-
-			if (m_HitPoints >= 0 && m_MaxHitPoints > 0)
-				list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
-		}*/
-
 		#region Serialization
 		[Flags]
 		private enum SaveFlag
 		{
 			None = 0x00000000,
-			Resource = 0x00000001,
-			Attributes = 0x00000002,
-			ClothingAttributes = 0x00000004,
-			SkillBonuses = 0x00000008,
-			Resistances = 0x00000010,
-			MaxHitPoints = 0x00000020,
-			HitPoints = 0x00000040,
-			StrReq = 0x00000080,
-			xWeaponAttributes = 0x00000100
+			Attributes = 0x00000001,
+			ClothingAttributes = 0x00000002,
+			SkillBonuses = 0x00000004,
+			Resistances = 0x00000008,
+			MaxHitPoints = 0x00000010,
+			HitPoints = 0x00000020,
+			StrBonus = 0x00000040,
+			DexBonus = 0x00000080,
+			IntBonus = 0x00000100,
+			StrReq = 0x00000200,
+			DexReq = 0x00000400,
+			IntReq = 0x00000600,
+			xWeaponAttributes = 0x00000800,
+			TalismanProtection = 0x00001000
 		}
 
 		private static void SetSaveFlag(ref SetFlag flags, SetFlag toSet, bool setIf)
@@ -1041,13 +999,17 @@ namespace Server.Items
 			SaveFlag flags = SaveFlag.None;
 
 			Utility.SetSaveFlag(ref flags, SaveFlag.xWeaponAttributes, !m_AosWeaponAttributes.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Resource, m_Resource != DefaultResource);
 			Utility.SetSaveFlag(ref flags, SaveFlag.ClothingAttributes, !m_AosClothingAttributes.IsEmpty);
 			Utility.SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !m_AosSkillBonuses.IsEmpty);
 			Utility.SetSaveFlag(ref flags, SaveFlag.Resistances, !m_AosResistances.IsEmpty);
 			Utility.SetSaveFlag(ref flags, SaveFlag.MaxHitPoints, m_MaxHitPoints != 0);
 			Utility.SetSaveFlag(ref flags, SaveFlag.HitPoints, m_HitPoints != 0);
+			Utility.SetSaveFlag(ref flags, SaveFlag.StrBonus, m_StrBonus != -1);
+			Utility.SetSaveFlag(ref flags, SaveFlag.DexBonus, m_DexBonus != -1);
+			Utility.SetSaveFlag(ref flags, SaveFlag.IntBonus, m_IntBonus != -1);
 			Utility.SetSaveFlag(ref flags, SaveFlag.StrReq, m_StrReq != -1);
+			Utility.SetSaveFlag(ref flags, SaveFlag.DexReq, m_DexReq != -1);
+			Utility.SetSaveFlag(ref flags, SaveFlag.IntReq, m_IntReq != -1);
 
 			writer.WriteEncodedInt((int)flags);
 
@@ -1056,9 +1018,10 @@ namespace Server.Items
 				m_AosWeaponAttributes.Serialize(writer);
 			}
 
-			if (flags.HasFlag(SaveFlag.Resource))
-				writer.WriteEncodedInt((int)m_Resource);
-
+			if (flags.HasFlag(SaveFlag.TalismanProtection))
+			{
+				m_TalismanProtection.Serialize(writer);
+			}
 			if (flags.HasFlag(SaveFlag.ClothingAttributes))
 				m_AosClothingAttributes.Serialize(writer);
 
@@ -1074,8 +1037,23 @@ namespace Server.Items
 			if (flags.HasFlag(SaveFlag.HitPoints))
 				writer.WriteEncodedInt(m_HitPoints);
 
+			if (flags.HasFlag(SaveFlag.StrBonus))
+				writer.WriteEncodedInt(m_StrBonus);
+
+			if (flags.HasFlag(SaveFlag.DexBonus))
+				writer.WriteEncodedInt(m_DexBonus);
+
+			if (flags.HasFlag(SaveFlag.IntBonus))
+				writer.WriteEncodedInt(m_IntBonus);
+
 			if (flags.HasFlag(SaveFlag.StrReq))
 				writer.WriteEncodedInt(m_StrReq);
+
+			if (flags.HasFlag(SaveFlag.DexReq))
+				writer.WriteEncodedInt(m_DexReq);
+
+			if (flags.HasFlag(SaveFlag.IntReq))
+				writer.WriteEncodedInt(m_IntReq);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -1171,10 +1149,14 @@ namespace Server.Items
 							m_AosWeaponAttributes = new AosWeaponAttributes(this);
 						}
 
-						if (flags.HasFlag(SaveFlag.Resource))
-							m_Resource = (CraftResource)reader.ReadEncodedInt();
+						if (flags.HasFlag(SaveFlag.TalismanProtection))
+						{
+							m_TalismanProtection = new TalismanAttribute(reader);
+						}
 						else
-							m_Resource = DefaultResource;
+						{
+							m_TalismanProtection = new TalismanAttribute();
+						}
 
 						if (flags.HasFlag(SaveFlag.ClothingAttributes))
 							m_AosClothingAttributes = new AosArmorAttributes(this, reader);
@@ -1197,10 +1179,35 @@ namespace Server.Items
 						if (flags.HasFlag(SaveFlag.HitPoints))
 							m_HitPoints = reader.ReadEncodedInt();
 
+						if (flags.HasFlag(SaveFlag.StrBonus))
+							m_StrBonus = reader.ReadEncodedInt();
+						else
+							m_StrBonus = -1;
+
+						if (flags.HasFlag(SaveFlag.DexBonus))
+							m_DexBonus = reader.ReadEncodedInt();
+						else
+							m_DexBonus = -1;
+
+						if (flags.HasFlag(SaveFlag.IntBonus))
+							m_IntBonus = reader.ReadEncodedInt();
+						else
+							m_IntBonus = -1;
+
 						if (flags.HasFlag(SaveFlag.StrReq))
 							m_StrReq = reader.ReadEncodedInt();
 						else
 							m_StrReq = -1;
+
+						if (flags.HasFlag(SaveFlag.DexReq))
+							m_DexReq = reader.ReadEncodedInt();
+						else
+							m_DexReq = -1;
+
+						if (flags.HasFlag(SaveFlag.IntReq))
+							m_IntReq = reader.ReadEncodedInt();
+						else
+							m_IntReq = -1;
 
 						break;
 					}
@@ -1273,7 +1280,7 @@ namespace Server.Items
 				{
 					Type resourceType = null;
 
-					CraftResourceInfo info = CraftResources.GetInfo(m_Resource);
+					CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
 					if (info != null && info.ResourceTypes.Length > 0)
 						resourceType = info.ResourceTypes[0];
@@ -1370,11 +1377,11 @@ namespace Server.Items
 		public virtual SetItem SetID => SetItem.None;
 		public virtual int Pieces => 0;
 
-		public virtual bool BardMasteryBonus => (SetID == SetItem.Virtuoso);
+		public virtual bool BardMasteryBonus => SetID == SetItem.Virtuoso;
 
 		public virtual bool MixedSet => false;
 
-		public bool IsSetItem => SetID == SetItem.None ? false : true;
+		public bool IsSetItem => SetID != SetItem.None;
 
 		private int m_SetHue;
 		private bool m_SetEquipped;

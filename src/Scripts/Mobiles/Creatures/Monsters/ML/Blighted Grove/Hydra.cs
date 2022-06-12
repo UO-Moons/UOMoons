@@ -46,11 +46,11 @@ namespace Server.Mobiles
 			AddLoot(LootPack.UltraRich, 3);
 		}
 
-		public override void OnDeath(Container c)
-		{
-			base.OnDeath(c);
+		//public override void OnDeath(Container c)
+		//{
+		//	base.OnDeath(c);
 
-			c.DropItem(new HydraScale());
+		//	c.DropItem(new HydraScale());
 
 			/*
 			// TODO: uncomment once added
@@ -60,7 +60,7 @@ namespace Server.Mobiles
 			if ( Utility.RandomDouble() < 0.05 )
 				c.DropItem( new ThorvaldsMedallion() );
 			*/
-		}
+		//}
 
 		public override bool HasBreath => true;
 		public override int Hides => 40;

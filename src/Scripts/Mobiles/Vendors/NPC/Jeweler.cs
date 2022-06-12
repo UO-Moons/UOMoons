@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Jeweler() : base("the jeweler")
 		{
+			Job = JobFragment.jeweler;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.ItemID, 64.0, 100.0);
 		}
 

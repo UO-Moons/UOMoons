@@ -11,6 +11,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public IronWorker() : base("the iron worker")
 		{
+			Job = JobFragment.blacksmith;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.ArmsLore, 36.0, 68.0);
 			SetSkill(SkillName.Blacksmith, 65.0, 88.0);
 			SetSkill(SkillName.Fencing, 60.0, 83.0);

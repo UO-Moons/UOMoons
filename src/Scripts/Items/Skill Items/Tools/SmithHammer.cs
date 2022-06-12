@@ -1,4 +1,5 @@
 using Server.Engines.Craft;
+using Server.Network;
 
 namespace Server.Items
 {
@@ -12,6 +13,11 @@ namespace Server.Items
 		{
 			Weight = 8.0;
 			Layer = Layer.OneHanded;
+			if (!Core.AOS)
+			{
+				m_Hits = Utility.RandomMinMax(31, 60);
+				m_MaxHits = m_Hits;
+			}
 		}
 
 		[Constructable]
@@ -19,6 +25,11 @@ namespace Server.Items
 		{
 			Weight = 8.0;
 			Layer = Layer.OneHanded;
+			if (!Core.AOS)
+			{
+				m_Hits = Utility.RandomMinMax(31, 60);
+				m_MaxHits = m_Hits;
+			}
 		}
 
 		public SmithHammer(Serial serial) : base(serial)
@@ -28,14 +39,12 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			int version = reader.ReadInt();
 		}
 	}

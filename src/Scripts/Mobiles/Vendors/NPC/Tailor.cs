@@ -14,6 +14,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Tailor() : base("the tailor")
 		{
+			Job = JobFragment.tailor;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Tailoring, 64.0, 100.0);
 		}
 

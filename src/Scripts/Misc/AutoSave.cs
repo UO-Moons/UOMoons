@@ -1,4 +1,7 @@
 using Server.Commands;
+using Server.Gumps;
+using Server.Mobiles;
+using Server.Network;
 using System;
 using System.IO;
 
@@ -66,11 +69,22 @@ namespace Server.Misc
 		{
 			Save(false);
 		}
-
+		public static TAutoSaveTimer tr_timer;
 		public static void Save(bool permitBackgroundWrite)
 		{
 			if (AutoRestart.Restarting)
 				return;
+
+			foreach (Mobile m in World.Mobiles.Values)
+			{
+				if (m != null && m is PlayerMobile mobile && mobile.AutoSaveGump == true)
+				{
+					PlayerMobile from = m as PlayerMobile;
+					tr_timer = new TAutoSaveTimer(from, 10);
+					tr_timer.Start();
+					m.SendGump(new SaveGump());
+				}
+			}
 
 			World.WaitForWriteCompletion();
 
@@ -174,6 +188,135 @@ namespace Server.Misc
 					now.Minute,
 					now.Second
 				);
+		}
+
+		public class TAutoSaveTimer : Timer
+		{
+			private Mobile m_mobile;
+			private PlayerMobile m_pmobile;
+			private int cnt = 0;
+			private int m_count = 0;
+			private int m_countmax;
+
+			public TAutoSaveTimer(Mobile mobile, int count) : base(TimeSpan.Zero, TimeSpan.FromSeconds(1), count)
+			{
+				Priority = TimerPriority.TenMS;
+				m_mobile = mobile;
+				m_pmobile = (PlayerMobile)mobile;
+				m_countmax = count;
+			}
+			protected override void OnTick()
+			{
+				if (!m_mobile.Alive)
+				{
+					Stop();
+				}
+				cnt += 1;
+				m_count += 10;
+
+				if (cnt == 2)
+				{
+					m_pmobile.CloseGump(typeof(SaveGump));
+					m_pmobile.SendGump(new SaveGump());
+				}
+				if (cnt == 4)
+				{
+					m_pmobile.CloseGump(typeof(SaveGump));
+					m_pmobile.SendGump(new SaveGump());
+				}
+				if (cnt == 6)
+				{
+					m_pmobile.CloseGump(typeof(SaveGump));
+					m_pmobile.SendGump(new SaveGump());
+				}
+				if (cnt == 8)
+				{
+					m_pmobile.CloseGump(typeof(SaveGump));
+					m_pmobile.SendGump(new SaveGump());
+				}
+				if (cnt == 10)
+				{
+					m_pmobile.CloseGump(typeof(SaveGump));
+				}
+
+				if (m_count == m_countmax)
+				{
+					return;
+				}
+			}
+		}
+
+		public class SaveGump : Gump
+		{
+			public SaveGump()
+				: base(50, 50)
+			{
+				Closable = true;
+				Disposable = true;
+				Dragable = true;
+				Resizable = false;
+				AddPage(0);
+				AddBackground(5, 5, 415, 100, 9270);
+				AddLabel(165, 30, 2062, string.Format("UOMoons"));
+				AddLabel(105, 55, 1165, @"The world is saving...   Please be patient.");
+				AddImage(25, 25, 5608);
+				AddItem(360, 50, 6168);
+			}
+		}
+
+		[Usage("AutoSaveGump || ASG")]
+		[Description("Manual command to call the Auto Save gump and see what settings you have on.")]
+		public static void AutSaveGump_OnCommand(CommandEventArgs e)
+		{
+			Mobile from = e.Mobile;
+
+			if (from.HasGump(typeof(GumpOptions)))
+			{
+				from.CloseGump(typeof(GumpOptions));
+			}
+			from.SendGump(new GumpOptions(from));
+
+		}
+
+		public class GumpOptions : Gump
+		{
+			public GumpOptions(Mobile from) : base(0, 0)
+			{
+				Closable = true;
+				Disposable = true;
+				Dragable = true;
+				Resizable = false;
+				AddPage(0);
+				AddBackground(0, 29, 192, 168, 9200);
+				AddImage(10, 41, 52);
+				AddLabel(19, 123, 3, @"Auto Save Gump (Auto/Man)");
+				AddImage(82, 157, 113);
+				AddButton(15, 163, 2111, 2112, 1, GumpButtonType.Reply, 0);
+				AddImage(75, 56, 2529);
+				AddButton(123, 162, 2114, 248, 2, GumpButtonType.Reply, 0);
+				AddLabel(59, 44, 36, @"Gump Options");
+
+			}
+
+			public override void OnResponse(NetState sender, RelayInfo info)
+			{
+				Mobile from = sender.Mobile;
+
+				PlayerMobile From = from as PlayerMobile;
+
+				//From.CloseGump(typeof(PernOptions));
+
+				if (info.ButtonID == 1)
+				{
+					From.AutoSaveGump = true;
+					return;
+				}
+				if (info.ButtonID == 2)
+				{
+					From.AutoSaveGump = false;
+					return;
+				}
+			}
 		}
 	}
 }

@@ -17,6 +17,16 @@ namespace Server.Engines.TownHouses
 		Yes
 	}
 
+	public enum SignIDs
+	{
+		TownHouseSignWE = 0xC0B,
+		TownHouseSignNS = 0xC0C,
+		HouseSignWE = 0xBD1,
+		HouseSignNS = 0xBD2,
+		SignHangerWE = 0xB97,
+		SignHangerNS = 0xB98,
+	}
+
 	[Flipable(0xC0B, 0xC0C)]
 	public class TownHouseSign : BaseItem
 	{
@@ -47,9 +57,10 @@ namespace Server.Engines.TownHouses
 		private List<DecoreItemInfo> m_CDecoreItemInfos;
 		private List<Item> m_CPreviewItems;
 		private Timer m_CRentTimer, m_CPreviewTimer;
-		private DateTime m_CRentTime;
 		private TimeSpan m_CRentByTime, m_COriginalRentTime;
 		private Intu m_CMurderers;
+
+		public  DateTime CRentTime { get; private set; }
 
 		public Point3D BanLoc
 		{
@@ -391,30 +402,18 @@ namespace Server.Engines.TownHouses
 		}
 
 		public TownHouse House { get; set; }
-
 		protected Timer DemolishTimer { get; private set; }
-
 		protected DateTime DemolishTime { get; private set; }
-
 		public bool Owned => House is {Deleted: false};
-
 		public int Floors => (m_CMaxZ - m_CMinZ) / 20 + 1;
-
 		public bool BlocksReady => Blocks.Count != 0;
-
-		public bool FloorsReady => (BlocksReady && MinZ != short.MinValue);
-
-		public bool SignReady => (FloorsReady && SignLoc != Point3D.Zero);
-
-		public bool BanReady => (SignReady && BanLoc != Point3D.Zero);
-
-		public bool LocSecReady => (BanReady && Locks != 0 && Secures != 0);
-
+		public bool FloorsReady => BlocksReady && MinZ != short.MinValue;
+		public bool SignReady => FloorsReady && SignLoc != Point3D.Zero;
+		public bool BanReady => SignReady && BanLoc != Point3D.Zero;
+		public bool LocSecReady => BanReady && Locks != 0 && Secures != 0;
 		public bool ItemsReady => LocSecReady;
-
 		public bool LengthReady => ItemsReady;
-
-		public bool PriceReady => (LengthReady && Price != 0);
+		public bool PriceReady => LengthReady && Price != 0;
 
 		public string PriceType
 		{
@@ -469,7 +468,7 @@ namespace Server.Engines.TownHouses
 			m_CDecoreItemInfos = new List<DecoreItemInfo>();
 			m_CPreviewItems = new List<Item>();
 			DemolishTime = DateTime.UtcNow;
-			m_CRentTime = DateTime.UtcNow;
+			CRentTime = DateTime.UtcNow;
 			m_CRentByTime = TimeSpan.Zero;
 			m_CRecurRent = true;
 
@@ -550,12 +549,30 @@ namespace Server.Engines.TownHouses
 		public void ShowSignPreview()
 		{
 			ClearPreview();
+			bool northSouth = (ItemID == (int)SignIDs.TownHouseSignNS);
 
-			Item sign = new(0xBD2) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
+			//Item sign = new(0xBD2) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
+			int signId = (int)(northSouth ? SignIDs.HouseSignNS : SignIDs.HouseSignWE);
+			Item sign = new(signId)
+			{
+				Name = "Sign Preview",
+				Movable = false,
+				Location = SignLoc,
+				Map = Map
+			};
 
 			m_CPreviewItems.Add(sign);
 
-			sign = new Item(0xB98) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
+			//sign = new Item(0xB98) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
+
+			int hangerId = (int)(northSouth ? SignIDs.SignHangerNS : SignIDs.SignHangerWE);
+			sign = new Item(hangerId)
+			{
+				Name = "Sign Preview",
+				Movable = false,
+				Location = SignLoc,
+				Map = Map
+			};
 
 			m_CPreviewItems.Add(sign);
 
@@ -642,11 +659,11 @@ namespace Server.Engines.TownHouses
 					price = 0;
 				}
 				var currency = Currency != null && Currency != typeof(Gold);
-				//if (m.AccessLevel == AccessLevel.Player && !Banker.Withdraw(m, price))
-				//{
-				//    m.SendMessage("You cannot afford this house.");
-				//    return;
-				//}
+				if (m.AccessLevel == AccessLevel.Player && !Banker.Withdraw(m, price))
+				{
+				    m.SendMessage("You cannot afford this house.");
+				    return;
+				}
 				if (currency)
 				{
 					if (m.AccessLevel == AccessLevel.Player && !m.BankBox.ConsumeTotal(Currency, price) &&
@@ -689,7 +706,11 @@ namespace Server.Engines.TownHouses
 					}
 				}
 
+				bool northSouth = ItemID == (int)SignIDs.TownHouseSignNS;
+
 				House = new TownHouse(m, this, m_CLocks, m_CSecures);
+				int signId = (int)(northSouth ? SignIDs.HouseSignNS : SignIDs.HouseSignWE);
+				House.ChangeSignType(signId);
 
 				House.Components.Resize(maxX - minX, maxY - minY);
 				House.Components.Add(0x520, House.Components.Width - 1, House.Components.Height - 1, -5);
@@ -698,7 +719,14 @@ namespace Server.Engines.TownHouses
 				House.Map = Map;
 				House.Region.GoLocation = m_CBanLoc;
 				House.Sign.Location = m_CSignLoc;
-				House.Hanger = new Item(0xB98) { Location = m_CSignLoc, Map = Map, Movable = false };
+				int hangerId = (int)(northSouth ? SignIDs.SignHangerNS : SignIDs.SignHangerWE);
+				House.Hanger = new Item(hangerId)
+				{
+					Location = m_CSignLoc,
+					Map = Map,
+					Movable = false
+				};
+				//House.Hanger = new Item(0xB98) { Location = m_CSignLoc, Map = Map, Movable = false };
 
 				if (m_CForcePublic)
 				{
@@ -1102,7 +1130,7 @@ namespace Server.Engines.TownHouses
 
 		#region Rent
 
-		protected void ClearRentTimer()
+		public void ClearRentTimer()
 		{
 			if (m_CRentTimer != null)
 			{
@@ -1110,15 +1138,15 @@ namespace Server.Engines.TownHouses
 				m_CRentTimer = null;
 			}
 
-			m_CRentTime = DateTime.UtcNow;
+			CRentTime = DateTime.UtcNow;
 		}
-		/*
-		private void BeginRentTimer()
-		{
-			BeginRentTimer(TimeSpan.FromDays(1));
-		}
-		*/
-		private void BeginRentTimer(TimeSpan time)
+		
+		//public void BeginRentTimer()
+		//{
+		//	BeginRentTimer(TimeSpan.FromDays(1));
+		//}
+		
+		public void BeginRentTimer(TimeSpan time)
 		{
 			if (!Owned)
 			{
@@ -1126,7 +1154,7 @@ namespace Server.Engines.TownHouses
 			}
 
 			m_CRentTimer = Timer.DelayCall(time, RentDue);
-			m_CRentTime = DateTime.UtcNow + time;
+			CRentTime = DateTime.UtcNow + time;
 		}
 
 		public void CheckRentTimer()
@@ -1136,9 +1164,9 @@ namespace Server.Engines.TownHouses
 				return;
 			}
 
-			House.Owner.SendMessage("This rent cycle ends in {0} days, {1}:{2}:{3}.", (m_CRentTime - DateTime.UtcNow).Days,
-				(m_CRentTime - DateTime.UtcNow).Hours, (m_CRentTime - DateTime.UtcNow).Minutes,
-				(m_CRentTime - DateTime.UtcNow).Seconds);
+			House.Owner.SendMessage("This rent cycle ends in {0} days, {1}:{2}:{3}.", (CRentTime - DateTime.UtcNow).Days,
+				(CRentTime - DateTime.UtcNow).Hours, (CRentTime - DateTime.UtcNow).Minutes,
+				(CRentTime - DateTime.UtcNow).Seconds);
 		}
 
 		private void RentDue()
@@ -1442,7 +1470,7 @@ namespace Server.Engines.TownHouses
 			// Version 4
 			writer.Write(m_CRecurRent);
 			writer.Write(m_CRentByTime);
-			writer.Write(m_CRentTime);
+			writer.Write(CRentTime);
 			writer.Write(DemolishTime);
 			writer.Write(m_CYoungOnly);
 			writer.Write(m_CMinTotalSkill);
@@ -1540,7 +1568,7 @@ namespace Server.Engines.TownHouses
 			{
 				m_CRecurRent = reader.ReadBool();
 				m_CRentByTime = reader.ReadTimeSpan();
-				m_CRentTime = reader.ReadDateTime();
+				CRentTime = reader.ReadDateTime();
 				DemolishTime = reader.ReadDateTime();
 				m_CYoungOnly = reader.ReadBool();
 				m_CMinTotalSkill = reader.ReadInt();
@@ -1573,9 +1601,9 @@ namespace Server.Engines.TownHouses
 				Blocks.Add(reader.ReadRect2D());
 			}
 
-			if (m_CRentTime > DateTime.UtcNow)
+			if (CRentTime > DateTime.UtcNow)
 			{
-				BeginRentTimer(m_CRentTime - DateTime.UtcNow);
+				BeginRentTimer(CRentTime - DateTime.UtcNow);
 			}
 
 			Timer.DelayCall(TimeSpan.Zero, StartTimers);

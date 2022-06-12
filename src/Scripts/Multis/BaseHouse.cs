@@ -297,6 +297,30 @@ namespace Server.Multis
 			return false;
 		}
 
+		public virtual void GenerateRubble()
+		{
+			Point3D p = new Point3D(this.Location);
+
+			for (int i = 150 + Utility.Random(100); i > 0; i--)
+			{
+				p.X = (this.X - 9) + Utility.Random(18);
+				p.Y = (this.Y - 9) + Utility.Random(18);
+
+				if (IsInside(p, this.Z))
+				{
+					HouseRubble rubble = new HouseRubble(this.Owner);
+					rubble.MoveToWorld(p, this.Map);
+				}
+
+			}
+		}
+
+		public void CreateNoPlaceRegion()
+		{
+			DemolishedHouseRegion reg = new(this.Owner, this.Map, HouseRegion.GetArea(this));
+			reg.Register();
+		}
+
 		public virtual void KillVendors()
 		{
 			PlayerVendors.OfType<PlayerVendor>().IterateReverse(o => o.Destroy(true));
@@ -324,6 +348,8 @@ namespace Server.Multis
 
 				Timer.DelayCall(TimeSpan.FromMilliseconds(250), () => OnAfterDecay(recs, map));
 			}
+
+			GenerateRubble();
 
 			KillVendors();
 			Delete();
@@ -1111,6 +1137,32 @@ namespace Server.Multis
 			}
 
 			return list;
+		}
+
+		public static void Initialize()
+		{
+			EventSink.AccountDelete += EventSink_AccountDelete;
+		}
+
+		public static void EventSink_AccountDelete(AccountDeleteEventArgs e)
+		{
+			if (e.Account is not Account a)
+				return;
+
+			//TODO: Should we delete the account's houses or allow them to be claimed by co-owners/friends, decay, etc?
+
+			for (int i = 0; i < a.Length; ++i)
+			{
+				Mobile m = a[i];
+
+				if (m == null)
+					continue;
+
+				List<BaseHouse> list = BaseHouse.GetHouses(m);
+
+				for (int j = 0; j < list.Count; ++j)
+					list[j].Delete();
+			}
 		}
 
 		public virtual bool CheckAosLockdowns(int need)

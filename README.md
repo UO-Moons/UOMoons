@@ -1,4 +1,4 @@
-# UO Moons Version 2.0.0.
+# UO Moons Version 3.0.0.
 
 [![GitHub build](https://img.shields.io/github/workflow/status/UO-Moons/UOMoons/Build?logo=github)](https://github.com/UO-Moons/UOMoons/actions)
 [![GitHub issues](https://img.shields.io/github/issues/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/issues)
@@ -14,20 +14,24 @@ The main objective of UOMoons is to update the server code to new technologies, 
 For change Era configuration and some basic server configuration you can use the ```bin\settings.ini``` file
 ## Era Support
 ```
-- UO:
-- T2A: 		Released on October 24, 1998
-- UOR: 		Released on May 4, 2000
-- UOTD:		Released on March 27, 2001
-- UOLBR:	Released on February 24, 2002
-- AOS:		Release on February 11, 2003
-- SE:		Released on November 2, 2004
-- ML: 		Released on August 30, 2005
-- KR: 		Released on month day, 2007
-- SA:           Released on September day, 2009
+- UO Beta:      Released in 1997                 10%  Done
+- UO:           Released in 1997                 50%  Done
+- T2A: 		Released on October 24, 1998   	 50%  Done
+- UOR: 		Released on May 4, 2000        	 50&  Done
+- UOTD:		Released on March 27, 2001     	 25%  Done
+- UOLBR:	Released on February 24, 2002  	 25&  Done
+- AOS:		Release on February 11, 2003    100%  Done
+- SE:		Released on November 2, 2004    100%  Done
+- ML: 		Released on August 30, 2005     100%  Done
+- KR: 		Released on month day, 2007     100%  Done
+- SA:           Released on September day, 2009  10%  Done
 ```
+Future Expansions will come later after we have all older ones 100% implanted.
 
 ## .Net 6 Support
 Change the core to work with .Net 6.
+
+Requires C# 11 Lang Version as well.
 
 ## Requirements to Compile
 - [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)

@@ -22,7 +22,7 @@ namespace Server.Mobiles
 		public WanderingHealer()
 		{
 			Title = "the wandering healer";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			AddItem(new GnarledStaff());
 
 			SetSkill(SkillName.Camping, 80.0, 100.0);

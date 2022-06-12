@@ -25,6 +25,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.29" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>
 
@@ -36,8 +37,6 @@
     <Folder Include="Engines\MLQuests\Definitions\ChainedQuests\" />
     <Folder Include="Engines\MLQuests\Definitions\Spellweaving\" />
     <Folder Include="Engines\MLQuests\Definitions\PeerlessRelatedQuests\" />
-    <Folder Include="Engines\Mobile Engine\" />
-    <Folder Include="Items\Equipment\ML Armor\" />
   </ItemGroup>
 
 </Project>

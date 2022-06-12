@@ -1,9 +1,6 @@
-using Server.Engines.Craft;
+namespace Server.Items;
 
-namespace Server.Items
+public interface IFlipable
 {
-	public interface IFlipable
-	{
-		void OnFlip(Mobile m);
-	}
+	void OnFlip(Mobile m);
 }

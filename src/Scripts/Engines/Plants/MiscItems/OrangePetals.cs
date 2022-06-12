@@ -86,12 +86,12 @@ namespace Server.Items
 
 		private static OrangePetalsContext GetContext(Mobile m)
 		{
-			return (m_Table[m] as OrangePetalsContext);
+			return m_Table[m] as OrangePetalsContext;
 		}
 
 		public static bool UnderEffect(Mobile m)
 		{
-			return (GetContext(m) != null);
+			return GetContext(m) != null;
 		}
 
 		private class OrangePetalsTimer : Timer
@@ -135,8 +135,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 }

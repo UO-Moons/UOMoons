@@ -1,10 +1,12 @@
 using Server.Items;
+using System;
 
 namespace Server.Mobiles
 {
 	[CorpseName("a chaos dragoon corpse")]
 	public class ChaosDragoon : BaseCreature
 	{
+		private DateTime m_Delay = DateTime.UtcNow;
 		[Constructable]
 		public ChaosDragoon() : base(AIType.AI_Melee, FightMode.Closest, 10, 1, 0.15, 0.4)
 		{
@@ -172,6 +174,17 @@ namespace Server.Mobiles
 		{
 			if (to is Dragon || to is WhiteWyrm || to is SwampDragon || to is Drake || to is Nightmare || to is Hiryu || to is LesserHiryu || to is Daemon)
 				damage *= 3;
+		}
+
+		public override void OnGaveMeleeAttack(Mobile defender)
+		{
+			base.OnGaveMeleeAttack(defender);
+
+			if (DateTime.UtcNow > m_Delay)
+			{
+				Ability.LowerStat(defender, 10, 20, 60, 120, 4);
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(10, 15));
+			}
 		}
 
 		public ChaosDragoon(Serial serial) : base(serial)

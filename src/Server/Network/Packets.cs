@@ -2358,13 +2358,15 @@ namespace Server.Network
 		{
 			Point3D loc = m.Location;
 
-			int hue = m.Hue;
+			int hue = m.GetHue(m);//IsHallucinated
+								  //int hue = m.Hue;
 
 			if (m.SolidHueOverride >= 0)
 				hue = m.SolidHueOverride;
 
 			m_Stream.Write(m.Serial);
-			m_Stream.Write((short)m.Body);
+			m_Stream.Write(m.GetBody(m));//IsHallucinated
+										 //m_Stream.Write((short)m.Body);
 			m_Stream.Write((short)loc.m_X);
 			m_Stream.Write((short)loc.m_Y);
 			m_Stream.Write((sbyte)loc.m_Z);
@@ -2382,13 +2384,14 @@ namespace Server.Network
 		{
 			Point3D loc = m.Location;
 
-			int hue = m.Hue;
-
+			//int hue = m.Hue;
+			int hue = m.GetHue(m);//IsHallucinated
 			if (m.SolidHueOverride >= 0)
 				hue = m.SolidHueOverride;
 
 			m_Stream.Write(m.Serial);
-			m_Stream.Write((short)m.Body);
+			//m_Stream.Write((short)m.Body);
+			m_Stream.Write(m.GetBody(m));//IsHallucinated
 			m_Stream.Write((short)loc.m_X);
 			m_Stream.Write((short)loc.m_Y);
 			m_Stream.Write((sbyte)loc.m_Z);
@@ -3499,7 +3502,8 @@ namespace Server.Network
 				hue = m.SolidHueOverride;
 
 			m_Stream.Write(m.Serial);
-			m_Stream.Write((short)m.Body);
+			m_Stream.Write(m.GetBody(m)); //IsHallucinated
+										  //m_Stream.Write((short)m.Body);
 			m_Stream.Write((byte)0);
 			m_Stream.Write((short)hue);
 			m_Stream.Write((byte)m.GetPacketFlags());
@@ -3522,7 +3526,8 @@ namespace Server.Network
 				hue = m.SolidHueOverride;
 
 			m_Stream.Write(m.Serial);
-			m_Stream.Write((short)m.Body);
+			m_Stream.Write(m.GetBody(m)); //IsHallucinated
+										  //m_Stream.Write((short)m.Body);
 			m_Stream.Write((byte)0);
 			m_Stream.Write((short)hue);
 			m_Stream.Write((byte)m.GetOldPacketFlags());
@@ -3555,7 +3560,7 @@ namespace Server.Network
 		{
 			m_Beheld = beheld;
 
-			int m_Version = ++(m_VersionTL.Value);
+			int m_Version = ++m_VersionTL.Value;
 			int[] m_DupedLayers = m_DupedLayersTL.Value;
 
 			List<Item> eq = beheld.Items;
@@ -3567,14 +3572,15 @@ namespace Server.Network
 				count++;
 
 			EnsureCapacity(23 + (count * 9));
-
-			int hue = beheld.Hue;
+			int hue = beholder.GetHue(beheld);//IsHallucinated
+											  //int hue = beheld.Hue;
 
 			if (beheld.SolidHueOverride >= 0)
 				hue = beheld.SolidHueOverride;
 
 			m_Stream.Write(beheld.Serial);
-			m_Stream.Write((short)beheld.Body);
+			m_Stream.Write(beholder.GetBody(beheld));//IsHallucinated
+													 //m_Stream.Write((short)beheld.Body);
 			m_Stream.Write((short)beheld.X);
 			m_Stream.Write((short)beheld.Y);
 			m_Stream.Write((sbyte)beheld.Z);
@@ -3675,14 +3681,15 @@ namespace Server.Network
 				count++;
 
 			EnsureCapacity(23 + (count * 9));
-
-			int hue = beheld.Hue;
+			int hue = beholder.GetHue(beheld);//IsHallucinated
+											  //int hue = beheld.Hue;
 
 			if (beheld.SolidHueOverride >= 0)
 				hue = beheld.SolidHueOverride;
 
 			m_Stream.Write(beheld.Serial);
-			m_Stream.Write((short)beheld.Body);
+			m_Stream.Write(beholder.GetBody(beheld));//IsHallucinated
+													 //m_Stream.Write((short)beheld.Body);
 			m_Stream.Write((short)beheld.X);
 			m_Stream.Write((short)beheld.Y);
 			m_Stream.Write((sbyte)beheld.Z);
@@ -3801,14 +3808,15 @@ namespace Server.Network
 				count++;
 
 			EnsureCapacity(23 + (count * 9));
-
-			int hue = beheld.Hue;
+			int hue = beholder.GetHue(beheld);//IsHallucinated
+											  //int hue = beheld.Hue;
 
 			if (beheld.SolidHueOverride >= 0)
 				hue = beheld.SolidHueOverride;
 
 			m_Stream.Write(beheld.Serial);
-			m_Stream.Write((short)beheld.Body);
+			m_Stream.Write(beholder.GetBody(beheld));//IsHallucinated
+													 //m_Stream.Write((short)beheld.Body);
 			m_Stream.Write((short)beheld.X);
 			m_Stream.Write((short)beheld.Y);
 			m_Stream.Write((sbyte)beheld.Z);

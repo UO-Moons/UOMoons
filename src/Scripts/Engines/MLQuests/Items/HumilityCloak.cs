@@ -33,7 +33,7 @@ namespace Server.Items
         //public override int Pieces => 8;
         public override int InitMinHits => 0;
         public override int InitMaxHits => 0;
-        public override int AosStrReq => 10;
+        public override int StrReq => 10;
         public override void Serialize(GenericWriter writer)
         {
             base.Serialize(writer);

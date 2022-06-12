@@ -61,7 +61,7 @@ namespace Server.Items
 					int wear;
 
 					if (weapon.Type == WeaponType.Bashing)
-						wear = (absorbed / 2);
+						wear = absorbed / 2;
 					else
 						wear = Utility.Random(2);
 
@@ -84,8 +84,8 @@ namespace Server.Items
 							{
 								MaxHitPoints -= wear;
 
-								if (Parent is Mobile)
-									((Mobile)Parent).LocalOverheadMessage(MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
+								if (Parent is Mobile mobile)
+									mobile.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
 							}
 							else
 							{

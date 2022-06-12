@@ -14,6 +14,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Weaver() : base("the weaver")
 		{
+			Job = JobFragment.weaver;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Tailoring, 65.0, 88.0);
 		}
 

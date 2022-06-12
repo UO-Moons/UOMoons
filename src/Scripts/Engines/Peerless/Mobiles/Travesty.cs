@@ -22,9 +22,9 @@ namespace Server.Mobiles
         private bool m_SpawnedHelpers;
         private Timer m_Timer;
 
-        private bool _CanDiscord;
-        private bool _CanPeace;
-        private bool _CanProvoke;
+        //private bool _CanDiscord;
+        //private bool _CanPeace;
+        //private bool _CanProvoke;
 
         //public override bool CanDiscord => _CanDiscord;
         //public override bool CanPeace => _CanPeace;
@@ -273,17 +273,17 @@ namespace Server.Mobiles
 
             if (attacker.Skills[SkillName.Discordance].Base > 50)
             {
-                _CanDiscord = true;
+                //_CanDiscord = true;
             }
 
             if (attacker.Skills[SkillName.Peacemaking].Base > 50)
             {
-                _CanPeace = true;
+                //_CanPeace = true;
             }
 
             if (attacker.Skills[SkillName.Provocation].Base > 50)
             {
-                _CanProvoke = true;
+                //_CanProvoke = true;
             }
 
             if (m_Timer != null)
@@ -310,9 +310,9 @@ namespace Server.Mobiles
             Female = false;
             Title = null;
 
-            _CanDiscord = false;
-            _CanPeace = false;
-            _CanProvoke = false;
+            //_CanDiscord = false;
+            //_CanPeace = false;
+            //_CanProvoke = false;
 
             DeleteItems();
 

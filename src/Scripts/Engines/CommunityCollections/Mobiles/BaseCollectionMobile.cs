@@ -9,7 +9,7 @@ namespace Server.Mobiles
 {
 	public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
+		private readonly List<SBInfo> m_SBInfos = new();
 		protected override List<SBInfo> SBInfos => m_SBInfos;
 
 		public override bool IsActiveVendor => false;
@@ -372,7 +372,7 @@ namespace Server.Mobiles
 			}
 		}
 
-		public virtual void Init()
+		public override void Init()
 		{
 			if (m_Donations == null)
 				m_Donations = new List<CollectionItem>();

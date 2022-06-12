@@ -1,6 +1,10 @@
-using Server.Network;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text;
+using Server;
+using Server.Network;
+using Server.Mobiles;
 
 namespace Server.Items
 {
@@ -28,6 +32,227 @@ namespace Server.Items
 			base.Deserialize(reader);
 
 			int version = reader.ReadInt();
+		}
+	}
+
+	[Flipable(0x1E5E, 0x1E5F)]
+	public class BountyBoard : BaseBulletinBoard
+	{
+		[Constructable]
+		public BountyBoard() : base(0x1E5E)
+		{
+			BoardName = "Bounty Board";
+		}
+
+		public BountyBoard(Serial serial) : base(serial)
+		{
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+
+			writer.Write((int)0); // version
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+
+			int version = reader.ReadInt();
+		}
+
+		public override void Cleanup()
+		{
+			// no cleanup
+			return;
+		}
+
+		public override DateTime GetLastPostTime(Mobile poster, bool onlyCheckRoot)
+		{
+			return DateTime.MinValue;
+		}
+
+		public override DateTime GetLastPostTime(BulletinMessage check)
+		{
+			return check.Time;
+		}
+
+		public override void PostMessage(Mobile from, BulletinMessage thread, string subject, string[] lines)
+		{
+			from.SendAsciiMessage("This board is for automated bounty postings only.  For communications you should use the forums at http://www.uomoons.com");
+			return;
+		}
+
+		private const int BountyCount = 25;
+		private static PlayerMobile[] m_List;
+		private static PlayerMobile[] m_OldList;
+		private static bool m_UpdateMsgs;
+
+		static BountyBoard()
+		{
+			m_List = new PlayerMobile[BountyCount];
+			m_OldList = new PlayerMobile[BountyCount];
+			m_UpdateMsgs = true;
+		}
+
+		public static int LowestBounty { get { return m_List[BountyCount - 1] != null ? m_List[BountyCount - 1].Bounty : 0; } }
+
+		public static void Update(PlayerMobile pm)
+		{
+			if (pm.AccessLevel > AccessLevel.Player) return;
+
+			PlayerMobile[] newList = m_OldList;
+			int ni = 0;
+			int ins = -1;
+			for (int i = 0; i < BountyCount; i++)
+			{
+				if (m_List[i] == null)
+				{
+					if (ins == -1)
+						ins = ni;
+					break; // we reached the end of the list
+				}
+				else if (pm == m_List[i] || m_List[i].Bounty <= 0 || m_List[i].Kills <= 0)
+				{
+					// we are already in the array, or someone needs to be removed
+					m_UpdateMsgs = true;
+				}
+				else //if ( pm != m_List[i] )
+				{
+					if (ins == -1 && m_List[i].Bounty <= pm.Bounty)
+						ins = ni++;
+					if (ni < BountyCount)
+						newList[ni++] = m_List[i];
+				}
+
+				m_List[i] = null;
+			}
+
+			if (ins >= 0 && ins < BountyCount)
+			{
+				newList[ins] = pm;
+				m_UpdateMsgs = true;
+			}
+			m_OldList = m_List;
+			m_List = newList;
+		}
+
+		public override void OnSingleClick(Mobile from)
+		{
+			GetMessages(); // check for update
+			LabelTo(from, string.Format("a bounty board with {0} posted bount{1}", BountyMessage.List.Count, BountyMessage.List.Count != 1 ? "ies" : "y"));
+		}
+
+		public override ArrayList GetMessages()
+		{
+			if (m_UpdateMsgs)
+			{
+				ArrayList del = new();
+				ArrayList list = BountyMessage.List;
+				for (int i = 0; i < m_List.Length; i++)
+				{
+					BountyMessage post;
+					if (m_List[i] == null || m_List[i].Kills <= 0 || m_List[i].Bounty <= 0)
+					{
+						if (i < list.Count)
+						{
+							post = (BountyMessage)list[i];
+							if (post != null && !post.Deleted)
+								del.Add(post);
+						}
+						continue;
+					}
+
+					if (i < list.Count)
+						post = (BountyMessage)list[i];
+					else
+						post = new BountyMessage(); // autromatically adds itself to the list
+
+					post.Time = DateTime.MinValue + TimeSpan.FromTicks(m_List[i].Kills);//DateTime.Now;
+					post.PostedName = "";
+					post.PostedBody = 0x0190;
+					post.PostedHue = 0x83EA;
+					if (post.PostedEquip.Length > 0)
+						post.PostedEquip = Array.Empty<BulletinEquip>();
+					post.Poster = null;
+					post.Thread = null;
+					post.Subject = string.Format("{0}: {1}gp", m_List[i].Name, m_List[i].Bounty);
+					post.FormatMessage("A price on {0}!\n  The foul scum known as {0} hath murdered one too many! For {1} is guilty of {2} murder{3}.\n  A bounty of {4}gp is hereby offered for {5} head!\n  If you kill {0}, bring {5} head to a guard here in this city to claim your reward.",
+						m_List[i].Name, m_List[i].Female ? "she" : "he", m_List[i].Kills, m_List[i].Kills != 1 ? "s" : "", m_List[i].Bounty, m_List[i].Female ? "her" : "his");
+				}
+
+				for (int i = 0; i < del.Count; i++)
+					((Item)del[i]).Delete();
+
+				if (list.Count > m_List.Length)
+					BountyMessage.RemoveRange(m_List.Length, list.Count - m_List.Length);
+				m_UpdateMsgs = false;
+				return list;
+			}
+			else
+			{
+				return BountyMessage.List;
+			}
+		}
+
+		public override bool MessageOK(BulletinMessage msg)
+		{
+			return BountyMessage.List.Contains(msg);
+		}
+	}
+
+	public class BountyMessage : BulletinMessage
+	{
+		private static ArrayList m_List;
+		public static ArrayList List
+		{
+			get
+			{
+				if (m_List == null)
+					m_List = new ArrayList();
+				return m_List;
+			}
+		}
+
+		public static void RemoveRange(int index, int count)
+		{
+			if (index < 0 || index >= List.Count || count <= 0)
+				return;
+
+			ArrayList oldList = new ArrayList(List);
+			int top = index + count;
+			if (top > oldList.Count)
+				top = oldList.Count;
+			for (int i = index; i < top; i++)
+				((BountyMessage)oldList[i]).Delete();
+		}
+
+		public BountyMessage() : base()
+		{
+			List.Add(this);
+		}
+
+		public BountyMessage(Serial serial) : base(serial)
+		{
+		}
+
+		public override void OnAfterDelete()
+		{
+			List.Remove(this);
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(0);
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			List.Add(this);
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -79,9 +304,7 @@ namespace Server.Items
 				if (i >= items.Count)
 					continue;
 
-				BulletinMessage msg = items[i] as BulletinMessage;
-
-				if (msg == null)
+				if (items[i] is not BulletinMessage msg)
 					continue;
 
 				if (msg.Thread == null && CheckTime(msg.LastPostTime, ThreadDeletionTime))
@@ -143,6 +366,52 @@ namespace Server.Items
 			return wasSet;
 		}
 
+		public virtual DateTime GetLastPostTime(Mobile poster, bool onlyCheckRoot)
+		{
+			DateTime lastPostTime = DateTime.MinValue;
+			for (int i = 0; i < Items.Count; ++i)
+			{
+				BulletinMessage msg = Items[i] as BulletinMessage;
+
+				if (msg == null || msg.Poster != poster)
+					continue;
+
+				if (onlyCheckRoot && msg.Thread != null)
+					continue;
+
+				if (msg.Time > lastPostTime)
+					lastPostTime = msg.Time;
+			}
+
+			return lastPostTime;
+		}
+
+		public virtual DateTime GetLastPostTime(BulletinMessage check)
+		{
+			DateTime lastPostTime = check.Time;
+			for (int i = 0; i < Items.Count; ++i)
+			{
+				BulletinMessage msg = Items[i] as BulletinMessage;
+
+				if (msg == null || msg.Thread != check)
+					continue;
+
+				if (msg.Time > lastPostTime)
+					lastPostTime = msg.Time;
+			}
+			return lastPostTime;
+		}
+
+		public virtual ArrayList GetMessages()
+		{
+			return new ArrayList(Items);
+		}
+
+		public virtual bool MessageOK(BulletinMessage msg)
+		{
+			return msg.Parent == this;
+		}
+
 		public override void OnDoubleClick(Mobile from)
 		{
 			if (CheckRange(from))
@@ -171,7 +440,7 @@ namespace Server.Items
 			return (from.Map == Map && from.InRange(GetWorldLocation(), 2));
 		}
 
-		public void PostMessage(Mobile from, BulletinMessage thread, string subject, string[] lines)
+		public virtual void PostMessage(Mobile from, BulletinMessage thread, string subject, string[] lines)
 		{
 			if (thread != null)
 				thread.LastPostTime = DateTime.UtcNow;
@@ -328,6 +597,12 @@ namespace Server.Items
 			return Time.ToString("MMM dd, yyyy");
 		}
 
+		public string GetHeaderTime()
+		{
+			long kills = (Time - DateTime.MinValue).Ticks;
+			return string.Format("{0} kill{1}", kills, kills != 1 ? "s" : "");
+		}
+
 		public override bool CheckTarget(Mobile from, Server.Targeting.Target targ, object targeted)
 		{
 			return false;
@@ -336,6 +611,10 @@ namespace Server.Items
 		public override bool IsAccessibleTo(Mobile check)
 		{
 			return false;
+		}
+
+		public BulletinMessage() : this(null, null, "", Array.Empty<string>())
+		{
 		}
 
 		public BulletinMessage(Mobile poster, BulletinMessage thread, string subject, string[] lines) : base(0xEB0)
@@ -347,34 +626,94 @@ namespace Server.Items
 			Time = DateTime.UtcNow;
 			LastPostTime = Time;
 			Thread = thread;
-			PostedName = Poster.Name;
-			PostedBody = Poster.Body;
-			PostedHue = Poster.Hue;
-			Lines = lines;
-
-			List<BulletinEquip> list = new List<BulletinEquip>();
-
-			for (int i = 0; i < poster.Items.Count; ++i)
+			if (Poster == null)
 			{
-				Item item = poster.Items[i];
-
-				if (item.Layer >= Layer.OneHanded && item.Layer <= Layer.Mount)
-					list.Add(new BulletinEquip(item.ItemID, item.Hue));
+				PostedName = "";
+				PostedBody = 0x0190;
+				PostedHue = 0x83EA;
+				PostedEquip = new BulletinEquip[0];
 			}
+			else
+			{
+				PostedName = Poster.Name;
+				PostedBody = Poster.Body;
+				PostedHue = Poster.Hue;
+				Lines = lines;
 
-			PostedEquip = list.ToArray();
+				List<BulletinEquip> list = new List<BulletinEquip>();
+
+				for (int i = 0; i < poster.Items.Count; ++i)
+				{
+					Item item = poster.Items[i];
+
+					if (item.Layer >= Layer.OneHanded && item.Layer <= Layer.Mount)
+						list.Add(new BulletinEquip(item.ItemID, item.Hue));
+				}
+
+				PostedEquip = list.ToArray();
+			}
 		}
 
-		public Mobile Poster { get; private set; }
-		public BulletinMessage Thread { get; private set; }
-		public string Subject { get; private set; }
-		public DateTime Time { get; private set; }
+		public Mobile Poster { get; set; }
+		public BulletinMessage Thread { get; set; }
+		public string Subject { get; set; }
+		public DateTime Time { get; set; }
 		public DateTime LastPostTime { get; set; }
-		public string PostedName { get; private set; }
-		public int PostedBody { get; private set; }
-		public int PostedHue { get; private set; }
-		public BulletinEquip[] PostedEquip { get; private set; }
-		public string[] Lines { get; private set; }
+		public string PostedName { get; set; }
+		public int PostedBody { get; set; }
+		public int PostedHue { get; set; }
+		public BulletinEquip[] PostedEquip { get; set; }
+		public string[] Lines { get; set; }
+
+		public void FormatMessage(string fmt, params object[] args)
+		{
+			FormatMessage(string.Format(fmt, args));
+		}
+
+		public virtual void FormatMessage(string msg)
+		{
+			StringBuilder sb = new StringBuilder(msg.Length + 32);
+			int len = 0;
+			int space = -1;
+			int i = 0;
+
+			while (i < msg.Length)
+			{
+				char ch = msg[i];
+				sb.Append(ch);
+				len++; i++;
+
+				if (ch == ' ' || ch == '-')
+				{
+					space = sb.Length;
+				}
+				else if (ch == '\n')
+				{
+					len = 0;
+					space = -1;
+					sb.Append('\r');
+				}
+				else if (len >= 30)
+				{
+					if (space != -1)
+					{
+						len = 2 + sb.Length - space;
+						sb.Insert(space, "\n\r");
+					}
+					else
+					{
+						len = 0;
+						sb.Append("\n\r");
+					}
+					space = -1;
+				}
+			}
+
+			if (len != 0)
+				sb.Append("\n\r");
+
+			Lines = sb.ToString().Split('\r');
+		}
 
 		public BulletinMessage(Serial serial) : base(serial)
 		{

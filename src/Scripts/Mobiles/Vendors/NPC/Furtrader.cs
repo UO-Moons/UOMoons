@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Furtrader() : base("the furtrader")
 		{
+			Job = JobFragment.furtrader;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Camping, 55.0, 78.0);
 			//SetSkill( SkillName.Alchemy, 60.0, 83.0 );
 			SetSkill(SkillName.AnimalLore, 85.0, 100.0);

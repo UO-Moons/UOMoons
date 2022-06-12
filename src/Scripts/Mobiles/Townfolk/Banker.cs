@@ -18,6 +18,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Banker() : base("the banker")
 		{
+			Job = JobFragment.banker;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override void InitSBInfo()

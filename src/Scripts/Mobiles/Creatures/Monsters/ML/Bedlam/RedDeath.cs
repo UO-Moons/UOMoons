@@ -59,12 +59,12 @@ namespace Server.Mobiles
 			return WeaponAbility.WhirlwindAttack;
 		}
 
-		public override void OnDeath(Container c)
-		{
-			base.OnDeath(c);
-
-			c.DropItem(new ResolvesBridle());
-		}
+		//public override void OnDeath(Container c)
+		//{
+		//	base.OnDeath(c);
+		//
+		//	c.DropItem(new ResolvesBridle());
+		//}
 
 		public override bool GivesMLMinorArtifact => true;
 		public override bool AlwaysMurderer => true;

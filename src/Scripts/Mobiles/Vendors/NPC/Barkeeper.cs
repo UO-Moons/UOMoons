@@ -25,6 +25,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Barkeeper() : base("the barkeeper")
 		{
+			Job = JobFragment.tavkeep;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public Barkeeper(Serial serial) : base(serial)

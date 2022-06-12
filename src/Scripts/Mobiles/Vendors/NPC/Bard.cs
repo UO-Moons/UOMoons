@@ -12,6 +12,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Bard() : base("the bard")
 		{
+			Job = JobFragment.bard;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Discordance, 64.0, 100.0);
 			SetSkill(SkillName.Musicianship, 64.0, 100.0);
 			SetSkill(SkillName.Peacemaking, 65.0, 88.0);

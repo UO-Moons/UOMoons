@@ -48,7 +48,21 @@ namespace Server.Mobiles
 		{
 			AddLoot(LootPack.FilthyRich);
 			AddLoot(LootPack.MedScrolls, 2);
-			// TODO: Daemon bone ...
+			if (Core.AOS && 0.1 > Utility.RandomDouble())
+			{
+				switch (Utility.Random(18))
+				{
+					case 0: PackItem(new DaemonArms()); break;
+					case 1: PackItem(new DaemonChest()); break;
+					case 2: PackItem(new DaemonGloves()); break;
+					case 3: PackItem(new DaemonLegs()); break;
+				}
+			}
+
+			if (Core.AOS && 0.01 > Utility.RandomDouble())
+			{
+				PackItem(new DaemonHelm());
+			}
 		}
 
 		public override bool AutoDispel => true;

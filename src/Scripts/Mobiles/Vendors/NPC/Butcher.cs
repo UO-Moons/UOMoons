@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Butcher() : base("the butcher")
 		{
+			Job = JobFragment.farmer;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Anatomy, 45.0, 68.0);
 		}
 

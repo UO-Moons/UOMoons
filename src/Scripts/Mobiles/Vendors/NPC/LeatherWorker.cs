@@ -13,6 +13,8 @@ namespace Server.Mobiles
 		}
 		public override void InitSBInfo()
 		{
+			Job = JobFragment.tanner;
+			Karma = Utility.RandomMinMax(13, -45);
 			m_SBInfos.Add(new SBLeatherArmor());
 			m_SBInfos.Add(new SBStuddedArmor());
 			m_SBInfos.Add(new SBLeatherWorker());

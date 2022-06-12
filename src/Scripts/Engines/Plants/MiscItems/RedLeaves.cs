@@ -57,13 +57,12 @@ namespace Server.Items
 					return;
 				}
 
-				Item item = targeted as Item;
 
-				if (item == null || !item.IsChildOf(from.Backpack))
+				if (targeted is not Item item || !item.IsChildOf(from.Backpack))
 				{
 					from.SendLocalizedMessage(1042664); // You must have the object in your backpack to use it.
 				}
-				else if (!(item is BaseBook))
+				else if (item is not BaseBook)
 				{
 					item.LabelTo(from, 1061911); // You can only use red leaves to seal the ink into book pages!
 				}
@@ -96,8 +95,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 }

@@ -5,356 +5,363 @@ using Server.Network;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Items
+namespace Server.Items;
+
+public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 {
-	public abstract partial class BaseEquipment : BaseItem, IAosAttribute
+	[Flags]
+	private enum SaveFlag
 	{
-		[Flags]
-		private enum SaveFlag
-		{
-			None = 0x00000000,
-			Attributes = 0x00000001,
-			Altered = 0x00000002
-		}
+		None = 0x00000000,
+		Attributes = 0x00000001,
+		Altered = 0x00000002
+	}
 
-		private AosAttributes m_AosAttributes;
-		[CommandProperty(AccessLevel.GameMaster)]
-		public AosAttributes Attributes
-		{
-			get => m_AosAttributes;
-			set { }
-		}
+	private AosAttributes m_AosAttributes;
+	[CommandProperty(AccessLevel.GameMaster)]
+	public AosAttributes Attributes
+	{
+		get => m_AosAttributes;
+		set { }
+	}
 
-		private bool m_Altered;
-		[CommandProperty(AccessLevel.GameMaster)]
-		public bool Altered
+	private bool m_Altered;
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool Altered
+	{
+		get => m_Altered;
+		set
 		{
-			get => m_Altered;
-			set
+			m_Altered = value;
+			InvalidateProperties();
+		}
+	}
+
+	private Mobile _Owner;
+	[CommandProperty(AccessLevel.GameMaster)]
+	public Mobile Owner
+	{
+		get => _Owner;
+		set { _Owner = value; if (_Owner != null) { _OwnerName = _Owner.Name; } InvalidateProperties(); }
+	}
+
+	private string _OwnerName;
+	public virtual string OwnerName
+	{
+		get => _OwnerName;
+		set { _OwnerName = value; InvalidateProperties(); }
+	}
+
+	private FactionItem m_FactionState;
+	public FactionItem FactionItemState
+	{
+		get => m_FactionState;
+		set
+		{
+			m_FactionState = value;
+
+			LootType = m_FactionState == null ? LootType.Regular : LootType.Blessed;
+		}
+	}
+
+	public virtual Race RequiredRace => null;
+	public virtual bool CanBeWornByGargoyles => false;
+	public virtual bool AllowMaleWearer => true;
+	public virtual bool AllowFemaleWearer => true;
+	public virtual bool CanFortify => true;
+	public virtual bool CanRepair => true;
+	public virtual bool CanAlter => true;
+	public virtual int ArtifactRarity => 0;
+
+	public BaseEquipment(int itemID) : base(itemID)
+	{
+		m_AosAttributes = new AosAttributes(this);
+	}
+
+	public BaseEquipment(Serial serial) : base(serial)
+	{
+	}
+
+	public override void OnSingleClick(Mobile from)
+	{
+		base.OnSingleClick(from);
+
+		List<EquipInfoAttribute> attrs = new();
+
+		#region Factions
+		if (this is IFactionItem factionItem && factionItem != null && factionItem.FactionItemState != null)
+			attrs.Add(new EquipInfoAttribute(1041350)); // faction item
+		#endregion
+
+		//Quality
+		if (Quality == ItemQuality.Exceptional)
+			attrs.Add(new EquipInfoAttribute(1018305 - (int)Quality));
+
+		if (Identified || from.AccessLevel >= AccessLevel.GameMaster)
+		{
+			//Slayer
+			if (this is ISlayer slayerItem)
 			{
-				m_Altered = value;
-				InvalidateProperties();
-			}
-		}
-
-		private Mobile _Owner;
-		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Owner
-		{
-			get => _Owner;
-			set { _Owner = value; if (_Owner != null) { _OwnerName = _Owner.Name; } InvalidateProperties(); }
-		}
-
-		private string _OwnerName;
-		public virtual string OwnerName
-		{
-			get => _OwnerName;
-			set { _OwnerName = value; InvalidateProperties(); }
-		}
-
-		private FactionItem m_FactionState;
-		public FactionItem FactionItemState
-		{
-			get => m_FactionState;
-			set
-			{
-				m_FactionState = value;
-
-				LootType = m_FactionState == null ? LootType.Regular : LootType.Blessed;
-			}
-		}
-
-		public virtual Race RequiredRace => null;
-		public virtual bool CanBeWornByGargoyles => false;
-		public virtual bool AllowMaleWearer => true;
-		public virtual bool AllowFemaleWearer => true;
-		public virtual bool CanFortify => true;
-		public virtual bool CanRepair => true;
-		public virtual bool CanAlter => true;
-		public virtual int ArtifactRarity => 0;
-
-		public BaseEquipment(int itemID) : base(itemID)
-		{
-			m_AosAttributes = new AosAttributes(this);
-		}
-
-		public BaseEquipment(Serial serial) : base(serial)
-		{
-		}
-
-		public override void OnSingleClick(Mobile from)
-		{
-			base.OnSingleClick(from);
-
-			List<EquipInfoAttribute> attrs = new();
-
-			#region Factions
-			if (this is IFactionItem factionItem && factionItem != null && factionItem.FactionItemState != null)
-				attrs.Add(new EquipInfoAttribute(1041350)); // faction item
-			#endregion
-
-			//Quality
-			if (Quality == ItemQuality.Exceptional)
-				attrs.Add(new EquipInfoAttribute(1018305 - (int)Quality));
-
-			if (Identified || from.AccessLevel >= AccessLevel.GameMaster)
-			{
-				//Slayer
-				if (this is ISlayer slayerItem)
+				if (slayerItem.Slayer != SlayerName.None)
 				{
-					if (slayerItem.Slayer != SlayerName.None)
-					{
-						SlayerEntry entry = SlayerGroup.GetEntryByName(slayerItem.Slayer);
-						if (entry != null)
-							attrs.Add(new EquipInfoAttribute(entry.Title));
-					}
-
-					if (slayerItem.Slayer2 != SlayerName.None)
-					{
-						SlayerEntry entry = SlayerGroup.GetEntryByName(slayerItem.Slayer2);
-						if (entry != null)
-							attrs.Add(new EquipInfoAttribute(entry.Title));
-					}
+					SlayerEntry entry = SlayerGroup.GetEntryByName(slayerItem.Slayer);
+					if (entry != null)
+						attrs.Add(new EquipInfoAttribute(entry.Title));
 				}
 
-				if (this is BaseArmor armor)
+				if (slayerItem.Slayer2 != SlayerName.None)
 				{
-					if (armor.Durability != DurabilityLevel.Regular)
-						attrs.Add(new EquipInfoAttribute(1038000 + (int)armor.Durability));
-
-					if (armor.ProtectionLevel > ArmorProtectionLevel.Regular && armor.ProtectionLevel <= ArmorProtectionLevel.Invulnerability)
-						attrs.Add(new EquipInfoAttribute(1038005 + (int)armor.ProtectionLevel));
-				}
-				else if (this is BaseWeapon weapon)
-				{
-					if (weapon.DurabilityLevel != DurabilityLevel.Regular)
-						attrs.Add(new EquipInfoAttribute(1038000 + (int)weapon.DurabilityLevel));
-
-					if (weapon.DamageLevel != WeaponDamageLevel.Regular)
-						attrs.Add(new EquipInfoAttribute(1038015 + (int)weapon.DamageLevel));
-
-					if (weapon.AccuracyLevel != WeaponAccuracyLevel.Regular)
-						attrs.Add(new EquipInfoAttribute(1038010 + (int)weapon.AccuracyLevel));
-				}
-			}
-			else
-			{
-				//Maybe need to improve this
-				if (this is BaseArmor armor && (armor.Durability != DurabilityLevel.Regular || (armor.ProtectionLevel > ArmorProtectionLevel.Regular && armor.ProtectionLevel <= ArmorProtectionLevel.Invulnerability)))
-				{
-					attrs.Add(new EquipInfoAttribute(1038000)); // Unidentified
-				}
-				else if (this is BaseWeapon weapon && (weapon.Slayer != SlayerName.None || weapon.Slayer2 != SlayerName.None || weapon.DurabilityLevel != DurabilityLevel.Regular || weapon.DamageLevel != WeaponDamageLevel.Regular || weapon.AccuracyLevel != WeaponAccuracyLevel.Regular))
-				{
-					attrs.Add(new EquipInfoAttribute(1038000)); // Unidentified
+					SlayerEntry entry = SlayerGroup.GetEntryByName(slayerItem.Slayer2);
+					if (entry != null)
+						attrs.Add(new EquipInfoAttribute(entry.Title));
 				}
 			}
 
-			if (this is BaseWeapon poisonWeapon && poisonWeapon.Poison != null && poisonWeapon.PoisonCharges > 0)
-				attrs.Add(new EquipInfoAttribute(1017383, poisonWeapon.PoisonCharges));
+			if (this is BaseArmor armor)
+			{
+				if (armor.Durability != DurabilityLevel.Regular)
+					attrs.Add(new EquipInfoAttribute(1038000 + (int)armor.Durability));
 
-			Mobile crafter = null;
-			if (this is ICraftable craftable)
-				crafter = craftable.Crafter;
+				if (armor.ProtectionLevel > ArmorProtectionLevel.Regular && armor.ProtectionLevel <= ArmorProtectionLevel.Invulnerability)
+					attrs.Add(new EquipInfoAttribute(1038005 + (int)armor.ProtectionLevel));
+			}
+			else if (this is BaseWeapon weapon)
+			{
+				if (weapon.DurabilityLevel != DurabilityLevel.Regular)
+					attrs.Add(new EquipInfoAttribute(1038000 + (int)weapon.DurabilityLevel));
 
-			if (attrs.Count == 0 && crafter != null && Name != null)
+				if (weapon.DamageLevel != WeaponDamageLevel.Regular)
+					attrs.Add(new EquipInfoAttribute(1038015 + (int)weapon.DamageLevel));
+
+				if (weapon.AccuracyLevel != WeaponAccuracyLevel.Regular)
+					attrs.Add(new EquipInfoAttribute(1038010 + (int)weapon.AccuracyLevel));
+			}
+		}
+		else
+		{
+			//Maybe need to improve this
+			if (this is BaseArmor armor && (armor.Durability != DurabilityLevel.Regular || (armor.ProtectionLevel > ArmorProtectionLevel.Regular && armor.ProtectionLevel <= ArmorProtectionLevel.Invulnerability)))
+			{
+				attrs.Add(new EquipInfoAttribute(1038000)); // Unidentified
+			}
+			else if (this is BaseWeapon weapon && (weapon.Slayer != SlayerName.None || weapon.Slayer2 != SlayerName.None || weapon.DurabilityLevel != DurabilityLevel.Regular || weapon.DamageLevel != WeaponDamageLevel.Regular || weapon.AccuracyLevel != WeaponAccuracyLevel.Regular))
+			{
+				attrs.Add(new EquipInfoAttribute(1038000)); // Unidentified
+			}
+		}
+
+		if (this is BaseWeapon poisonWeapon && poisonWeapon.Poison != null && poisonWeapon.PoisonCharges > 0)
+			attrs.Add(new EquipInfoAttribute(1017383, poisonWeapon.PoisonCharges));
+
+		Mobile crafter = null;
+		if (this is ICraftable craftable)
+			crafter = craftable.Crafter;
+
+		if (attrs.Count == 0 && crafter != null && Name != null)
+			return;
+
+		EquipmentInfo eqInfo = new(1041000, crafter, false, attrs.ToArray());
+		_ = from.Send(new DisplayEquipmentInfo(this, eqInfo));
+	}
+
+	public virtual int GetLuckBonus()
+	{
+		return m_AosAttributes.Luck;
+	}
+
+	public virtual int GetLowerStatReq()
+	{
+		return 0;
+	}
+
+	public virtual int ComputeStatReq(StatType type)
+	{
+		return 0;
+	}
+
+	public virtual int ComputeStatBonus(StatType type)
+	{
+		return 0;
+	}
+
+	public virtual void AddStatBonuses(Mobile parent)
+	{
+		if (parent != null)
+		{
+			int strBonus = ComputeStatBonus(StatType.Str);
+			int dexBonus = ComputeStatBonus(StatType.Dex);
+			int intBonus = ComputeStatBonus(StatType.Int);
+
+			if (strBonus == 0 && dexBonus == 0 && intBonus == 0)
 				return;
 
-			EquipmentInfo eqInfo = new(1041000, crafter, false, attrs.ToArray());
-			_ = from.Send(new DisplayEquipmentInfo(this, eqInfo));
-		}
+			string modName = Serial.ToString();
 
-		public virtual int GetLuckBonus()
-		{
-			return m_AosAttributes.Luck;
-		}
+			if (strBonus != 0)
+				parent.AddStatMod(new StatMod(StatType.Str, modName + "Str", strBonus, TimeSpan.Zero));
 
-		public virtual int GetLowerStatReq()
-		{
-			return 0;
-		}
+			if (dexBonus != 0)
+				parent.AddStatMod(new StatMod(StatType.Dex, modName + "Dex", dexBonus, TimeSpan.Zero));
 
-		public virtual int ComputeStatReq(StatType type)
-		{
-			return 0;
+			if (intBonus != 0)
+				parent.AddStatMod(new StatMod(StatType.Int, modName + "Int", intBonus, TimeSpan.Zero));
 		}
+	}
 
-		public virtual int ComputeStatBonus(StatType type)
+	public virtual void RemoveStatBonuses(Mobile parent)
+	{
+		if (parent != null)
 		{
-			return 0;
+			string modName = Serial.ToString();
+
+			_ = parent.RemoveStatMod(modName + "Str");
+			_ = parent.RemoveStatMod(modName + "Dex");
+			_ = parent.RemoveStatMod(modName + "Int");
 		}
+	}
 
-		public virtual void AddStatBonuses(Mobile parent)
+	public override bool AllowEquipedCast(Mobile from)
+	{
+		if (base.AllowEquipedCast(from))
+			return true;
+
+		return m_AosAttributes.SpellChanneling != 0;
+	}
+
+	public override void OnAfterDuped(Item newItem)
+	{
+		base.OnAfterDuped(newItem);
+
+		if (newItem is IAosAttribute && newItem is BaseEquipment newEquipItem)
 		{
-			if (parent != null)
+			newEquipItem.m_AosAttributes = new AosAttributes(newItem, m_AosAttributes);
+		}
+	}
+
+	public static void ValidateMobile(Mobile m)
+	{
+		for (int i = m.Items.Count - 1; i >= 0; --i)
+		{
+			if (i >= m.Items.Count)
 			{
-				int strBonus = ComputeStatBonus(StatType.Str);
-				int dexBonus = ComputeStatBonus(StatType.Dex);
-				int intBonus = ComputeStatBonus(StatType.Int);
-
-				if (strBonus == 0 && dexBonus == 0 && intBonus == 0)
-					return;
-
-				string modName = Serial.ToString();
-
-				if (strBonus != 0)
-					parent.AddStatMod(new StatMod(StatType.Str, modName + "Str", strBonus, TimeSpan.Zero));
-
-				if (dexBonus != 0)
-					parent.AddStatMod(new StatMod(StatType.Dex, modName + "Dex", dexBonus, TimeSpan.Zero));
-
-				if (intBonus != 0)
-					parent.AddStatMod(new StatMod(StatType.Int, modName + "Int", intBonus, TimeSpan.Zero));
+				continue;
 			}
-		}
 
-		public virtual void RemoveStatBonuses(Mobile parent)
-		{
-			if (parent != null)
+			Item item = m.Items[i];
+
+			if (item is BaseArmor armor)
 			{
-				string modName = Serial.ToString();
-
-				_ = parent.RemoveStatMod(modName + "Str");
-				_ = parent.RemoveStatMod(modName + "Dex");
-				_ = parent.RemoveStatMod(modName + "Int");
-			}
-		}
-
-		public override bool AllowEquipedCast(Mobile from)
-		{
-			if (base.AllowEquipedCast(from))
-				return true;
-
-			return (m_AosAttributes.SpellChanneling != 0);
-		}
-
-		public override void OnAfterDuped(Item newItem)
-		{
-			base.OnAfterDuped(newItem);
-
-			if (newItem is IAosAttribute && newItem is BaseEquipment newEquipItem)
-			{
-				newEquipItem.m_AosAttributes = new AosAttributes(newItem, m_AosAttributes);
-			}
-		}
-
-		public static void ValidateMobile(Mobile m)
-		{
-			for (int i = m.Items.Count - 1; i >= 0; --i)
-			{
-				if (i >= m.Items.Count)
+				if (Core.SA && !RaceDefinitions.ValidateEquipment(m, item))
 				{
-					continue;
+					m.AddToBackpack(armor);
 				}
-
-				Item item = m.Items[i];
-
-				if (item is BaseArmor armor)
+				else if (!armor.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
 				{
-					if (Core.SA && !RaceDefinitions.ValidateEquipment(m, item))
+					if (armor.AllowFemaleWearer)
 					{
-						m.AddToBackpack(armor);
+						m.SendLocalizedMessage(1010388); // Only females can wear this
 					}
-					else if (!armor.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
-					{
-						if (armor.AllowFemaleWearer)
-						{
-							m.SendLocalizedMessage(1010388); // Only females can wear this
-						}
 
-						m.AddToBackpack(armor);
-					}
-					else if (!armor.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
-					{
-						if (armor.AllowMaleWearer)
-						{
-							m.SendLocalizedMessage(1063343); // Only males can wear 
-						}
-
-						m.AddToBackpack(armor);
-					}
+					m.AddToBackpack(armor);
 				}
-				else if (item is BaseClothing clothing)
+				else if (!armor.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
 				{
-					if (Core.SA && !RaceDefinitions.ValidateEquipment(m, clothing))
+					if (armor.AllowMaleWearer)
 					{
-						m.AddToBackpack(clothing);
+						m.SendLocalizedMessage(1063343); // Only males can wear 
 					}
-					else if (!clothing.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
-					{
-						if (clothing.AllowFemaleWearer)
-						{
-							m.SendLocalizedMessage(1010388); // Only females can wear this.
-						}
-						else
-						{
-							m.SendLocalizedMessage(1071936); // You cannot equip that.
-						}
 
-						m.AddToBackpack(clothing);
-					}
-					else if (!clothing.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
+					m.AddToBackpack(armor);
+				}
+			}
+			else if (item is BaseClothing clothing)
+			{
+				if (Core.SA && !RaceDefinitions.ValidateEquipment(m, clothing))
+				{
+					m.AddToBackpack(clothing);
+				}
+				else if (!clothing.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
+				{
+					if (clothing.AllowFemaleWearer)
 					{
-						if (clothing.AllowMaleWearer)
-						{
-							m.SendLocalizedMessage(1063343); // Only males can wear this.
-						}
-						else
-						{
-							m.SendLocalizedMessage(1071936); // You cannot equip that.
-						}
-
-						m.AddToBackpack(clothing);
+						m.SendLocalizedMessage(1010388); // Only females can wear this.
 					}
+					else
+					{
+						m.SendLocalizedMessage(1071936); // You cannot equip that.
+					}
+
+					m.AddToBackpack(clothing);
+				}
+				else if (!clothing.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
+				{
+					if (clothing.AllowMaleWearer)
+					{
+						m.SendLocalizedMessage(1063343); // Only males can wear this.
+					}
+					else
+					{
+						m.SendLocalizedMessage(1071936); // You cannot equip that.
+					}
+
+					m.AddToBackpack(clothing);
 				}
 			}
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
+	public override bool AllowSecureTrade(Mobile from, Mobile to, Mobile newOwner, bool accepted)
+	{
+		if (!Ethics.Ethic.CheckTrade(from, to, newOwner, this))
+			return false;
+
+		return base.AllowSecureTrade(from, to, newOwner, accepted);
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+		writer.Write(_Owner);
+		writer.Write(_OwnerName);
+
+		SaveFlag flags = SaveFlag.None;
+		Utility.SetSaveFlag(ref flags, SaveFlag.Attributes, !m_AosAttributes.IsEmpty);
+		Utility.SetSaveFlag(ref flags, SaveFlag.Altered, m_Altered);
+		writer.WriteEncodedInt((int)flags);
+
+		if (flags.HasFlag(SaveFlag.Attributes))
+			m_AosAttributes.Serialize(writer);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		int version = reader.ReadInt();
+
+		switch (version)
 		{
-			base.Serialize(writer);
+			case 0:
+				{
+					_Owner = reader.ReadMobile();
+					_OwnerName = reader.ReadString();
 
-			writer.Write(0);
-			writer.Write(_Owner);
-			writer.Write(_OwnerName);
+					SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
-			SaveFlag flags = SaveFlag.None;
-			Utility.SetSaveFlag(ref flags, SaveFlag.Attributes, !m_AosAttributes.IsEmpty);
-			Utility.SetSaveFlag(ref flags, SaveFlag.Altered, m_Altered);
-			writer.WriteEncodedInt((int)flags);
+					if (flags.HasFlag(SaveFlag.Attributes))
+						m_AosAttributes = new AosAttributes(this, reader);
+					else
+						m_AosAttributes = new AosAttributes(this);
 
-			if (flags.HasFlag(SaveFlag.Attributes))
-				m_AosAttributes.Serialize(writer);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			switch (version)
-			{
-				case 0:
+					if (flags.HasFlag(SaveFlag.Altered))
 					{
-						_Owner = reader.ReadMobile();
-						_OwnerName = reader.ReadString();
-
-						SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
-
-						if (flags.HasFlag(SaveFlag.Attributes))
-							m_AosAttributes = new AosAttributes(this, reader);
-						else
-							m_AosAttributes = new AosAttributes(this);
-
-						if (flags.HasFlag(SaveFlag.Altered))
-						{
-							m_Altered = true;
-						}
-
-						break;
+						m_Altered = true;
 					}
-			}
+
+					break;
+				}
 		}
 	}
 }

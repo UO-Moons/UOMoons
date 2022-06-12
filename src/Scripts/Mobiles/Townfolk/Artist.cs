@@ -30,6 +30,7 @@ namespace Server.Mobiles
 				Body = 0x190;
 				Name = NameList.RandomName("male");
 			}
+			Karma = Utility.RandomMinMax(13, -45);
 			AddItem(new Doublet(Utility.RandomDyedHue()));
 			AddItem(new Sandals(Utility.RandomNeutralHue()));
 			AddItem(new ShortPants(Utility.RandomNeutralHue()));

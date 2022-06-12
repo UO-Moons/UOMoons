@@ -11,9 +11,6 @@ namespace Server.Factions
 		private Faction m_Faction;
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public Mobile Crafter { get; set; }
-
-		[CommandProperty(AccessLevel.GameMaster)]
 		public Faction Faction
 		{
 			get => m_Faction;

@@ -23,7 +23,7 @@ namespace Server.Engines.Craft
 
     public class Enhance
     {
-        private static Dictionary<Type, CraftSystem> _SpecialTable;
+        private static readonly Dictionary<Type, CraftSystem> _SpecialTable;
 
         private static bool IsSpecial(Item item, CraftSystem system)
         {

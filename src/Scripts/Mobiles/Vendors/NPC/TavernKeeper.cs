@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public TavernKeeper() : base("the tavern keeper")
 		{
+			Job = JobFragment.tavkeep;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override void InitSBInfo()

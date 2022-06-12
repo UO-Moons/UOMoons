@@ -15,6 +15,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public RealEstateBroker() : base("the real estate broker")
 		{
+			Job = JobFragment.architect;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override bool HandlesOnSpeech(Mobile from)

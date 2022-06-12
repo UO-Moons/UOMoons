@@ -1,6 +1,8 @@
 using Server.Multis;
 using System.Collections.Generic;
 using System.Linq;
+using Server.Commands;
+using System;
 
 namespace Server.Engines.TownHouses
 {
@@ -25,6 +27,7 @@ namespace Server.Engines.TownHouses
 			EventSink.OnLogin += EventSink_Login;
 			EventSink.OnSpeech += HandleSpeech;
 			EventSink.OnServerStarted += OnStarted;
+			CommandSystem.Register("rent", AccessLevel.Player, Wynajem_OnCommand);
 		}
 
 		private static void OnStarted()
@@ -146,6 +149,46 @@ namespace Server.Engines.TownHouses
 			if (say)
 			{
 				m.SendMessage("You don't have the storage available to rent property.");
+			}
+
+			return false;
+		}
+
+		private static void Wynajem_OnCommand(CommandEventArgs e)
+		{
+			if (!e.Mobile.CheckAlive()) return;
+
+			List<BaseHouse> houses = new(BaseHouse.GetHouses(e.Mobile));
+
+			if (houses == null) return;
+
+			foreach (BaseHouse house in houses)
+			{
+				if (house.Region.AllMobiles.Contains(e.Mobile) && house is TownHouse house1 && house.Owner == e.Mobile)
+				{
+					TownHouse tHouse = house1;
+					if (!TownHouseInfo(tHouse, e.Mobile))
+					{
+						e.Mobile.SendMessage("This House is not rented out");
+					}
+				}
+			}
+		}
+
+		private static bool TownHouseInfo(TownHouse th, Mobile m)
+		{
+			TownHouseSign thSign = th.ForSaleSign;
+			if (thSign.RentByTime != TimeSpan.Zero)
+			{
+				m.SendMessage("Your home {0}", thSign.Name);
+				m.SendMessage("The Rental Cycle ends in {0} days, {1}:{2}:{3}.",
+					(thSign.CRentTime - DateTime.UtcNow).Days,
+					(thSign.CRentTime - DateTime.UtcNow).Hours,
+					(thSign.CRentTime - DateTime.UtcNow).Minutes,
+					(thSign.CRentTime - DateTime.UtcNow).Seconds);
+				m.SendMessage("The rental cycle is {0} days.", thSign.RentByTime.Days);
+				m.SendMessage("The rental cycle cost {0} units.", thSign.Price);
+				return true;
 			}
 
 			return false;

@@ -1,3 +1,4 @@
+using System;
 using Server.Items;
 
 namespace Server.Mobiles
@@ -5,6 +6,8 @@ namespace Server.Mobiles
 	[CorpseName("an ore elemental corpse")]
 	public class BronzeElemental : BaseCreature
 	{
+		private DateTime m_Delay = DateTime.UtcNow;
+
 		[Constructable]
 		public BronzeElemental() : this(2)
 		{
@@ -60,6 +63,16 @@ namespace Server.Mobiles
 		public override bool BleedImmune => true;
 		public override bool AutoDispel => true;
 		public override int TreasureMapLevel => 1;
+
+		public override void OnActionCombat()
+		{
+			if (DateTime.Now > m_Delay)
+			{
+				Ability.Aura(this, this, 0, 0, 3, 3, 4, "It exhails a cloud of noxious vapors");
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(5, 10));
+			}
+			base.OnActionCombat();
+		}
 
 		public BronzeElemental(Serial serial) : base(serial)
 		{

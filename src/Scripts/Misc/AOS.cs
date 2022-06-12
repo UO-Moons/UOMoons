@@ -186,6 +186,9 @@ namespace Server
 				return damageable.Damage(totalDamage, from);
 			}
 
+			if (Feint.IsUnderEffect(from))
+				totalDamage /= 2;
+
 			if ((from == null || !from.Player) && m.Player && m.Mount is SwampDragon)
 			{
 				if (m.Mount is SwampDragon pet && pet.HasBarding)
@@ -208,6 +211,34 @@ namespace Server
 
 			if (keepAlive && totalDamage > m.Hits)
 				totalDamage = m.Hits;
+
+			if (from != null && !from.Deleted && from.Alive)
+			{
+				int reflectPhys = AosAttributes.GetValue(m, AosAttribute.ReflectPhysical);
+				if (reflectPhys > 50) reflectPhys = 50;
+
+				if (reflectPhys != 0)
+				{
+					if (from is ExodusMinion && ((ExodusMinion)from).FieldActive || from is ExodusOverseer && ((ExodusOverseer)from).FieldActive)
+					{
+						from.FixedParticles(0x376A, 20, 10, 0x2530, EffectLayer.Waist);
+						from.PlaySound(0x2F4);
+						m.SendAsciiMessage("Your weapon cannot penetrate the creature's magical barrier");
+					}
+					else
+					{
+						int rphysdmg = Scale((damage * phys * (100 - (ignoreArmor ? 0 : m.PhysicalResistance))) / 10000, reflectPhys);
+
+						if (rphysdmg > 0)
+						{
+							from.Damage(rphysdmg, m);
+							m.FixedParticles(0x22C6, 5, 5, 0x7F5, 0x960, 0x3, EffectLayer.Waist);
+							//m.PlaySound( 0x3B9 );
+							//m.PlaySound( 0x56 );
+						}
+					}
+				}
+			}
 
 			m.Damage(totalDamage, from);
 			return totalDamage;
@@ -233,7 +264,7 @@ namespace Server
 				if (context.Type == typeof(WraithFormSpell))
 				{
 					//    int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, (int)from.Skills.SpiritSpeak.Value / 5)); // Wraith form gives 5-20% mana leech
-					int manaLeech = AOS.Scale(damageGiven, Math.Min(target.Mana, Math.Max(8, 5 + (int)(0.16 * from.Skills.SpiritSpeak.Value))));
+					int manaLeech = Scale(damageGiven, Math.Min(target.Mana, Math.Max(8, 5 + (int)(0.16 * from.Skills.SpiritSpeak.Value))));
 
 					if (manaLeech != 0)
 					{

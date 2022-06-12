@@ -503,8 +503,8 @@ namespace Server
 			OnMobileDeleted?.Invoke(mob);
 		}
 
-		public static event Action<Mobile, int, Mobile, bool> OnMobileDamage;
-		public static void InvokeOnMobileDamage(Mobile mob, int damage, Mobile from, bool willKill)
+		public static event Action<Mobile, int, IDamageable, bool> OnMobileDamage;
+		public static void InvokeOnMobileDamage(Mobile mob, int damage, IDamageable from, bool willKill)
 		{
 			OnMobileDamage?.Invoke(mob, damage, from, willKill);
 		}

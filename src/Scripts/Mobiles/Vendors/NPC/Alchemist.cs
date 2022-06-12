@@ -12,6 +12,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Alchemist() : base("the alchemist")
 		{
+			Job = JobFragment.alchemist;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Alchemy, 85.0, 100.0);
 			SetSkill(SkillName.TasteID, 65.0, 88.0);
 		}

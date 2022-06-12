@@ -1,10 +1,13 @@
 using Server.Items;
+using System;
 
 namespace Server.Mobiles
 {
 	[CorpseName("a chaos dragoon elite corpse")]
 	public class ChaosDragoonElite : BaseCreature
 	{
+		private DateTime m_Delay = DateTime.UtcNow;
+
 		[Constructable]
 		public ChaosDragoonElite()
 			: base(AIType.AI_Mage, FightMode.Closest, 10, 1, 0.15, 0.4)
@@ -197,6 +200,18 @@ namespace Server.Mobiles
 				damage *= 3;
 		}
 
+
+		public override void OnGaveMeleeAttack(Mobile defender)
+		{
+			base.OnGaveMeleeAttack(defender);
+
+			if (DateTime.UtcNow > m_Delay)
+			{
+				Ability.LowerStat(defender, 10, 20, 60, 120, 4);
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(10, 15));
+			}
+		}
+
 		public ChaosDragoonElite(Serial serial)
 			: base(serial)
 		{
@@ -212,6 +227,74 @@ namespace Server.Mobiles
 		{
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
+		}
+
+		private class VirtualMount : IMount
+		{
+			private readonly VirtualMountItem m_Item;
+			public VirtualMount(VirtualMountItem item)
+			{
+				m_Item = item;
+			}
+
+			public Mobile Rider
+			{
+				get
+				{
+					return m_Item.Rider;
+				}
+				set
+				{
+				}
+			}
+			public virtual void OnRiderDamaged(Mobile from, ref int amount, bool willKill)
+			{
+			}
+		}
+
+		private class VirtualMountItem : Item, IMountItem
+		{
+			private readonly VirtualMount m_Mount;
+			private Mobile m_Rider;
+			public VirtualMountItem(Mobile mob)
+				: base(0x3EBE)
+			{
+				Layer = Layer.Mount;
+
+				Movable = false;
+
+				m_Rider = mob;
+				m_Mount = new VirtualMount(this);
+			}
+
+			public VirtualMountItem(Serial serial)
+				: base(serial)
+			{
+				m_Mount = new VirtualMount(this);
+			}
+
+			public Mobile Rider => m_Rider;
+			public IMount Mount => m_Mount;
+			public override void Serialize(GenericWriter writer)
+			{
+				base.Serialize(writer);
+
+				writer.Write(0); // version
+
+				writer.Write(m_Rider);
+			}
+
+			public override void Deserialize(GenericReader reader)
+			{
+				base.Deserialize(reader);
+
+				int version = reader.ReadInt();
+
+				m_Rider = reader.ReadMobile();
+
+				if (m_Rider == null)
+					Delete();
+			}
 		}
 	}
 }

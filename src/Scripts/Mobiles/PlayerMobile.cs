@@ -208,6 +208,8 @@ namespace Server.Mobiles
 
 		public List<Mobile> RecentlyReported { get; set; }
 
+		public DateTime LastMacroCheck { get; set; }
+
 		public List<Mobile> AutoStabled { get; private set; }
 
 		public bool NinjaWepCooldown { get; set; }
@@ -270,6 +272,12 @@ namespace Server.Mobiles
 		public int ToTTotalMonsterFame { get; set; }
 
 		public int ExecutesLightningStrike { get; set; }
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool RegionGump { get; set; } = false;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool AutoSaveGump { get; set; } = false;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ToothAche
@@ -503,6 +511,104 @@ namespace Server.Mobiles
 		[CommandProperty(AccessLevel.GameMaster)]
 		public SkillName AcceleratedSkill { get; set; }
 		#endregion
+
+		private bool m_hallucinate;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool Hallucinating
+		{
+			get { return m_hallucinate; }
+			set
+			{
+				if (m_hallucinate == value)
+					return;
+
+
+				if (value)
+				{
+					m_hallucinate = value;
+					SendEverything();
+				}
+				else
+				{
+					m_hallucinate = value;
+					SendEverything();
+				}
+
+
+				InvalidateProperties();
+			}
+		}
+
+		public override bool IsHallucinated
+		{
+			get { return m_hallucinate; }
+		}
+
+		private int m_Bounty;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int Bounty
+		{
+			get
+			{
+				return m_Bounty;
+			}
+			set
+			{
+				if (m_Bounty != value)
+				{
+					if (m_Bounty < value)
+						NextBountyDecay = DateTime.UtcNow + TimeSpan.FromDays(1.0);
+					m_Bounty = value;
+				}
+				BountyBoard.Update(this);
+
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public DateTime NextBountyDecay { get; set; }
+
+		public DateTime LastLogin { get; set; }
+
+		public override short GetBody(Mobile toSend)
+		{
+			if (m_hallucinate)
+			{
+				return (short)m_BodyArray[new Random(HalluRandomSeed + toSend.Serial.Value).Next(0, 59)];
+			}
+
+			return (short)toSend.Body;
+		}
+
+
+		public override int GetHue(Mobile toSend)
+		{
+			if (m_hallucinate)
+			{
+				return new Random(HalluRandomSeed + toSend.Serial.Value).Next(2, 1200);
+			}
+
+			return toSend.Hue;
+		}
+
+		private static int HalluRandomSeed = Utility.Random(1073741822);
+
+		private class ReseedTimer : Timer
+		{
+			public ReseedTimer() : base(TimeSpan.FromSeconds(40), TimeSpan.FromSeconds(20))
+			{
+				Priority = TimerPriority.FiveSeconds;
+			}
+
+			protected override void OnTick()
+			{
+				HalluRandomSeed = Utility.Random(1073741822);
+			}
+		}
+
+		private static readonly int[] m_BodyArray = new int[60] { 1, 2, 3, 4, 5, 6, 8, 10, 11, 12, 13, 14, 15, 16, 21, 22, 24, 26, 28, 29, 30, 31, 33, 39, 42, 46, 47, 48, 50, 51, 52, 53, 58, 62, 64, 70, 72, 75, 80, 81, 85, 86, 88, 90, 97, 101, 104, 123, 134, 145, 149, 150, 151, 152, 154, 157, 400, 401, 605, 606 };
 
 		public static Direction GetDirection4(Point3D from, Point3D to)
 		{
@@ -909,7 +1015,7 @@ namespace Server.Mobiles
 			{
 				if (Mana < ExecutesLightningStrike)
 				{
-					LightningStrike.ClearCurrentMove(this);
+					SpecialMove.ClearCurrentMove(this);
 				}
 			}
 		}
@@ -924,7 +1030,7 @@ namespace Server.Mobiles
 
 				if (from.Account is not Account acct || !acct.HasAccess(from.NetState))
 				{
-					if (from.AccessLevel == AccessLevel.Player)
+					if (from.IsPlayer())
 						notice = "The server is currently under lockdown. No players are allowed to log in at this time.";
 					else
 						notice = "The server is currently under lockdown. You do not have sufficient access level to connect.";
@@ -944,8 +1050,20 @@ namespace Server.Mobiles
 				return;
 			}
 
-			if (from is PlayerMobile pm)
+			PlayerMobile pm = from as PlayerMobile;
+
+			if (pm != null)
 				pm.ClaimAutoStabledPets();
+
+			Account acc = from.Account as Account;
+
+			if (pm != null && pm.Young && acc != null && acc.Young)
+			{
+				TimeSpan ts = Accounting.Account.YoungDuration - acc.TotalGameTime;
+				int hours = Math.Max((int)ts.TotalHours, 0);
+
+				pm.SendAsciiMessage("You will enjoy the benefits and relatively safe status of a young player for {0} more hour{1}.", hours, hours != 1 ? "s" : "");
+			}
 		}
 
 		private bool m_NoDeltaRecursion;
@@ -1215,9 +1333,7 @@ namespace Server.Mobiles
 				if (pm.Quest != null)
 					pm.Quest.StartTimer();
 
-				#region Mondain's Legacy
 				QuestHelper.StartTimer(pm);
-				#endregion
 
 				pm.BedrollLogout = false;
 				pm.LastOnline = DateTime.UtcNow;
@@ -1226,12 +1342,19 @@ namespace Server.Mobiles
 			DisguiseTimers.StartTimer(from);
 
 			Timer.DelayCall(TimeSpan.Zero, new TimerStateCallback(ClearSpecialMovesCallback), from);
+
+			Account acc = from.Account as Account;
+
+			if (acc != null && acc.Young && acc.YoungTimer == null)
+			{
+				acc.YoungTimer = new YoungTimer(acc);
+				acc.YoungTimer.Start();
+			}
 		}
 
 		private static void ClearSpecialMovesCallback(object state)
 		{
 			Mobile from = (Mobile)state;
-
 			SpecialMove.ClearAllMoves(from);
 		}
 
@@ -1254,31 +1377,48 @@ namespace Server.Mobiles
 				from.RevealingAction();
 
 				foreach (Item item in context.Foundation.GetItems())
+				{
 					item.Location = context.Foundation.BanLocation;
+				}
 
 				foreach (Mobile mobile in context.Foundation.GetMobiles())
+				{
 					mobile.Location = context.Foundation.BanLocation;
+				}
 
 				// Restore relocated entities
 				context.Foundation.RestoreRelocatedEntities();
 			}
 
-			if (from is PlayerMobile pm)
+			PlayerMobile pm = from as PlayerMobile;
+
+			if (pm != null)
 			{
-				pm.m_GameTime += (DateTime.UtcNow - pm.SessionStart);
+				pm.m_GameTime += DateTime.UtcNow - pm.SessionStart;
 
 				if (pm.Quest != null)
 					pm.Quest.StopTimer();
 
-				#region Mondain's Legacy
 				QuestHelper.StopTimer(pm);
-				#endregion
 
 				pm.SpeechLog = null;
 				pm.LastOnline = DateTime.UtcNow;
 			}
 
 			DisguiseTimers.StopTimer(from);
+
+			Account acc = from.Account as Account;
+
+			if (acc != null && acc.YoungTimer != null)
+			{
+				acc.YoungTimer.Stop();
+				acc.YoungTimer = null;
+			}
+
+			if (acc != null && pm != null)
+			{
+				acc.TotalGameTime += DateTime.UtcNow - pm.SessionStart;
+			}
 		}
 
 		public override void RevealingAction()
@@ -2590,8 +2730,6 @@ namespace Server.Mobiles
 			if (Confidence.IsRegenerating(this))
 				Confidence.StopRegenerating(this);
 
-			WeightOverloading.FatigueOnDamage(this, amount);
-
 			if (ReceivedHonorContext != null)
 				ReceivedHonorContext.OnTargetDamaged(from, amount);
 			if (SentHonorContext != null)
@@ -2599,6 +2737,15 @@ namespace Server.Mobiles
 
 			if (willKill && from is PlayerMobile pm)
 				Timer.DelayCall(TimeSpan.FromSeconds(10), new TimerCallback(pm.RecoverAmmo));
+
+			#region Mondain's Legacy
+			if (InvisibilityPotion.HasTimer(this))
+			{
+				InvisibilityPotion.Iterrupt(this);
+			}
+			#endregion
+
+			//UndertakersStaff.TryRemoveTimer(this);
 
 			base.OnDamage(amount, from, willKill);
 		}
@@ -3310,6 +3457,11 @@ namespace Server.Mobiles
 			{
 				case 0:
 					{
+						LastLogin = reader.ReadDateTime();
+						NextBountyDecay = reader.ReadDateTime();
+						m_Bounty = reader.ReadInt();
+						RegionGump = reader.ReadBool();
+						AutoSaveGump = reader.ReadBool();
 						ExtendedFlags = (ExtendedPlayerFlag)reader.ReadInt();
 						Collections = new Dictionary<Collection, int>();
 						RewardTitles = new List<object>();
@@ -3507,6 +3659,27 @@ namespace Server.Mobiles
 			}
 			#endregion
 
+			if (NextBountyDecay == DateTime.MinValue)
+			{
+				if (LastLogin != DateTime.MinValue)
+					NextBountyDecay = LastLogin + TimeSpan.FromDays(1.0);
+			}
+
+			while (m_Bounty > 0 && NextBountyDecay < DateTime.UtcNow)
+			{
+				m_Bounty -= 100;
+				NextBountyDecay += TimeSpan.FromDays(1.0);
+			}
+
+			if (m_Bounty <= 0)
+			{
+				m_Bounty = 0;
+				Kills = 0;
+			}
+
+			if (m_Bounty > 0 && m_Bounty > BountyBoard.LowestBounty)
+				BountyBoard.Update(this);
+
 			CheckAtrophies(this);
 
 			if (Hidden) //Hiding is the only buff where it has an effect that's serialized.
@@ -3529,6 +3702,23 @@ namespace Server.Mobiles
 					t.Remove(remove[i]);
 			}
 
+			if (NextBountyDecay != DateTime.MinValue)
+			{
+				bool update = false;
+				while (m_Bounty > 0 && NextBountyDecay < DateTime.UtcNow)
+				{
+					update = true;
+					m_Bounty -= 100;
+					NextBountyDecay += TimeSpan.FromDays(1.0);
+				}
+
+				if (m_Bounty < 0)
+					m_Bounty = 0;
+
+				if (update)
+					BountyBoard.Update(this);
+			}
+
 			CheckKillDecay();
 
 			CheckAtrophies(this);
@@ -3536,7 +3726,11 @@ namespace Server.Mobiles
 			base.Serialize(writer);
 
 			writer.Write(0); // version
-
+			writer.Write(LastLogin);
+			writer.Write(NextBountyDecay);
+			writer.Write(m_Bounty);
+			writer.Write(AutoSaveGump);
+			writer.Write(RegionGump);
 			writer.Write((int)ExtendedFlags);
 			#region Mondain's Legacy
 			if (Collections == null)
@@ -3826,6 +4020,9 @@ namespace Server.Mobiles
 		{
 			base.GetProperties(list);
 
+			if (AccessLevel > AccessLevel.Player)
+				list.Add(1060847, "{0}\t{1}", "Shard", Enum.GetName(typeof(AccessLevel), AccessLevel));
+
 			#region Mondain's Legacy Titles
 			if (Core.ML && RewardTitles != null && SelectedTitle > -1)
 			{
@@ -3842,9 +4039,9 @@ namespace Server.Mobiles
 						//else
 							list.Add((int)RewardTitles[SelectedTitle]);
 					}
-					else if (RewardTitles[SelectedTitle] is string)
+					else if (RewardTitles[SelectedTitle] is string @string)
 					{
-						list.Add(1070722, (string)RewardTitles[SelectedTitle]);
+						list.Add(1070722, @string);
 					}
 				}
 			}

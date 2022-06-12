@@ -87,7 +87,7 @@ namespace Server.Items
 				if (!Core.SE)
 					return false;
 
-				return (DateTime.UtcNow < (TimeOfDeath + InstancedCorpseTime));
+				return DateTime.UtcNow < (TimeOfDeath + InstancedCorpseTime);
 			}
 		}
 
@@ -1162,7 +1162,7 @@ namespace Server.Items
 				new LeftArm().MoveToWorld(Location, Map);
 				new RightLeg().MoveToWorld(Location, Map);
 				new RightArm().MoveToWorld(Location, Map);
-				new Head(dead.Name).MoveToWorld(Location, Map);
+				new Head(dead, dead.Name).MoveToWorld(Location, Map);
 
 				SetFlag(CorpseFlag.Carved, true);
 

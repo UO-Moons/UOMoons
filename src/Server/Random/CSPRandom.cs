@@ -33,9 +33,7 @@ namespace Server
 
 			_filled.WaitOne();
 
-			byte[] b = _Working;
-			_Working = _Buffer;
-			_Buffer = b;
+			(_Buffer, _Working) = (_Working, _Buffer);
 			_Index = 0;
 
 			_filled.Reset();

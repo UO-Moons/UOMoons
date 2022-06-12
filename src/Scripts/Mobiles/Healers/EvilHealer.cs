@@ -19,7 +19,7 @@ namespace Server.Mobiles
 		public EvilHealer()
 		{
 			Title = "the healer";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			Karma = -10000;
 
 			SetSkill(SkillName.Forensics, 80.0, 100.0);

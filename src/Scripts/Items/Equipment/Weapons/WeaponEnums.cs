@@ -52,4 +52,19 @@ namespace Server.Items
 		SuperSlayer,
 		Opposition
 	}
+
+	public enum WeaponEffect
+	{
+		None,
+		Clumsy,
+		Feeblemind,
+		MagicArrow,
+		Weakness,
+		Harm,
+		Paralyze,
+		Fireball,
+		Curse,
+		ManaDrain,
+		Lightning
+	}
 }

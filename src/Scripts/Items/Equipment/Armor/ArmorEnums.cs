@@ -1,42 +1,43 @@
-namespace Server.Items
+namespace Server.Items;
+
+public enum ArmorProtectionLevel
 {
-	public enum ArmorProtectionLevel
-	{
-		Regular,
-		Defense,
-		Guarding,
-		Hardening,
-		Fortification,
-		Invulnerability,
-	}
+	Regular,
+	Defense,
+	Guarding,
+	Hardening,
+	Fortification,
+	Invulnerability,
+}
 
-	public enum ArmorBodyType
-	{
-		Gorget,
-		Gloves,
-		Helmet,
-		Arms,
-		Legs,
-		Chest,
-		Shield
-	}
+public enum ArmorBodyType
+{
+	Gorget,
+	Gloves,
+	Helmet,
+	Arms,
+	Legs,
+	Chest,
+	Shield
+}
 
-	public enum ArmorMaterialType
-	{
-		Cloth,
-		Leather,
-		Studded,
-		Bone,
-		Ringmail,
-		Chainmail,
-		Plate,
-		Dragon  // On OSI, Dragon is seen and considered its own type.
-	}
+public enum ArmorMaterialType
+{
+	Cloth,
+	Leather,
+	Studded,
+	Bone,
+	Ringmail,
+	Chainmail,
+	Plate,
+	Hide,
+	Wood,
+	Dragon
+}
 
-	public enum ArmorMeditationAllowance
-	{
-		All,
-		Half,
-		None
-	}
+public enum ArmorMeditationAllowance
+{
+	All,
+	Half,
+	None
 }

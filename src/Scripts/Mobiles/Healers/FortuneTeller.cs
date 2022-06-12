@@ -21,7 +21,7 @@ namespace Server.Mobiles
 		public FortuneTeller()
 		{
 			Title = "the fortune teller";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Anatomy, 85.0, 100.0);
 			SetSkill(SkillName.Healing, 90.0, 100.0);
 			SetSkill(SkillName.Forensics, 75.0, 98.0);

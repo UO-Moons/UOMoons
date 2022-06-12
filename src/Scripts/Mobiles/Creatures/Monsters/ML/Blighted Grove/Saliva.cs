@@ -42,16 +42,16 @@ namespace Server.Mobiles
 			AddLoot(LootPack.UltraRich, 2);
 		}
 
-		public override void OnDeath(Container c)
-		{
-			base.OnDeath(c);
+		//public override void OnDeath(Container c)
+		//{
+		//	base.OnDeath(c);
 
-			c.DropItem(new SalivasFeather());
+		//	c.DropItem(new SalivasFeather());
 
 			// TODO: uncomment once added
 			//if ( Utility.RandomDouble() < 0.1 )
 			//	c.DropItem( new ParrotItem() );
-		}
+		//}
 
 		public Saliva(Serial serial)
 			: base(serial)

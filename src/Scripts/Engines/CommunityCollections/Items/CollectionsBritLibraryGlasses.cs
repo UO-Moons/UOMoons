@@ -4,7 +4,7 @@ using Server.Engines.Craft;
 namespace Server.Items
 {
     //[Alterable(typeof(DefTinkering), typeof(GargishMaceAndShieldGlasses))]
-    public class MaceAndShieldGlasses : Glasses
+    public class MaceAndShieldGlasses : BaseGlasses
     {
         public override bool IsArtifact => true;
         [Constructable]
@@ -46,7 +46,7 @@ namespace Server.Items
     }
 
     //[Alterable(typeof(DefTinkering), typeof(GargishGlassesOfTheArts))]
-    public class GlassesOfTheArts : Glasses
+    public class GlassesOfTheArts : BaseGlasses
     {
         [Constructable]
         public GlassesOfTheArts()
@@ -87,7 +87,7 @@ namespace Server.Items
     }
 
     //[Alterable(typeof(DefTinkering), typeof(GargishTradesGlasses))]
-    public class TradesGlasses : Glasses
+    public class TradesGlasses : BaseGlasses
     {
         [Constructable]
         public TradesGlasses()
@@ -124,7 +124,7 @@ namespace Server.Items
     }
 
     //[Alterable(typeof(DefTinkering), typeof(GargishWizardsCrystalGlasses))]
-    public class WizardsCrystalGlasses : Glasses
+    public class WizardsCrystalGlasses : BaseGlasses
     {
         [Constructable]
         public WizardsCrystalGlasses()
@@ -164,7 +164,7 @@ namespace Server.Items
     }
 
     //[Alterable(typeof(DefTinkering), typeof(GargishTreasuresAndTrinketsGlasses))]
-    public class TreasuresAndTrinketsGlasses : Glasses
+    public class TreasuresAndTrinketsGlasses : BaseGlasses
     {
         [Constructable]
         public TreasuresAndTrinketsGlasses()

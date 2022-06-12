@@ -60,6 +60,20 @@ namespace Server.Mobiles
 		public override Poison PoisonImmune => Poison.Lethal;
 		public override int TreasureMapLevel => 4;
 
+		public override void OnDamagedBySpell(Mobile attacker)
+		{
+			base.OnDamagedBySpell(attacker);
+
+			Lich.DoSpecialAbility(this, attacker);
+		}
+
+		public override void OnGotMeleeAttack(Mobile attacker)
+		{
+			base.OnGotMeleeAttack(attacker);
+
+			Lich.DoSpecialAbility(this, attacker);
+		}
+
 		public LichLord(Serial serial) : base(serial)
 		{
 		}

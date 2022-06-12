@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.Xml;
 
@@ -8,6 +9,7 @@ namespace Server.Accounting
 	public class Accounts
 	{
 		private static Dictionary<string, IAccount> m_Accounts = new();
+		private static Hashtable m_AccsByMail = new Hashtable();
 
 		public static void Configure()
 		{
@@ -32,6 +34,49 @@ namespace Server.Accounting
 			m_Accounts.TryGetValue(username, out IAccount a);
 
 			return a;
+		}
+
+		public static Account AddAccount(string user, string pass, string email)
+		{
+			Account a = new(user, pass);
+			if (m_Accounts.Count == 0)
+				a.AccessLevel = AccessLevel.Administrator;
+
+			m_Accounts[a.Username] = a;
+
+			SetEmail(a, email);
+
+			return a;
+		}
+
+		public static void SetEmail(Account acc, string email)
+		{
+			if (acc.Email == "" || acc.Email != email)
+				acc.Email = email;
+		}
+
+		public static bool RegisterEmail(Account acc, string newMail)
+		{
+			UnregisterEmail(acc.Email);
+			if (newMail == "")
+				return true;
+
+			if (m_AccsByMail.Contains(newMail))
+				return false;
+
+			m_AccsByMail.Add(newMail, acc);
+			return true;
+		}
+
+		public static void UnregisterEmail(string mail)
+		{
+			if (mail != null && mail != "")
+				m_AccsByMail.Remove(mail);
+		}
+
+		public static Account GetByMail(string email)
+		{
+			return m_AccsByMail[email] as Account;
 		}
 
 		public static void Add(IAccount a)

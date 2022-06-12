@@ -204,6 +204,13 @@ namespace Server.Mobiles
 				Polymorph(this);
 		}
 
+		public override void OnDamagedBySpell(Mobile from)
+		{
+			base.OnDamagedBySpell(from);
+
+			DoSpecialAbility(from);
+		}
+
 		public override void OnGotMeleeAttack(Mobile attacker)
 		{
 			base.OnGotMeleeAttack(attacker);

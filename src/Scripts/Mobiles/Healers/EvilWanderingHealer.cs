@@ -23,7 +23,7 @@ namespace Server.Mobiles
 		{
 			Title = (Core.AOS) ? "the Priest Of Mondain" : "the evil wandering healer";
 			Karma = -10000;
-
+			Karma = Utility.RandomMinMax(13, -45);
 			AddItem(new GnarledStaff());
 
 			SetSkill(SkillName.Camping, 80.0, 100.0);

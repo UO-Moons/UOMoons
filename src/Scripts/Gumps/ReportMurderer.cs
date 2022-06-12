@@ -3,18 +3,24 @@ using Server.Misc;
 using Server.Mobiles;
 using Server.Network;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Server.Gumps
 {
 	public class ReportMurdererGump : Gump
 	{
+		public static void Configure()
+		{
+			PacketHandlers.Register(0xAC, 0, true, new OnPacketReceive(BountyEntryResponse));
+		}
+
 		private static readonly TimeSpan ReportExpirationTimeout = TimeSpan.FromMinutes(10);
 
 		private int m_Idx;
 		private readonly List<Mobile> m_Killers;
 		private readonly Mobile m_Victum;
-
+		public static readonly bool BountyEnabled = Settings.Configuration.Get<bool>("Gameplay", "BountyEnabled");
 		public static void Initialize()
 		{
 			EventSink.OnMobileDeath += EventSink_PlayerDeath;
@@ -50,16 +56,16 @@ namespace Server.Gumps
 			foreach (Mobile g in toGive)
 			{
 				int n = Notoriety.Compute(g, m);
-
-				int theirKarma = m.Karma, ourKarma = g.Karma;
-				bool innocent = (n == Notoriety.Innocent);
-				bool criminal = (n == Notoriety.Criminal || n == Notoriety.Murderer);
+				_ = m.Karma;
+				int ourKarma = g.Karma;
+				bool innocent = n == Notoriety.Innocent;
+				bool criminal = n == Notoriety.Criminal || n == Notoriety.Murderer;
 
 				int fameAward = m.Fame / 200;
 				int karmaAward = 0;
 
 				if (innocent)
-					karmaAward = (ourKarma > -2500 ? -850 : -110 - (m.Karma / 100));
+					karmaAward = ourKarma > -2500 ? -850 : -110 - (m.Karma / 100);
 				else if (criminal)
 					karmaAward = 50;
 
@@ -78,6 +84,139 @@ namespace Server.Gumps
 
 			if (killers.Count > 0)
 				new GumpTimer(m, killers).Start();
+		}
+
+		private class BountyEntry : Packet
+		{
+			public BountyEntry(Mobile killer, int maxGold) : base(0xAB)
+			{
+				string prompt = $"Do you wish to place a bounty on the head of {killer.Name}?";
+				string subText = $"({maxGold}gp max.)";
+
+				EnsureCapacity(1 + 2 + 4 + 1 + 1 + 2 + prompt.Length + 1 + 1 + 1 + 4 + 2 + subText.Length + 1);
+
+				m_Stream.Write((int)killer.Serial); // id
+				m_Stream.Write((byte)0); // 'typeid'
+				m_Stream.Write((byte)0); // 'index'
+
+				m_Stream.Write((short)(prompt.Length + 1)); // textlen 
+				m_Stream.WriteAsciiNull(prompt);
+
+				m_Stream.Write(true); // enable cancel btn
+				m_Stream.Write((byte)2); // style, 0=disable, 1=normal, 2=numeric
+				m_Stream.Write(maxGold); // 'format' when style=1 format=maxlen, style=2 format=max # val
+
+				m_Stream.Write((short)(subText.Length + 1));
+				m_Stream.WriteAsciiNull(subText);
+			}
+		}
+
+		private static void BountyEntryResponse(NetState ns, PacketReader pvSrc)
+		{
+			Mobile from = ns.Mobile;
+			if (from == null)
+				return;
+			Mobile killer = World.FindMobile((Serial)pvSrc.ReadInt32());
+			_ = pvSrc.ReadByte();
+			_ = pvSrc.ReadByte();
+			bool cancel = pvSrc.ReadByte() == 0;
+			_ = pvSrc.ReadInt16();
+			string resp = pvSrc.ReadString();
+
+			if (killer != null && !cancel)
+			{
+				int bounty = Utility.ToInt32(resp);
+				if (bounty > 5000)
+					bounty = 5000;
+				bounty = from.BankBox.ConsumeUpTo(typeof(Gold), bounty, true);
+
+				killer.Kills++;
+				if (killer is PlayerMobile mobile && bounty > 0)
+				{
+					mobile.Bounty += bounty;
+					killer.SendAsciiMessage("{0} has placed a bounty of {1}gp on your head!", from.Name, bounty);
+					if (mobile.Bounty >= 5000 && mobile.Kills > 1 && mobile.BankBox.Items.Count > 0 && mobile.Karma <= Notoriety.Murderer)
+					{
+						killer.SayTo(killer, true, "A bounty hath been issued for thee, and thy worldly goods are hereby confiscated!");
+						mobile.Bounty += EmptyAndGetGold(killer.BankBox.Items);
+					}
+				}
+			}
+		}
+
+		private static int GetPriceFor(Item item)
+		{
+			int price = 0;
+
+			if (item is Gold)
+			{
+				price = item.Amount;
+			}
+			else if (item is BaseArmor armor)
+			{
+				if (armor.Quality == ItemQuality.Low)
+					price = (int)(price * 0.75);
+				else if (armor.Quality == ItemQuality.Exceptional)
+					price = (int)(price * 1.25);
+
+				price += 100 * (int)armor.Durability;
+
+				price += 100 * (int)armor.ProtectionLevel;
+			}
+			else if (item is BaseWeapon weapon)
+			{
+				if (weapon.Quality == ItemQuality.Low)
+					price = (int)(price * 0.60);
+				else if (weapon.Quality == ItemQuality.Exceptional)
+					price = (int)(price * 1.25);
+
+				price += 100 * (int)weapon.DurabilityLevel;
+
+				price += 100 * (int)weapon.DamageLevel;
+			}
+			else if (item is BaseBeverage beverage)
+			{
+				int price1 = price, price2 = price;
+
+				if (item is Pitcher)
+				{ price1 = 3; price2 = 5; }
+				else if (item is BeverageBottle)
+				{ price1 = 3; price2 = 3; }
+				else if (item is Jug)
+				{ price1 = 6; price2 = 6; }
+
+				BaseBeverage bev = beverage;
+
+				if (bev.IsEmpty || bev.Content == BeverageType.Milk)
+					price = price1;
+				else
+					price = price2;
+			}
+			else
+			{
+				price = Utility.RandomMinMax(10, 50);
+			}
+
+			if (price < 1)
+				price = 1;
+
+			return price;
+		}
+
+		private static int EmptyAndGetGold(List<Item> items)
+		{
+			int gold = 0;
+			ArrayList myList = new(items);
+			for (int i = 0; i < myList.Count; i++)
+			{
+				Item item = (Item)myList[i];
+				if (item.Items.Count > 0)
+					gold += EmptyAndGetGold(item.Items);
+				gold += GetPriceFor(item);
+				item.Delete();
+			}
+
+			return gold;
 		}
 
 		private class GumpTimer : Timer
@@ -164,6 +303,17 @@ namespace Server.Gumps
 						{
 							killer.Kills++;
 							killer.ShortTermMurders++;
+							if (BountyEnabled)
+							{
+								Item[] gold = from.BankBox.FindItemsByType(typeof(Gold), true);
+								int total = 0;
+								for (int i = 0; i < gold.Length && total < 5000; i++)
+									total += gold[i].Amount;
+								if (total > 5000)
+									total = 5000;
+
+								from.Send(new BountyEntry(killer, total));
+							}
 
 							if (Core.SE)
 							{
@@ -185,6 +335,7 @@ namespace Server.Gumps
 									pk.SendLocalizedMessage(501562); // You have been suspended by the Thieves Guild.
 								}
 							}
+
 						}
 						break;
 					}

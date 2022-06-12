@@ -42,6 +42,8 @@ namespace Server.Spells
 		private static readonly bool m_PreCast = Settings.Configuration.Get<bool>("Spells", "Precast");
 		private static readonly int m_SpellRange = Settings.Configuration.Get<int>("Spells", "SpellRange", Core.ML ? 10 : 12);
 
+		private static readonly bool m_RequiredMana = Settings.Configuration.Get<bool>("Spells", "RequiredMana");
+
 		public virtual bool RevealOnCast => m_RevealOnCast;
 		public virtual bool ClearHandsOnCast => m_ClearHandsOnCast;
 		public virtual bool ShowHandMovement => m_ShowHandMovement;
@@ -73,14 +75,14 @@ namespace Server.Spells
 		public virtual double CastDelaySecondsPerTick => 0.25;
 		public virtual TimeSpan CastDelayMinimum => TimeSpan.FromSeconds(0.25);
 		public virtual bool IsCasting => State == SpellState.Casting;
-		public virtual bool CheckNextSpellTime => !(Scroll is BaseWand);
+		public virtual bool CheckNextSpellTime => Scroll is not BaseWand;
 
 		public virtual DamageType SpellDamageType => DamageType.Spell;
-		private static readonly Dictionary<Type, DelayedDamageContextWrapper> m_ContextTable = new Dictionary<Type, DelayedDamageContextWrapper>();
+		private static readonly Dictionary<Type, DelayedDamageContextWrapper> m_ContextTable = new();
 
 		private class DelayedDamageContextWrapper
 		{
-			private readonly Dictionary<IDamageable, Timer> m_Contexts = new Dictionary<IDamageable, Timer>();
+			private readonly Dictionary<IDamageable, Timer> m_Contexts = new();
 
 			public void Add(IDamageable d, Timer t)
 			{
@@ -971,7 +973,7 @@ namespace Server.Spells
 				Caster.SendLocalizedMessage(501943); // Target cannot be seen. Try again.
 				DoFizzle();
 			}
-			else if (Scroll != null && !(Scroll is Runebook) && (Scroll.Amount <= 0 || Scroll.Deleted || Scroll.RootParent != Caster || (Scroll is BaseWand wand1 && (wand1.Charges <= 0 || Scroll.Parent != Caster))))
+			else if (Scroll != null && Scroll is not Runebook && (Scroll.Amount <= 0 || Scroll.Deleted || Scroll.RootParent != Caster || (Scroll is BaseWand wand1 && (wand1.Charges <= 0 || Scroll.Parent != Caster))))
 			{
 				DoFizzle();
 			}
@@ -999,7 +1001,10 @@ namespace Server.Spells
 			}
 			else if (CheckFizzle())
 			{
-				Caster.Mana -= mana;
+				if (m_RequiredMana)
+				{
+					Caster.Mana -= mana;
+				}
 
 				if (Scroll is SpellScroll)
 					Scroll.Consume();

@@ -11,6 +11,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public KeeperOfChivalry() : base("the Keeper of Chivalry")
 		{
+			Job = JobFragment.paladin;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Fencing, 75.0, 85.0);
 			SetSkill(SkillName.Macing, 75.0, 85.0);
 			SetSkill(SkillName.Swords, 75.0, 85.0);

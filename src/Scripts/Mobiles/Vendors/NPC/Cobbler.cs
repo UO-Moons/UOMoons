@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Cobbler() : base("the cobbler")
 		{
+			Job = JobFragment.cobbler;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Tailoring, 60.0, 83.0);
 		}
 

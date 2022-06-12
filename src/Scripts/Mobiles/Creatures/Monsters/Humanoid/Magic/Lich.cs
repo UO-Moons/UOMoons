@@ -1,4 +1,5 @@
 using Server.Items;
+using Server.Spells;
 
 namespace Server.Mobiles
 {
@@ -60,6 +61,66 @@ namespace Server.Mobiles
 		public override bool BleedImmune => true;
 		public override Poison PoisonImmune => Poison.Lethal;
 		public override int TreasureMapLevel => 3;
+
+		public override void OnDamagedBySpell(Mobile attacker)
+		{
+			base.OnDamagedBySpell(attacker);
+
+			DoSpecialAbility(this, attacker);
+		}
+
+		public override void OnGotMeleeAttack(Mobile attacker)
+		{
+			base.OnGotMeleeAttack(attacker);
+
+			DoSpecialAbility(this, attacker);
+		}
+
+		public static void DoSpecialAbility(BaseCreature from, Mobile target)
+		{
+			if (from == null || from.Summoned)
+				return;
+
+			if (0.2 >= Utility.RandomDouble()) // 20% chance to more ratmen
+				SpawnMobiles(from, target);
+
+			if (0.65 >= Utility.RandomDouble() && from.Hits < (from.HitsMax / 2) && !from.IsBodyMod) // the lich is low on life, polymorph into a Skeleton
+				Polymorph(from);
+
+			if (from.IsBodyMod && from.Hits >= (from.HitsMax / 2))
+			{
+				from.BodyMod = 0;
+				from.HueMod = -1;
+			}
+		}
+
+		public static void SpawnMobiles(Mobile from, Mobile target)
+		{
+			if (from == null)
+				return;
+
+			if (!Ability.TooManyCreatures(typeof(LichSkeleton), 5, from))
+			{
+				int count = Utility.RandomMinMax(1, 3);
+
+				for (int i = 0; i < count; ++i)
+				{
+					BaseCreature bc = new LichSkeleton();
+					bc.MoveToWorld(Ability.RandomCloseLocation(from), from.Map);
+					bc.Combatant = target;
+				}
+			}
+		}
+
+		public static void Polymorph(Mobile m)
+		{
+			if (m.IsBodyMod || m.Mounted) //check mounted incase some GM hates the players
+				return;
+
+			m.BodyMod = 50;
+			m.HueMod = 0;
+			m.Name = "a skeleton";
+		}
 
 		public Lich(Serial serial) : base(serial)
 		{

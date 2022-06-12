@@ -108,6 +108,12 @@ namespace Server.Mobiles
 				}
 			}
 
+			if (Utility.Random(10) >= 8)
+			{
+				SolenEggSack egg = new SolenEggSack(2);
+				egg.MoveToWorld(Location, Map);
+			}
+
 			base.OnDamage(amount, from, willKill);
 		}
 

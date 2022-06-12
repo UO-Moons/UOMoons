@@ -12,6 +12,8 @@ namespace Server.Regions
 		private readonly Type m_GuardType;
 
 		public bool Disabled { get; set; }
+		public bool PCsOnly { get; set; }
+		public virtual RegionFragment Fragment { get { return RegionFragment.Wilderness; } }
 
 		public virtual bool IsDisabled()
 		{
@@ -23,6 +25,7 @@ namespace Server.Regions
 			CommandSystem.Register("CheckGuarded", AccessLevel.GameMaster, new CommandEventHandler(CheckGuarded_OnCommand));
 			CommandSystem.Register("SetGuarded", AccessLevel.Administrator, new CommandEventHandler(SetGuarded_OnCommand));
 			CommandSystem.Register("ToggleGuarded", AccessLevel.Administrator, new CommandEventHandler(ToggleGuarded_OnCommand));
+			CommandSystem.Register("PartialGuarded", AccessLevel.GameMaster, new CommandEventHandler(PartialGuarded_OnCommand));
 		}
 
 		[Usage("CheckGuarded")]
@@ -90,6 +93,34 @@ namespace Server.Regions
 				else
 					from.SendMessage("The guards in this region have been enabled.");
 			}
+		}
+
+		[Usage("PartialGuarded")]
+		[Description("Toggles the state of guards (against NPCs only) for the current region.")]
+		private static void PartialGuarded_OnCommand(Server.Commands.CommandEventArgs e)
+		{
+			Mobile from = e.Mobile;
+
+			if (from.Region is not GuardedRegion reg)
+			{
+				from.SendAsciiMessage("You are not in a guardable region.");
+			}
+			else
+			{
+				reg.PCsOnly = !reg.PCsOnly;
+				from.SendAsciiMessage("After your changes:");
+				reg.TellGuardStatus(from);
+			}
+		}
+
+		private void TellGuardStatus(Mobile from)
+		{
+			if (Disabled)
+				from.SendAsciiMessage("Guards in this region are totally disabled.");
+			else if (PCsOnly)
+				from.SendAsciiMessage("Guards in this region will NOT attack NPCs.");
+			else
+				from.SendAsciiMessage("Guards in this region are fully activated.");
 		}
 
 		public static GuardedRegion Disable(GuardedRegion reg)
@@ -171,31 +202,73 @@ namespace Server.Regions
 
 		public override void MakeGuard(Mobile focus)
 		{
-			BaseGuard useGuard = null;
-
-			IPooledEnumerable eable = focus.GetMobilesInRange(8);
-			foreach (Mobile m in eable)
+			if (PCsOnly && focus is BaseCreature creature && !(creature.Controlled || creature.Summoned))
 			{
-				if (m is BaseGuard g)
+				BaseGuard useGuard = null;
+
+				IPooledEnumerable eable = focus.GetMobilesInRange(12);
+				foreach (Mobile m in eable)
 				{
-					if (g.Focus == null) // idling
+					if (m is WeakWarriorGuard g)
 					{
-						useGuard = g;
-						break;
+						if ((g.Focus == null || !g.Focus.Alive || g.Focus.Deleted) &&
+							(useGuard == null || g.GetDistanceToSqrt(focus) < useGuard.GetDistanceToSqrt(focus)))
+						{
+							useGuard = g;
+							break;
+						}
 					}
 				}
-			}
+				eable.Free();
 
-			eable.Free();
-
-			if (useGuard == null)
-			{
-				m_GuardParams[0] = focus;
-
-				try { Activator.CreateInstance(m_GuardType, m_GuardParams); } catch { }
+				if (useGuard != null)
+					useGuard.Focus = focus;
 			}
 			else
-				useGuard.Focus = focus;
+			{
+				BaseGuard useGuard = null, curGuard = null;
+				IPooledEnumerable eable = focus.GetMobilesInRange(8);
+				foreach (Mobile m in eable)
+				{
+					if (m is BaseGuard g && m is not WeakWarriorGuard)
+					{
+						if (g.Focus == null) // idling
+						{
+							curGuard = g;
+							break;
+						}
+						else if ((g.Focus == null || !g.Focus.Alive || g.Focus.Deleted) &&
+								(useGuard == null || g.GetDistanceToSqrt(focus) < useGuard.GetDistanceToSqrt(focus)))
+						{
+							useGuard = g;
+							break;
+						}
+					}
+				}
+				eable.Free();
+
+				if (useGuard == null)
+				{
+					m_GuardParams[0] = focus;
+
+					try { Activator.CreateInstance(m_GuardType, m_GuardParams); } catch { }
+				}
+				else if (curGuard == null)
+				{
+					m_GuardParams[0] = focus;
+
+					try { Activator.CreateInstance(m_GuardType, m_GuardParams); } catch { }
+				}
+				else
+					useGuard.Focus = focus;
+			}
+		}
+
+		private bool IsEvil(Mobile m)
+		{
+			// allow dreads in town with partial guards
+			return (!PCsOnly && AllowReds && m.Murderer) || (m is BaseCreature creature && (m.Body.IsMonster || creature.AlwaysMurderer));
+			//return (!PCsOnly && m.Player && m.Karma <= (int)Notoriety.Dark && m.Alive) || (m is BaseCreature && (m.Body.IsMonster || ((BaseCreature)m).AlwaysMurderer));
 		}
 
 		public override void OnEnter(Mobile m)
@@ -203,8 +276,16 @@ namespace Server.Regions
 			if (IsDisabled())
 				return;
 
-			if (!AllowReds && m.Murderer)
-				CheckGuardCandidate(m);
+			if (Core.AOS)
+			{
+				if (!AllowReds && m.Murderer)
+					CheckGuardCandidate(m);
+			}
+			else
+			{
+				if (IsEvil(m))
+					CheckGuardCandidate(m);
+			}
 		}
 
 		public override void OnExit(Mobile m)
@@ -253,6 +334,20 @@ namespace Server.Regions
 				CheckGuardCandidate(m);
 		}
 
+		public override void SpellDamageScalar(Mobile caster, Mobile target, ref double scalar)
+		{
+			if (!IsDisabled())
+			{
+				if (target == caster)
+					return;
+
+				if (PCsOnly && (!caster.Player || !target.Player))
+					return;
+
+				scalar = 0;
+			}
+		}
+
 		private readonly Dictionary<Mobile, GuardTimer> m_GuardCandidates = new();
 
 		public void CheckGuardCandidate(Mobile m)
@@ -262,16 +357,8 @@ namespace Server.Regions
 
 			if (IsGuardCandidate(m))
 			{
-				m_GuardCandidates.TryGetValue(m, out GuardTimer timer);
-
-				if (timer == null)
+				if (AddGuardCandidate(m))
 				{
-					timer = new GuardTimer(m, m_GuardCandidates);
-					timer.Start();
-
-					m_GuardCandidates[m] = timer;
-					m.SendLocalizedMessage(502275); // Guards can now be called on you!
-
 					Map map = m.Map;
 
 					if (map != null)
@@ -295,19 +382,49 @@ namespace Server.Regions
 
 						if (fakeCall != null)
 						{
-							fakeCall.Say(Utility.RandomList(1007037, 501603, 1013037, 1013038, 1013039, 1013041, 1013042, 1013043, 1013052));
+							if (fakeCall is not BaseGuard)
+								fakeCall.Say(Utility.RandomList(1007037, 501603, 1013037, 1013038, 1013039, 1013041, 1013042, 1013043, 1013052));
+
 							MakeGuard(m);
-							timer.Stop();
-							m_GuardCandidates.Remove(m);
-							m.SendLocalizedMessage(502276); // Guards can no longer be called on you.
+							RemoveGuardCandidate(m);
 						}
 					}
 				}
-				else
-				{
-					timer.Stop();
-					timer.Start();
-				}
+			}
+		}
+
+		public bool AddGuardCandidate(Mobile m)
+		{
+			GuardTimer timer = m_GuardCandidates[m];
+
+			if (timer == null)
+			{
+				timer = new GuardTimer(m, m_GuardCandidates);
+				timer.Start();
+
+				m_GuardCandidates[m] = timer;
+				m.SendLocalizedMessage(502275); // Guards can now be called on you!
+
+				return true;
+			}
+			else
+			{
+				timer.Stop();
+				timer.Start();
+
+				return false;
+			}
+		}
+
+		public void RemoveGuardCandidate(Mobile m)
+		{
+			GuardTimer timer = (GuardTimer)m_GuardCandidates[m];
+
+			if (timer != null)
+			{
+				timer.Stop();
+				m_GuardCandidates.Remove(m);
+				m.SendLocalizedMessage(502276); // Guards can no longer be called on you.	
 			}
 		}
 
@@ -341,10 +458,23 @@ namespace Server.Regions
 
 		public bool IsGuardCandidate(Mobile m)
 		{
-			if (m is BaseGuard || !m.Alive || m.AccessLevel > AccessLevel.Player || m.Blessed || (m is BaseCreature creature && creature.IsInvulnerable) || IsDisabled())
-				return false;
+			if (Core.AOS)
+			{
+				if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || (m is BaseCreature creature && creature.IsInvulnerable) || IsDisabled())
+					return false;
 
-			return (!AllowReds && m.Murderer) || m.Criminal;
+				return (!AllowReds && m.Murderer) || m.Criminal;
+			}
+			else
+			{
+				if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || (m is BaseCreature creature && creature.IsInvulnerable) || IsDisabled())
+					return false;
+
+				if (PCsOnly && !m.Player)
+					return false;
+
+				return IsEvil(m) || m.Criminal;
+			}
 		}
 
 		private class GuardTimer : Timer

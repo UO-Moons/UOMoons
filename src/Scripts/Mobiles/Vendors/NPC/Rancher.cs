@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Rancher() : base("the rancher")
 		{
+			Job = JobFragment.rancher;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.AnimalLore, 55.0, 78.0);
 			SetSkill(SkillName.AnimalTaming, 55.0, 78.0);
 			SetSkill(SkillName.Herding, 64.0, 100.0);

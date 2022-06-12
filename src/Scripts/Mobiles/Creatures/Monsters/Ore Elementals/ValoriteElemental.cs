@@ -1,10 +1,13 @@
 using Server.Items;
+using System;
 
 namespace Server.Mobiles
 {
 	[CorpseName("an ore elemental corpse")]
 	public class ValoriteElemental : BaseCreature
 	{
+		private DateTime m_Delay = DateTime.UtcNow;
+
 		[Constructable]
 		public ValoriteElemental() : this(2)
 		{
@@ -63,12 +66,24 @@ namespace Server.Mobiles
 		public override bool BleedImmune => true;
 		public override int TreasureMapLevel => 1;
 
+		public override void AlterMeleeDamageTo(Mobile to, ref int damage)
+		{
+			if (0.5 >= Utility.RandomDouble())
+			{
+				Ability.DamageArmor(to, 1, 5);
+			}
+		}
+
 		public override void AlterMeleeDamageFrom(Mobile from, ref int damage)
 		{
-			if (from is BaseCreature)
+			if (from != null)
 			{
-				BaseCreature bc = (BaseCreature)from;
+				int hitback = damage;
+				AOS.Damage(from, this, hitback, 100, 0, 0, 0, 0);
+			}
 
+			if (from is BaseCreature bc)
+			{
 				if (bc.Controlled || bc.BardTarget == this)
 					damage = 0; // Immune to pets and provoked creatures
 			}
@@ -77,6 +92,16 @@ namespace Server.Mobiles
 		public override void CheckReflect(Mobile caster, ref bool reflect)
 		{
 			reflect = true; // Every spell is reflected back to the caster
+		}
+
+		public override void OnActionCombat()
+		{
+			if (DateTime.Now > m_Delay)
+			{
+				Ability.Aura(this, this, 0, 0, 3, 3, 4, "It exhails a cloud of noxious vapors");
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(5, 10));
+			}
+			base.OnActionCombat();
 		}
 
 		public ValoriteElemental(Serial serial) : base(serial)

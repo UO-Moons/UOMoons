@@ -10,7 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Miller() : base("the miller")
 		{
-
+			Job = JobFragment.miller;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override void InitSBInfo()

@@ -13,8 +13,7 @@ namespace Server.Mobiles
 			InitStats(31, 41, 51);
 
 			SetSkill(SkillName.Mining, 36, 68);
-
-
+			Karma = Utility.RandomMinMax(13, -45);
 			SpeechHue = Utility.RandomDyedHue();
 			Hue = Utility.RandomSkinHue();
 			Blessed = true;

@@ -1,49 +1,46 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class SeaChart : MapItem
 {
-	public class SeaChart : MapItem
+	public override int LabelNumber => 1015232;  // sea chart
+
+	[Constructable]
+	public SeaChart()
 	{
-		[Constructable]
-		public SeaChart()
-		{
-			SetDisplay(0, 0, 5119, 4095, 400, 400);
-		}
+		SetDisplay(0, 0, 5119, 4095, 400, 400);
+	}
 
-		public override void CraftInit(Mobile from)
-		{
-			double skillValue = from.Skills[SkillName.Cartography].Value;
-			int dist = 64 + (int)(skillValue * 10);
+	public override void CraftInit(Mobile from)
+	{
+		double skillValue = from.Skills[SkillName.Cartography].Value;
+		int dist = 64 + (int)(skillValue * 10);
 
-			if (dist < 200)
-				dist = 200;
+		if (dist < 200)
+			dist = 200;
 
-			int size = 24 + (int)(skillValue * 3.3);
+		int size = 24 + (int)(skillValue * 3.3);
 
-			if (size < 200)
-				size = 200;
-			else if (size > 400)
-				size = 400;
+		if (size < 200)
+			size = 200;
+		else if (size > 400)
+			size = 400;
 
-			SetDisplay(from.X - dist, from.Y - dist, from.X + dist, from.Y + dist, size, size);
-		}
+		SetDisplay(from.X - dist, from.Y - dist, from.X + dist, from.Y + dist, size, size);
+	}
 
-		public override int LabelNumber => 1015232;  // sea chart
+	public SeaChart(Serial serial) : base(serial)
+	{
+	}
 
-		public SeaChart(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

@@ -8,6 +8,8 @@ namespace Server.Mobiles
 		public Minter()
 		{
 			Title = "the minter";
+			Job = JobFragment.minter;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public Minter(Serial serial) : base(serial)

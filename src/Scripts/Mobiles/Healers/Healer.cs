@@ -19,7 +19,7 @@ namespace Server.Mobiles
 		public Healer()
 		{
 			Title = "the healer";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			if (!Core.AOS)
 				NameHue = 0x35;
 

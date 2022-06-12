@@ -49,17 +49,11 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
-
+			writer.Write(0);
 			writer.Write(IsShipwreckedItem);
-
 			writer.Write(TrapOnLockpick);
-
 			writer.Write(RequiredSkill);
-
 			writer.Write(MaxLockLevel);
-
 			writer.Write(KeyValue);
 			writer.Write(LockLevel);
 			writer.Write(m_Locked);
@@ -68,25 +62,18 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
 			int version = reader.ReadInt();
-
 			switch (version)
 			{
 				case 0:
 					{
 						IsShipwreckedItem = reader.ReadBool();
-
 						TrapOnLockpick = reader.ReadBool();
-
 						RequiredSkill = reader.ReadInt();
-
 						MaxLockLevel = reader.ReadInt();
-
 						KeyValue = reader.ReadUInt();
 						LockLevel = reader.ReadInt();
 						m_Locked = reader.ReadBool();
-
 						break;
 					}
 			}
@@ -284,7 +271,6 @@ namespace Server.Items
 		#endregion
 
 		#region IShipwreckedItem Members
-
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool IsShipwreckedItem { get; set; }
 		#endregion

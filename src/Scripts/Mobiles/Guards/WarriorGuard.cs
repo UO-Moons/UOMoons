@@ -3,6 +3,54 @@ using System;
 
 namespace Server.Mobiles
 {
+	public class WeakWarriorGuard : WarriorGuard
+	{
+		[Constructable]
+		public WeakWarriorGuard() : this(null)
+		{
+		}
+
+		public WeakWarriorGuard(Mobile target) : base(target)
+		{
+			InitStats(100, 100, 100);
+		}
+
+		public override void InitWeapon()
+		{
+			Halberd weapon = new Halberd
+			{
+				Movable = false,
+				Crafter = this,
+				Quality = ItemQuality.Exceptional
+			};
+			AddItem(weapon);
+		}
+
+		public WeakWarriorGuard(Serial serial) : base(serial)
+		{
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+
+			writer.Write((int)0); // version
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+
+			int version = reader.ReadInt();
+
+			switch (version)
+			{
+				case 0:
+					break;
+			}
+		}
+	}
+
 	public class WarriorGuard : BaseGuard
 	{
 		private Timer m_AttackTimer, m_IdleTimer;
@@ -64,14 +112,7 @@ namespace Server.Mobiles
 			if (Utility.RandomBool())
 				Utility.AssignRandomFacialHair(this, HairHue);
 
-			Halberd weapon = new Halberd
-			{
-				Movable = false,
-				Crafter = this,
-				Quality = ItemQuality.Exceptional
-			};
-
-			AddItem(weapon);
+			InitWeapon();
 
 			Container pack = new Backpack
 			{
@@ -94,6 +135,21 @@ namespace Server.Mobiles
 
 		public WarriorGuard(Serial serial) : base(serial)
 		{
+		}
+
+		public virtual void InitWeapon()
+		{
+			Halberd weapon = new()
+			{
+				Movable = false,
+				Crafter = this,
+				Quality = ItemQuality.Exceptional,
+				LootType = LootType.Newbied,
+				MinDamage = 100,
+				MaxDamage = 500,
+				Speed = 100
+			};
+			AddItem(weapon);
 		}
 
 		public override bool OnBeforeDeath()

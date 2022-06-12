@@ -108,13 +108,18 @@ namespace Server.Mobiles
 				}
 			}
 
+			if (Utility.Random(10) >= 8)
+			{
+				SolenEggSack egg = new SolenEggSack(1);
+				egg.MoveToWorld(Location, Map);
+			}
+
 			base.OnDamage(amount, from, willKill);
 		}
 
 		public override bool OnBeforeDeath()
 		{
 			SpillAcid(4);
-
 			return base.OnBeforeDeath();
 		}
 

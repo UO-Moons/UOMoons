@@ -37,8 +37,6 @@ namespace Server.Mobiles
 			Karma = 0;
 
 			VirtualArmor = 28; // Don't know what it should be
-
-			PackArcanceScroll(0.05);
 		}
 
 		public override OppositionGroup OppositionGroup => OppositionGroup.FeyAndUndead;

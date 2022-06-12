@@ -11,8 +11,12 @@ using Server.Spells.Ninjitsu;
 using Server.Spells.Seventh;
 using Server.Targeting;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Xml;
 
 namespace Server.Spells
 {
@@ -31,7 +35,7 @@ namespace Server.Spells
 	{
 
 		#region Spell Focus and SDI Calculations
-		private static SkillName[] _Schools =
+		private static readonly SkillName[] _Schools =
 		{
 			SkillName.Magery,
 			SkillName.AnimalTaming,
@@ -44,7 +48,7 @@ namespace Server.Spells
 			SkillName.Ninjitsu
 		};
 
-		private static SkillName[] _TOLSchools =
+		private static readonly SkillName[] _TOLSchools =
 		{
 			SkillName.Magery,
 			SkillName.AnimalTaming,
@@ -115,6 +119,7 @@ namespace Server.Spells
 			return sdiBonus;
 		}
 		#endregion
+
 		private static readonly TimeSpan AosDamageDelay = TimeSpan.FromSeconds(1.0);
 		private static readonly TimeSpan OldDamageDelay = TimeSpan.FromSeconds(0.5);
 
@@ -225,7 +230,7 @@ namespace Server.Spells
 
 			for (int offset = 0; offset < 25; ++offset)
 			{
-				Point3D loc = new Point3D(p.X, p.Y, p.Z - offset);
+				Point3D loc = new(p.X, p.Y, p.Z - offset);
 
 				if (map.CanFit(loc, height, true, mobsBlock))
 				{
@@ -321,7 +326,7 @@ namespace Server.Spells
 
 		protected static void RemoveStatOffsetCallback(object state)
 		{
-			if (!(state is Mobile))
+			if (state is not Mobile)
 			{
 				return;
 			}
@@ -558,11 +563,7 @@ namespace Server.Spells
 				}
 				else
 				{
-					if (to.Player)
-					{
-						return true;
-					}
-					if (to is BaseCreature && (((BaseCreature)to).Controlled || ((BaseCreature)to).Summoned) && ((BaseCreature)to).GetMaster() is PlayerMobile)
+					if (to.Player || to is BaseCreature creature3 && (creature3.Controlled || creature3.Summoned) && creature3.GetMaster() is PlayerMobile)
 					{
 						return true;
 					}
@@ -570,10 +571,10 @@ namespace Server.Spells
 			}
 
 			// Non-enemy monsters will no longer flag area spells on each other
-			if (from is BaseCreature && to is BaseCreature)
+			if (from is BaseCreature creature1 && to is BaseCreature creature2)
 			{
-				BaseCreature fromBC = (BaseCreature)from;
-				BaseCreature toBC = (BaseCreature)to;
+				BaseCreature fromBC = creature1;
+				BaseCreature toBC = creature2;
 
 				if (fromBC.GetMaster() is BaseCreature)
 				{
@@ -602,7 +603,7 @@ namespace Server.Spells
 
 			int noto = Notoriety.Compute(from, to);
 
-			return (noto != Notoriety.Innocent || from.Murderer);
+			return noto != Notoriety.Innocent || from.Murderer;
 		}
 
 		public static IEnumerable<IDamageable> AcquireIndirectTargets(Mobile caster, IPoint3D p, Map map, int range)
@@ -621,17 +622,7 @@ namespace Server.Spells
 
 			foreach (var id in eable.OfType<IDamageable>())
 			{
-				if (id == caster)
-				{
-					continue;
-				}
-
-				if (!id.Alive || (losCheck && !caster.InLOS(id)) || !caster.CanBeHarmful(id, false))
-				{
-					continue;
-				}
-
-				if (id is Mobile && !SpellHelper.ValidIndirectTarget(caster, (Mobile)id))
+				if (id == caster || !id.Alive || (losCheck && !caster.InLOS(id)) || !caster.CanBeHarmful(id, false) || id is Mobile mobile && !ValidIndirectTarget(caster, mobile))
 				{
 					continue;
 				}
@@ -666,7 +657,7 @@ namespace Server.Spells
 				creature.Mana = creature.ManaMax;
 			}
 
-			Point3D p = new Point3D(caster);
+			Point3D p = new(caster);
 
 			if (FindValidSpawnLocation(map, ref p, true))
 			{
@@ -728,42 +719,172 @@ namespace Server.Spells
 			return false;
 		}
 
+		public static void Configure()
+		{
+			Console.Write("Loading TravelRestrictions...");
+			if (LoadTravelRestrictions())
+				Console.WriteLine("done");
+			else
+				Console.WriteLine("failed");
+		}
+		/*
+		public static void TravelRestrictions(XmlElement xml, Map map, Region parent)
+		{
+			XmlElement e = xml["TravelRestrictions"];
+			foreach (XmlElement r in e.ChildNodes)//GetElementsByTagName("Region"))
+			{
+				if (!r.HasAttribute("Name"))
+				{
+					Console.WriteLine("Warning: Missing 'Name' attribute in TravelRestrictions.xml");
+					continue;
+				}
+
+				string name = r.GetAttribute("Name");
+
+				if (m_TravelRestrictions.ContainsKey(name))
+				{
+					Console.WriteLine("Warning: Duplicate name '{0}' in TravelRestrictions.xml", name);
+					continue;
+				}
+
+				if (!r.HasAttribute("Delegate"))
+				{
+					Console.WriteLine("Warning: Missing 'Delegate' attribute in TravelRestrictions.xml");
+					continue;
+				}
+
+				string d = r.GetAttribute("Delegate");
+
+				MethodInfo m = typeof(SpellHelper).GetMethod(d);
+				if (m == null)
+				{
+					Console.WriteLine("Warning: TravelRestrictions.xml Delegate '{0}' not found in SpellHelper", d);
+					continue;
+				}
+
+				TravelValidator v = (TravelValidator)Delegate.CreateDelegate(typeof(TravelValidator), m);
+				TravelRules t = new TravelRules();
+				t.Validator = v;
+				m_TravelRestrictions[name] = t;
+
+				foreach (XmlElement rule in r)
+				{
+					switch (rule.Name.ToLower())
+					{
+						case "recallfrom": t.RecallFrom = Utility.ToBoolean(rule.InnerText); break;
+						case "recallto": t.RecallTo = Utility.ToBoolean(rule.InnerText); break;
+						case "gatefrom": t.GateFrom = Utility.ToBoolean(rule.InnerText); break;
+						case "gateto": t.GateTo = Utility.ToBoolean(rule.InnerText); break;
+						case "mark": t.Mark = Utility.ToBoolean(rule.InnerText); break;
+						case "teleportfrom": t.TeleportFrom = Utility.ToBoolean(rule.InnerText); break;
+						case "teleportto": t.TeleportTo = Utility.ToBoolean(rule.InnerText); break;
+						default: Console.WriteLine("Warning: Unknown element '{0}' in TravelRestrictions.xml", rule.Name); break;
+					}
+				}
+			}
+		}*/
+
+		public static bool LoadTravelRestrictions()
+		{
+			string filePath = Path.Combine("Data", "TravelRestrictions.xml");
+
+			if (!File.Exists(filePath))
+				return false;
+
+			XmlDocument x = new();
+			x.Load(filePath);
+
+			try
+			{
+				XmlElement e = x["TravelRestrictions"];
+
+				if (e == null)
+					return false;
+
+				foreach (XmlElement r in e.GetElementsByTagName("Region"))
+				{
+					if (!r.HasAttribute("Name"))
+					{
+						Console.WriteLine("Warning: Missing 'Name' attribute in TravelRestrictions.xml");
+						continue;
+					}
+
+					string name = r.GetAttribute("Name");
+
+					if (m_TravelRestrictions.ContainsKey(name))
+					{
+						Console.WriteLine("Warning: Duplicate name '{0}' in TravelRestrictions.xml", name);
+						continue;
+					}
+
+					if (!r.HasAttribute("Delegate"))
+					{
+						Console.WriteLine("Warning: Missing 'Delegate' attribute in TravelRestrictions.xml");
+						continue;
+					}
+
+					string d = r.GetAttribute("Delegate");
+
+					MethodInfo m = typeof(SpellHelper).GetMethod(d);
+					if (m == null)
+					{
+						Console.WriteLine("Warning: TravelRestrictions.xml Delegate '{0}' not found in SpellHelper", d);
+						continue;
+					}
+
+					TravelValidator v = (TravelValidator)Delegate.CreateDelegate(typeof(TravelValidator), m);
+					TravelRules t = new()
+					{
+						Validator = v
+					};
+					m_TravelRestrictions[name] = t;
+
+					foreach (XmlElement rule in r)
+					{
+						switch (rule.Name.ToLower())
+						{
+							case "recallfrom": t.RecallFrom = Utility.ToBoolean(rule.InnerText); break;
+							case "recallto": t.RecallTo = Utility.ToBoolean(rule.InnerText); break;
+							case "gatefrom": t.GateFrom = Utility.ToBoolean(rule.InnerText); break;
+							case "gateto": t.GateTo = Utility.ToBoolean(rule.InnerText); break;
+							case "mark": t.Mark = Utility.ToBoolean(rule.InnerText); break;
+							case "teleportfrom": t.TeleportFrom = Utility.ToBoolean(rule.InnerText); break;
+							case "teleportto": t.TeleportTo = Utility.ToBoolean(rule.InnerText); break;
+							default: Console.WriteLine("Warning: Unknown element '{0}' in TravelRestrictions.xml", rule.Name); break;
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				return false;
+			}
+
+			return true;
+		}
+
+		private struct TravelRules
+		{
+			public TravelValidator Validator;
+
+			public bool RecallFrom, RecallTo, GateFrom, GateTo, Mark, TeleportFrom, TeleportTo;
+
+			public bool Allow(TravelCheckType t) => t switch
+			{
+				TravelCheckType.RecallFrom => RecallFrom,
+				TravelCheckType.RecallTo => RecallTo,
+				TravelCheckType.GateFrom => GateFrom,
+				TravelCheckType.GateTo => GateTo,
+				TravelCheckType.Mark => Mark,
+				TravelCheckType.TeleportFrom => TeleportFrom,
+				TravelCheckType.TeleportTo => TeleportTo,
+				_ => false,
+			};
+		}
+
+		private static readonly Dictionary<string, TravelRules> m_TravelRestrictions = new();
 		private delegate bool TravelValidator(Map map, Point3D loc);
-
-		private static readonly TravelValidator[] m_Validators = new TravelValidator[]
-			{
-				new TravelValidator( IsFeluccaT2A ),
-				new TravelValidator( IsKhaldun ),
-				new TravelValidator( IsIlshenar ),
-				new TravelValidator( IsTrammelWind ),
-				new TravelValidator( IsFeluccaWind ),
-				new TravelValidator( IsFeluccaDungeon ),
-				new TravelValidator( IsTrammelSolenHive ),
-				new TravelValidator( IsFeluccaSolenHive ),
-				new TravelValidator( IsCrystalCave ),
-				new TravelValidator( IsDoomGauntlet ),
-				new TravelValidator( IsDoomFerry ),
-				new TravelValidator( IsSafeZone ),
-				new TravelValidator( IsFactionStronghold ),
-				new TravelValidator( IsChampionSpawn ),
-				new TravelValidator( IsTokunoDungeon ),
-				new TravelValidator( IsLampRoom ),
-				new TravelValidator( IsGuardianRoom ),
-				new TravelValidator( IsHeartwood ),
-				new TravelValidator( IsMLDungeon )
-			};
-
-		private static readonly bool[,] m_Rules = new bool[,]
-			{
-					/*T2A(Fel),	Khaldun,	Ilshenar,	Wind(Tram),	Wind(Fel),	Dungeons(Fel),	Solen(Tram),	Solen(Fel),	CrystalCave(Malas),	Gauntlet(Malas),	Gauntlet(Ferry),	SafeZone,	Stronghold,	ChampionSpawn,	Dungeons(Tokuno[Malas]),	LampRoom(Doom),	GuardianRoom(Doom),	Heartwood,	MLDungeons */
-/* Recall From */	{ false, false,      true,       true,       false,      false,          true,           false,      false,              false,              false,              true,       true,       false,          true,                       false,          false,              false,      false },
-/* Recall To */		{ false,    false,      false,      false,      false,      false,          false,          false,      false,              false,              false,              false,      false,      false,          false,                      false,          false,              false,      false },
-/* Gate From */		{ false,    false,      false,      false,      false,      false,          false,          false,      false,              false,              false,              false,      false,      false,          false,                      false,          false,              false,      false },
-/* Gate To */		{ false,    false,      false,      false,      false,      false,          false,          false,      false,              false,              false,              false,      false,      false,          false,                      false,          false,              false,      false },
-/* Mark In */		{ false,    false,      false,      false,      false,      false,          false,          false,      false,              false,              false,              false,      false,      false,          false,                      false,          false,              false,      false },
-/* Tele From */		{ true,     true,       true,       true,       true,       true,           true,           true,       false,              true,               true,               true,       false,      true,           true,                       true,           true,               false,      true },
-/* Tele To */		{ true,     true,       true,       true,       true,       true,           true,           true,       false,              true,               false,              false,      false,      true,           true,                       true,           true,               false,      false },
-			};
 
 		public static void SendInvalidMessage(Mobile caster, TravelCheckType type)
 		{
@@ -798,27 +919,71 @@ namespace Server.Spells
 				return false;
 			}
 
-			if (caster != null && caster.AccessLevel == AccessLevel.Player && caster.Region.IsPartOf(typeof(Regions.Jail)))
+			if (caster != null)
 			{
-				caster.SendLocalizedMessage(1114345); // You'll need a better jailbreak plan than that!
-				return false;
-			}
+				if (caster.IsPlayer())
+				{
+					// Jail region
+					if (caster.Region.IsPartOf<Jail>())
+					{
+						caster.SendLocalizedMessage(1114345); // You'll need a better jailbreak plan than that!
+						return false;
+					}
+					else if (caster.Region is GreenAcres)
+					{
+						caster.SendLocalizedMessage(502360); // You cannot teleport into that area.
+						return false;
+					}
+				}
 
-			// Always allow monsters to teleport
-			if (caster is BaseCreature creature && (type == TravelCheckType.TeleportTo || type == TravelCheckType.TeleportFrom))
-			{
-				if (!creature.Controlled && !creature.Summoned)
-					return true;
+				// Always allow monsters to teleport
+				if (caster is BaseCreature creature && (type == TravelCheckType.TeleportTo || type == TravelCheckType.TeleportFrom))
+				{
+					if (!creature.Controlled && !creature.Summoned)
+					{
+						return true;
+					}
+				}
 			}
-
 			m_TravelCaster = caster;
 			m_TravelType = type;
 
 			int v = (int)type;
 			bool isValid = true;
 
-			for (int i = 0; isValid && i < m_Validators.Length; ++i)
-				isValid = (m_Rules[v, i] || !m_Validators[i](map, loc));
+			if (caster != null)
+			{
+				if (Region.Find(loc, map) is BaseRegion destination && !destination.CheckTravel(caster, loc, type))
+				{
+					isValid = false;
+				}
+
+				if (isValid && Region.Find(caster.Location, map) is BaseRegion current && !current.CheckTravel(caster, loc, type))
+				{
+					isValid = false;
+				}
+
+				if (m_TravelCaster != null && m_TravelCaster.Region != null)
+				{
+					if (m_TravelCaster.Region.IsPartOf("Blighted Grove") && loc.Z < -10)
+					{
+						isValid = false;
+					}
+				}
+
+				if ((int)type <= 4 && (IsNewDungeon(caster.Map, caster.Location) || IsNewDungeon(map, loc)))
+				{
+					isValid = false;
+				}
+			}
+			foreach (KeyValuePair<string, TravelRules> r in m_TravelRestrictions)
+			{
+				isValid = r.Value.Allow(type) || !r.Value.Validator(map, loc);
+				if (!isValid && caster != null)
+				{
+					break;
+				}
+			}
 
 			if (!isValid && caster != null)
 				SendInvalidMessage(caster, type);
@@ -830,39 +995,39 @@ namespace Server.Spells
 		{
 			int x = loc.X, y = loc.Y;
 
-			return (x >= 5120 && y >= 0 && x < 5376 && y < 256);
+			return x >= 5120 && y >= 0 && x < 5376 && y < 256;
 		}
 
 		public static bool IsFeluccaWind(Map map, Point3D loc)
 		{
-			return (map == Map.Felucca && IsWindLoc(loc));
+			return map == Map.Felucca && IsWindLoc(loc);
 		}
 
 		public static bool IsTrammelWind(Map map, Point3D loc)
 		{
-			return (map == Map.Trammel && IsWindLoc(loc));
+			return map == Map.Trammel && IsWindLoc(loc);
 		}
 
 		public static bool IsIlshenar(Map map, Point3D loc)
 		{
-			return (map == Map.Ilshenar);
+			return map == Map.Ilshenar;
 		}
 
 		public static bool IsSolenHiveLoc(Point3D loc)
 		{
 			int x = loc.X, y = loc.Y;
 
-			return (x >= 5640 && y >= 1776 && x < 5935 && y < 2039);
+			return x >= 5640 && y >= 1776 && x < 5935 && y < 2039;
 		}
 
 		public static bool IsTrammelSolenHive(Map map, Point3D loc)
 		{
-			return (map == Map.Trammel && IsSolenHiveLoc(loc));
+			return map == Map.Trammel && IsSolenHiveLoc(loc);
 		}
 
 		public static bool IsFeluccaSolenHive(Map map, Point3D loc)
 		{
-			return (map == Map.Felucca && IsSolenHiveLoc(loc));
+			return map == Map.Felucca && IsSolenHiveLoc(loc);
 		}
 
 		public static bool IsFeluccaT2A(Map map, Point3D loc)
@@ -887,7 +1052,7 @@ namespace Server.Spells
 
 		public static bool IsKhaldun(Map map, Point3D loc)
 		{
-			return (Region.Find(loc, map).Name == "Khaldun");
+			return Region.Find(loc, map).Name == "Khaldun";
 		}
 
 		public static bool IsCrystalCave(Map map, Point3D loc)
@@ -930,7 +1095,7 @@ namespace Server.Spells
 					return false;
 			}*/
 
-			return (Region.Find(loc, map).IsPartOf(typeof(Factions.StrongholdRegion)));
+			return Region.Find(loc, map).IsPartOf(typeof(Factions.StrongholdRegion));
 		}
 
 		public static bool IsChampionSpawn(Map map, Point3D loc)
@@ -963,10 +1128,10 @@ namespace Server.Spells
 			int x = loc.X, y = loc.Y;
 			_ = loc.Z;
 
-			bool r1 = (x >= 0 && y >= 0 && x <= 128 && y <= 128);
-			bool r2 = (x >= 45 && y >= 320 && x < 195 && y < 710);
+			bool r1 = x >= 0 && y >= 0 && x <= 128 && y <= 128;
+			bool r2 = x >= 45 && y >= 320 && x < 195 && y < 710;
 
-			return (r1 || r2);
+			return r1 || r2;
 		}
 
 		public static bool IsDoomGauntlet(Map map, Point3D loc)
@@ -1009,6 +1174,59 @@ namespace Server.Spells
 		public static bool IsMLDungeon(Map map, Point3D loc)
 		{
 			return MondainsLegacy.IsMLRegion(Region.Find(loc, map));
+		}
+
+		public static bool IsTombOfKings(Map map, Point3D loc)
+		{
+			return Region.Find(loc, map).IsPartOf(typeof(TombOfKingsRegion));
+		}
+
+		public static bool IsMazeOfDeath(Map map, Point3D loc)
+		{
+			return Region.Find(loc, map).IsPartOf(typeof(TombOfKingsRegion));
+			//	return Region.Find(loc, map).IsPartOf(typeof(MazeOfDeathRegion));
+		}
+
+		public static bool IsSAEntrance(Map map, Point3D loc)
+		{
+			return map == Map.TerMur && loc.X >= 1122 && loc.Y >= 1067 && loc.X <= 1144 && loc.Y <= 1086;
+		}
+
+		public static bool IsSADungeon(Map map, Point3D loc)
+		{
+			if (map != Map.TerMur)
+			{
+				return false;
+			}
+
+			Region region = Region.Find(loc, map);
+			return region.IsPartOf(typeof(DungeonRegion)) && !region.IsPartOf(typeof(TombOfKingsRegion));
+		}
+
+		public static bool IsEodon(Map map, Point3D loc)
+		{
+			if (map == Map.Felucca && loc.X >= 6975 && loc.X <= 7042 && loc.Y >= 2048 && loc.Y <= 2115)
+			{
+				return true;
+			}
+
+			return map == Map.TerMur && loc.X >= 0 && loc.X <= 1087 && loc.Y >= 1344 && loc.Y <= 2495;
+		}
+
+		public static bool IsNewDungeon(Map map, Point3D loc)
+		{
+			if (map == Map.Trammel && Core.SA)
+			{
+				Region r = Region.Find(loc, map);
+
+				// Revamped Dungeons with specific rules
+				if (r.Name == "Void Pool" || r.Name == "Wrong")
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		public static bool IsInvalid(Map map, Point3D loc)
@@ -1214,6 +1432,51 @@ namespace Server.Spells
 				}
 			}
 			return reflect;
+		}
+
+		private static readonly int m_SummonArea = Settings.Configuration.Get<int>("Spells", "SummonArea");
+		private static readonly int m_SummonLimit = Settings.Configuration.Get<int>("Spells", "SummonLimit");
+
+		public static void CheckSummonLimits(BaseCreature creature)
+		{
+			ArrayList creatures = new();
+
+			//int limit = 6; // 6 creatures
+			//int range = 5; // per 5x5 area
+
+			var eable = creature.GetMobilesInRange(m_SummonArea);
+
+			foreach (Mobile mobile in eable)
+			{
+				if (mobile != null && mobile.GetType() == creature.GetType())
+				{
+					creatures.Add(mobile);
+				}
+			}
+
+			int amount = 0;
+
+			if (creatures.Count > m_SummonLimit)
+			{
+				amount = creatures.Count - m_SummonLimit;
+			}
+
+			while (amount > 0)
+			{
+				for (int i = 0; i < creatures.Count; i++)
+				{
+					Mobile m = creatures[i] as Mobile;
+
+					if (m != null && ((BaseCreature)m).Summoned)
+					{
+						if (Utility.RandomBool() && amount > 0)
+						{
+							m.Delete();
+							amount--;
+						}
+					}
+				}
+			}
 		}
 
 		public static void Damage(Spell spell, Mobile target, double damage)

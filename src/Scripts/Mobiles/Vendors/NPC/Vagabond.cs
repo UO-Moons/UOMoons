@@ -11,6 +11,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Vagabond() : base("the vagabond")
 		{
+			Job = JobFragment.cobbler;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.ItemID, 60.0, 83.0);
 		}
 

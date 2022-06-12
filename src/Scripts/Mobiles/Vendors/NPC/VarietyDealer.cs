@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public VarietyDealer() : base("the variety dealer")
 		{
+			Job = JobFragment.cobbler;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override void InitSBInfo()

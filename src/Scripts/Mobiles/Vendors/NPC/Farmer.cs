@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Farmer() : base("the farmer")
 		{
+			Job = JobFragment.farmer;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Lumberjacking, 36.0, 68.0);
 			SetSkill(SkillName.TasteID, 36.0, 68.0);
 			SetSkill(SkillName.Cooking, 36.0, 68.0);

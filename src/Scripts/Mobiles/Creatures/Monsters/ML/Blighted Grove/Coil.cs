@@ -54,11 +54,11 @@ namespace Server.Mobiles
 			return WeaponAbility.MortalStrike;
 		}
 
-		public override void OnDeath(Container c)
-		{
-			base.OnDeath(c);
+		//public override void OnDeath(Container c)
+		//{
+		//	base.OnDeath(c);
 
-			c.DropItem(new CoilsFang());
+		//	c.DropItem(new CoilsFang());
 
 			/*
 			// TODO: uncomment once added
@@ -74,7 +74,7 @@ namespace Server.Mobiles
 				}
 			}
 			*/
-		}
+		//}
 
 		public override Poison HitPoison => Poison.Lethal;
 		public override Poison PoisonImmune => Poison.Lethal;

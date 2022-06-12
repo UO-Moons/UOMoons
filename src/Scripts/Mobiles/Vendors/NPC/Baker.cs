@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Baker() : base("the baker")
 		{
+			Job = JobFragment.baker;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Cooking, 75.0, 98.0);
 			SetSkill(SkillName.TasteID, 36.0, 68.0);
 		}

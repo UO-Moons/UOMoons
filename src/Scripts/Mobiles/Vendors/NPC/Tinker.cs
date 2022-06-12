@@ -12,6 +12,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Tinker() : base("the tinker")
 		{
+			Job = JobFragment.tinker;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Lockpicking, 60.0, 83.0);
 			SetSkill(SkillName.RemoveTrap, 75.0, 98.0);
 			SetSkill(SkillName.Tinkering, 64.0, 100.0);

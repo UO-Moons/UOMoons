@@ -16,6 +16,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Scribe() : base("the scribe")
 		{
+			Job = JobFragment.scholar;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.EvalInt, 60.0, 83.0);
 			SetSkill(SkillName.Inscribe, 90.0, 100.0);
 		}

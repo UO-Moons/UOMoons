@@ -97,7 +97,7 @@ namespace Server.Items
 						from.NonlocalOverheadMessage(MessageType.Emote, 0x961, 1061915, from.Name); // * ~1_PLAYER_NAME~ pushes a strange green thorn into the ground. *
 
 						from.BeginAction(typeof(GreenThorns));
-						new GreenThorns.EndActionTimer(from).Start();
+						new EndActionTimer(from).Start();
 
 						effect.Start();
 					}
@@ -136,8 +136,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 		}
 	}
 
@@ -271,7 +270,7 @@ namespace Server.Items
 				bool contains = false;
 
 				for (int i = 0; !contains && i < taep.Tiles.Length; i += 2)
-					contains = (tileID >= taep.Tiles[i] && tileID <= taep.Tiles[i + 1]);
+					contains = tileID >= taep.Tiles[i] && tileID <= taep.Tiles[i + 1];
 
 				if (contains)
 				{
@@ -436,22 +435,19 @@ namespace Server.Items
 
 		private void SpawnReagents()
 		{
-			Item reagents;
 			int amount = Utility.RandomMinMax(10, 25);
-
-			switch (Utility.Random(9))
+			Item reagents = Utility.Random(9) switch
 			{
-				case 0: reagents = new BlackPearl(amount); break;
-				case 1: reagents = new Bloodmoss(amount); break;
-				case 2: reagents = new Garlic(amount); break;
-				case 3: reagents = new Ginseng(amount); break;
-				case 4: reagents = new MandrakeRoot(amount); break;
-				case 5: reagents = new Nightshade(amount); break;
-				case 6: reagents = new SulfurousAsh(amount); break;
-				case 7: reagents = new SpidersSilk(amount); break;
-				default: reagents = new FertileDirt(amount); break;
-			}
-
+				0 => new BlackPearl(amount),
+				1 => new Bloodmoss(amount),
+				2 => new Garlic(amount),
+				3 => new Ginseng(amount),
+				4 => new MandrakeRoot(amount),
+				5 => new Nightshade(amount),
+				6 => new SulfurousAsh(amount),
+				7 => new SpidersSilk(amount),
+				_ => new FertileDirt(amount),
+			};
 			if (!SpawnItem(reagents))
 				reagents.Delete();
 		}
@@ -707,8 +703,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			_ = reader.ReadInt();
 
 			Delete();
 		}

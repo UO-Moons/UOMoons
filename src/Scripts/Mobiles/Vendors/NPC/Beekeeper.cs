@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Beekeeper() : base("the beekeeper")
 		{
+			Job = JobFragment.beekeeper;
+			Karma = Utility.RandomMinMax(13, -45);
 		}
 
 		public override void InitSBInfo()

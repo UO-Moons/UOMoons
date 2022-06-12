@@ -155,9 +155,9 @@ namespace Server.Items
 					attacker.SendLocalizedMessage(1072794); // Your arrow hits its mark with velocity!
 				}
 
-				if (damageable is Mobile && ((Mobile)damageable).Player)
+				if (damageable is Mobile mobile && mobile.Player)
 				{
-					((Mobile)damageable).SendLocalizedMessage(1072795); // You have been hit by an arrow with velocity!
+					mobile.SendLocalizedMessage(1072795); // You have been hit by an arrow with velocity!
 				}
 			}
 

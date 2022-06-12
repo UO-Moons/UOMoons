@@ -46,17 +46,20 @@ namespace Server.Mobiles
 			AddLoot(LootPack.Rich);
 			AddLoot(LootPack.Average);
 			AddLoot(LootPack.Gems);
-
-			if (0.02 > Utility.RandomDouble())
+			if (0.1 > Utility.RandomDouble())
 			{
-				switch (Utility.Random(5))
+				switch (Utility.Random(18))
 				{
 					case 0: PackItem(new DaemonArms()); break;
 					case 1: PackItem(new DaemonChest()); break;
 					case 2: PackItem(new DaemonGloves()); break;
 					case 3: PackItem(new DaemonLegs()); break;
-					case 4: PackItem(new DaemonHelm()); break;
 				}
+			}
+
+			if (0.01 > Utility.RandomDouble())
+			{
+				PackItem(new DaemonHelm());
 			}
 		}
 

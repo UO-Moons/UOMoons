@@ -11,6 +11,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Bowyer() : base("the bowyer")
 		{
+			Job = JobFragment.bowyer;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Fletching, 80.0, 100.0);
 			SetSkill(SkillName.Archery, 80.0, 100.0);
 		}

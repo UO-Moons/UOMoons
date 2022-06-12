@@ -8,6 +8,7 @@ namespace Server.Mobiles
 	{
 		private Mobile m_Queen;
 		private bool m_SpawnedQueen;
+		private DateTime m_Delay = DateTime.UtcNow;
 
 		public override ChampionSkullType SkullType => ChampionSkullType.Enlightenment;
 
@@ -198,6 +199,19 @@ namespace Server.Mobiles
 			attacker.Damage(Utility.Random(20, 10), this);
 			attacker.Stam -= Utility.Random(20, 10);
 			attacker.Mana -= Utility.Random(20, 10);
+		}
+
+		public override void OnActionCombat()
+		{
+			base.OnActionCombat();
+
+			if (DateTime.UtcNow > m_Delay)
+			{
+				if (Combatant != null)
+					Ability.EtherealDrain(this, (Mobile)Combatant, Utility.RandomMinMax(1, 3));
+
+				m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(15, 30));
+			}
 		}
 
 		public LordOaks(Serial serial) : base(serial)

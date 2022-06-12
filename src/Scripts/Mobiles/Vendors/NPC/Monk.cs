@@ -11,6 +11,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Monk() : base("the Monk")
 		{
+			Job = JobFragment.monk;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.EvalInt, 100.0);
 			SetSkill(SkillName.Tactics, 70.0, 90.0);
 			SetSkill(SkillName.Wrestling, 70.0, 90.0);

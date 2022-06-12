@@ -6,6 +6,7 @@ namespace Server.Mobiles
 	[CorpseName("a savage corpse")]
 	public class Savage : BaseCreature
 	{
+		private DateTime m_Delay = DateTime.UtcNow;
 		[Constructable]
 		public Savage() : base(AIType.AI_Melee, FightMode.Closest, 10, 1, 0.2, 0.4)
 		{
@@ -92,6 +93,37 @@ namespace Server.Mobiles
 		{
 			if (to is Dragon || to is WhiteWyrm || to is SwampDragon || to is Drake || to is Nightmare || to is Hiryu || to is LesserHiryu || to is Daemon)
 				damage *= 3;
+		}
+
+		public override void OnActionCombat()
+		{
+			if (DateTime.UtcNow > m_Delay && Combatant != null)
+			{
+				Mobile targ = (Mobile)Combatant;
+				Bola bola;
+				DebugSay("Date and time check");
+
+				if (targ.Mounted)
+				{
+					bola = new Bola();
+					PackItem(bola);
+					bola.OnDoubleClick(this);
+					DebugSay("I dclicked the bola");
+
+					if (Target != null)
+					{
+						Target.Invoke(this, targ);
+						DebugSay("Throwing Bola...");
+					}
+					else
+					{
+						bola.Delete();
+						DebugSay("null target, one extra bola has been placed in my pack");
+					}
+
+					m_Delay = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(3, 5));
+				}
+			}
 		}
 
 		public Savage(Serial serial) : base(serial)

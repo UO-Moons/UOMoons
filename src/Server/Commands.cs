@@ -153,7 +153,13 @@ namespace Server.Commands
 
 		public static void Register(string command, AccessLevel access, CommandEventHandler handler)
 		{
-			Entries[command] = new CommandEntry(command, handler, access);
+			Register(command, access, handler, false);
+		}
+
+		public static void Register(string command, AccessLevel access, CommandEventHandler handler, bool playerscanuseonTC)
+		{
+
+			Entries[command] = new CommandEntry(command, handler, playerscanuseonTC ? AccessLevel.Player : access);
 		}
 
 		public static AccessLevel BadCommandIgnoreLevel { get; set; } = AccessLevel.Player;

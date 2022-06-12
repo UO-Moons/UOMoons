@@ -318,7 +318,7 @@ namespace Server.Engines.Craft
 
         private static bool RetainsName(Item item)
         {
-            if (item is Glasses || item is ElvenGlasses || item.IsArtifact)
+            if (item is BaseGlasses || item is ElvenGlasses || item.IsArtifact)
             {
                 return true;
             }

@@ -474,7 +474,7 @@ namespace Server.Regions
 			}
 		}
 
-		private static Rectangle3D[] GetArea(BaseHouse house)
+		public static Rectangle3D[] GetArea(BaseHouse house)
 		{
 			int x = house.X;
 			int y = house.Y;

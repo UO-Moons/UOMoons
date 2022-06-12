@@ -1,4 +1,5 @@
 using System;
+using Server.Mobiles;
 using Server.Network;
 
 namespace Server.Spells.Chivalry
@@ -16,7 +17,9 @@ namespace Server.Spells.Chivalry
         public override SkillName CastSkill => SkillName.Chivalry;
         public override SkillName DamageSkill => SkillName.Chivalry;
         public override bool ClearHandsOnCast => false;
-        public override int CastRecoveryBase => 7;
+		private static bool ConsumeTithing => Settings.Configuration.Get<bool>("Spells", "ConsumeTithing");
+		private static bool ConsumeTithingAndMana => Settings.Configuration.Get<bool>("Spells", "ConsumeTithingAndMana");
+		public override int CastRecoveryBase => 7;
 
         public static int ComputePowerValue(Mobile from, int div)
         {
@@ -39,18 +42,29 @@ namespace Server.Spells.Chivalry
                 return false;
             }
 
-            if (Caster.Player && Caster.TithingPoints < RequiredTithing)
-            {
-                Caster.SendLocalizedMessage(1060173, RequiredTithing.ToString());
-                // You must have at least ~1_TITHE_REQUIREMENT~ Tithing Points to use this ability,
-                return false;
-            }
-            else if (Caster.Mana < mana)
-            {
-                Caster.SendLocalizedMessage(1060174, mana.ToString());
-                // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
-                return false;
-            }
+			if (Caster is BaseCreature)
+			{
+				return true;
+			}
+
+			if (ConsumeTithingAndMana)
+			{
+				if (ConsumeTithing)
+				{
+					if (Caster.Player && Caster.TithingPoints < RequiredTithing)
+					{
+						Caster.SendLocalizedMessage(1060173, RequiredTithing.ToString());
+						// You must have at least ~1_TITHE_REQUIREMENT~ Tithing Points to use this ability,
+						return false;
+					}
+				}
+				else if (Caster.Mana < mana)
+				{
+					Caster.SendLocalizedMessage(1060174, mana.ToString());
+					// You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
+					return false;
+				}
+			}
 
             return true;
         }

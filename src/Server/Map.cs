@@ -106,7 +106,9 @@ using System.Collections.Generic;
 using Server.Items;
 using Server.Network;
 using Server.Targeting;
-
+// XXX LOS
+using Server.LOS;
+// XXX LOS
 #if Map_NewEnumerables || Map_PoolFixColumn || Map_InternalProtection || Map_AllUpdates
 using System.Linq;
 #endif
@@ -369,6 +371,10 @@ namespace Server
 	//[CustomEnum( new string[]{ "Felucca", "Trammel", "Ilshenar", "Malas", "Internal" } )]
 	public sealed class Map : IComparable, IComparable<Map>
 	{
+		// XXX LOS
+		public LineOfSight m_LOS;
+		public LineOfSight LOS { get { return m_LOS; } }
+		// XXX LOS
 		public static int GlobalUpdateRange { get; set; } = Settings.Configuration.Get<int>("Map", "UpdateRange", 18);
 
 		public static int GlobalMaxUpdateRange { get; set; } = Settings.Configuration.Get<int>("Map", "MaxUpdateRange", 24);
@@ -613,6 +619,11 @@ namespace Server
 			return GetClientsInBounds(new Rectangle2D(p.m_X - range, p.m_Y - range, range * 2 + 1, range * 2 + 1));
 		}
 
+		public IPooledEnumerable<NetState> GetClientsInBounds(Rectangle3D bounds)
+		{
+			return GetClientsInBounds(new Rectangle2D(bounds.Start, bounds.End));
+		}
+
 		public IPooledEnumerable<NetState> GetClientsInBounds(Rectangle2D bounds)
 		{
 			return PooledEnumeration.GetClients(this, bounds);
@@ -651,11 +662,35 @@ namespace Server
 			return GetMobilesInBounds(new Rectangle2D(p.m_X - range, p.m_Y - range, range * 2 + 1, range * 2 + 1));
 		}
 
+		public IPooledEnumerable<Mobile> GetMobilesInBounds(Rectangle3D bounds)
+		{
+			return GetMobilesInBounds(new Rectangle2D(bounds.Start, bounds.End));
+		}
+
 		public IPooledEnumerable<Mobile> GetMobilesInBounds(Rectangle2D bounds)
 		{
 			return PooledEnumeration.GetMobiles(this, bounds);
 		}
 		#endregion
+		public IPooledEnumerable<BaseMulti> GetMultisInRange(Point3D p)
+		{
+			return GetMultisInRange(p, GlobalMaxUpdateRange);
+		}
+
+		public IPooledEnumerable<BaseMulti> GetMultisInRange(Point3D p, int range)
+		{
+			return GetMultisInBounds(new Rectangle2D(p.m_X - range, p.m_Y - range, range * 2 + 1, range * 2 + 1));
+		}
+
+		public IPooledEnumerable<BaseMulti> GetMultisInBounds(Rectangle3D bounds)
+		{
+			return GetMultisInBounds(new Rectangle2D(bounds.Start, bounds.End));
+		}
+
+		public IPooledEnumerable<BaseMulti> GetMultisInBounds(Rectangle2D bounds)
+		{
+			return PooledEnumeration.GetMultis(this, bounds);
+		}
 
 		public IPooledEnumerable<StaticTile[]> GetMultiTilesAt(int x, int y)
 		{
@@ -1524,6 +1559,9 @@ namespace Server
 			SectorsWidth = width >> SectorShift;
 			SectorsHeight = height >> SectorShift;
 			Sectors = new Sector[SectorsWidth][];
+			// XXX LOS
+			m_LOS = new LineOfSight(this, (width * height) / Config.GetInstance().CacheRatio);
+			// XXX LOS
 		}
 
 		#region GetSector

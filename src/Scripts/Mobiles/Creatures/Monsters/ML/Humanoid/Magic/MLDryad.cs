@@ -44,12 +44,7 @@ namespace Server.Mobiles
 			Fame = 5000;
 			Karma = 5000;
 
-			VirtualArmor = 28; // Don't know what it should be
-
-			if (Core.ML && Utility.RandomDouble() < .60)
-				PackItem(Seed.RandomPeculiarSeed(1));
-
-			PackArcanceScroll(0.05);
+			VirtualArmor = 28;
 		}
 
 		public override void GenerateLoot()

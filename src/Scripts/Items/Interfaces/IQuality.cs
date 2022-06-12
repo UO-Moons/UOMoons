@@ -1,10 +1,8 @@
 using Server.Engines.Craft;
+namespace Server.Items;
 
-namespace Server.Items
+public interface IQuality : ICraftable
 {
-	public interface IQuality : ICraftable
-	{
-		ItemQuality Quality { get; set; }
-		bool PlayerConstructed { get; }
-	}
+	ItemQuality Quality { get; set; }
+	bool PlayerConstructed { get; }
 }

@@ -1,93 +1,93 @@
+using Server.ContextMenus;
+using Server.Engines.VeteranRewards;
+using Server.Gumps;
+using Server.Items;
+using Server.Mobiles;
+using Server.Multis;
 using System;
 using System.Collections.Generic;
-using Server.Engines.VeteranRewards;
-using Server.Items;
-using Server.Gumps;
 using System.Linq;
-using Server.ContextMenus;
-using Server.Multis;
-using Server.Mobiles;
 
 namespace Server.Engines.Plants
 {
-    [Flipable(19288, 19290)]
-    public class SeedBox : Container, IRewardItem, ISecurable
-    {
-        public static readonly int MaxSeeds = 5000;
-        public static readonly int MaxUnique = 300;
+	[Flipable(19288, 19290)]
+	public class SeedBox : Container, IRewardItem, ISecurable
+	{
+		public static readonly int MaxSeeds = 5000;
+		public static readonly int MaxUnique = 300;
 
-        public override int DefaultMaxItems => MaxUnique;
-        public override bool DisplaysContent => false;
+		public override int DefaultMaxItems => MaxUnique;
+		public override bool DisplaysContent => false;
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public bool IsRewardItem { get; set; }
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool IsRewardItem { get; set; }
 
-        public List<SeedEntry> Entries { get; set; }
+		public List<SeedEntry> Entries { get; set; }
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public SecureLevel Level { get; set; }
+		[CommandProperty(AccessLevel.GameMaster)]
+		public SecureLevel Level { get; set; }
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public int TotalCount
-        {
-            get
-            {
-                int count = 0;
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int TotalCount
+		{
+			get
+			{
+				int count = 0;
 
-                if (Entries != null)
-                    Entries.ForEach(e => count += e == null || e.Seed == null ? 0 : e.Seed.Amount);
+				if (Entries != null)
+					Entries.ForEach(e => count += e == null || e.Seed == null ? 0 : e.Seed.Amount);
 
-                return count;
-            }
-        }
+				return count;
+			}
+		}
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public int UniqueCount => Entries == null ? 0 : Entries.Where(e => e != null && e.Seed != null && e.Seed.Amount > 0).Count();
+		[CommandProperty(AccessLevel.GameMaster)]
+		public int UniqueCount => Entries == null ? 0 : Entries.Where(e => e != null && e.Seed != null && e.Seed.Amount > 0).Count();
 
-        public override int DefaultMaxWeight => 10;
-        public override double DefaultWeight => 10.0;
+		public override int DefaultMaxWeight => 10;
+		public override double DefaultWeight => 10.0;
 
-        [Constructable]
-        public SeedBox()
-            : base(19288)
-        {
-            Entries = new List<SeedEntry>();
-            LootType = LootType.Blessed;
-            Level = SecureLevel.Owner;
-        }
+		[Constructable]
+		public SeedBox()
+			: base(19288)
+		{
+			Entries = new List<SeedEntry>();
+			LootType = LootType.Blessed;
+			Level = SecureLevel.Owner;
+		}
 
-        public override int GetTotal(TotalType type)
-        {
-            return 0;
-        }
+		public override int GetTotal(TotalType type)
+		{
+			return 0;
+		}
 
-        public override void OnDoubleClick(Mobile m)
-        {
-            if (IsChildOf(m.Backpack) || (CheckAccessible(m) && m.InRange(GetWorldLocation(), 3)))
-            {
-                if (m is PlayerMobile mobile)
-                    BaseGump.SendGump(new SeedBoxGump(mobile, this));
-            }
+		public override void OnDoubleClick(Mobile m)
+		{
+			if (IsChildOf(m.Backpack) || (CheckAccessible(m) && m.InRange(GetWorldLocation(), 3)))
+			{
+				if (m is PlayerMobile mobile)
+					BaseGump.SendGump(new SeedBoxGump(mobile, this));
+			}
 
-            if (m.IsPlayer())
-                base.OnDoubleClick(m);
-        }
+			if (m.IsPlayer())
+				base.OnDoubleClick(m);
+		}
 
-        public override void GetContextMenuEntries(Mobile from, List<ContextMenuEntry> list)
-        {
-            base.GetContextMenuEntries(from, list);
-            SetSecureLevelEntry.AddTo(from, this, list);
-        }
+		public override void GetContextMenuEntries(Mobile from, List<ContextMenuEntry> list)
+		{
+			base.GetContextMenuEntries(from, list);
+			SetSecureLevelEntry.AddTo(from, this, list);
+		}
 
-        public bool CheckAccessible(Mobile from)
-        {
-            if (from.IsStaff())
-                return true;
+		public bool CheckAccessible(Mobile from)
+		{
+			if (from.IsStaff())
+				return true;
 
-            BaseHouse house = BaseHouse.FindHouseAt(this);
+			BaseHouse house = BaseHouse.FindHouseAt(this);
 
-            if (house == null)
-                return true;
+			if (house == null)
+				return true;
 
 			return Level switch
 			{
@@ -100,318 +100,318 @@ namespace Server.Engines.Plants
 			};
 		}
 
-        public override bool OnDragDrop(Mobile from, Item dropped)
-        {
-            if (dropped is Seed seed)
-            {
-                return TryAddSeed(from, seed);
-            }
-            else
-            {
-                from.SendLocalizedMessage(1151838); // This item cannot be stored in the seed box.
-                return false;
-            }
-        }
+		public override bool OnDragDrop(Mobile from, Item dropped)
+		{
+			if (dropped is Seed seed)
+			{
+				return TryAddSeed(from, seed);
+			}
+			else
+			{
+				from.SendLocalizedMessage(1151838); // This item cannot be stored in the seed box.
+				return false;
+			}
+		}
 
-        /*
+		/*
         public override bool OnDragDropInto(Mobile from, Item item, Point3D p)
         {
             return false; // prevent thrid party program drop needs tested
         }
         */
 
-        public bool TryAddSeed(Mobile from, Seed seed, int index = -1)
-        {
-            if (!from.Backpack.CheckHold(from, seed, true, true) || seed.Amount <= 0)
-            {
-                return false;
-            }
-            else if (!from.InRange(GetWorldLocation(), 3) || from.Map != Map)
-            {
-                return false;
-            }
-            else if (TotalCount + seed.Amount <= MaxSeeds)
-            {
-                SeedEntry entry = GetExisting(seed);
-                _ = UniqueCount;
+		public bool TryAddSeed(Mobile from, Seed seed, int index = -1)
+		{
+			if (!from.Backpack.CheckHold(from, seed, true, true) || seed.Amount <= 0)
+			{
+				return false;
+			}
+			else if (!from.InRange(GetWorldLocation(), 3) || from.Map != Map)
+			{
+				return false;
+			}
+			else if (TotalCount + seed.Amount <= MaxSeeds)
+			{
+				SeedEntry entry = GetExisting(seed);
+				_ = UniqueCount;
 
-                if (entry != null)
-                {
-                    entry.Seed.Amount += seed.Amount;
-                    seed.Delete();
+				if (entry != null)
+				{
+					entry.Seed.Amount += seed.Amount;
+					seed.Delete();
 
-                    entry.Seed.InvalidateProperties();
-                }
-                else if (UniqueCount < MaxUnique)
-                {
-                    entry = new SeedEntry(seed);
-                    DropItem(seed);
+					entry.Seed.InvalidateProperties();
+				}
+				else if (UniqueCount < MaxUnique)
+				{
+					entry = new SeedEntry(seed);
+					DropItem(seed);
 
-                    seed.Movable = false;
-                    seed.InvalidateProperties();
-                }
-                else
-                {
-                    from.SendLocalizedMessage(1151839); // There is not enough room in the box.
-                }
+					seed.Movable = false;
+					seed.InvalidateProperties();
+				}
+				else
+				{
+					from.SendLocalizedMessage(1151839); // There is not enough room in the box.
+				}
 
-                if (entry != null)
-                {
-                    if (Entries.Contains(entry))
-                    {
-                        if (index > -1 && index < Entries.Count - 1)
-                        {
-                            Entries.Remove(entry);
-                            AddEntry(entry, index);
-                        }
-                    }
-                    else
-                    {
-                        if (index > -1 && index < Entries.Count)
-                        {
-                            AddEntry(entry, index);
-                        }
-                        else
-                            AddEntry(entry);
-                    }
+				if (entry != null)
+				{
+					if (Entries.Contains(entry))
+					{
+						if (index > -1 && index < Entries.Count - 1)
+						{
+							Entries.Remove(entry);
+							AddEntry(entry, index);
+						}
+					}
+					else
+					{
+						if (index > -1 && index < Entries.Count)
+						{
+							AddEntry(entry, index);
+						}
+						else
+							AddEntry(entry);
+					}
 
-                    from.SendLocalizedMessage(1151846); // You put the seed in the seedbox.
+					from.SendLocalizedMessage(1151846); // You put the seed in the seedbox.
 
-                    if (from is PlayerMobile mobile)
-                    {
-                        /*
+					if (from is PlayerMobile mobile)
+					{
+						/*
                         var gump = new SeedBoxGump((PlayerMobile)from, this);
                         gump.CheckPage(entry);
                         BaseGump.SendGump(gump);
                         */
-                        var gump = from.FindGump<SeedBoxGump>();
-                        if (gump != null)
-                        {
-                            gump.CheckPage(entry);
-                            gump.Refresh();
-                        }
-                        else
-                        {
-                            gump = new SeedBoxGump(mobile, this);
-                            gump.CheckPage(entry);
+						var gump = from.FindGump<SeedBoxGump>();
+						if (gump != null)
+						{
+							gump.CheckPage(entry);
+							gump.Refresh();
+						}
+						else
+						{
+							gump = new SeedBoxGump(mobile, this);
+							gump.CheckPage(entry);
 
-                            BaseGump.SendGump(gump);
-                        }
-                    }
-                    InvalidateProperties();
-                    return true;
-                }
-            }
-            else
-            {
-                from.SendLocalizedMessage(1151839); // There is not enough room in the box.
-            }
+							BaseGump.SendGump(gump);
+						}
+					}
+					InvalidateProperties();
+					return true;
+				}
+			}
+			else
+			{
+				from.SendLocalizedMessage(1151839); // There is not enough room in the box.
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        private void AddEntry(SeedEntry entry, int index = -1)
-        {
-            if (index == -1)
-            {
-                TrimEntries();
-                Entries.Add(entry);
-            }
-            else if (index >= 0 && index < Entries.Count)
-            {
-                Entries.Insert(index, entry);
-            }
+		private void AddEntry(SeedEntry entry, int index = -1)
+		{
+			if (index == -1)
+			{
+				TrimEntries();
+				Entries.Add(entry);
+			}
+			else if (index >= 0 && index < Entries.Count)
+			{
+				Entries.Insert(index, entry);
+			}
 
-            if (Entries.Count > 0)
-            {
-                if (ItemID == 19288)
-                {
-                    ItemID = 19289;
-                }
-                else if (ItemID == 19290)
-                {
-                    ItemID = 19291;
-                }
-            }
-        }
+			if (Entries.Count > 0)
+			{
+				if (ItemID == 19288)
+				{
+					ItemID = 19289;
+				}
+				else if (ItemID == 19290)
+				{
+					ItemID = 19291;
+				}
+			}
+		}
 
-        private void RemoveEntry(SeedEntry entry)
-        {
-            Entries.Remove(entry);
-            TrimEntries();
+		private void RemoveEntry(SeedEntry entry)
+		{
+			Entries.Remove(entry);
+			TrimEntries();
 
-            if (Entries.Count == 0)
-            {
-                if (ItemID == 19289)
-                {
-                    ItemID = 19288;
-                }
-                else if (ItemID == 19291)
-                {
-                    ItemID = 19290;
-                }
-            }
-        }
+			if (Entries.Count == 0)
+			{
+				if (ItemID == 19289)
+				{
+					ItemID = 19288;
+				}
+				else if (ItemID == 19291)
+				{
+					ItemID = 19290;
+				}
+			}
+		}
 
-        public void DropSeed(Mobile from, SeedEntry entry, int amount)
-        {
-            if (!from.InRange(GetWorldLocation(), 3))
-            {
-                return;
-            }
+		public void DropSeed(Mobile from, SeedEntry entry, int amount)
+		{
+			if (!from.InRange(GetWorldLocation(), 3))
+			{
+				return;
+			}
 
-            if (amount > entry.Seed.Amount)
-                amount = entry.Seed.Amount;
+			if (amount > entry.Seed.Amount)
+				amount = entry.Seed.Amount;
 
-            Seed seed;
+			Seed seed;
 
-            if (amount == entry.Seed.Amount)
-            {
-                seed = entry.Seed;
-                entry.Seed = null;
-            }
-            else
-            {
+			if (amount == entry.Seed.Amount)
+			{
+				seed = entry.Seed;
+				entry.Seed = null;
+			}
+			else
+			{
 				seed = new Seed(entry.Seed.PlantType, entry.Seed.PlantHue, true)
 				{
 					Amount = amount
 				};
 
 				entry.Seed.Amount -= amount;
-            }
+			}
 
-            seed.Movable = true;
+			seed.Movable = true;
 
-            if (from.Backpack == null || !from.Backpack.TryDropItem(from, seed, false))
-            {
-                seed.MoveToWorld(from.Location, from.Map);
-                from.SendLocalizedMessage(1151844); // There is not enough room in your backpack!
-            }
+			if (from.Backpack == null || !from.Backpack.TryDropItem(from, seed, false))
+			{
+				seed.MoveToWorld(from.Location, from.Map);
+				from.SendLocalizedMessage(1151844); // There is not enough room in your backpack!
+			}
 
-            if (entry.Seed != null && entry.Seed.Amount <= 0)
-            {
-                entry.Seed.Delete();
-                entry.Seed = null;
-            }
+			if (entry.Seed != null && entry.Seed.Amount <= 0)
+			{
+				entry.Seed.Delete();
+				entry.Seed = null;
+			}
 
-            if (entry.Seed == null || entry.Seed.Amount <= 0)
-            {
-                RemoveEntry(entry);
-            }
-        }
+			if (entry.Seed == null || entry.Seed.Amount <= 0)
+			{
+				RemoveEntry(entry);
+			}
+		}
 
-        public SeedEntry GetExisting(Seed seed)
-        {
-            return Entries.FirstOrDefault(e => e != null && e.Seed != null && e.Seed.PlantType == seed.PlantType && e.Seed.PlantHue == seed.PlantHue);
-        }
+		public SeedEntry GetExisting(Seed seed)
+		{
+			return Entries.FirstOrDefault(e => e != null && e.Seed != null && e.Seed.PlantType == seed.PlantType && e.Seed.PlantHue == seed.PlantHue);
+		}
 
-        public override void GetProperties(ObjectPropertyList list)
-        {
-            base.GetProperties(list);
+		public override void GetProperties(ObjectPropertyList list)
+		{
+			base.GetProperties(list);
 
-            if (IsRewardItem)
-            {
-                list.Add(1076220); // 4th Year Veteran Reward
-            }
+			if (IsRewardItem)
+			{
+				list.Add(1076220); // 4th Year Veteran Reward
+			}
 
-            list.Add(1151847, string.Format("{0}\t{1}", TotalCount.ToString(), MaxSeeds.ToString())); // Seeds in Box: ~1_val~ / ~2_val~
-            list.Add(1151848, string.Format("{0}\t{1}", UniqueCount.ToString(), MaxUnique.ToString())); // Unique Seeds In Box: ~1_val~ / ~2_val~
-        }
+			list.Add(1151847, string.Format("{0}\t{1}", TotalCount.ToString(), MaxSeeds.ToString())); // Seeds in Box: ~1_val~ / ~2_val~
+			list.Add(1151848, string.Format("{0}\t{1}", UniqueCount.ToString(), MaxUnique.ToString())); // Unique Seeds In Box: ~1_val~ / ~2_val~
+		}
 
-        private void CheckEntries()
-        {
-            List<Item> toDelete = new(Items);
+		private void CheckEntries()
+		{
+			List<Item> toDelete = new(Items);
 
-            foreach (var item in toDelete.Where(i => i != null && i.Amount == 0))
-                item.Delete();
+			foreach (var item in toDelete.Where(i => i != null && i.Amount == 0))
+				item.Delete();
 
-            List<SeedEntry> entries = new(Entries);
+			List<SeedEntry> entries = new(Entries);
 
-            foreach (var entry in entries.Where(e => e != null && (e.Seed == null || e.Seed.Amount == 0 || e.Seed.Deleted)))
-                Entries.Remove(entry);
+			foreach (var entry in entries.Where(e => e != null && (e.Seed == null || e.Seed.Amount == 0 || e.Seed.Deleted)))
+				Entries.Remove(entry);
 
-            ColUtility.Free(entries);
-            ColUtility.Free(toDelete);
-        }
+			ColUtility.Free(entries);
+			ColUtility.Free(toDelete);
+		}
 
-        public void TrimEntries()
-        {
-            int lastIndex = Entries.FindLastIndex(e => e != null);
+		public void TrimEntries()
+		{
+			int lastIndex = Entries.FindLastIndex(e => e != null);
 
-            if (lastIndex + 1 < Entries.Count - 1)
-            {
-                Entries.RemoveRange(lastIndex + 1, (Entries.Count - 1) - lastIndex);
-            }
+			if (lastIndex + 1 < Entries.Count - 1)
+			{
+				Entries.RemoveRange(lastIndex + 1, (Entries.Count - 1) - lastIndex);
+			}
 
-            Entries.TrimExcess();
-        }
+			Entries.TrimExcess();
+		}
 
-        public SeedBox(Serial serial)
-            : base(serial)
-        {
-        }
+		public SeedBox(Serial serial)
+			: base(serial)
+		{
+		}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(1);
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(1);
 
-            writer.Write(IsRewardItem);
-            writer.Write((int)Level);
+			writer.Write(IsRewardItem);
+			writer.Write((int)Level);
 
-            writer.Write(Entries.Count);
-            for (int i = 0; i < Entries.Count; i++)
-            {
-                SeedEntry entry = Entries[i];
+			writer.Write(Entries.Count);
+			for (int i = 0; i < Entries.Count; i++)
+			{
+				SeedEntry entry = Entries[i];
 
-                if (entry == null)
-                {
-                    writer.Write(0);
-                }
-                else
-                {
-                    writer.Write(1);
-                    entry.Serialize(writer);
-                }
-            }
-        }
+				if (entry == null)
+				{
+					writer.Write(0);
+				}
+				else
+				{
+					writer.Write(1);
+					entry.Serialize(writer);
+				}
+			}
+		}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
-            int v = reader.ReadInt();
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			int v = reader.ReadInt();
 
-            Entries = new List<SeedEntry>();
+			Entries = new List<SeedEntry>();
 
-            IsRewardItem = reader.ReadBool();
-            Level = (SecureLevel)reader.ReadInt();
+			IsRewardItem = reader.ReadBool();
+			Level = (SecureLevel)reader.ReadInt();
 
-            int count = reader.ReadInt();
-            for (int i = 0; i < count; i++)
-            {
-                switch (reader.ReadInt())
-                {
-                    default:
-                    case 0:
-                        Entries.Add(null);
-                        break;
-                    case 1:
-                        SeedEntry entry = new(reader);
+			int count = reader.ReadInt();
+			for (int i = 0; i < count; i++)
+			{
+				switch (reader.ReadInt())
+				{
+					default:
+					case 0:
+						Entries.Add(null);
+						break;
+					case 1:
+						SeedEntry entry = new(reader);
 
-                        if (entry.Seed != null)
-                            Entries.Add(entry);
-                        break;
-                }
-            }
+						if (entry.Seed != null)
+							Entries.Add(entry);
+						break;
+				}
+			}
 
-            Timer.DelayCall(
-                () =>
-                {
-                    foreach (var item in Items.Where(i => i.Movable))
-                        item.Movable = false;
-                });
+			Timer.DelayCall(
+				() =>
+				{
+					foreach (var item in Items.Where(i => i.Movable))
+						item.Movable = false;
+				});
 
-            Timer.DelayCall(TimeSpan.FromSeconds(10), CheckEntries);
-        }
-    }
+			Timer.DelayCall(TimeSpan.FromSeconds(10), CheckEntries);
+		}
+	}
 }

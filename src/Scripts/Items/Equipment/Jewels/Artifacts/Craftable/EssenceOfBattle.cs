@@ -1,34 +1,31 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class EssenceOfBattle : GoldRing
 {
-	public class EssenceOfBattle : GoldRing
+	public override int LabelNumber => 1072935;  // Essence of Battle
+
+	[Constructable]
+	public EssenceOfBattle()
 	{
-		public override int LabelNumber => 1072935;  // Essence of Battle
+		Hue = 0x550;
+		Attributes.BonusDex = 7;
+		Attributes.BonusStr = 7;
+		Attributes.WeaponDamage = 30;
+	}
 
-		[Constructable]
-		public EssenceOfBattle()
-		{
-			Hue = 0x550;
-			Attributes.BonusDex = 7;
-			Attributes.BonusStr = 7;
-			Attributes.WeaponDamage = 30;
-		}
+	public EssenceOfBattle(Serial serial) : base(serial)
+	{
+	}
 
-		public EssenceOfBattle(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

@@ -47,6 +47,11 @@ namespace Server.Mobiles
 			return 0x29B;
 		}
 
+		public override void AlterMeleeDamageTo(Mobile to, ref int damage)
+		{
+			this.Hits += damage;
+		}
+
 		public VampireBat(Serial serial) : base(serial)
 		{
 		}

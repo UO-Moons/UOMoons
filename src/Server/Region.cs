@@ -452,6 +452,40 @@ namespace Server
 			return GetEnumeratedMobiles(predicate).Count();
 		}
 
+		private IEnumerable<Mobile> InternalPlayers
+		{
+			get
+			{
+				for (var i = 0; i < Area.Length; i++)
+				{
+					foreach (var ns in Map.GetClientsInBounds(Area[i]))
+						yield return ns.Mobile;
+				}
+			}
+		}
+
+		public IEnumerable<Mobile> AllPlayers => InternalPlayers.Distinct();
+
+		[CommandProperty(AccessLevel.Counselor, true)]
+		public int PlayerCount => AllPlayers.Count();
+
+		private IEnumerable<Mobile> InternalMobiles
+		{
+			get
+			{
+				for (var i = 0; i < Area.Length; i++)
+				{
+					foreach (var m in Map.GetMobilesInBounds(Area[i]))
+						yield return m;
+				}
+			}
+		}
+
+		public IEnumerable<Mobile> AllMobiles => InternalMobiles.Distinct();
+
+		[CommandProperty(AccessLevel.Counselor, true)]
+		public int MobileCount => AllMobiles.Count();
+
 		public List<Item> GetItems()
 		{
 			return GetItems(null);

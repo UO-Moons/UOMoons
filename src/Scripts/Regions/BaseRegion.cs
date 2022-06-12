@@ -1,8 +1,10 @@
 using Server.Gumps;
 using Server.Items;
 using Server.Mobiles;
+using Server.Spells;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Xml;
 
 namespace Server.Regions

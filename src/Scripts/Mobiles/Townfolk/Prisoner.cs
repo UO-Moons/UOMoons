@@ -8,7 +8,7 @@ namespace Server.Mobiles.Townfolk
 		public Prisoner()
 		{
 			Title = Female ? "the noblewoman" : "the nobleman";
-
+			Karma = Utility.RandomMinMax(13, -45);
 			CantWalk = true;
 			IsPrisoner = true;
 		}

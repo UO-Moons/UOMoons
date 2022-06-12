@@ -64,6 +64,15 @@ namespace Server.Mobiles
 			reflect = true; // Every spell is reflected back to the caster
 		}
 
+		public override void AlterMeleeDamageFrom(Mobile from, ref int damage)
+		{
+			if (from != null)
+			{
+				int hitback = damage;
+				AOS.Damage(from, this, hitback, 100, 0, 0, 0, 0);
+			}
+		}
+
 		public CopperElemental(Serial serial) : base(serial)
 		{
 		}

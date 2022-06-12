@@ -12,6 +12,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Fisherman() : base("the fisher")
 		{
+			Job = JobFragment.fisher;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Fishing, 75.0, 98.0);
 		}
 

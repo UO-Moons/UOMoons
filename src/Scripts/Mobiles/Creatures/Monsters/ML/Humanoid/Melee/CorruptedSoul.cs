@@ -34,7 +34,7 @@ namespace Server.Mobiles
 			Fame = 5000;
 			Karma = -5000;
 
-			// VirtualArmor = 6; Not sure
+			VirtualArmor = 6;
 		}
 
 		public override bool AlwaysAttackable => true;

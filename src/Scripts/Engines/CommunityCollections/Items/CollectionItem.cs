@@ -6,31 +6,23 @@ namespace Server
 {
 	public class CollectionItem
 	{
-		private readonly Type m_Type;
-		private readonly int m_ItemID;
 		private readonly int m_X;
 		private readonly int m_Y;
-		private readonly int m_Width;
-		private readonly int m_Height;
-		private readonly int m_Tooltip;
-		private readonly int m_Hue;
-		private readonly double m_Points;
-		private readonly bool m_QuestItem;
 
 		public CollectionItem(Type type, int itemID, int tooltip, int hue, double points, bool questitem = false)
 		{
-			m_Type = type;
-			m_ItemID = itemID;
-			m_Tooltip = tooltip;
-			m_Hue = hue;
-			m_Points = points;
-			m_QuestItem = questitem;
+			Type = type;
+			ItemID = itemID;
+			Tooltip = tooltip;
+			Hue = hue;
+			Points = points;
+			QuestItem = questitem;
 
 			Rectangle2D rec;
 
 			try
 			{
-				rec = ItemBounds.Table[m_ItemID];
+				rec = ItemBounds.Table[ItemID];
 			}
 			catch
 			{
@@ -41,30 +33,30 @@ namespace Server
 			{
 				_ = 0;
 
-				Item.Measure(Item.GetBitmap(m_ItemID), out m_X, out m_Y, out int mx, out int my);
+				Item.Measure(Item.GetBitmap(ItemID), out m_X, out m_Y, out int mx, out int my);
 
-				m_Width = mx - m_X;
-				m_Height = my - m_Y;
+				Width = mx - m_X;
+				Height = my - m_Y;
 			}
 			else
 			{
 				m_X = rec.X;
 				m_Y = rec.Y;
-				m_Width = rec.Width;
-				m_Height = rec.Height;
+				Width = rec.Width;
+				Height = rec.Height;
 			}
 		}
 
-		public Type Type => m_Type;  // image info
-		public int ItemID => m_ItemID;
+		public Type Type { get; }  // image info
+		public int ItemID { get; }
 		public int X => m_X;
 		public int Y => m_Y;
-		public int Width => m_Width;
-		public int Height => m_Height;
-		public int Tooltip => m_Tooltip;
-		public int Hue => m_Hue;
-		public double Points => m_Points;
-		public bool QuestItem => m_QuestItem;
+		public int Width { get; }
+		public int Height { get; }
+		public int Tooltip { get; }
+		public int Hue { get; }
+		public double Points { get; }
+		public bool QuestItem { get; }
 
 		public virtual bool Validate(PlayerMobile from, Item item)
 		{

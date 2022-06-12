@@ -10,6 +10,8 @@ namespace Server.Mobiles
 		[Constructable]
 		public Mapmaker() : base("the mapmaker")
 		{
+			Job = JobFragment.mapmaker;
+			Karma = Utility.RandomMinMax(13, -45);
 			SetSkill(SkillName.Cartography, 90.0, 100.0);
 		}
 

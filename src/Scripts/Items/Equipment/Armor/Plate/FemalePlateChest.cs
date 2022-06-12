@@ -1,50 +1,40 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Flipable(0x1c04, 0x1c05)]
+public class FemalePlateChest : BaseArmor
 {
-	[Flipable(0x1c04, 0x1c05)]
-	public class FemalePlateChest : BaseArmor
+	public override int BasePhysicalResistance => 5;
+	public override int BaseFireResistance => 3;
+	public override int BaseColdResistance => 2;
+	public override int BasePoisonResistance => 3;
+	public override int BaseEnergyResistance => 2;
+	public override int InitHits => Utility.RandomMinMax(55, 65);
+	public override int StrReq => Core.AOS ? 95 : 45;
+	public override int DexBonusValue => Core.AOS ? 0 : -5;
+	public override bool AllowMaleWearer => false;
+	public override int ArmorBase => 30;
+	public override ArmorMaterialType MaterialType => ArmorMaterialType.Plate;
+	public override CraftResource DefaultResource => CraftResource.Iron;
+
+	[Constructable]
+	public FemalePlateChest() : base(0x1C04)
 	{
-		public override int BasePhysicalResistance => 5;
-		public override int BaseFireResistance => 3;
-		public override int BaseColdResistance => 2;
-		public override int BasePoisonResistance => 3;
-		public override int BaseEnergyResistance => 2;
+		Weight = 4.0;
+	}
 
-		public override int InitMinHits => 50;
-		public override int InitMaxHits => 65;
+	public FemalePlateChest(Serial serial) : base(serial)
+	{
+	}
 
-		public override int StrReq => Core.AOS ? 95 : 45;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override int DexBonusValue => Core.AOS ? 0 : -5;
-
-		public override bool AllowMaleWearer => false;
-
-		public override int ArmorBase => 30;
-
-		public override ArmorMaterialType MaterialType => ArmorMaterialType.Plate;
-
-		[Constructable]
-		public FemalePlateChest() : base(0x1C04)
-		{
-			Weight = 4.0;
-		}
-
-		public FemalePlateChest(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-
-			if (Weight == 1.0)
-				Weight = 4.0;
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

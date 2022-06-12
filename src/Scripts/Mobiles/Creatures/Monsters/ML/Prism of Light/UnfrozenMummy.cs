@@ -46,8 +46,7 @@ namespace Server.Mobiles
 		public override void GenerateLoot()
 		{
 			AddLoot(LootPack.UltraRich, 2);
-			// TODO: uncomment once added
-			//AddLoot( LootPack.Parrot );
+			AddLoot( LootPack.Parrot );
 		}
 
 		/*

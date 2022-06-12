@@ -23,6 +23,14 @@ namespace Server.Items
 			return from.Skills[SkillName.Ninjitsu].Base > from.Skills[SkillName.Bushido].Base ? SkillName.Ninjitsu : SkillName.Bushido;
 		}
 
+		public static bool IsUnderEffect(Mobile mob)
+		{
+			if (mob == null)
+				return false;
+
+			return Registry.ContainsKey(mob);
+		}
+
 		public override void OnHit(Mobile attacker, Mobile defender, int damage)
 		{
 			if (!Validate(attacker) || !CheckMana(attacker, true))

@@ -325,6 +325,14 @@ namespace Server.Mobiles
 		}
 
 		/// <summary>
+		/// Overridable. Virtual event when the Mobile is damaged by Spell
+		/// </summary>
+		/// <param name="from"></param>
+		public virtual void OnDamagedBySpell(Mobile from)
+		{
+		}
+
+		/// <summary>
 		/// Overridable. Virtual event when the Mobile is hit by OnHarmfulSpell
 		/// </summary>
 		/// <param name="from"></param>

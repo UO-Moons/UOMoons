@@ -1,13 +1,10 @@
-using Server.Engines.Craft;
+namespace Server.Items;
 
-namespace Server.Items
+public enum DirectionType
 {
-	public enum DirectionType
-	{
-		None = 0,
-		South = 1,
-		East = 2,
-		North = 3,
-		West = 4
-	}
+	None = 0,
+	South = 1,
+	East = 2,
+	North = 3,
+	West = 4
 }

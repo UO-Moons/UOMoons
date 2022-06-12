@@ -44,13 +44,13 @@ namespace Server.Mobiles
 			AddLoot(LootPack.UltraRich, 3);
 		}
 
-		public override void OnDeath(Container c)
-		{
-			base.OnDeath(c);
+		//public override void OnDeath(Container c)
+		//{
+		//	base.OnDeath(c);
 
-			if (Utility.RandomDouble() < 0.3)
-				c.DropItem(new TaintedSeeds());
-		}
+		//	if (Utility.RandomDouble() < 0.3)
+		//		c.DropItem(new TaintedSeeds());
+		//}
 
 		public override Poison PoisonImmune => Poison.Lethal;
 

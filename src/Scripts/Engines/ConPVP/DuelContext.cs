@@ -538,7 +538,7 @@ namespace Server.Engines.ConPVP
 				Mobile killer = from.FindMostRecentDamager(false);
 
 				if (killer != null && killer.Player)
-					killer.AddToBackpack(new Head(m_Tournament == null ? HeadType.Duel : HeadType.Tournament, from.Name));
+					killer.AddToBackpack(new Head(from, m_Tournament == null ? HeadType.Duel : HeadType.Tournament, from.Name));
 			}
 
 			from.PlaySound(0x3E3);

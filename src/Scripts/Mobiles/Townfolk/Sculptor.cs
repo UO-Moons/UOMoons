@@ -9,7 +9,7 @@ namespace Server.Mobiles
 			: base(AIType.AI_Animal, FightMode.None, 10, 1, 0.2, 0.4)
 		{
 			InitStats(31, 41, 51);
-
+			Karma = Utility.RandomMinMax(13, -45);
 			SpeechHue = Utility.RandomDyedHue();
 			Title = "the sculptor";
 			Hue = Utility.RandomSkinHue();

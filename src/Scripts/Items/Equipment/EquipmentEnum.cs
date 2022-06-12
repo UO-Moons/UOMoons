@@ -1,12 +1,11 @@
-namespace Server.Items
+namespace Server.Items;
+
+public enum DurabilityLevel
 {
-	public enum DurabilityLevel
-	{
-		Regular,
-		Durable,
-		Substantial,
-		Massive,
-		Fortified,
-		Indestructible
-	}
+	Regular,
+	Durable,
+	Substantial,
+	Massive,
+	Fortified,
+	Indestructible
 }

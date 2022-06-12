@@ -28,7 +28,7 @@ namespace Server.Mobiles
 				AddItem(new FancyShirt(Utility.RandomDyedHue()));
 				Title = "the actor";
 			}
-
+			Karma = Utility.RandomMinMax(13, -45);
 			AddItem(new Boots(Utility.RandomNeutralHue()));
 
 			Utility.AssignRandomHair(this);
