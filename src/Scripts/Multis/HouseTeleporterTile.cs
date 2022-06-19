@@ -20,12 +20,12 @@ namespace Server.Multis
 
         private int _Charges;
 
-        public override int ItemID
+        public override int ItemId
         {
-            get { return base.ItemID; }
+            get { return base.ItemId; }
             set
             {
-                base.ItemID = value;
+                base.ItemId = value;
 
                 HueChange();
             }
@@ -47,7 +47,7 @@ namespace Server.Multis
             }
         }
 
-        private bool IsMoveOver => ItemID == 0x574A || ItemID == 0xA1CB || ItemID == 0xA1CC || ItemID == 0x40BB;
+        private bool IsMoveOver => ItemId == 0x574A || ItemId == 0xA1CB || ItemId == 0xA1CC || ItemId == 0x40BB;
 
         [CommandProperty(AccessLevel.GameMaster)]
         public int Charges
@@ -65,7 +65,7 @@ namespace Server.Multis
 
         public void HueChange()
         {
-            if (UsesCharges && ItemID == 0x574A)
+            if (UsesCharges && ItemId == 0x574A)
             {
                 if (_Charges == 0)
                 {
@@ -110,63 +110,63 @@ namespace Server.Multis
         {
             bool flip = false;
 
-            switch (ItemID)
+            switch (ItemId)
             {
                 case 0x108C:
-                    ItemID = 0x1093;
+                    ItemId = 0x1093;
                     flip = true;
                     break;
                 case 0x1093:
-                    ItemID = 0x108C;
+                    ItemId = 0x108C;
                     flip = true;
                     break;
                 case 0x108D:
-                    ItemID = 0x1094;
+                    ItemId = 0x1094;
                     flip = true;
                     break;
                 case 0x1094:
-                    ItemID = 0x108D;
+                    ItemId = 0x108D;
                     flip = true;
                     break;
                 case 0x108E:
-                    ItemID = 0x1095;
+                    ItemId = 0x1095;
                     flip = true;
                     break;
                 case 0x1095:
-                    ItemID = 0x108E;
+                    ItemId = 0x108E;
                     flip = true;
                     break;
                 case 0x1090:
                 case 0x108F:
-                    ItemID = 0x1091;
+                    ItemId = 0x1091;
                     flip = true;
                     break;
                 case 0x1091:
-                    ItemID = 0x1090;
+                    ItemId = 0x1090;
                     flip = true;
                     break;
                 case 0xA1CB:
-                    ItemID = 0xA1CC;
+                    ItemId = 0xA1CC;
                     flip = true;
                     break;
                 case 0xA1CC:
-                    ItemID = 0xA1CB;
+                    ItemId = 0xA1CB;
                     flip = true;
                     break;
                 case 0xA2BA:
-                    ItemID = 0xA2BC;
+                    ItemId = 0xA2BC;
                     flip = true;
                     break;
                 case 0xA2BC:
-                    ItemID = 0xA2BA;
+                    ItemId = 0xA2BA;
                     flip = true;
                     break;
                 case 0xA2BB:
-                    ItemID = 0xA2BD;
+                    ItemId = 0xA2BD;
                     flip = true;
                     break;
                 case 0xA2BD:
-                    ItemID = 0xA2BB;
+                    ItemId = 0xA2BB;
                     flip = true;
                     break;
             }
@@ -547,8 +547,8 @@ namespace Server.Multis
             _Charges = reader.ReadInt();
             UsesCharges = reader.ReadBool();
 
-            if (ItemID == 0x40B9)
-                ItemID = 0x574A;
+            if (ItemId == 0x40B9)
+                ItemId = 0x574A;
         }
     }
 
@@ -605,7 +605,7 @@ namespace Server.Multis
         {
             if (info.ButtonID != 0)
             {
-                Teleporter.ItemID = info.ButtonID;
+                Teleporter.ItemId = info.ButtonID;
                 Refresh();
             }
         }

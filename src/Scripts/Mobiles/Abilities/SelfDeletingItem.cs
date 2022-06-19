@@ -9,7 +9,7 @@ namespace Server.Items
 		public SelfDeletingItem( int id, string name, int duration ) : base ( 8391 )
 		{
 			Weight = 1.0;
-			ItemID = id;
+			ItemId = id;
 			Name = "name";
 			Movable = false;
 

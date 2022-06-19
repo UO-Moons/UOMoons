@@ -6,7 +6,7 @@ namespace Server.Items;
 public class DarkwoodLegs : WoodlandLegs
 {
 	public override int LabelNumber => 1073484;// Darkwood Leggings
-	public override SetItem SetID => SetItem.Darkwood;
+	public override SetItem SetId => SetItem.Darkwood;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 8;
 	public override int BaseFireResistance => 5;

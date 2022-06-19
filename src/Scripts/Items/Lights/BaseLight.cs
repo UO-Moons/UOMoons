@@ -96,7 +96,7 @@ namespace Server.Items
 				PlayLitSound();
 
 				m_Burning = true;
-				ItemID = LitItemID;
+				ItemId = LitItemID;
 				DoTimer(m_Duration);
 			}
 		}
@@ -106,9 +106,9 @@ namespace Server.Items
 			m_Burning = false;
 
 			if (BurntOut && BurntOutItemID != 0)
-				ItemID = BurntOutItemID;
+				ItemId = BurntOutItemID;
 			else
-				ItemID = UnlitItemID;
+				ItemId = UnlitItemID;
 
 			if (BurntOut)
 				m_Duration = TimeSpan.Zero;

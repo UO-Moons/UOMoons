@@ -20,7 +20,7 @@ namespace Server.Items
 		{
 			get
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
 					case 0x113C: return GasTrapType.NorthWall;
 					case 0x1147: return GasTrapType.WestWall;
@@ -29,7 +29,7 @@ namespace Server.Items
 
 				return GasTrapType.WestWall;
 			}
-			set => ItemID = GetBaseID(value);
+			set => ItemId = GetBaseID(value);
 		}
 
 		public static int GetBaseID(GasTrapType type)

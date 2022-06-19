@@ -208,7 +208,7 @@ namespace Server.Items
 				return; // not a light source
 			}
 
-			var itemID = item.ItemID;
+			var itemID = item.ItemId;
 
 			foreach (var entry in m_Entries)
 			{

@@ -68,7 +68,7 @@ namespace Server.Engines.Quests.Hag
 					Item hat = player.FindItemOnLayer(Layer.Helm);
 					bool tricorne = hat is TricorneHat;
 
-					if (tricorne && player.BAC >= 20)
+					if (tricorne && player.Bac >= 20)
 					{
 						obj.Complete();
 
@@ -85,7 +85,7 @@ namespace Server.Engines.Quests.Hag
 					}
 					else
 					{
-						qs.AddConversation(new BlackheartNoPirateConversation(tricorne, player.BAC > 0));
+						qs.AddConversation(new BlackheartNoPirateConversation(tricorne, player.Bac > 0));
 					}
 
 					return;

@@ -12,6 +12,7 @@ using Server.Spells.Ninjitsu;
 using Server.Spells.Spellweaving;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Server.Items
@@ -44,7 +45,7 @@ namespace Server.Items
 		private WeaponEffect m_WeaponEffect;
 		private int m_Charges;
 		#endregion
-
+		private const bool UseNewHits = false;
 		#region Virtual Properties
 		public virtual WeaponAbility PrimaryAbility => null;
 		public virtual WeaponAbility SecondaryAbility => null;
@@ -62,6 +63,7 @@ namespace Server.Items
 		public virtual float SpeedBase => 0;
 		public virtual int InitMinHits => 0;
 		public virtual int InitMaxHits => 0;
+		public virtual int InitHits => Utility.RandomMinMax(InitMinHits, InitMaxHits);
 		public override int PhysicalResistance => m_AosWeaponAttributes.ResistPhysicalBonus;
 		public override int FireResistance => m_AosWeaponAttributes.ResistFireBonus;
 		public override int ColdResistance => m_AosWeaponAttributes.ResistColdBonus;
@@ -359,8 +361,8 @@ namespace Server.Items
 		{
 			int scale = 100 + GetDurabilityBonus();
 
-			m_Hits = ((m_Hits * scale) + 99) / 100;
-			m_MaxHits = ((m_MaxHits * scale) + 99) / 100;
+			m_Hits = (m_Hits * scale + 99) / 100;
+			m_MaxHits = (m_MaxHits * scale + 99) / 100;
 			InvalidateProperties();
 		}
 
@@ -529,7 +531,7 @@ namespace Server.Items
 			int dexBonus = Attributes.BonusDex;
 			int intBonus = Attributes.BonusInt;
 
-			if ((strBonus != 0 || dexBonus != 0 || intBonus != 0))
+			if (strBonus != 0 || dexBonus != 0 || intBonus != 0)
 			{
 				Mobile m = from;
 
@@ -549,8 +551,7 @@ namespace Server.Items
 
 			if (UseSkillMod && m_AccuracyLevel != WeaponAccuracyLevel.Regular)
 			{
-				if (m_SkillMod != null)
-					m_SkillMod.Remove();
+				m_SkillMod?.Remove();
 
 				m_SkillMod = new DefaultSkillMod(AccuracySkill, true, (int)m_AccuracyLevel * 5);
 				from.AddSkillMod(m_SkillMod);
@@ -581,12 +582,12 @@ namespace Server.Items
 
 				if (IsSetItem)
 				{
-					m_SetEquipped = SetHelper.FullSetEquipped(from, SetID, Pieces);
+					m_SetEquipped = SetHelper.FullSetEquipped(from, SetId, Pieces);
 
 					if (m_SetEquipped)
 					{
 						m_LastEquipped = true;
-						SetHelper.AddSetBonus(from, SetID);
+						SetHelper.AddSetBonus(from, SetId);
 					}
 				}
 
@@ -630,7 +631,7 @@ namespace Server.Items
 
 				if (Core.ML && IsSetItem && m_SetEquipped)
 				{
-					SetHelper.RemoveSetBonus(m, SetID, this);
+					SetHelper.RemoveSetBonus(m, SetId, this);
 				}
 
 				m.CheckStatTimers();
@@ -692,10 +693,10 @@ namespace Server.Items
 		{
 			if (damageable is not Mobile defender)
 			{
-				//if (damageable is IDamageableItem)
-				//{
-				//	return ((IDamageableItem)damageable).CheckHit(attacker);
-				//}
+				if (damageable is IDamageableItem)
+				{
+					return ((IDamageableItem)damageable).CheckHit(attacker);
+				}
 
 				return true;
 			}
@@ -768,7 +769,7 @@ namespace Server.Items
 
 			double chance = ourValue / (theirValue * 2.0);
 
-			chance *= 1.0 + ((double)bonus / 100);
+			chance *= 1.0 + (double)bonus / 100;
 
 			if (Core.AOS && chance < 0.02)
 			{
@@ -796,9 +797,22 @@ namespace Server.Items
 			double delayInSeconds;
 
 			//Get the attack speed bonus from the mobile
-			int bonus = m.GetAttackSpeedBonus();
+			//int bonus = m.GetAttackSpeedBonus();
 			if (Core.SE)
 			{
+				/*
+				* This is likely true for Core.AOS as well... both guides report the same
+				* formula, and both are wrong.
+				* The old formula left in for AOS for legacy & because we aren't quite 100%
+				* Sure that AOS has THIS formula
+*/
+				int bonus = AosAttributes.GetValue(m, AosAttribute.WeaponSpeed);
+
+				if (bonus > 60)
+				{
+					bonus = 60;
+				}
+
 				double ticks;
 
 				if (Core.ML)
@@ -824,22 +838,22 @@ namespace Server.Items
 
 				delayInSeconds = ticks * 0.25;
 			}
-			else if (Core.AOS)
-			{
-				int v = (m.Stam + 100) * (int)speed;
-
-				v += AOS.Scale(v, bonus);
-
-				if (v <= 0)
-					v = 1;
-
-				delayInSeconds = Math.Floor(40000.0 / v) * 0.5;
-
+			//else if (Core.AOS)
+			//{
+			//	int v = (m.Stam + 100) * (int)speed;
+			//
+			//	v += AOS.Scale(v, bonus);
+			//
+			//	if (v <= 0)
+			//		v = 1;
+			//
+			//	delayInSeconds = Math.Floor(40000.0 / v) * 0.5;
+			//
 				// Maximum swing rate capped at one swing per second
 				// OSI dev said that it has and is supposed to be 1.25
-				if (delayInSeconds < 1.25)
-					delayInSeconds = 1.25;
-			}
+			//	if (delayInSeconds < 1.25)
+			//		delayInSeconds = 1.25;
+			//}
 			else
 			{
 				int v = (m.Stam + 100) * (int)speed;
@@ -883,16 +897,16 @@ namespace Server.Items
 
 			if (Core.AOS)
 			{
-				canSwing = (!attacker.Paralyzed && !attacker.Frozen);
+				canSwing = !attacker.Paralyzed && !attacker.Frozen;
 
 				if (canSwing)
 				{
-					canSwing = (attacker.Spell is not Spell sp || !sp.IsCasting || !sp.BlocksMovement);
+					canSwing = attacker.Spell is not Spell sp || !sp.IsCasting || !sp.BlocksMovement;
 				}
 
 				if (canSwing)
 				{
-					canSwing = (attacker is not PlayerMobile p || p.PeacedUntil <= DateTime.UtcNow);
+					canSwing = attacker is not PlayerMobile p || p.PeacedUntil <= DateTime.UtcNow;
 				}
 			}
 
@@ -1024,24 +1038,39 @@ namespace Server.Items
 			bool blocked = false;
 			int originaldamage = damage;
 
-			if (defender.Player || defender.Body.IsHuman)
+			if (defender.Player || defender.Body.IsHuman || (defender is BaseCreature &&
+			                                                 ((BaseCreature)defender).Controlled &&
+			                                                 defender.Skills[SkillName.Wrestling].Base >= 100))
 			{
 				blocked = CheckParry(defender);
+				BaseWeapon weapon = defender.Weapon as BaseWeapon;
 
 				if (blocked)
 				{
 					defender.FixedEffect(0x37B9, 10, 16);
 					damage = 0;
 
+					if (Core.SA)
+					{
+						defender.Animate(AnimationType.Parry, 0);
+					}
+
 					// Successful block removes the Honorable Execution penalty.
 					HonorableExecution.RemovePenalty(defender);
 
-					if (CounterAttack.IsCountering(defender))
+					if (CounterAttack.IsCountering(defender) && defender.InRange(attacker.Location, 1))
 					{
-						if (defender.Weapon is BaseWeapon weapon)
+						if (weapon != null)
 						{
+							var combatant = defender.Combatant;
+
 							defender.FixedParticles(0x3779, 1, 15, 0x158B, 0x0, 0x3, EffectLayer.Waist);
-							_ = weapon.OnSwing(defender, attacker);
+							weapon.OnSwing(defender, attacker);
+
+							if (combatant != null && defender.Combatant != combatant && combatant.Alive)
+							{
+								defender.Combatant = combatant;
+							}
 						}
 
 						CounterAttack.StopCountering(defender);
@@ -1059,7 +1088,7 @@ namespace Server.Items
 
 					if (defender.FindItemOnLayer(Layer.TwoHanded) is BaseShield shield)
 					{
-						_ = shield.OnHit(this, damage);
+						shield.OnHit(this, damage);
 						XmlAttach.OnArmorHit(attacker, defender, shield, this, originaldamage);
 					}
 				}
@@ -1067,32 +1096,58 @@ namespace Server.Items
 
 			if (!blocked)
 			{
-				double positionChance = Utility.RandomDouble();
-
-				Item armorItem;
-
-				if (positionChance < 0.07)
-					armorItem = defender.NeckArmor;
-				else if (positionChance < 0.14)
-					armorItem = defender.HandArmor;
-				else if (positionChance < 0.28)
-					armorItem = defender.ArmsArmor;
-				else if (positionChance < 0.43)
-					armorItem = defender.HeadArmor;
-				else if (positionChance < 0.65)
-					armorItem = defender.LegsArmor;
-				else
-					armorItem = defender.ChestArmor;
-
-				if (armorItem is IWearableDurability armor)
+				if (GetRandomValidItem(defender) is IWearableDurability toHit)
 				{
-					_ = armor.OnHit(this, damage); // call OnHit to lose durability
-					XmlAttach.OnArmorHit(attacker, defender, armorItem, this, originaldamage);
+					toHit.OnHit(this, damage); // call OnHit to lose durability
+
+					if (toHit is Item && !((Item)toHit).Deleted && (attacker is VeriteElemental || attacker is ValoriteElemental))
+					{
+						VeriteElemental.OnHit(defender, (Item)toHit, damage);
+					}
+
+					damage -= XmlAttach.OnArmorHit(attacker, defender, (Item)toHit, this, originaldamage);
 				}
 			}
 
 			return damage;
 		}
+
+		private Item GetRandomValidItem(Mobile m)
+		{
+			Item[] items = m.Items.Where(item => _damageLayers.Contains(item.Layer) && item is IWearableDurability).ToArray();
+
+			if (items.Length == 0)
+			{
+				return null;
+			}
+
+			return items[Utility.Random(items.Length)];
+		}
+
+		private readonly List<Layer> _damageLayers = new()
+		{
+			Layer.FirstValid,
+			Layer.OneHanded,
+			Layer.TwoHanded,
+			Layer.Shoes,
+			Layer.Pants,
+			Layer.Shirt,
+			Layer.Helm,
+			Layer.Arms,
+			Layer.Gloves,
+			Layer.Ring,
+			Layer.Talisman,
+			Layer.Neck,
+			Layer.Waist,
+			Layer.InnerTorso,
+			Layer.Bracelet,
+			Layer.MiddleTorso,
+			Layer.Earrings,
+			Layer.Cloak,
+			Layer.OuterTorso,
+			Layer.OuterLegs,
+			Layer.InnerLegs,
+		};
 
 		public virtual int AbsorbDamage(Mobile attacker, Mobile defender, int damage)
 		{
@@ -2276,9 +2331,9 @@ namespace Server.Items
 		{
 			var blood = CreateBlood(defender);
 
-			var id = blood.ItemID;
+			var id = blood.ItemId;
 
-			blood.ItemID = 1; // No Draw
+			blood.ItemId = 1; // No Draw
 
 			blood.OnBeforeSpawn(target, map);
 			blood.MoveToWorld(target, map);
@@ -2286,7 +2341,7 @@ namespace Server.Items
 
 			Effects.SendMovingEffect(defender, blood, id, 7, 10, true, false, blood.Hue, 0);
 
-			Timer.DelayCall(TimeSpan.FromMilliseconds(500), b => b.ItemID = id, blood);
+			Timer.DelayCall(TimeSpan.FromMilliseconds(500), b => b.ItemId = id, blood);
 		}
 
 		protected virtual bool CanDrawBlood(Mobile defender)
@@ -3299,7 +3354,12 @@ namespace Server.Items
 
 			if (m_Hits <= 0 && m_MaxHits <= 0)
 			{
-				m_Hits = m_MaxHits = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+				if (UseNewHits)
+				{
+					m_Hits = m_MaxHits = InitHits;
+				}
+				else
+					m_Hits = m_MaxHits = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 			}
 		}
 		#endregion
@@ -3321,7 +3381,12 @@ namespace Server.Items
 			m_Skill = (SkillName)(-1);
 			m_Type = (WeaponType)(-1);
 			m_Animation = (WeaponAnimation)(-1);
-			m_Hits = m_MaxHits = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+			if (UseNewHits)
+			{
+				m_Hits = m_MaxHits = InitHits;
+			}
+			else
+				m_Hits = m_MaxHits = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 			base.Resource = DefaultResource;
 			Hue = CraftResources.GetHue(Resource);
 			m_AosWeaponAttributes = new AosWeaponAttributes(this);
@@ -4694,19 +4759,19 @@ namespace Server.Items
 			{
 				if (IsSetItem && m_SetEquipped)
 				{
-					SetHelper.RemoveSetBonus(from, SetID, this);
+					SetHelper.RemoveSetBonus(from, SetId, this);
 				}
 			}
 
 			return base.OnDragLift(from);
 		}
 
-		public virtual SetItem SetID => SetItem.None;
+		public virtual SetItem SetId => SetItem.None;
 		public virtual int Pieces => 0;
 
-		public virtual bool BardMasteryBonus => (SetID == SetItem.Virtuoso);
+		public virtual bool BardMasteryBonus => (SetId == SetItem.Virtuoso);
 
-		public bool IsSetItem => SetID != SetItem.None;
+		public bool IsSetItem => SetId != SetItem.None;
 
 		private int m_SetHue;
 		private bool m_SetEquipped;

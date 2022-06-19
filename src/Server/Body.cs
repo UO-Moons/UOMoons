@@ -15,14 +15,14 @@ namespace Server
 
 	public struct Body
 	{
-		private static readonly BodyType[] m_Types;
+		private static readonly BodyType[] MTypes;
 
 		static Body()
 		{
 			if (File.Exists("Data/bodyTable.cfg"))
 			{
 				using StreamReader ip = new("Data/bodyTable.cfg");
-				m_Types = new BodyType[0x1000];
+				MTypes = new BodyType[0x1000];
 
 				string line;
 
@@ -34,9 +34,9 @@ namespace Server
 					string[] split = line.Split('\t');
 
 
-					if (int.TryParse(split[0], out int bodyID) && Enum.TryParse(split[1], true, out BodyType type) && bodyID >= 0 && bodyID < m_Types.Length)
+					if (int.TryParse(split[0], out int bodyId) && Enum.TryParse(split[1], true, out BodyType type) && bodyId >= 0 && bodyId < MTypes.Length)
 					{
-						m_Types[bodyID] = type;
+						MTypes[bodyId] = type;
 					}
 					else
 					{
@@ -49,95 +49,70 @@ namespace Server
 			{
 				Console.WriteLine("Warning: Data/bodyTable.cfg does not exist");
 
-				m_Types = Array.Empty<BodyType>();
+				MTypes = Array.Empty<BodyType>();
 			}
 		}
 
-		public Body(int bodyID)
+		public Body(int bodyId)
 		{
-			BodyID = bodyID;
+			BodyId = bodyId;
 		}
 
 		public BodyType Type
 		{
 			get
 			{
-				if (BodyID >= 0 && BodyID < m_Types.Length)
-					return m_Types[BodyID];
+				if (BodyId >= 0 && BodyId < MTypes.Length)
+					return MTypes[BodyId];
 				else
 					return BodyType.Empty;
 			}
 		}
 
-		public bool IsHuman => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Human
-					&& BodyID != 402
-					&& BodyID != 403
-					&& BodyID != 607
-					&& BodyID != 608
-					&& BodyID != 694
-					&& BodyID != 695
-					&& BodyID != 970;
+		public bool IsHuman => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Human
+					&& BodyId != 402
+					&& BodyId != 403
+					&& BodyId != 607
+					&& BodyId != 608
+					&& BodyId != 694
+					&& BodyId != 695
+					&& BodyId != 970;
 
-		public bool IsGargoyle => BodyID == 666
-					|| BodyID == 667
-					|| BodyID == 694
-					|| BodyID == 695;
+		public bool IsGargoyle => BodyId is 666 or 667 or 694 or 695;
 
-		public bool IsMale => BodyID == 183
-					|| BodyID == 185
-					|| BodyID == 400
-					|| BodyID == 402
-					|| BodyID == 605
-					|| BodyID == 607
-					|| BodyID == 666
-					|| BodyID == 694
-					|| BodyID == 750;
+		public bool IsMale => BodyId is 183 or 185 or 400 or 402 or 605 or 607 or 666 or 694 or 750;
 
-		public bool IsFemale => BodyID == 184
-					|| BodyID == 186
-					|| BodyID == 401
-					|| BodyID == 403
-					|| BodyID == 606
-					|| BodyID == 608
-					|| BodyID == 667
-					|| BodyID == 695
-					|| BodyID == 751;
+		public bool IsFemale => BodyId is 184 or 186 or 401 or 403 or 606 or 608 or 667 or 695 or 751;
 
-		public bool IsGhost => BodyID == 402
-					|| BodyID == 403
-					|| BodyID == 607
-					|| BodyID == 608
-					|| BodyID == 694
-					|| BodyID == 695
-					|| BodyID == 970;
+		public bool IsGhost => BodyId is 402 or 403 or 607 or 608 or 694 or 695 or 970;
 
-		public bool IsMonster => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Monster;
+		public bool IsMonster => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Monster;
 
-		public bool IsAnimal => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Animal;
+		public bool IsAnimal => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Animal;
 
-		public bool IsEmpty => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Empty;
+		public bool IsEmpty => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Empty;
 
-		public bool IsSea => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Sea;
+		public bool IsSea => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Sea;
 
-		public bool IsEquipment => BodyID >= 0
-					&& BodyID < m_Types.Length
-					&& m_Types[BodyID] == BodyType.Equipment;
+		public bool IsEquipment => BodyId >= 0
+					&& BodyId < MTypes.Length
+					&& MTypes[BodyId] == BodyType.Equipment;
 
-		public int BodyID { get; }
+		public int BodyId { get; }
 
 		public static implicit operator int(Body a)
 		{
-			return a.BodyID;
+			return a.BodyId;
 		}
 
 		public static implicit operator Body(int a)
@@ -147,49 +122,49 @@ namespace Server
 
 		public override string ToString()
 		{
-			return string.Format("0x{0:X}", BodyID);
+			return $"0x{BodyId:X}";
 		}
 
 		public override int GetHashCode()
 		{
-			return BodyID;
+			return BodyId;
 		}
 
 		public override bool Equals(object o)
 		{
 			if (o == null || !(o is Body)) return false;
 
-			return ((Body)o).BodyID == BodyID;
+			return ((Body)o).BodyId == BodyId;
 		}
 
 		public static bool operator ==(Body l, Body r)
 		{
-			return l.BodyID == r.BodyID;
+			return l.BodyId == r.BodyId;
 		}
 
 		public static bool operator !=(Body l, Body r)
 		{
-			return l.BodyID != r.BodyID;
+			return l.BodyId != r.BodyId;
 		}
 
 		public static bool operator >(Body l, Body r)
 		{
-			return l.BodyID > r.BodyID;
+			return l.BodyId > r.BodyId;
 		}
 
 		public static bool operator >=(Body l, Body r)
 		{
-			return l.BodyID >= r.BodyID;
+			return l.BodyId >= r.BodyId;
 		}
 
 		public static bool operator <(Body l, Body r)
 		{
-			return l.BodyID < r.BodyID;
+			return l.BodyId < r.BodyId;
 		}
 
 		public static bool operator <=(Body l, Body r)
 		{
-			return l.BodyID <= r.BodyID;
+			return l.BodyId <= r.BodyId;
 		}
 	}
 }

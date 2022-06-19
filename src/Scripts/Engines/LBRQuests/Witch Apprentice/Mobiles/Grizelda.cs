@@ -154,7 +154,7 @@ namespace Server.Engines.Quests.Hag
 									cont.DropItem(item);
 								}
 
-								if (player.BAC > 0)
+								if (player.Bac > 0)
 									cont.DropItem(new HangoverCure());
 
 								if (player.PlaceInBackpack(cont))

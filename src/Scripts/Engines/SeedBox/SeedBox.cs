@@ -224,13 +224,13 @@ namespace Server.Engines.Plants
 
 			if (Entries.Count > 0)
 			{
-				if (ItemID == 19288)
+				if (ItemId == 19288)
 				{
-					ItemID = 19289;
+					ItemId = 19289;
 				}
-				else if (ItemID == 19290)
+				else if (ItemId == 19290)
 				{
-					ItemID = 19291;
+					ItemId = 19291;
 				}
 			}
 		}
@@ -242,13 +242,13 @@ namespace Server.Engines.Plants
 
 			if (Entries.Count == 0)
 			{
-				if (ItemID == 19289)
+				if (ItemId == 19289)
 				{
-					ItemID = 19288;
+					ItemId = 19288;
 				}
-				else if (ItemID == 19291)
+				else if (ItemId == 19291)
 				{
-					ItemID = 19290;
+					ItemId = 19290;
 				}
 			}
 		}

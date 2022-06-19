@@ -3,7 +3,7 @@ namespace Server.Items;
 public class SorcererGorget : LeatherGorget
 {
 	public override int LabelNumber => 1080466;  // Sorcerer's Gorget
-	public override SetItem SetID => SetItem.Sorcerer;
+	public override SetItem SetId => SetItem.Sorcerer;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

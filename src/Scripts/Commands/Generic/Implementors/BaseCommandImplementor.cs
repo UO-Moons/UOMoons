@@ -275,7 +275,7 @@ namespace Server.Commands.Generic
 				return;
 
 			for (int i = 0; i < Accessors.Length; ++i)
-				CommandSystem.Register(Accessors[i], AccessLevel, new CommandEventHandler(Execute));
+				CommandSystem.Register(Accessors[i], AccessLevel, Execute);
 		}
 
 		public static void Register(BaseCommandImplementor impl)

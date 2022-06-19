@@ -29,18 +29,18 @@ namespace Server.Items
 				return;
 			}
 
-			if (ItemID == 0xA57) // rolled
+			if (ItemId == 0xA57) // rolled
 			{
 				Direction dir = PlayerMobile.GetDirection4(from.Location, Location);
 
 				if (dir == Direction.North || dir == Direction.South)
-					ItemID = 0xA55;
+					ItemId = 0xA55;
 				else
-					ItemID = 0xA56;
+					ItemId = 0xA56;
 			}
 			else // unrolled
 			{
-				ItemID = 0xA57;
+				ItemId = 0xA57;
 
 				if (!from.HasGump(typeof(LogoutGump)))
 				{

@@ -25,7 +25,7 @@ namespace Server.Network
     {
         public Mobile User { get; private set; }
 
-        public override int GetTypeID()
+        public override int GetTypeId()
         {
             return 0x2AE;
         }

@@ -1,34 +1,27 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class SbBowyer : SbInfo
 {
-	public class SBBowyer : SBInfo
+	public override IShopSellInfo SellInfo { get; } = new InternalSellInfo();
+
+	public override List<GenericBuyInfo> BuyInfo { get; } = new InternalBuyInfo();
+
+	public class InternalBuyInfo : List<GenericBuyInfo>
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
-		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
-
-		public SBBowyer()
+		public InternalBuyInfo()
 		{
+			Add(new GenericBuyInfo(typeof(FletcherTools), 2, 20, 0x1022, 0));
 		}
+	}
 
-		public override IShopSellInfo SellInfo => m_SellInfo;
-		public override List<GenericBuyInfo> BuyInfo => m_BuyInfo;
-
-		public class InternalBuyInfo : List<GenericBuyInfo>
+	public class InternalSellInfo : GenericSellInfo
+	{
+		public InternalSellInfo()
 		{
-			public InternalBuyInfo()
-			{
-				Add(new GenericBuyInfo(typeof(FletcherTools), 2, 20, 0x1022, 0));
-			}
-		}
-
-		public class InternalSellInfo : GenericSellInfo
-		{
-			public InternalSellInfo()
-			{
-				Add(typeof(FletcherTools), 1);
-			}
+			Add(typeof(FletcherTools), 1);
 		}
 	}
 }

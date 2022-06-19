@@ -26,7 +26,7 @@ namespace Server.Items
 			if (item == null)
 				item = new EffectItem();
 			else
-				item.ItemID = 1;
+				item.ItemId = 1;
 
 			item.MoveToWorld(p, map);
 			item.BeginFree(duration);

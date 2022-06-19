@@ -312,12 +312,12 @@ namespace Server.Items
 
 				if (Core.ML && IsSetItem)
 				{
-					m_SetEquipped = SetHelper.FullSetEquipped(mob, SetID, Pieces);
+					m_SetEquipped = SetHelper.FullSetEquipped(mob, SetId, Pieces);
 
 					if (m_SetEquipped)
 					{
 						m_LastEquipped = true;
-						SetHelper.AddSetBonus(mob, SetID);
+						SetHelper.AddSetBonus(mob, SetId);
 					}
 				}
 
@@ -337,7 +337,7 @@ namespace Server.Items
 
 				if (Core.ML && IsSetItem && m_SetEquipped)
 				{
-					SetHelper.RemoveSetBonus(mob, SetID, this);
+					SetHelper.RemoveSetBonus(mob, SetId, this);
 				}
 
 				RemoveStatBonuses(mob);
@@ -1367,21 +1367,21 @@ namespace Server.Items
 			{
 				if (IsSetItem && m_SetEquipped)
 				{
-					SetHelper.RemoveSetBonus(from, SetID, this);
+					SetHelper.RemoveSetBonus(from, SetId, this);
 				}
 			}
 
 			return base.OnDragLift(from);
 		}
 
-		public virtual SetItem SetID => SetItem.None;
+		public virtual SetItem SetId => SetItem.None;
 		public virtual int Pieces => 0;
 
-		public virtual bool BardMasteryBonus => SetID == SetItem.Virtuoso;
+		public virtual bool BardMasteryBonus => SetId == SetItem.Virtuoso;
 
 		public virtual bool MixedSet => false;
 
-		public bool IsSetItem => SetID != SetItem.None;
+		public bool IsSetItem => SetId != SetItem.None;
 
 		private int m_SetHue;
 		private bool m_SetEquipped;
@@ -1506,7 +1506,7 @@ namespace Server.Items
 
 			if (!m_SetEquipped)
 			{
-				if (SetID == SetItem.Virtuoso)
+				if (SetId == SetItem.Virtuoso)
 				{
 					list.Add(1151571); // Mastery Bonus Cooldown: 15 min.
 				}

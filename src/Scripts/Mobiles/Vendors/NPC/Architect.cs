@@ -1,45 +1,53 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Architect : BaseVendor
 {
-	public class Architect : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	public override NpcGuild NpcGuild => NpcGuild.TinkersGuild;
+
+	public override double GetBuyDiscountFor(Mobile from)
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		return 1.0;
+	}
 
-		public override NpcGuild NpcGuild => NpcGuild.TinkersGuild;
+	public override double GetSellDiscountFor(Mobile from)
+	{
+		return 1.0;
+	}
 
-		[Constructable]
-		public Architect() : base("the architect")
-		{
-			Job = JobFragment.architect;
-			Karma = Utility.RandomMinMax(13, -45);
-		}
+	[Constructable]
+	public Architect() : base("the architect")
+	{
+		Job = JobFragment.architect;
+		Karma = Utility.RandomMinMax(13, -45);
+		BankAccount = BankRestockAmount = 0x40000000;
+	}
 
-		public override void InitSBInfo()
-		{
-			if (!Core.AOS)
-				m_SBInfos.Add(new SBHouseDeed());
+	public override void InitSbInfo()
+	{
+		if (!Core.AOS)
+			_mSbInfos.Add(new SbHouseDeed());
 
-			m_SBInfos.Add(new SBArchitect());
-		}
+		_mSbInfos.Add(new SbArchitect());
+	}
 
-		public Architect(Serial serial) : base(serial)
-		{
-		}
+	public Architect(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

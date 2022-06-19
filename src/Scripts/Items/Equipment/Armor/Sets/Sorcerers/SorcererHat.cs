@@ -3,7 +3,7 @@ namespace Server.Items;
 public class SorcererHat : WizardsHat
 {
 	public override int LabelNumber => 1080465;  // Sorcerer's Hat
-	public override SetItem SetID => SetItem.Sorcerer;
+	public override SetItem SetId => SetItem.Sorcerer;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

@@ -8,8 +8,8 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0xA15 || ItemID == 0xA17)
-					return ItemID;
+				if (ItemId == 0xA15 || ItemId == 0xA17)
+					return ItemId;
 
 				return 0xA22;
 			}
@@ -19,8 +19,8 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0xA18)
-					return ItemID;
+				if (ItemId == 0xA18)
+					return ItemId;
 
 				return 0xA25;
 			}

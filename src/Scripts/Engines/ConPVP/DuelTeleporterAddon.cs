@@ -20,14 +20,14 @@ namespace Server.Engines.ConPVP
 			get
 			{
 				if (Components.Count > 0)
-					return (DuelTeleporterType)(Components[0].ItemID);
+					return (DuelTeleporterType)(Components[0].ItemId);
 
 				return DuelTeleporterType.Squares;
 			}
 			set
 			{
 				for (int i = 0; i < Components.Count && i < 9; ++i)
-					Components[i].ItemID = i + (int)value;
+					Components[i].ItemId = i + (int)value;
 			}
 		}
 

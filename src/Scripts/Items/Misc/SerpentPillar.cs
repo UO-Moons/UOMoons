@@ -68,7 +68,7 @@ namespace Server.Items
 
 					Point3D dest = new Point3D(x, y, z);
 
-					if (boat.CanFit(dest, map, boat.ItemID))
+					if (boat.CanFit(dest, map, boat.ItemId))
 					{
 						int xOffset = x - boat.X;
 						int yOffset = y - boat.Y;

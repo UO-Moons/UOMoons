@@ -44,7 +44,7 @@ namespace Server.Items
 				AddHtmlLocalized(20, 239, 315, 20, 1073634, 0xFFFFFF, false, false); // An aquarium decoration
 
 			// item image
-			AddItem(150, 80, item.ItemID, item.Hue);
+			AddItem(150, 80, item.ItemId, item.Hue);
 
 			// item number / all items
 			AddHtml(20, 195, 250, 20, string.Format("<BASEFONT COLOR=#FFFFFF>{0}/{1}</BASEFONT>", page, m_Aquarium.Items.Count), false, false);

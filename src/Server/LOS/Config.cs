@@ -47,19 +47,19 @@ namespace Server.LOS
 	//--------------------------------------------------------------------------------
 	public class Config
 	{
-		private readonly static string m_ConfigFile = "./Data/LOS/Config.xml";
-		private static Config m_OnlyInstance = null;
-		private readonly Dictionary<int, int> m_NotLossed;
-		private readonly Dictionary<int, int> m_WhiteListed;
-		private readonly Dictionary<int, int> m_BlackListed;
-		private readonly Dictionary<int, int> m_Trees;
-		private readonly Dictionary<int, int> m_Mountains;
+		private const string MConfigFile = "./Data/LOS/Config.xml";
+		private static Config _mOnlyInstance = null;
+		private readonly Dictionary<int, int> _mNotLossed;
+		private readonly Dictionary<int, int> _mWhiteListed;
+		private readonly Dictionary<int, int> _mBlackListed;
+		private readonly Dictionary<int, int> _mTrees;
+		private readonly Dictionary<int, int> _mMountains;
 
-		private readonly Dictionary<string, Dictionary<string, string>> m_Warmups;
+		private readonly Dictionary<string, Dictionary<string, string>> _mWarmups;
 
-		private readonly Dictionary<string, string> m_FacetsOn;
+		private readonly Dictionary<string, string> _mFacetsOn;
 
-		public static string ConfigFile { get { return m_ConfigFile; } }
+		public static string ConfigFile => MConfigFile;
 
 		public bool RTFM { get; set; }
 		public bool On { get; set; }
@@ -75,17 +75,32 @@ namespace Server.LOS
 		public int CacheRatio { get; private set; }
 		public bool BackingStore { get; private set; }
 
-		public bool NotLossed(int tile) { if (m_NotLossed.ContainsKey(tile)) return true; else return false; }
-		public bool WhiteListed(int tile) { if (m_WhiteListed.ContainsKey(tile)) return true; else return false; }
-		public bool BlackListed(int tile) { if (m_BlackListed.ContainsKey(tile)) return true; else return false; }
-		public bool Tree(int tile) { if (m_Trees.ContainsKey(tile)) return true; else return false; }
-		public bool Mountain(int tile) { if (m_Mountains.ContainsKey(tile)) return true; else return false; }
+		public bool NotLossed(int tile)
+		{
+			return _mNotLossed.ContainsKey(tile);
+		}
+		public bool WhiteListed(int tile)
+		{
+			return _mWhiteListed.ContainsKey(tile);
+		}
+		public bool BlackListed(int tile)
+		{
+			return _mBlackListed.ContainsKey(tile);
+		}
+		public bool Tree(int tile)
+		{
+			return _mTrees.ContainsKey(tile);
+		}
+		public bool Mountain(int tile)
+		{
+			return _mMountains.ContainsKey(tile);
+		}
 
 		public bool WarmupFacet(string facet)
 		{
-			if (!m_FacetsOn.ContainsKey(facet)) return false;
+			if (!_mFacetsOn.ContainsKey(facet)) return false;
 
-			if (m_Warmups.ContainsKey(facet)) return true;
+			if (_mWarmups.ContainsKey(facet)) return true;
 
 			return false;
 		}
@@ -96,37 +111,35 @@ namespace Server.LOS
 
 			if (region == null) return false;
 
-			if (m_Warmups[facet].ContainsKey(region)) return true;
+			if (_mWarmups[facet].ContainsKey(region)) return true;
 
 			return false;
 		}
 
 		public bool FacetOn(string name)
 		{
-			return m_FacetsOn.ContainsKey(name);
+			return _mFacetsOn.ContainsKey(name);
 		}
 
 		public static Config GetInstance()
 		{
-			if (m_OnlyInstance == null) m_OnlyInstance = new Config();
-
-			return m_OnlyInstance;
+			return _mOnlyInstance ??= new Config();
 		}
 
 		public static void Clear()
 		{
-			m_OnlyInstance = null;
+			_mOnlyInstance = null;
 		}
 
 		private Config()
 		{
-			m_FacetsOn = new Dictionary<string, string>();
-			m_NotLossed = new Dictionary<int, int>();
-			m_WhiteListed = new Dictionary<int, int>();
-			m_BlackListed = new Dictionary<int, int>();
-			m_Trees = new Dictionary<int, int>();
-			m_Mountains = new Dictionary<int, int>();
-			m_Warmups = new Dictionary<string, Dictionary<string, string>>();
+			_mFacetsOn = new Dictionary<string, string>();
+			_mNotLossed = new Dictionary<int, int>();
+			_mWhiteListed = new Dictionary<int, int>();
+			_mBlackListed = new Dictionary<int, int>();
+			_mTrees = new Dictionary<int, int>();
+			_mMountains = new Dictionary<int, int>();
+			_mWarmups = new Dictionary<string, Dictionary<string, string>>();
 
 			Console.WriteLine("LOS: Configuration system initializing");
 
@@ -146,7 +159,7 @@ namespace Server.LOS
 		}
 		private bool MaybeLoadXml()
 		{
-			if (!System.IO.File.Exists(m_ConfigFile))
+			if (!System.IO.File.Exists(MConfigFile))
 			{
 				Console.WriteLine(
 					"\n" +
@@ -164,7 +177,7 @@ namespace Server.LOS
 		//----------------------------------------------------------------------
 		private bool LoadXml()
 		{
-			XmlLinePreservingDocument xmlDoc = new(m_ConfigFile);
+			XmlLinePreservingDocument xmlDoc = new(MConfigFile);
 
 			try
 			{
@@ -220,18 +233,18 @@ namespace Server.LOS
 
 				foreach (string facet in facets)
 				{
-					m_FacetsOn.Add(facet, facet);
+					_mFacetsOn.Add(facet, facet);
 				}
 
 				//--------------------------------------------------------------
 				// Load various tile sets
 				//--------------------------------------------------------------
 
-				LoadTileList(root, "NotLossed", NumberStyles.HexNumber, m_NotLossed);
-				LoadTileList(root, "WhiteList", NumberStyles.HexNumber, m_WhiteListed);
-				LoadTileList(root, "BlackList", NumberStyles.HexNumber, m_BlackListed);
-				LoadTileList(root, "Trees", NumberStyles.HexNumber, m_Trees);
-				LoadTileList(root, "Mountains", NumberStyles.None, m_Mountains);
+				LoadTileList(root, "NotLossed", NumberStyles.HexNumber, _mNotLossed);
+				LoadTileList(root, "WhiteList", NumberStyles.HexNumber, _mWhiteListed);
+				LoadTileList(root, "BlackList", NumberStyles.HexNumber, _mBlackListed);
+				LoadTileList(root, "Trees", NumberStyles.HexNumber, _mTrees);
+				LoadTileList(root, "Mountains", NumberStyles.None, _mMountains);
 
 				LoadWarmups(root);
 
@@ -239,7 +252,7 @@ namespace Server.LOS
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("LOS: Exception encountered attempting to load file: " + m_ConfigFile);
+				Console.WriteLine("LOS: Exception encountered attempting to load file: " + MConfigFile);
 				Console.WriteLine("{0}", e);
 				xmlDoc.Close();
 				return false;
@@ -330,14 +343,14 @@ namespace Server.LOS
 
 					Dictionary<string, string> regionHash;
 
-					if (m_Warmups.ContainsKey(map))
+					if (_mWarmups.ContainsKey(map))
 					{
-						regionHash = m_Warmups[map];
+						regionHash = _mWarmups[map];
 					}
 					else
 					{
 						regionHash = new Dictionary<string, string>();
-						m_Warmups.Add(map, regionHash);
+						_mWarmups.Add(map, regionHash);
 					}
 
 					regionHash.Add(region, region);

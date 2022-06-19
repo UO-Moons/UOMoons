@@ -53,7 +53,7 @@ namespace Server.Mobiles
 				default: orepile = new BronzeOre(); break;
 			}
 			orepile.Amount = Utility.RandomMinMax(1, 10);
-			orepile.ItemID = 0x19B9;
+			orepile.ItemId = 0x19B9;
 			PackItem(orepile);
 
 			// TODO: skeleton

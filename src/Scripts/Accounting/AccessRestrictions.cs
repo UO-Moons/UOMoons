@@ -3,47 +3,44 @@ using System;
 using System.IO;
 using System.Net;
 
-namespace Server
+namespace Server;
+
+public interface IAccountRestricted
 {
-	public interface IAccountRestricted
+	string Account { get; set; }
+}
+
+public class AccessRestrictions
+{
+	public static void Initialize()
 	{
-		string Account { get; set; }
+		EventSink.SocketConnect += EventSink_SocketConnect;
 	}
 
-	public class AccessRestrictions
+	private static void EventSink_SocketConnect(SocketConnectEventArgs e)
 	{
-		public static void Initialize()
+		try
 		{
-			EventSink.SocketConnect += EventSink_SocketConnect;
-		}
+			var ip = ((IPEndPoint)e.Socket.RemoteEndPoint)?.Address;
 
-		private static void EventSink_SocketConnect(SocketConnectEventArgs e)
-		{
-			try
+			if (Firewall.IsBlocked(ip))
 			{
-				IPAddress ip = ((IPEndPoint)e.Socket.RemoteEndPoint).Address;
-
-				if (Firewall.IsBlocked(ip))
-				{
-					Console.WriteLine("Client: {0}: Firewall blocked connection attempt.", ip);
-					e.AllowConnection = false;
-					return;
-				}
-				else if (IPLimiter.SocketBlock && !IPLimiter.Verify(ip))
-				{
-					Console.WriteLine("Client: {0}: Past IP limit threshold", ip);
-
-					using (StreamWriter op = new("ipLimits.log", true))
-						op.WriteLine("{0}\tPast IP limit threshold\t{1}", ip, DateTime.UtcNow);
-
-					e.AllowConnection = false;
-					return;
-				}
-			}
-			catch
-			{
+				Console.WriteLine("Client: {0}: Firewall blocked connection attempt.", ip);
 				e.AllowConnection = false;
 			}
+			else if (IpLimiter.SocketBlock && !IpLimiter.Verify(ip))
+			{
+				Console.WriteLine("Client: {0}: Past IP limit threshold", ip);
+
+				using (StreamWriter op = new("ipLimits.log", true))
+					op.WriteLine("{0}\tPast IP limit threshold\t{1}", ip, DateTime.UtcNow);
+
+				e.AllowConnection = false;
+			}
+		}
+		catch
+		{
+			e.AllowConnection = false;
 		}
 	}
 }

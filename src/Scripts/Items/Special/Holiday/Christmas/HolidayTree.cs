@@ -27,7 +27,7 @@ namespace Server.Items
 			{
 				case HolidayTreeType.Classic:
 					{
-						ItemID = 0xCD7;
+						ItemId = 0xCD7;
 
 						AddItem(0, 0, 0, new TreeTrunk(this, 0xCD6));
 
@@ -63,7 +63,7 @@ namespace Server.Items
 					}
 				case HolidayTreeType.Modern:
 					{
-						ItemID = 0x1B7E;
+						ItemId = 0x1B7E;
 
 						AddOrnament(0, 0, 2, 0xF2F);
 						AddOrnament(0, 0, 2, 0xF20);

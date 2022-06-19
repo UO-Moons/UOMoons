@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074872)); // The opportunity to learn the ways of the Arcanist.
 		}
 
-		public override QuestChain ChainID => QuestChain.SpellweavingS;
+		public override QuestChain ChainId => QuestChain.SpellweavingS;
 		public override Type NextQuest => typeof(NeedsOfTheManySanctuaryQuest);
 		/* Discipline */
 		public override object Title => 1072752;
@@ -56,7 +56,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074872)); // The opportunity to learn the ways of the Arcanist.
 		}
 
-		public override QuestChain ChainID => QuestChain.SpellweavingS;
+		public override QuestChain ChainId => QuestChain.SpellweavingS;
 		public override Type NextQuest => typeof(MakingContributionSanctuaryQuest);
 		/* Needs of the Many - Sanctuary */
 		public override object Title => 1072754;
@@ -99,7 +99,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074872)); // The opportunity to learn the ways of the Arcanist.
 		}
 
-		public override QuestChain ChainID => QuestChain.SpellweavingS;
+		public override QuestChain ChainId => QuestChain.SpellweavingS;
 		public override Type NextQuest => typeof(SuppliesForSanctuaryQuest);
 		/* Making a Contribution - Sanctuary */
 		public override object Title => 1072755;
@@ -143,7 +143,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074872)); // The opportunity to learn the ways of the Arcanist.
 		}
 
-		public override QuestChain ChainID => QuestChain.SpellweavingS;
+		public override QuestChain ChainId => QuestChain.SpellweavingS;
 		public override Type NextQuest => typeof(TheHumanBlightQuest);
 		/* Supplies for Sanctuary */
 		public override object Title => 1072756;
@@ -190,7 +190,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(SpellweavingBook), 1031600)); // Spellweaving Spellbook
 		}
 
-		public override QuestChain ChainID => QuestChain.SpellweavingS;
+		public override QuestChain ChainId => QuestChain.SpellweavingS;
 		/* The Human Blight */
 		public override object Title => 1072757;
 		/* You have proven your desire to contribute to the community and serve the people.  Now you must 

@@ -2,106 +2,105 @@ using Server.Engines.Quests;
 using Server.Items;
 using System;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class KodarsRescueQuest : BaseQuest
 {
-	public class KodarsRescueQuest : BaseQuest
+	public override bool DoneOnce => true;
+
+	public KodarsRescueQuest()
+		: base()
 	{
-		public override bool DoneOnce => true;
+		AddObjective(new EscortObjective(1074780, "Paroxysmus Exit")); // Palace Entrance
 
-		public KodarsRescueQuest()
-			: base()
-		{
-			AddObjective(new EscortObjective(1074780, "Paroxysmus Exit")); // Palace Entrance
-
-			AddReward(new BaseReward(typeof(LargeTreasureBag), "A Large Bag of Treasure."));
-		}
-
-		/* Kodar's Rescue */
-		public override object Title => 1073066;
-
-		/* Please, please I beg of you ... help out of here. I was trying to find one of my sheep 
-           that went missing and I fell down this hole.  Then these ... *hysterical weeping*.  
-           Please, get me out of here!
-        */
-		public override object Description => 1074704;
-
-		/* Please!  PLEASE!  Don't let me die here. */
-		public override object Refuse => 1074705;
-
-		/* *whimper* Please ... hurry.  I am a good climber and could get out the way you came in, 
-           if you can just get me there.
-        */
-		public override object Uncomplete => 1074706;
-
-		/* You've saved my life!  Oh thank you!  I can't repay you for your kindness but please, take */
-		public override object Complete => 1074707;
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+		AddReward(new BaseReward(typeof(LargeTreasureBag), "A Large Bag of Treasure."));
 	}
 
-	public class Kodar : BaseEscort
+	/* Kodar's Rescue */
+	public override object Title => 1073066;
+
+	/* Please, please I beg of you ... help out of here. I was trying to find one of my sheep 
+       that went missing and I fell down this hole.  Then these ... *hysterical weeping*.  
+       Please, get me out of here!
+    */
+	public override object Description => 1074704;
+
+	/* Please!  PLEASE!  Don't let me die here. */
+	public override object Refuse => 1074705;
+
+	/* *whimper* Please ... hurry.  I am a good climber and could get out the way you came in, 
+       if you can just get me there.
+    */
+	public override object Uncomplete => 1074706;
+
+	/* You've saved my life!  Oh thank you!  I can't repay you for your kindness but please, take */
+	public override object Complete => 1074707;
+
+	public override void Serialize(GenericWriter writer)
 	{
-		public override Type[] Quests => new Type[] { typeof(KodarsRescueQuest) };
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-		[Constructable]
-		public Kodar()
-			: base()
-		{
-			Name = "Kodar";
-			Title = "the Lost Villager";
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
 
-		public Kodar(Serial serial)
-		   : base(serial)
-		{
-		}
+public class Kodar : BaseEscort
+{
+	public override Type[] Quests => new Type[] { typeof(KodarsRescueQuest) };
 
-		public override void Advertise()
-		{
-			Say(1074202); // It’s you!   I’m saved, you are just in time.
-		}
+	[Constructable]
+	public Kodar()
+		: base()
+	{
+		Name = "Kodar";
+		Title = "the Lost Villager";
+	}
 
-		public override void InitBody()
-		{
-			InitStats(100, 100, 25);
+	public Kodar(Serial serial)
+		: base(serial)
+	{
+	}
 
-			Female = false;
-			Race = Race.Human;
+	public override void Advertise()
+	{
+		Say(1074202); // It’s you!   I’m saved, you are just in time.
+	}
 
-			Hue = 33790;
-			FacialHairItemID = 0x204D;
-			FacialHairHue = 1102;
-			HairItemID = 0x204A;
-			HairHue = 1102;
-		}
+	public override void InitBody()
+	{
+		InitStats(100, 100, 25);
 
-		public override void InitOutfit()
-		{
-			SetWearable(new LongPants(1727));
-			SetWearable(new FancyShirt());
-			SetWearable(new ThighBoots());
-		}
+		Female = false;
+		Race = Race.Human;
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
+		Hue = 33790;
+		FacialHairItemID = 0x204D;
+		FacialHairHue = 1102;
+		HairItemID = 0x204A;
+		HairHue = 1102;
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void InitOutfit()
+	{
+		SetWearable(new LongPants(1727));
+		SetWearable(new FancyShirt());
+		SetWearable(new ThighBoots());
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

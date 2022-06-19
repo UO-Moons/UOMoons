@@ -7,7 +7,7 @@ namespace Server.Engines.TownHouses
 		public RentalContractCopy(RentalContract contract)
 		{
 			Name = "rental contract copy";
-			ItemID = 0x14F0;
+			ItemId = 0x14F0;
 			c_Contract = contract;
 		}
 

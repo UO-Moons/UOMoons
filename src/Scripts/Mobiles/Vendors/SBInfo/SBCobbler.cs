@@ -1,40 +1,33 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class SbCobbler : SbInfo
 {
-	public class SBCobbler : SBInfo
+	public override IShopSellInfo SellInfo { get; } = new InternalSellInfo();
+
+	public override List<GenericBuyInfo> BuyInfo { get; } = new InternalBuyInfo();
+
+	public class InternalBuyInfo : List<GenericBuyInfo>
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
-		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
-
-		public SBCobbler()
+		public InternalBuyInfo()
 		{
+			Add(new GenericBuyInfo(typeof(ThighBoots), 15, 20, 0x1711, Utility.RandomNeutralHue()));
+			Add(new GenericBuyInfo(typeof(Shoes), 8, 20, 0x170f, Utility.RandomNeutralHue()));
+			Add(new GenericBuyInfo(typeof(Boots), 10, 20, 0x170b, Utility.RandomNeutralHue()));
+			Add(new GenericBuyInfo(typeof(Sandals), 5, 20, 0x170d, Utility.RandomNeutralHue()));
 		}
+	}
 
-		public override IShopSellInfo SellInfo => m_SellInfo;
-		public override List<GenericBuyInfo> BuyInfo => m_BuyInfo;
-
-		public class InternalBuyInfo : List<GenericBuyInfo>
+	public class InternalSellInfo : GenericSellInfo
+	{
+		public InternalSellInfo()
 		{
-			public InternalBuyInfo()
-			{
-				Add(new GenericBuyInfo(typeof(ThighBoots), 15, 20, 0x1711, Utility.RandomNeutralHue()));
-				Add(new GenericBuyInfo(typeof(Shoes), 8, 20, 0x170f, Utility.RandomNeutralHue()));
-				Add(new GenericBuyInfo(typeof(Boots), 10, 20, 0x170b, Utility.RandomNeutralHue()));
-				Add(new GenericBuyInfo(typeof(Sandals), 5, 20, 0x170d, Utility.RandomNeutralHue()));
-			}
-		}
-
-		public class InternalSellInfo : GenericSellInfo
-		{
-			public InternalSellInfo()
-			{
-				Add(typeof(Shoes), 4);
-				Add(typeof(Boots), 5);
-				Add(typeof(ThighBoots), 7);
-				Add(typeof(Sandals), 2);
-			}
+			Add(typeof(Shoes), 4);
+			Add(typeof(Boots), 5);
+			Add(typeof(ThighBoots), 7);
+			Add(typeof(Sandals), 2);
 		}
 	}
 }

@@ -41,10 +41,10 @@ namespace Server.Items
 		{
 			Cut = true;
 
-			if (ItemID == 0x1B1C)
-				ItemID = 0x1B1B;
+			if (ItemId == 0x1B1C)
+				ItemId = 0x1B1B;
 			else
-				ItemID = 0x1B1C;
+				ItemId = 0x1B1C;
 
 			if (Owner != null)
 				Owner.PlaySound(0x199);

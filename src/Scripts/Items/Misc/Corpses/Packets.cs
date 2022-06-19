@@ -75,7 +75,7 @@ namespace Server.Network
 				if (!child.Deleted && child.Parent == beheld && beholder.CanSee(child))
 				{
 					m_Stream.Write(child.Serial);
-					m_Stream.Write((ushort)child.ItemID);
+					m_Stream.Write((ushort)child.ItemId);
 					m_Stream.Write((byte)0); // signed, itemID offset
 					m_Stream.Write((ushort)child.Amount);
 					m_Stream.Write((short)child.X);
@@ -148,7 +148,7 @@ namespace Server.Network
 				if (!child.Deleted && child.Parent == beheld && beholder.CanSee(child))
 				{
 					m_Stream.Write(child.Serial);
-					m_Stream.Write((ushort)child.ItemID);
+					m_Stream.Write((ushort)child.ItemId);
 					m_Stream.Write((byte)0); // signed, itemID offset
 					m_Stream.Write((ushort)child.Amount);
 					m_Stream.Write((short)child.X);

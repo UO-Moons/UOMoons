@@ -42,7 +42,7 @@ namespace Server.Mobiles
 
 			Item ore = new ShadowIronOre(25)
 			{
-				ItemID = 0x19B9
+				ItemId = 0x19B9
 			};
 			PackItem(ore);
 			PackItem(new IronIngot(10));

@@ -83,7 +83,7 @@ namespace Server
             m_Target.SendLocalizedMessage(1070825); // The creature continues to rage!
 
             Blood blood = new Blood();
-            blood.ItemID = Utility.Random(0x122A, 5);
+            blood.ItemId = Utility.Random(0x122A, 5);
             blood.MoveToWorld(m_Target.Location, m_Target.Map);
 
             if (m_Count >= m_CountMax)

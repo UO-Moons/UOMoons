@@ -212,9 +212,9 @@ namespace Server.RemoteAdmin
 				}
 
 				if (list.Count > 0)
-					a.IPRestrictions = (string[])list.ToArray(typeof(string));
+					a.IpRestrictions = (string[])list.ToArray(typeof(string));
 				else
-					a.IPRestrictions = Array.Empty<string>();
+					a.IpRestrictions = Array.Empty<string>();
 
 				if (invalid)
 					state.Send(new MessageBoxMessage("Warning: one or more of the IP Restrictions you specified was not valid.", "Invalid IP Restriction"));

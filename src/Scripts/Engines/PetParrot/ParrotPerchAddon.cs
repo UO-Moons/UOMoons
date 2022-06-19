@@ -13,7 +13,6 @@ namespace Server.Items
 		public ParrotPerchAddon(PetParrot parrot)
 		{
 			AddComponent(new AddonComponent(0x2FB6), 0, 0, 0);
-
 			Parrot = parrot;
 		}
 
@@ -26,6 +25,7 @@ namespace Server.Items
 		public override bool RetainDeedHue => true;
 		[CommandProperty(AccessLevel.GameMaster)]
 		public PetParrot Parrot { get; set; }
+
 		public override void OnLocationChange(Point3D oldLocation)
 		{
 			base.OnLocationChange(oldLocation);
@@ -46,16 +46,13 @@ namespace Server.Items
 		{
 			base.OnAfterDelete();
 
-			if (Parrot != null)
-				Parrot.Internalize();
+			Parrot?.Internalize();
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); //  version
-
+			writer.Write(0);
 			writer.Write(Parrot);
 		}
 
@@ -70,8 +67,8 @@ namespace Server.Items
 
 	public class ParrotPerchAddonDeed : BaseAddonDeed
 	{
-		private PetParrot m_Parrot;
-		private bool m_Safety;
+		private PetParrot _mParrot;
+		private bool _mSafety;
 		[Constructable]
 		public ParrotPerchAddonDeed()
 			: this(null)
@@ -82,7 +79,7 @@ namespace Server.Items
 		{
 			LootType = LootType.Blessed;
 
-			m_Parrot = parrot;
+			_mParrot = parrot;
 		}
 
 		public ParrotPerchAddonDeed(Serial serial)
@@ -91,17 +88,15 @@ namespace Server.Items
 		}
 
 		public override int LabelNumber => 1072619;// A deed for a Parrot Perch		
-		public override BaseAddon Addon => new ParrotPerchAddon(m_Parrot);
+		public override BaseAddon Addon => new ParrotPerchAddon(_mParrot);
+
 		[CommandProperty(AccessLevel.GameMaster)]
 		public PetParrot Parrot
 		{
-			get
-			{
-				return m_Parrot;
-			}
+			get => _mParrot;
 			set
 			{
-				m_Parrot = value;
+				_mParrot = value;
 				InvalidateProperties();
 			}
 		}
@@ -109,25 +104,28 @@ namespace Server.Items
 		{
 			base.GetProperties(list);
 
-			if (m_Parrot != null)
+			if (_mParrot == null) return;
+			if (_mParrot.Name != null)
+				list.Add(1072624, _mParrot.Name); // Includes a pet Parrot named ~1_NAME~
+			else
+				list.Add(1072620); // Includes a pet Parrot
+
+			int weeks = PetParrot.GetWeeks(_mParrot.Birth);
+
+			switch (weeks)
 			{
-				if (m_Parrot.Name != null)
-					list.Add(1072624, m_Parrot.Name); // Includes a pet Parrot named ~1_NAME~
-				else
-					list.Add(1072620); // Includes a pet Parrot
-
-				int weeks = PetParrot.GetWeeks(m_Parrot.Birth);
-
-				if (weeks == 1)
+				case 1:
 					list.Add(1072626); // 1 week old
-				else if (weeks > 1)
+					break;
+				case > 1:
 					list.Add(1072627, weeks.ToString()); // ~1_AGE~ weeks old
+					break;
 			}
 		}
 
 		public override void DeleteDeed()
 		{
-			m_Safety = true;
+			_mSafety = true;
 
 			base.DeleteDeed();
 		}
@@ -136,31 +134,30 @@ namespace Server.Items
 		{
 			base.OnAfterDelete();
 
-			if (!m_Safety && m_Parrot != null)
-				m_Parrot.Delete();
+			if (!_mSafety && _mParrot != null)
+				_mParrot.Delete();
 
-			m_Safety = false;
+			_mSafety = false;
 		}
 
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
 			writer.Write(0);
-			writer.Write(m_Parrot);
+			writer.Write(_mParrot);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			var version = reader.ReadInt();
 
-			switch (version)
+			_mParrot = version switch
 			{
-				case 0:
-					m_Parrot = reader.ReadMobile() as PetParrot;
-					break;
-			}
+				0 => reader.ReadMobile() as PetParrot,
+				_ => _mParrot
+			};
 		}
 	}
 }

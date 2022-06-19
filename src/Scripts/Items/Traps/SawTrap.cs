@@ -18,7 +18,7 @@ namespace Server.Items
 		{
 			get
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
 					case 0x1103: return SawTrapType.NorthWall;
 					case 0x1116: return SawTrapType.WestWall;
@@ -28,7 +28,7 @@ namespace Server.Items
 
 				return SawTrapType.NorthWall;
 			}
-			set => ItemID = GetBaseID(value);
+			set => ItemId = GetBaseID(value);
 		}
 
 		public static int GetBaseID(SawTrapType type)

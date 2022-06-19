@@ -1,86 +1,83 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class KeeperOfChivalry : BaseVendor
 {
-	public class KeeperOfChivalry : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public KeeperOfChivalry() : base("the Keeper of Chivalry")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.paladin;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Fencing, 75.0, 85.0);
+		SetSkill(SkillName.Macing, 75.0, 85.0);
+		SetSkill(SkillName.Swords, 75.0, 85.0);
+		SetSkill(SkillName.Chivalry, 100.0);
+	}
 
-		[Constructable]
-		public KeeperOfChivalry() : base("the Keeper of Chivalry")
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbKeeperOfChivalry());
+	}
+
+	public override void InitOutfit()
+	{
+		AddItem(new PlateArms());
+		AddItem(new PlateChest());
+		AddItem(new PlateGloves());
+		AddItem(new StuddedGorget());
+		AddItem(new PlateLegs());
+
+		switch (Utility.Random(4))
 		{
-			Job = JobFragment.paladin;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Fencing, 75.0, 85.0);
-			SetSkill(SkillName.Macing, 75.0, 85.0);
-			SetSkill(SkillName.Swords, 75.0, 85.0);
-			SetSkill(SkillName.Chivalry, 100.0);
+			case 0: AddItem(new PlateHelm()); break;
+			case 1: AddItem(new NorseHelm()); break;
+			case 2: AddItem(new CloseHelm()); break;
+			case 3: AddItem(new Helmet()); break;
 		}
 
-		public override void InitSBInfo()
+		switch (Utility.Random(3))
 		{
-			m_SBInfos.Add(new SBKeeperOfChivalry());
+			case 0: AddItem(new BodySash(0x482)); break;
+			case 1: AddItem(new Doublet(0x482)); break;
+			case 2: AddItem(new Tunic(0x482)); break;
 		}
 
-		public override void InitOutfit()
+		AddItem(new Broadsword());
+
+		Item shield = new MetalKiteShield
 		{
-			AddItem(new PlateArms());
-			AddItem(new PlateChest());
-			AddItem(new PlateGloves());
-			AddItem(new StuddedGorget());
-			AddItem(new PlateLegs());
+			Hue = Utility.RandomNondyedHue()
+		};
 
-			switch (Utility.Random(4))
-			{
-				case 0: AddItem(new PlateHelm()); break;
-				case 1: AddItem(new NorseHelm()); break;
-				case 2: AddItem(new CloseHelm()); break;
-				case 3: AddItem(new Helmet()); break;
-			}
+		AddItem(shield);
 
-			switch (Utility.Random(3))
-			{
-				case 0: AddItem(new BodySash(0x482)); break;
-				case 1: AddItem(new Doublet(0x482)); break;
-				case 2: AddItem(new Tunic(0x482)); break;
-			}
-
-			AddItem(new Broadsword());
-
-			Item shield = new MetalKiteShield
-			{
-				Hue = Utility.RandomNondyedHue()
-			};
-
-			AddItem(shield);
-
-			switch (Utility.Random(2))
-			{
-				case 0: AddItem(new Boots()); break;
-				case 1: AddItem(new ThighBoots()); break;
-			}
-
-			PackGold(100, 200);
+		switch (Utility.Random(2))
+		{
+			case 0: AddItem(new Boots()); break;
+			case 1: AddItem(new ThighBoots()); break;
 		}
 
-		public KeeperOfChivalry(Serial serial) : base(serial)
-		{
-		}
+		PackGold(100, 200);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public KeeperOfChivalry(Serial serial) : base(serial)
+	{
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

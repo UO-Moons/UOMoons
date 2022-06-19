@@ -60,7 +60,7 @@ namespace Server.Items
 		{
 			int number = (Amount == 1) ? 1049122 : 1049121;
 
-			_ = from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, 0x3B2, 3, number, "", (Amount * 50).ToString()));
+			_ = from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, 0x3B2, 3, number, "", (Amount * 50).ToString()));
 		}
 	}
 }

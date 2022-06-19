@@ -65,14 +65,14 @@ namespace Server.Mobiles
 			get
 			{
 				if (InternalItem != null)
-					return InternalItem.ItemID;
+					return InternalItem.ItemId;
 				else
 					return 0;
 			}
 			set
 			{
 				if (InternalItem != null)
-					InternalItem.ItemID = value;
+					InternalItem.ItemId = value;
 			}
 		}
 

@@ -9,7 +9,7 @@ namespace Server.Items
 		{
 			Cabbage cabbage = new()
 			{
-				ItemID = Utility.Random(3195, 2)
+				ItemId = Utility.Random(3195, 2)
 			};
 
 			return cabbage;

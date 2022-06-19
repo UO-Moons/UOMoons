@@ -131,7 +131,7 @@ namespace Server.Items
 
 		public override void FinishOpening(Mobile from)
 		{
-			ItemID = 0x1249;
+			ItemId = 0x1249;
 
 			if (Owner != null)
 				Owner.PlaySound(0x187);

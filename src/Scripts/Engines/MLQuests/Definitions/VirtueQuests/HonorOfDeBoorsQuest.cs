@@ -4,9 +4,9 @@ using System;
 
 namespace Server.Engines.Quests
 {
-	public class HonorOfDeBoorsQuest : BaseQuest
+	public sealed class HonorOfDeBoorsQuest : BaseQuest
 	{
-		public override QuestChain ChainID => QuestChain.HonorOfDeBoors;
+		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
 		public override Type NextQuest => typeof(JackTheVillainQuest);
 		public override bool DoneOnce => true;
 
@@ -35,7 +35,6 @@ namespace Server.Engines.Quests
 		public override object Complete => 1075421;
 
 		public HonorOfDeBoorsQuest()
-			: base()
 		{
 			AddObjective(new ObtainObjective(typeof(Diamond), "Diamonds", 10));
 			AddObjective(new ObtainObjective(typeof(Ruby), "Rubies", 10));
@@ -43,23 +42,11 @@ namespace Server.Engines.Quests
 
 			AddReward(new BaseReward(1075418)); // Gather them quickly. Who knows how long Derek has to live?
 		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
 	}
 
-	public class JackTheVillainQuest : BaseQuest
+	public sealed class JackTheVillainQuest : BaseQuest
 	{
-		public override QuestChain ChainID => QuestChain.HonorOfDeBoors;
+		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
 		public override Type NextQuest => typeof(SavedHonorQuest);
 		public override bool DoneOnce => true;
 
@@ -79,7 +66,6 @@ namespace Server.Engines.Quests
 		public override object Complete => 1075427;
 
 		public JackTheVillainQuest()
-			: base()
 		{
 			AddObjective(new DeliverObjective(typeof(BagOfJewels), "Bag of Jewels", 1, typeof(JackLoanShark), "Jack the Loan Shark"));
 
@@ -90,23 +76,11 @@ namespace Server.Engines.Quests
 		{
 			Owner.PlaySound(CompleteSound);
 		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
 	}
 
-	public class SavedHonorQuest : BaseQuest
+	public sealed class SavedHonorQuest : BaseQuest
 	{
-		public override QuestChain ChainID => QuestChain.HonorOfDeBoors;
+		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
 		public override bool DoneOnce => true;
 
 		/* Saved Honor */
@@ -128,23 +102,10 @@ namespace Server.Engines.Quests
 		public override object Complete => 1075433;
 
 		public SavedHonorQuest()
-			: base()
 		{
 			AddObjective(new DeliverObjective(typeof(DeBoorShield), "Ancestral Shield", 1, typeof(DerekMerchant), "Derek the Merchant"));
 
 			AddReward(new BaseReward(typeof(GobletOfCelebration), 1075309)); // Goblet of Celebration
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
 		}
 	}
 }

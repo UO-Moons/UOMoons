@@ -3,161 +3,158 @@ using Server.Prompts;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Engines.Craft
+namespace Server.Engines.Craft;
+
+public class MakeNumberCraftPrompt : Prompt
 {
-    public class MakeNumberCraftPrompt : Prompt
-    {
-        private Mobile m_From;
-        private CraftSystem m_CraftSystem;
-        private CraftItem m_CraftItem;
-        private ITool m_Tool;
+	private readonly Mobile _mFrom;
+	private readonly CraftSystem _mCraftSystem;
+	private readonly CraftItem _mCraftItem;
+	private readonly ITool _mTool;
 
-        public MakeNumberCraftPrompt(Mobile from, CraftSystem system, CraftItem item, ITool tool)
-        {
-            m_From = from;
-            m_CraftSystem = system;
-            m_CraftItem = item;
-            m_Tool = tool;
-        }
+	public MakeNumberCraftPrompt(Mobile from, CraftSystem system, CraftItem item, ITool tool)
+	{
+		_mFrom = from;
+		_mCraftSystem = system;
+		_mCraftItem = item;
+		_mTool = tool;
+	}
 
-        public override void OnCancel(Mobile from)
-        {
-            m_From.SendLocalizedMessage(501806); //Request cancelled.
-            from.SendGump(new CraftGump(m_From, m_CraftSystem, m_Tool, null));
-        }
+	public override void OnCancel(Mobile from)
+	{
+		_mFrom.SendLocalizedMessage(501806); //Request cancelled.
+		from.SendGump(new CraftGump(_mFrom, _mCraftSystem, _mTool, null));
+	}
 
-        public override void OnResponse(Mobile from, string text)
-        {
-            int amount = Utility.ToInt32(text);
+	public override void OnResponse(Mobile from, string text)
+	{
+		int amount = Utility.ToInt32(text);
 
-            if (amount < 1 || amount > 100)
-            {
-                from.SendLocalizedMessage(1112587); // Invalid Entry.
-                ResendGump();
-            }
-            else
-            {
-                AutoCraftTimer.EndTimer(from);
-                new AutoCraftTimer(m_From, m_CraftSystem, m_CraftItem, m_Tool, amount, TimeSpan.FromSeconds(m_CraftSystem.Delay * m_CraftSystem.MaxCraftEffect + 1.0), TimeSpan.FromSeconds(m_CraftSystem.Delay * m_CraftSystem.MaxCraftEffect + 1.0));
+		if (amount < 1 || amount > 100)
+		{
+			from.SendLocalizedMessage(1112587); // Invalid Entry.
+			ResendGump();
+		}
+		else
+		{
+			AutoCraftTimer.EndTimer(from);
+			var unused = new AutoCraftTimer(_mFrom, _mCraftSystem, _mCraftItem, _mTool, amount, TimeSpan.FromSeconds(_mCraftSystem.Delay * _mCraftSystem.MaxCraftEffect + 1.0), TimeSpan.FromSeconds(_mCraftSystem.Delay * _mCraftSystem.MaxCraftEffect + 1.0));
 
-                CraftContext context = m_CraftSystem.GetContext(from);
+			CraftContext context = _mCraftSystem.GetContext(from);
 
-                if (context != null)
-                {
-                    context.MakeTotal = amount;
-                }
-            }
-        }
+			if (context != null)
+			{
+				context.MakeTotal = amount;
+			}
+		}
+	}
 
-        public void ResendGump()
-        {
-            m_From.SendGump(new CraftGump(m_From, m_CraftSystem, m_Tool, null));
-        }
-    }
+	public void ResendGump()
+	{
+		_mFrom.SendGump(new CraftGump(_mFrom, _mCraftSystem, _mTool, null));
+	}
+}
 
-    public class AutoCraftTimer : Timer
-    {
-        public static Dictionary<Mobile, AutoCraftTimer> AutoCraftTable { get; } = new Dictionary<Mobile, AutoCraftTimer>();
+public class AutoCraftTimer : Timer
+{
+	public static Dictionary<Mobile, AutoCraftTimer> AutoCraftTable { get; } = new();
 
-        private Mobile m_From;
-        private CraftSystem m_CraftSystem;
-        private CraftItem m_CraftItem;
+	private readonly Mobile _mFrom;
+	private readonly CraftSystem _mCraftSystem;
+	private readonly CraftItem _mCraftItem;
 
-        private ITool m_Tool;
-        private int m_Ticks;
-        private Type m_TypeRes;
+	private readonly ITool _mTool;
+	private int _mTicks;
+	private readonly Type _mTypeRes;
 
-        public int Amount { get; }
-        public int Attempts { get; private set; }
+	public int Amount { get; }
+	public int Attempts { get; private set; }
 
-        public AutoCraftTimer(Mobile from, CraftSystem system, CraftItem item, ITool tool, int amount, TimeSpan delay, TimeSpan interval)
-            : base(delay, interval)
-        {
-            m_From = from;
-            m_CraftSystem = system;
-            m_CraftItem = item;
-            m_Tool = tool;
-            Amount = amount;
-            m_Ticks = 0;
-            Attempts = 0;
+	public AutoCraftTimer(Mobile from, CraftSystem system, CraftItem item, ITool tool, int amount, TimeSpan delay, TimeSpan interval)
+		: base(delay, interval)
+	{
+		_mFrom = from;
+		_mCraftSystem = system;
+		_mCraftItem = item;
+		_mTool = tool;
+		Amount = amount;
+		_mTicks = 0;
+		Attempts = 0;
 
-            CraftContext context = m_CraftSystem.GetContext(m_From);
+		CraftContext context = _mCraftSystem.GetContext(_mFrom);
 
-            if (context != null)
-            {
-                CraftSubResCol res = (m_CraftItem.UseSubRes2 ? m_CraftSystem.CraftSubRes2 : m_CraftSystem.CraftSubRes);
-                int resIndex = (m_CraftItem.UseSubRes2 ? context.LastResourceIndex2 : context.LastResourceIndex);
+		if (context != null)
+		{
+			CraftSubResCol res = _mCraftItem.UseSubRes2 ? _mCraftSystem.CraftSubRes2 : _mCraftSystem.CraftSubRes;
+			int resIndex = _mCraftItem.UseSubRes2 ? context.LastResourceIndex2 : context.LastResourceIndex;
 
-                if (resIndex > -1)
-                {
-                    m_TypeRes = res.GetAt(resIndex).ItemType;
-                }
-            }
+			if (resIndex > -1)
+			{
+				_mTypeRes = res.GetAt(resIndex).ItemType;
+			}
+		}
 
-            AutoCraftTable[from] = this;
+		AutoCraftTable[from] = this;
 
-            Start();
-        }
+		Start();
+	}
 
-        public AutoCraftTimer(Mobile from, CraftSystem system, CraftItem item, ITool tool, int amount)
-            : this(from, system, item, tool, amount, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3))
-        {
-        }
+	public AutoCraftTimer(Mobile from, CraftSystem system, CraftItem item, ITool tool, int amount)
+		: this(from, system, item, tool, amount, TimeSpan.FromSeconds(3), TimeSpan.FromSeconds(3))
+	{
+	}
 
-        protected override void OnTick()
-        {
-            m_Ticks++;
+	protected override void OnTick()
+	{
+		_mTicks++;
 
-            if (m_From.NetState == null)
-            {
-                EndTimer(m_From);
-                return;
-            }
+		if (_mFrom.NetState == null)
+		{
+			EndTimer(_mFrom);
+			return;
+		}
 
-            CraftItem();
+		CraftItem();
 
-            if (m_Ticks >= Amount)
-            {
-                EndTimer(m_From);
-            }
-        }
+		if (_mTicks >= Amount)
+		{
+			EndTimer(_mFrom);
+		}
+	}
 
-        private void CraftItem()
-        {
-            if (m_From.HasGump(typeof(CraftGump)))
-            {
-                m_From.CloseGump(typeof(CraftGump));
-            }
+	private void CraftItem()
+	{
+		if (_mFrom.HasGump(typeof(CraftGump)))
+		{
+			_mFrom.CloseGump(typeof(CraftGump));
+		}
 
-            if (m_From.HasGump(typeof(CraftGumpItem)))
-            {
-                m_From.CloseGump(typeof(CraftGumpItem));
-            }
+		if (_mFrom.HasGump(typeof(CraftGumpItem)))
+		{
+			_mFrom.CloseGump(typeof(CraftGumpItem));
+		}
 
-            Attempts++;
+		Attempts++;
 
-            if (m_CraftItem.TryCraft != null)
-            {
-                m_CraftItem.TryCraft(m_From, m_CraftItem, m_Tool);
-            }
-            else
-            {
-                m_CraftSystem.CreateItem(m_From, m_CraftItem.ItemType, m_TypeRes, m_Tool, m_CraftItem);
-            }
-        }
+		if (_mCraftItem.TryCraft != null)
+		{
+			_mCraftItem.TryCraft(_mFrom, _mCraftItem, _mTool);
+		}
+		else
+		{
+			_mCraftSystem.CreateItem(_mFrom, _mCraftItem.ItemType, _mTypeRes, _mTool, _mCraftItem);
+		}
+	}
 
-        public static void EndTimer(Mobile from)
-        {
-            if (AutoCraftTable.ContainsKey(from))
-            {
-                AutoCraftTable[from].Stop();
-                AutoCraftTable.Remove(from);
-            }
-        }
+	public static void EndTimer(Mobile from)
+	{
+		if (!AutoCraftTable.ContainsKey(from)) return;
+		AutoCraftTable[from].Stop();
+		AutoCraftTable.Remove(from);
+	}
 
-        public static bool HasTimer(Mobile from)
-        {
-            return from != null && AutoCraftTable.ContainsKey(from);
-        }
-    }
+	public static bool HasTimer(Mobile from)
+	{
+		return from != null && AutoCraftTable.ContainsKey(from);
+	}
 }

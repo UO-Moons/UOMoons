@@ -4,7 +4,7 @@ using System.Net;
 
 namespace Server.Mysql.Save
 {
-	public class MySQLWrite
+	public class MySqlWrite
 	{
 		public static void Initialize()
 		{
@@ -19,13 +19,13 @@ namespace Server.Mysql.Save
 			string type = "string", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -34,7 +34,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `string`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + String + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `string`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + String + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -52,13 +52,13 @@ namespace Server.Mysql.Save
 			string type = "dateTime", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -67,7 +67,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + dateTime.Ticks + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + dateTime.Ticks + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -86,13 +86,13 @@ namespace Server.Mysql.Save
 			string type = "ipaddress", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -101,7 +101,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + data + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + data + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -119,13 +119,13 @@ namespace Server.Mysql.Save
 			string type = "int", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -134,7 +134,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -152,13 +152,13 @@ namespace Server.Mysql.Save
 			string type = "timespan", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -167,7 +167,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value.Ticks + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value.Ticks + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -185,13 +185,13 @@ namespace Server.Mysql.Save
 			string type = "decimal", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -200,7 +200,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -218,13 +218,13 @@ namespace Server.Mysql.Save
 			string type = "long", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -233,7 +233,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -251,13 +251,13 @@ namespace Server.Mysql.Save
 			string type = "uint", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -266,7 +266,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -290,13 +290,13 @@ namespace Server.Mysql.Save
 			string type = "short", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -305,7 +305,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -329,13 +329,13 @@ namespace Server.Mysql.Save
 			string type = "ushort", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -344,7 +344,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();
@@ -362,13 +362,13 @@ namespace Server.Mysql.Save
 			string type = "double", sql;
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
 				if (dataReader.Read())
 				{
-					sql = "DELETE FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+					sql = "DELETE FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 					dataReader.Close();
 					cmd = new MySqlCommand(sql, con);
 					cmd.ExecuteNonQuery();
@@ -377,7 +377,7 @@ namespace Server.Mysql.Save
 				if (!dataReader.IsClosed)
 					dataReader.Close();
 
-				sql = "INSERT INTO `" + MySQLConData.database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
+				sql = "INSERT INTO `" + MySqlConData.Database + "`.`" + type + "` (`id`, `serial`, `" + type + "`, `Iden`) VALUES (NULL, '" + serial.Value + "', '" + value + "', '" + Identifier + "');";
 
 				cmd = new MySqlCommand(sql, con);
 				cmd.ExecuteNonQuery();

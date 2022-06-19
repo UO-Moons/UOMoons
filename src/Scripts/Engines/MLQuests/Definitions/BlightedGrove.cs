@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074962)); // A step closer to entering Blighted Grove.
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		public override Type NextQuest => typeof(RockAndHardPlaceQuest);
 		/* Vile Poison */
 		public override object Title => 1074950;
@@ -61,7 +61,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074962)); // A step closer to entering Blighted Grove.
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		public override Type NextQuest => typeof(SympatheticMagicQuest);
 		/* A Rock and a Hard Place */
 		public override object Title => 1074951;
@@ -105,7 +105,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074962)); // A step closer to entering Blighted Grove.
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		public override Type NextQuest => typeof(AlreadyDeadQuest);
 		/* Sympathetic Magic */
 		public override object Title => 1074952;
@@ -148,7 +148,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074962)); // A step closer to entering Blighted Grove.
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		public override Type NextQuest => typeof(EurekaQuest);
 		/* Already Dead */
 		public override object Title => 1074953;
@@ -191,7 +191,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074962)); // A step closer to entering Blighted Grove.
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		public override Type NextQuest => typeof(SubContractingQuest);
 		/* Eureka! */
 		public override object Title => 1074954;
@@ -245,7 +245,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
 		}
 
-		public override QuestChain ChainID => QuestChain.BlightedGrove;
+		public override QuestChain ChainId => QuestChain.BlightedGrove;
 		/* Sub Contracting */
 		public override object Title => 1074955;
 		/* Wonderful!  Now we can both get in there!  Let me show you these instructions for making this machete.  

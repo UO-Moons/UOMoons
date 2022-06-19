@@ -31,7 +31,7 @@ namespace Server.Items
 
             if (version == 0)
             {
-                ItemID = 0xF66;
+                ItemId = 0xF66;
             }
         }
     }
@@ -64,7 +64,7 @@ namespace Server.Items
 
             if (version == 0)
             {
-                ItemID = 0xF68;
+                ItemId = 0xF68;
             }
         }
     }
@@ -97,7 +97,7 @@ namespace Server.Items
 
             if (version == 0)
             {
-                ItemID = 0xF6A;
+                ItemId = 0xF6A;
             }
         }
     }

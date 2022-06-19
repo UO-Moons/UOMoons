@@ -114,9 +114,9 @@ namespace Server.RemoteAdmin
 				for (int i = 0; i < a.LoginIPs.Length; i++)
 					m_Stream.WriteAsciiNull(a.LoginIPs[i].ToString());
 
-				m_Stream.Write((ushort)a.IPRestrictions.Length);
-				for (int i = 0; i < a.IPRestrictions.Length; i++)
-					m_Stream.WriteAsciiNull(a.IPRestrictions[i]);
+				m_Stream.Write((ushort)a.IpRestrictions.Length);
+				for (int i = 0; i < a.IpRestrictions.Length; i++)
+					m_Stream.WriteAsciiNull(a.IpRestrictions[i]);
 			}
 		}
 	}

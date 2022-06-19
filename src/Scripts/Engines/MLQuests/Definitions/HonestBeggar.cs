@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1075394)); // Find the ring’s owner.
 		}
 
-		public override QuestChain ChainID => QuestChain.HonestBeggar;
+		public override QuestChain ChainId => QuestChain.HonestBeggar;
 		public override Type NextQuest => typeof(ReginasThanksQuest);
 		public override bool DoneOnce => true;
 		/* Honest Beggar */
@@ -56,7 +56,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(TransparentHeart), 1075400));
 		}
 
-		public override QuestChain ChainID => QuestChain.HonestBeggar;
+		public override QuestChain ChainId => QuestChain.HonestBeggar;
 		public override bool DoneOnce => true;
 		/* Regina’s Thanks */
 		public override object Title => 1075398;

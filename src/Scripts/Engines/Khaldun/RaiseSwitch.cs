@@ -47,15 +47,15 @@ namespace Server.Items
 
 		protected virtual void Flip()
 		{
-			if (ItemID != 0x1093)
+			if (ItemId != 0x1093)
 			{
-				ItemID = 0x1093;
+				ItemId = 0x1093;
 
 				StopResetTimer();
 			}
 			else
 			{
-				ItemID = 0x1095;
+				ItemId = 0x1095;
 
 				if (RaisableItem != null && RaisableItem.CloseDelay >= TimeSpan.Zero)
 					StartResetTimer(RaisableItem.CloseDelay);
@@ -87,7 +87,7 @@ namespace Server.Items
 
 		protected virtual void Reset()
 		{
-			if (ItemID != 0x1093)
+			if (ItemId != 0x1093)
 				Flip();
 		}
 

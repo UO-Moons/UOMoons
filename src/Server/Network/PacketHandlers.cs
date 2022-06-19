@@ -1225,7 +1225,7 @@ namespace Server.Network
 
 			foreach (Gump gump in state.Gumps)
 			{
-				if (gump.Serial == serial && gump.TypeID == typeID)
+				if (gump.Serial == serial && gump.TypeId == typeID)
 				{
 					bool buttonExists = buttonID == 0; // 0 is always 'close'
 
@@ -1233,7 +1233,7 @@ namespace Server.Network
 					{
 						foreach (GumpEntry e in gump.Entries)
 						{
-							if (e is GumpButton && ((GumpButton)e).ButtonID == buttonID)
+							if (e is GumpButton && ((GumpButton)e).ButtonId == buttonID)
 							{
 								buttonExists = true;
 								break;
@@ -1256,7 +1256,7 @@ namespace Server.Network
 
 					int switchCount = pvSrc.ReadInt32();
 
-					if (switchCount < 0 || switchCount > gump.m_Switches)
+					if (switchCount < 0 || switchCount > gump.MSwitches)
 					{
 						state.WriteConsole("Invalid gump response, disconnecting...");
 						state.Dispose();
@@ -1270,7 +1270,7 @@ namespace Server.Network
 
 					int textCount = pvSrc.ReadInt32();
 
-					if (textCount < 0 || textCount > gump.m_TextEntries)
+					if (textCount < 0 || textCount > gump.MTextEntries)
 					{
 						state.WriteConsole("Invalid gump response, disconnecting...");
 						state.Dispose();
@@ -1888,7 +1888,7 @@ namespace Server.Network
 
 						if (state.IsEnhancedClient && index > 0x64)
 						{
-							index = menu.GetIndexEC(index);
+							index = menu.GetIndexEc(index);
 						}
 
 						if (index >= 0 && index < menu.Entries.Length)

@@ -43,7 +43,7 @@ namespace Server.Items
 		{
 			//Dupe( Amount );
 
-			parent.FacialHairItemID = ItemID;
+			parent.FacialHairItemID = ItemId;
 			parent.FacialHairHue = Hue;
 
 			return DeathMoveResult.MoveToCorpse;

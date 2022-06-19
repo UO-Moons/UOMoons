@@ -159,9 +159,9 @@ namespace Server.Items
 
 		public override TimeSpan OnSwing(Mobile attacker, IDamageable defender)
 		{
-			if (!Core.AOS && defender is Mobile)
+			if (!Core.AOS && defender is Mobile mobile)
 			{
-				CheckPreAOSMoves(attacker, (Mobile)defender);
+				CheckPreAOSMoves(attacker, mobile);
 			}
 
 			return base.OnSwing(attacker, defender);
@@ -176,7 +176,7 @@ namespace Server.Items
 		{
 			base.Serialize(writer);
 
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -278,20 +278,20 @@ namespace Server.Items
 
 		private class MoveDelayTimer : Timer
 		{
-			private readonly Mobile m_Mobile;
+			private readonly Mobile _mMobile;
 
 			public MoveDelayTimer(Mobile m) : base(TimeSpan.FromSeconds(10.0))
 			{
-				m_Mobile = m;
+				_mMobile = m;
 
 				Priority = TimerPriority.TwoFiftyMS;
 
-				_ = m_Mobile.BeginAction(typeof(Fists));
+				_ = _mMobile.BeginAction(typeof(Fists));
 			}
 
 			protected override void OnTick()
 			{
-				m_Mobile.EndAction(typeof(Fists));
+				_mMobile.EndAction(typeof(Fists));
 			}
 		}
 

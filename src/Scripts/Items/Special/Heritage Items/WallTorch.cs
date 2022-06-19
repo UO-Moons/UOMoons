@@ -19,12 +19,12 @@ namespace Server.Items
 		{
 			if (from.InRange(Location, 2))
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
-					case 0x3D98: ItemID = 0x3D9B; break;
-					case 0x3D9B: ItemID = 0x3D98; break;
-					case 0x3D94: ItemID = 0x3D97; break;
-					case 0x3D97: ItemID = 0x3D94; break;
+					case 0x3D98: ItemId = 0x3D9B; break;
+					case 0x3D9B: ItemId = 0x3D98; break;
+					case 0x3D94: ItemId = 0x3D97; break;
+					case 0x3D97: ItemId = 0x3D94; break;
 				}
 
 				Effects.PlaySound(Location, Map, 0x3BE);

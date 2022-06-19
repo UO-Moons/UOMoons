@@ -4,7 +4,7 @@ namespace Server.Items;
 public class HonestyGorget : BaseArmor
 {
 	public override int LabelNumber => 1075189;// Gorget of Honesty (Virtue Armor Set)
-	public override SetItem SetID => SetItem.Virtue;
+	public override SetItem SetId => SetItem.Virtue;
 	public override int Pieces => 8;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

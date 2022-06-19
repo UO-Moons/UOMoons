@@ -1,40 +1,37 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class LeatherWorker : BaseVendor
 {
-	public class LeatherWorker : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public LeatherWorker() : base("the leather worker")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+	}
+	public override void InitSbInfo()
+	{
+		Job = JobFragment.tanner;
+		Karma = Utility.RandomMinMax(13, -45);
+		_mSbInfos.Add(new SbLeatherArmor());
+		_mSbInfos.Add(new SbStuddedArmor());
+		_mSbInfos.Add(new SbLeatherWorker());
+	}
+	public LeatherWorker(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public LeatherWorker() : base("the leather worker")
-		{
-		}
-		public override void InitSBInfo()
-		{
-			Job = JobFragment.tanner;
-			Karma = Utility.RandomMinMax(13, -45);
-			m_SBInfos.Add(new SBLeatherArmor());
-			m_SBInfos.Add(new SBStuddedArmor());
-			m_SBInfos.Add(new SBLeatherWorker());
-		}
-		public LeatherWorker(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

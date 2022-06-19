@@ -473,7 +473,7 @@ namespace Server.Items
 				case 1:
 					{
 						EffectItem hole = EffectItem.Create(Location, Map, TimeSpan.FromSeconds(10.0));
-						hole.ItemID = 0x913;
+						hole.ItemId = 0x913;
 
 						Effects.PlaySound(Location, Map, 0x222);
 

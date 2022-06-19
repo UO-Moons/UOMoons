@@ -329,9 +329,9 @@ namespace Server.Items
 				if (m.BeginAction(this))
 				{
 					if (m_MessageString != null)
-						_ = m.Send(new UnicodeMessage(Serial, ItemID, MessageType.Regular, 0x3B2, 3, "ENU", null, m_MessageString));
+						_ = m.Send(new UnicodeMessage(Serial, ItemId, MessageType.Regular, 0x3B2, 3, "ENU", null, m_MessageString));
 					else if (m_MessageNumber != 0)
-						_ = m.Send(new MessageLocalized(Serial, ItemID, MessageType.Regular, 0x3B2, 3, m_MessageNumber, null, ""));
+						_ = m.Send(new MessageLocalized(Serial, ItemId, MessageType.Regular, 0x3B2, 3, m_MessageNumber, null, ""));
 
 					_ = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerStateCallback(EndMessageLock), m);
 				}

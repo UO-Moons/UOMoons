@@ -60,7 +60,7 @@ namespace Server.Items
 			int itemID;
 
 			if (targeted is Item)
-				itemID = ((Item)targeted).ItemID;
+				itemID = ((Item)targeted).ItemId;
 			else if (targeted is StaticTarget)
 				itemID = ((StaticTarget)targeted).ItemID;
 			else
@@ -515,8 +515,8 @@ namespace Server.Items
 
 			int version = reader.ReadInt();
 
-			if (ItemID == 0x1040)
-				ItemID = 0x1083;
+			if (ItemId == 0x1040)
+				ItemId = 0x1083;
 
 			if (Hue == 51)
 				Hue = 0;

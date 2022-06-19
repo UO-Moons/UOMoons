@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Flax flax = new Flax
 			{
-				ItemID = Utility.Random(6812, 2)
+				ItemId = Utility.Random(6812, 2)
 			};
 
 			return flax;

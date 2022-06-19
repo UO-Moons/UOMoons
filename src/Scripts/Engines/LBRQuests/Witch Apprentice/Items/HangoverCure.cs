@@ -29,9 +29,9 @@ namespace Server.Engines.Quests.Hag
 				from.PlaySound(0x2D6);
 				from.SendLocalizedMessage(501206); // An awful taste fills your mouth.
 
-				if (from.BAC > 0)
+				if (from.Bac > 0)
 				{
-					from.BAC = 0;
+					from.Bac = 0;
 					from.SendLocalizedMessage(501204); // You are now sober!
 				}
 

@@ -87,10 +87,10 @@ namespace Server.Items
 
 		public virtual void Activate(AddonComponent c, Mobile from)
 		{
-			if (c.ItemID == 0x125E || c.ItemID == 0x1269 || c.ItemID == 0x1260)
-				c.ItemID = 0x1269;
+			if (c.ItemId == 0x125E || c.ItemId == 0x1269 || c.ItemId == 0x1260)
+				c.ItemId = 0x1269;
 			else
-				c.ItemID = 0x1247;
+				c.ItemId = 0x1247;
 
 			// blood
 			int amount = Utility.RandomMinMax(3, 7);
@@ -130,14 +130,14 @@ namespace Server.Items
 			{
 				AddonComponent c = (AddonComponent)obj;
 
-				if (c.ItemID == 0x1269)
-					c.ItemID = 0x1260;
-				else if (c.ItemID == 0x1260)
-					c.ItemID = 0x125E;
-				else if (c.ItemID == 0x1247)
-					c.ItemID = 0x1246;
-				else if (c.ItemID == 0x1246)
-					c.ItemID = 0x1230;
+				if (c.ItemId == 0x1269)
+					c.ItemId = 0x1260;
+				else if (c.ItemId == 0x1260)
+					c.ItemId = 0x125E;
+				else if (c.ItemId == 0x1247)
+					c.ItemId = 0x1246;
+				else if (c.ItemId == 0x1246)
+					c.ItemId = 0x1230;
 			}
 		}
 	}

@@ -34,7 +34,7 @@ public enum SetItem
 
 public interface ISetItem
 {
-	SetItem SetID { get; }
+	SetItem SetId { get; }
 	int Pieces { get; }
 	bool BardMasteryBonus { get; }
 	int SetHue { get; set; }
@@ -117,10 +117,10 @@ public static class SetHelper
 			list.Add(full ? 1080360 : 1080358, (full ? prop + (attrs.BonusHits * pieces) : prop).ToString());// hit point increase ~1_val~ (total)
 
 		if ((prop = setItem.SetAttributes.BonusStam) != 0)
-			list.Add(full ? 1060484 : 1060484, (full ? prop + (attrs.BonusStam * pieces) : prop).ToString()); // stamina increase ~1_val~ (total)
+			list.Add(1060484, (full ? prop + attrs.BonusStam * pieces : prop).ToString()); // stamina increase ~1_val~ (total)
 
 		if ((prop = setItem.SetAttributes.BonusMana) != 0)
-			list.Add(full ? 1060439 : 1060439, (full ? prop + (attrs.BonusMana * pieces) : prop).ToString()); // mana increase ~1_val~ (total)
+			list.Add(1060439, (full ? prop + attrs.BonusMana * pieces : prop).ToString()); // mana increase ~1_val~ (total)
 
 		if ((prop = setItem.SetAttributes.WeaponDamage) != 0)
 			list.Add(full ? 1151216 : 1154367, (full ? prop + (attrs.WeaponDamage * pieces) : prop).ToString()); // damage increase ~1_val~% (total)
@@ -150,7 +150,7 @@ public static class SetHelper
 		list.Add( , (full ? prop + (attrs.EnhancePotions * pieces) : prop).ToString()); enhance potions ~1_val~% (total)*/
 
 		if ((prop = setItem.SetAttributes.Luck) != 0)
-			list.Add(full ? 1073489 : 1080246, (full ? prop + (attrs.Luck * pieces) : prop).ToString()); // luck ~1_val~% (total)
+			list.Add(full ? 1073489 : 1080246, (full ? prop + attrs.Luck * pieces : prop).ToString()); // luck ~1_val~% (total)
 
 		if (!setItem.SetEquipped && setItem.SetAttributes.NightSight != 0)
 			list.Add(1060441); // night sight
@@ -159,7 +159,7 @@ public static class SetHelper
 			list.Add(1072502, "{0}\t{1}", "#" + (1044060 + (int)setItem.SetSkillBonuses.Skill_1_Name), setItem.SetSkillBonuses.Skill_1_Value); // ~1_skill~ ~2_val~ (total)
 	}
 
-	public static void RemoveSetBonus(Mobile from, SetItem setID, Item item)
+	public static void RemoveSetBonus(Mobile from, SetItem setId, Item item)
 	{
 		bool self = false;
 
@@ -168,69 +168,63 @@ public static class SetHelper
 			if (from.Items[i] == item)
 				self = true;
 
-			Remove(from, setID, from.Items[i]);
+			Remove(from, setId, from.Items[i]);
 		}
 
 		if (!self)
-			Remove(from, setID, item);
+			Remove(from, setId, item);
 
 		from.UpdateResistances();
 	}
 
-	public static void Remove(Mobile from, SetItem setID, Item item)
+	public static void Remove(Mobile from, SetItem setId, Item item)
 	{
-		if (item is ISetItem setItem)
+		if (item is not ISetItem setItem) return;
+		if (!setItem.IsSetItem || setItem.SetId != setId) return;
+		if (setItem.LastEquipped)
 		{
-			if (setItem.IsSetItem && setItem.SetID == setID)
-			{
-				if (setItem.LastEquipped)
-				{
-					if (from != null)
-						RemoveStatBonuses(from, item);
+			if (from != null)
+				RemoveStatBonuses(from, item);
 
-					setItem.SetSkillBonuses.Remove();
-				}
-
-				if (setID != SetItem.Bestial)
-				{
-					(setItem.SetHue, item.Hue) = (item.Hue, setItem.SetHue);
-				}
-
-				setItem.SetEquipped = false;
-				setItem.LastEquipped = false;
-				item.InvalidateProperties();
-			}
+			setItem.SetSkillBonuses.Remove();
 		}
+
+		if (setId != SetItem.Bestial)
+		{
+			(setItem.SetHue, item.Hue) = (item.Hue, setItem.SetHue);
+		}
+
+		setItem.SetEquipped = false;
+		setItem.LastEquipped = false;
+		item.InvalidateProperties();
 	}
 
-	public static void AddSetBonus(Mobile to, SetItem setID)
+	public static void AddSetBonus(Mobile to, SetItem setId)
 	{
 		int temp;
 
 		for (int i = 0; i < to.Items.Count; i++)
 		{
-			if (to.Items[i] is ISetItem setItem)
+			if (to.Items[i] is not ISetItem) continue;
+			ISetItem setItem = (ISetItem)to.Items[i];
+
+			if (!setItem.IsSetItem || setItem.SetId != setId) continue;
+			if (setItem.LastEquipped)
 			{
-				if (setItem.IsSetItem && setItem.SetID == setID)
-				{
-					if (setItem.LastEquipped)
-					{
-						AddStatBonuses(to, to.Items[i], setItem.SetAttributes.BonusStr, setItem.SetAttributes.BonusDex, setItem.SetAttributes.BonusInt);
+				AddStatBonuses(to, to.Items[i], setItem.SetAttributes.BonusStr, setItem.SetAttributes.BonusDex, setItem.SetAttributes.BonusInt);
 
-						setItem.SetSkillBonuses.AddTo(to);
-					}
-
-					if (setID != SetItem.Bestial)
-					{
-						temp = to.Items[i].Hue;
-						to.Items[i].Hue = setItem.SetHue;
-						setItem.SetHue = temp;
-					}
-
-					setItem.SetEquipped = true;
-					Timer.DelayCall<Item>(item => item.InvalidateProperties(), to.Items[i]);
-				}
+				setItem.SetSkillBonuses.AddTo(to);
 			}
+
+			if (setId != SetItem.Bestial)
+			{
+				temp = to.Items[i].Hue;
+				to.Items[i].Hue = setItem.SetHue;
+				setItem.SetHue = temp;
+			}
+
+			setItem.SetEquipped = true;
+			Timer.DelayCall(item => item.InvalidateProperties(), to.Items[i]);
 		}
 
 		to.UpdateResistances();
@@ -240,23 +234,18 @@ public static class SetHelper
 		to.SendLocalizedMessage(1072391); // The magic of your armor combines to assist you!
 	}
 
-	public static bool FullSetEquipped(Mobile from, SetItem setID, int pieces)
+	public static bool FullSetEquipped(Mobile from, SetItem setId, int pieces)
 	{
 		int equipped = 0;
 
 		for (int i = 0; i < from.Items.Count && equipped < pieces; i++)
 		{
-			if (from.Items[i] is ISetItem setItem)
-			{
-				if (setItem.IsSetItem && setItem.SetID == setID)
-					equipped += 1;
-			}
+			if (from.Items[i] is not ISetItem setItem) continue;
+			if (setItem.IsSetItem && setItem.SetId == setId)
+				equipped += 1;
 		}
 
-		if (equipped == pieces)
-			return true;
-
-		return false;
+		return equipped == pieces;
 	}
 
 	public static void RemoveStatBonuses(Mobile from, Item item)
@@ -294,7 +283,7 @@ public static class SetHelper
 	{
 		int count = 0;
 
-		for (int i = 0; i < from.Items.Count && count < setItem.Pieces; i++)
+		for (var i = 0; i < from.Items.Count && count < setItem.Pieces; i++)
 		{
 			//if (from.Items[i] is BaseArmor)
 			//{
@@ -303,22 +292,17 @@ public static class SetHelper
 			//    if (armor.IsSetItem && armor.SetID == setItem.SetID && armor.Resource == resource)
 			//        count += 1;
 			//}
-			if (from.Items[i] is BaseWeapon weapon)
-			{
-				if (weapon.IsSetItem && weapon.SetID == setItem.SetID && weapon.Resource == resource)
-					count += 1;
-			}
+			if (from.Items[i] is not BaseWeapon weapon) continue;
+			if (weapon.IsSetItem && weapon.SetId == setItem.SetId && weapon.Resource == resource)
+				count += 1;
 		}
 
-		if (count == setItem.Pieces)
-			return true;
-
-		return false;
+		return count == setItem.Pieces;
 	}
 
 	public static SlayerName GetSetSlayer(Mobile m)
 	{
-		return SlayerName.None;
+		return m == null ? throw new ArgumentNullException(nameof(m)) : SlayerName.None;
 	}
 
 	public static bool ResistsBonusPerPiece(ISetItem item)
@@ -326,7 +310,7 @@ public static class SetHelper
 		if (item.SetPhysicalBonus == 0 && item.SetFireBonus == 0 && item.SetColdBonus == 0 && item.SetPoisonBonus == 0 && item.SetEnergyBonus == 0)
 			return true;
 
-		return item.SetID switch
+		return item.SetId switch
 		{
 			SetItem.Virtue or SetItem.Aloron or SetItem.Darden => true,
 			_ => false,
@@ -343,11 +327,23 @@ public static class SetHelper
 
 			switch (resist)
 			{
-				case ResistanceType.Physical: total += item.PhysicalResistance + sItem.SetPhysicalBonus; break;
-				case ResistanceType.Fire: total += item.FireResistance + sItem.SetFireBonus; break;
-				case ResistanceType.Cold: total += item.ColdResistance + sItem.SetColdBonus; break;
-				case ResistanceType.Poison: total += item.PoisonResistance + sItem.SetPoisonBonus; break;
-				case ResistanceType.Energy: total += item.EnergyResistance + sItem.SetEnergyBonus; break;
+				case ResistanceType.Physical:
+					if (sItem != null) total += item.PhysicalResistance + sItem.SetPhysicalBonus;
+					break;
+				case ResistanceType.Fire:
+					if (sItem != null) total += item.FireResistance + sItem.SetFireBonus;
+					break;
+				case ResistanceType.Cold:
+					if (sItem != null) total += item.ColdResistance + sItem.SetColdBonus;
+					break;
+				case ResistanceType.Poison:
+					if (sItem != null) total += item.PoisonResistance + sItem.SetPoisonBonus;
+					break;
+				case ResistanceType.Energy:
+					if (sItem != null) total += item.EnergyResistance + sItem.SetEnergyBonus;
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(resist), resist, null);
 			}
 		}
 

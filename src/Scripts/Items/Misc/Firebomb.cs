@@ -185,7 +185,7 @@ namespace Server.Items
 			else
 				to = new Entity(Serial.Zero, new Point3D(p), Map);
 
-			Effects.SendMovingEffect(from, to, ItemID, 7, 0, false, false, Hue, 0);
+			Effects.SendMovingEffect(from, to, ItemId, 7, 0, false, false, Hue, 0);
 
 			Timer.DelayCall(TimeSpan.FromSeconds(1.0), new TimerStateCallback(FirebombReposition_OnTick), new object[] { p, Map });
 			Internalize();
@@ -251,7 +251,7 @@ namespace Server.Items
 
 		public override bool OnMoveOver(Mobile m)
 		{
-			if (ItemID == 0x398C && m_LitBy == null || (SpellHelper.ValidIndirectTarget(m_LitBy, m) && m_LitBy.CanBeHarmful(m, false)))
+			if (ItemId == 0x398C && m_LitBy == null || (SpellHelper.ValidIndirectTarget(m_LitBy, m) && m_LitBy.CanBeHarmful(m, false)))
 			{
 				if (m_LitBy != null)
 					m_LitBy.DoHarmful(m);
@@ -274,9 +274,9 @@ namespace Server.Items
 				return;
 			}
 
-			if (ItemID == 0x376A)
+			if (ItemId == 0x376A)
 			{
-				ItemID = 0x398C;
+				ItemId = 0x398C;
 				return;
 			}
 

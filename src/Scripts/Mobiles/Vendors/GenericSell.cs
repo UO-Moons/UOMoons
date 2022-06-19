@@ -2,133 +2,131 @@ using Server.Items;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class GenericSellInfo : IShopSellInfo
 {
-	public class GenericSellInfo : IShopSellInfo
+	private readonly Dictionary<Type, int> _mTable = new();
+	private Type[] _mTypes;
+
+	public GenericSellInfo()
 	{
-		private readonly Dictionary<Type, int> m_Table = new Dictionary<Type, int>();
-		private Type[] m_Types;
+	}
 
-		public GenericSellInfo()
+	public void Add(Type type, int price)
+	{
+		_mTable[type] = price;
+		_mTypes = null;
+	}
+
+	public int GetSellPriceFor(Item item)
+	{
+		_mTable.TryGetValue(item.GetType(), out int price);
+
+		if (item is BaseArmor)
 		{
+			BaseArmor armor = (BaseArmor)item;
+
+			price = armor.Quality switch
+			{
+				ItemQuality.Low => (int) (price * 0.60),
+				ItemQuality.Exceptional => (int) (price * 1.25),
+				_ => price
+			};
+
+			price += 100 * (int)armor.Durability;
+
+			price += 100 * (int)armor.ProtectionLevel;
+
+			if (price < 1)
+				price = 1;
 		}
-
-		public void Add(Type type, int price)
+		else if (item is BaseWeapon)
 		{
-			m_Table[type] = price;
-			m_Types = null;
+			BaseWeapon weapon = (BaseWeapon)item;
+
+			price = weapon.Quality switch
+			{
+				ItemQuality.Low => (int) (price * 0.60),
+				ItemQuality.Exceptional => (int) (price * 1.25),
+				_ => price
+			};
+
+			price += 100 * (int)weapon.DurabilityLevel;
+
+			price += 100 * (int)weapon.DamageLevel;
+
+			if (price < 1)
+				price = 1;
 		}
-
-		public int GetSellPriceFor(Item item)
+		else if (item is BaseBeverage)
 		{
-			m_Table.TryGetValue(item.GetType(), out int price);
+			int price1 = price, price2 = price;
 
-			if (item is BaseArmor)
+			switch (item)
 			{
-				BaseArmor armor = (BaseArmor)item;
-
-				if (armor.Quality == ItemQuality.Low)
-					price = (int)(price * 0.60);
-				else if (armor.Quality == ItemQuality.Exceptional)
-					price = (int)(price * 1.25);
-
-				price += 100 * (int)armor.Durability;
-
-				price += 100 * (int)armor.ProtectionLevel;
-
-				if (price < 1)
-					price = 1;
-			}
-			else if (item is BaseWeapon)
-			{
-				BaseWeapon weapon = (BaseWeapon)item;
-
-				if (weapon.Quality == ItemQuality.Low)
-					price = (int)(price * 0.60);
-				else if (weapon.Quality == ItemQuality.Exceptional)
-					price = (int)(price * 1.25);
-
-				price += 100 * (int)weapon.DurabilityLevel;
-
-				price += 100 * (int)weapon.DamageLevel;
-
-				if (price < 1)
-					price = 1;
-			}
-			else if (item is BaseBeverage)
-			{
-				int price1 = price, price2 = price;
-
-				if (item is Pitcher)
-				{ price1 = 3; price2 = 5; }
-				else if (item is BeverageBottle)
-				{ price1 = 3; price2 = 3; }
-				else if (item is Jug)
-				{ price1 = 6; price2 = 6; }
-
-				BaseBeverage bev = (BaseBeverage)item;
-
-				if (bev.IsEmpty || bev.Content == BeverageType.Milk)
-					price = price1;
-				else
-					price = price2;
+				case Pitcher:
+					price1 = 3; price2 = 5;
+					break;
+				case BeverageBottle:
+					price1 = 3; price2 = 3;
+					break;
+				case Jug:
+					price1 = 6; price2 = 6;
+					break;
 			}
 
-			return price;
-		}
+			BaseBeverage bev = (BaseBeverage)item;
 
-		public int GetBuyPriceFor(Item item)
-		{
-			return (int)(1.90 * GetSellPriceFor(item));
-		}
-
-		public Type[] Types
-		{
-			get
-			{
-				if (m_Types == null)
-				{
-					m_Types = new Type[m_Table.Keys.Count];
-					m_Table.Keys.CopyTo(m_Types, 0);
-				}
-
-				return m_Types;
-			}
-		}
-
-		public string GetNameFor(Item item)
-		{
-			if (item.Name != null)
-				return item.Name;
+			if (bev.IsEmpty || bev.Content == BeverageType.Milk)
+				price = price1;
 			else
-				return item.LabelNumber.ToString();
+				price = price2;
 		}
 
-		public bool IsSellable(Item item)
+		return price;
+	}
+
+	public int GetBuyPriceFor(Item item)
+	{
+		return (int)(1.90 * GetSellPriceFor(item));
+	}
+
+	public Type[] Types
+	{
+		get
 		{
-			if (item.Nontransferable)
-				return false;
+			if (_mTypes != null) return _mTypes;
+			_mTypes = new Type[_mTable.Keys.Count];
+			_mTable.Keys.CopyTo(_mTypes, 0);
 
-			//if ( item.Hue != 0 )
-			//return false;
-
-			return IsInList(item.GetType());
+			return _mTypes;
 		}
+	}
 
-		public bool IsResellable(Item item)
-		{
-			if (item.Nontransferable)
-				return false;
+	public string GetNameFor(Item item)
+	{
+		return item.Name ?? item.LabelNumber.ToString();
+	}
 
-			//if ( item.Hue != 0 )
-			//return false;
+	public bool IsSellable(Item item)
+	{
+		return !item.Nontransferable && IsInList(item.GetType());
 
-			return IsInList(item.GetType());
-		}
+		//if ( item.Hue != 0 )
+		//return false;
+	}
 
-		public bool IsInList(Type type)
-		{
-			return m_Table.ContainsKey(type);
-		}
+	public bool IsResellable(Item item)
+	{
+		return !item.Nontransferable && IsInList(item.GetType());
+
+		//if ( item.Hue != 0 )
+		//return false;
+	}
+
+	public bool IsInList(Type type)
+	{
+		return _mTable.ContainsKey(type);
 	}
 }

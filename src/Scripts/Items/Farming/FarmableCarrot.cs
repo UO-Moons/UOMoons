@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Carrot carrot = new Carrot
 			{
-				ItemID = Utility.Random(3191, 2)
+				ItemId = Utility.Random(3191, 2)
 			};
 
 			return carrot;

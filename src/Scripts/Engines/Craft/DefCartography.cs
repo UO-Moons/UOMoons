@@ -14,22 +14,13 @@ namespace Server.Engines.Craft
 			return 0.0; // 0%
 		}
 
-		private static CraftSystem m_CraftSystem;
+		private static CraftSystem _mCraftSystem;
 
-		public static CraftSystem CraftSystem
-		{
-			get
-			{
-				if (m_CraftSystem == null)
-					m_CraftSystem = new DefCartography();
-
-				return m_CraftSystem;
-			}
-		}
+		public static CraftSystem CraftSystem => _mCraftSystem ??= new DefCartography();
 
 		public DefCartography() : base(1, 1, 1.25)// base( 1, 1, 3.0 )
 		{
-			m_CraftSystem = this;
+			_mCraftSystem = this;
 		}
 
 		public override int CanCraft(Mobile from, ITool tool, Type itemType)
@@ -40,12 +31,8 @@ namespace Server.Engines.Craft
 			{
 				return 1044038; // You have worn out your tool!
 			}
-			else if (!tool.CheckAccessible(from, ref num))
-			{
-				return num; // The tool must be on your person to use.
-			}
 
-			return 0;
+			return !tool.CheckAccessible(from, ref num) ? num : 0;
 		}
 
 		public override void PlayCraftEffect(Mobile from)
@@ -61,34 +48,20 @@ namespace Server.Engines.Craft
 
 			if (failed)
 			{
-				if (lostMaterial)
-				{
-					return 1044043; // You failed to create the item, and some of your materials are lost.
-				}
-				else
-				{
-					return 1044157; // You failed to create the item, but no materials were lost.
-				}
+				return lostMaterial ? 1044043 : 1044157;// You failed to create the item, and some of your materials are lost. // You failed to create the item, but no materials were lost.
 			}
-			else
+
+			if (quality == 0)
 			{
-				if (quality == 0)
-				{
-					return 502785; // You were barely able to make this item.  It's quality is below average.
-				}
-				else if (makersMark && quality == 2)
-				{
-					return 1044156; // You create an exceptional quality item and affix your maker's mark.
-				}
-				else if (quality == 2)
-				{
-					return 1044155; // You create an exceptional quality item.
-				}
-				else
-				{
-					return 1044154; // You create the item.
-				}
+				return 502785; // You were barely able to make this item.  It's quality is below average.
 			}
+
+			if (makersMark && quality == 2)
+			{
+				return 1044156; // You create an exceptional quality item and affix your maker's mark.
+			}
+
+			return quality == 2 ? 1044155 : 1044154; // You create an exceptional quality item.// You create the item.
 		}
 
 		public override void InitCraftList()

@@ -818,7 +818,7 @@ public class TreasureMap : MapItem
 	{
 		if (m_Completed)
 		{
-			from.Send(new MessageLocalizedAffix(Serial, ItemID, MessageType.Label, 0x3B2, 3, 1048030, "", AffixType.Append, string.Format(" completed by {0}", m_CompletedBy == null ? "someone" : m_CompletedBy.Name), ""));
+			from.Send(new MessageLocalizedAffix(Serial, ItemId, MessageType.Label, 0x3B2, 3, 1048030, "", AffixType.Append, string.Format(" completed by {0}", m_CompletedBy == null ? "someone" : m_CompletedBy.Name), ""));
 		}
 		else if (m_Decoder != null)
 		{
@@ -887,12 +887,12 @@ public class TreasureChestDirt : BaseItem
 
 	public void Turn1()
 	{
-		ItemID = 0x913;
+		ItemId = 0x913;
 	}
 
 	public void Turn2()
 	{
-		ItemID = 0x914;
+		ItemId = 0x914;
 	}
 
 	public override void Serialize(GenericWriter writer)

@@ -5,9 +5,9 @@ namespace Server.Items
 {
 	public class PlagueBeastBlood : PlagueBeastComponent
 	{
-		public bool Patched => ItemID == 0x1765;
+		public bool Patched => ItemId == 0x1765;
 
-		public bool Starting => ItemID == 0x122C;
+		public bool Starting => ItemId == 0x122C;
 
 		private readonly Timer m_Timer;
 
@@ -45,7 +45,7 @@ namespace Server.Items
 					Y -= 2;
 				}
 
-				ItemID = 0x1765;
+				ItemId = 0x1765;
 
 				if (Owner != null)
 				{
@@ -79,7 +79,7 @@ namespace Server.Items
 			if (Owner != null)
 				Owner.PlaySound(0x25);
 
-			if (ItemID == 0x122A)
+			if (ItemId == 0x122A)
 			{
 				if (Owner != null)
 				{
@@ -95,7 +95,7 @@ namespace Server.Items
 					Y -= 10;
 				}
 
-				ItemID--;
+				ItemId--;
 			}
 		}
 

@@ -16,9 +16,9 @@ namespace Server.Factions
 			SetSkill(SkillName.Wrestling, 36.0, 68.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBFactionReagent());
+			SbInfos.Add(new SBFactionReagent());
 		}
 
 		public override VendorShoeType ShoeType => Utility.RandomBool() ? VendorShoeType.Shoes : VendorShoeType.Sandals;
@@ -49,7 +49,7 @@ namespace Server.Factions
 		}
 	}
 
-	public class SBFactionReagent : SBInfo
+	public class SBFactionReagent : SbInfo
 	{
 		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
 		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();

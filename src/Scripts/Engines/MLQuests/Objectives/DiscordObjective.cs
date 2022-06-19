@@ -2,52 +2,47 @@ using Server.Mobiles;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public class DiscordObjective : SimpleObjective
 {
-	public class DiscordObjective : SimpleObjective
+	private static readonly Type MType = typeof(Goat);
+
+	private readonly List<string> _mDescr = new();
+	public override List<string> Descriptions => _mDescr;
+
+	public DiscordObjective()
+		: base(5, -1)
 	{
-		private static readonly Type m_Type = typeof(Goat);
+		_mDescr.Add("Discord five goats.");
+	}
 
-		private readonly List<string> m_Descr = new();
-		public override List<string> Descriptions => m_Descr;
+	public override bool Update(object obj)
+	{
+		if (obj is not Mobile mobile || mobile.GetType() != MType) return false;
+		CurProgress++;
 
-		public DiscordObjective()
-			: base(5, -1)
+		if (Completed)
+			Quest.OnCompleted();
+		else
 		{
-			m_Descr.Add("Discord five goats.");
+			Quest.Owner.SendLocalizedMessage(1115749, true, (MaxProgress - CurProgress).ToString()); // Creatures remaining to be discorded: 
+			Quest.Owner.PlaySound(Quest.UpdateSound);
 		}
 
-		public override bool Update(object obj)
-		{
-			if (obj is Mobile mobile && mobile.GetType() == m_Type)
-			{
-				CurProgress++;
+		return true;
 
-				if (Completed)
-					Quest.OnCompleted();
-				else
-				{
-					Quest.Owner.SendLocalizedMessage(1115749, true, (MaxProgress - CurProgress).ToString()); // Creatures remaining to be discorded: 
-					Quest.Owner.PlaySound(Quest.UpdateSound);
-				}
+	}
 
-				return true;
-			}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			return false;
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

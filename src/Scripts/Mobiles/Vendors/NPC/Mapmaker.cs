@@ -1,41 +1,38 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Mapmaker : BaseVendor
 {
-	public class Mapmaker : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public Mapmaker() : base("the mapmaker")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.mapmaker;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Cartography, 90.0, 100.0);
+	}
 
-		[Constructable]
-		public Mapmaker() : base("the mapmaker")
-		{
-			Job = JobFragment.mapmaker;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Cartography, 90.0, 100.0);
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbMapmaker());
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBMapmaker());
-		}
+	public Mapmaker(Serial serial) : base(serial)
+	{
+	}
 
-		public Mapmaker(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

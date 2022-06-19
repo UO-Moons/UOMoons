@@ -15,29 +15,27 @@ namespace Server
 		{
 			Core.Expansion = Expansion;
 			Core.Publishes = Publishes;
-			AccountGold.Enabled = Core.TOL;
+			AccountGold.Enabled = Core.EJ;
 			AccountGold.ConvertOnBank = true;
 			AccountGold.ConvertOnTrade = false;
 			VirtualCheck.UseEditGump = true;
 
-			bool Enabled = Core.AOS;
+			bool enabled = Core.AOS;
 
-			Mobile.InsuranceEnabled = Enabled;
-			ObjectPropertyList.Enabled = Enabled;
-			Mobile.VisibleDamageType = Enabled ? VisibleDamageType.Related : VisibleDamageType.None;
-			Mobile.GuildClickMessage = !Enabled;
-			Mobile.AsciiClickMessage = !Enabled;
+			Mobile.InsuranceEnabled = enabled;
+			ObjectPropertyList.Enabled = enabled;
+			Mobile.VisibleDamageType = enabled ? VisibleDamageType.Related : VisibleDamageType.None;
+			Mobile.GuildClickMessage = !enabled;
+			Mobile.AsciiClickMessage = !enabled;
 
-			if (Enabled)
-			{
-				AOS.DisableStatInfluences();
+			if (!enabled) return;
+			AOS.DisableStatInfluences();
 
-				if (ObjectPropertyList.Enabled)
-					PacketHandlers.SingleClickProps = true; // single click for everything is overriden to check object property list
+			if (ObjectPropertyList.Enabled)
+				PacketHandlers.SingleClickProps = true; // single click for everything is overriden to check object property list
 
-				Mobile.ActionDelay = 1000;
-				Mobile.AOSStatusHandler = new AOSStatusHandler(AOS.GetStatus);
-			}
+			Mobile.ActionDelay = 1000;
+			Mobile.AOSStatusHandler = AOS.GetStatus;
 		}
 	}
 }

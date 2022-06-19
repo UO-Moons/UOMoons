@@ -125,7 +125,7 @@ namespace Server.Items
 			if (m_Timer != null && m_Timer.Running)
 				EndMusic(m);
 			else
-				m_ItemID = ItemID;
+				m_ItemID = ItemId;
 
 			m.Send(new PlayMusic(music));
 			m_Timer = Timer.DelayCall(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5), 4, new TimerCallback(Animate));
@@ -139,7 +139,7 @@ namespace Server.Items
 			m.Send(StopMusic.Instance);
 
 			if (m_Count > 0)
-				ItemID = m_ItemID;
+				ItemId = m_ItemID;
 
 			m_Count = 0;
 		}
@@ -151,10 +151,10 @@ namespace Server.Items
 			if (m_Count >= 4)
 			{
 				m_Count = 0;
-				ItemID = m_ItemID;
+				ItemId = m_ItemID;
 			}
 			else
-				ItemID++;
+				ItemId++;
 		}
 
 		public override void Serialize(GenericWriter writer)

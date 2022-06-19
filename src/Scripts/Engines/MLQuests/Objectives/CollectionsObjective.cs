@@ -1,70 +1,64 @@
 using Server.Mobiles;
 using System;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public class CollectionsObtainObjective : ObtainObjective
 {
-	public class CollectionsObtainObjective : ObtainObjective
+	private bool _mHasObtained;
+
+	public bool HasObtained
 	{
-		private bool m_HasObtained;
-
-		public bool HasObtained
+		get => _mHasObtained;
+		set
 		{
-			get => m_HasObtained;
-			set => m_HasObtained = true;
+			_mHasObtained = value;
+			_mHasObtained = true;
 		}
+	}
 
-		public CollectionsObtainObjective(Type obtain, string name, int amount) : base(obtain, name, amount)
+	public CollectionsObtainObjective(Type obtain, string name, int amount) : base(obtain, name, amount)
+	{
+		_mHasObtained = false;
+	}
+
+	public override bool Update(object o)
+	{
+		if (Quest == null || Quest.Owner == null)
 		{
-			m_HasObtained = false;
-		}
-
-		public override bool Update(object o)
-		{
-			if (Quest == null || Quest.Owner == null)
-			{
-				return false;
-			}
-
-			if (m_HasObtained)
-			{
-				return base.Update(o);
-			}
-
 			return false;
 		}
 
-		public static void CheckReward(PlayerMobile pm, Item item)
+		return _mHasObtained && base.Update(o);
+	}
+
+	public static void CheckReward(PlayerMobile pm, Item item)
+	{
+		if (pm.Quests == null) return;
+		foreach (BaseQuest q in pm.Quests)
 		{
-			if (pm.Quests != null)
+			foreach (BaseObjective obj in q.Objectives)
 			{
-				foreach (BaseQuest q in pm.Quests)
-				{
-					foreach (BaseObjective obj in q.Objectives)
-					{
-						if (obj is CollectionsObtainObjective objective && objective.Obtain == item.GetType())
-						{
-							objective.HasObtained = true;
-							pm.SendSound(q.UpdateSound);
-							return;
-						}
-					}
-				}
+				if (obj is not CollectionsObtainObjective objective || objective.Obtain != item.GetType()) continue;
+				objective.HasObtained = true;
+				pm.SendSound(q.UpdateSound);
+				return;
 			}
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0); // version
-			writer.Write(m_HasObtained);
-		}
+		writer.Write(0); // version
+		writer.Write(_mHasObtained);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-			m_HasObtained = reader.ReadBool();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+		_mHasObtained = reader.ReadBool();
 	}
 }

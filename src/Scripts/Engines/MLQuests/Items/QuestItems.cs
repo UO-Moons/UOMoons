@@ -69,11 +69,11 @@ namespace Server.Engines.Quests
 		{
 			if (IsArcane)
 			{
-				ItemID = 0x26AD;
+				ItemId = 0x26AD;
 			}
-			else if (ItemID == 0x26AD)
+			else if (ItemId == 0x26AD)
 			{
-				ItemID = 0x1515;
+				ItemId = 0x1515;
 			}
 
 			if (IsArcane && CurArcaneCharges == 0)
@@ -105,13 +105,13 @@ namespace Server.Engines.Quests
 
 		public void Flip()
 		{
-			if (ItemID == 0x1515)
+			if (ItemId == 0x1515)
 			{
-				ItemID = 0x1530;
+				ItemId = 0x1530;
 			}
-			else if (ItemID == 0x1530)
+			else if (ItemId == 0x1530)
 			{
-				ItemID = 0x1515;
+				ItemId = 0x1515;
 			}
 		}
 
@@ -279,13 +279,13 @@ namespace Server.Engines.Quests
 
 		public override int ComputeItemID()
 		{
-			if (ItemID >= 0x995 && ItemID <= 0x999)
+			if (ItemId >= 0x995 && ItemId <= 0x999)
 			{
-				return ItemID;
+				return ItemId;
 			}
-			else if (ItemID == 0x9CA)
+			else if (ItemId == 0x9CA)
 			{
-				return ItemID;
+				return ItemId;
 			}
 
 			return 0x995;
@@ -497,11 +497,11 @@ namespace Server.Engines.Quests
 		{
 			if (IsArcane)
 			{
-				ItemID = 0x26B0;
+				ItemId = 0x26B0;
 			}
-			else if (ItemID == 0x26B0)
+			else if (ItemId == 0x26B0)
 			{
-				ItemID = 0x13C6;
+				ItemId = 0x13C6;
 			}
 
 			if (IsArcane && CurArcaneCharges == 0)
@@ -523,13 +523,13 @@ namespace Server.Engines.Quests
 
 		public void Flip()
 		{
-			if (ItemID == 0x13C6)
+			if (ItemId == 0x13C6)
 			{
-				ItemID = 0x13CE;
+				ItemId = 0x13CE;
 			}
-			else if (ItemID == 0x13CE)
+			else if (ItemId == 0x13CE)
 			{
-				ItemID = 0x13C6;
+				ItemId = 0x13C6;
 			}
 		}
 		#endregion

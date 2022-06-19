@@ -1,71 +1,54 @@
 using System;
 using System.Collections;
 
-namespace Server.Engines.Craft
+namespace Server.Engines.Craft;
+
+public class CraftSubResCol : CollectionBase
 {
-    public class CraftSubResCol : CollectionBase
-    {
-        private Type m_Type;
-        private string m_NameString;
-        private int m_NameNumber;
-        private bool m_Init;
-        public CraftSubResCol()
-        {
-            m_Init = false;
-        }
+	public CraftSubResCol()
+	{
+		Init = false;
+	}
 
-        public bool Init
-        {
-            get => m_Init;
-            set => m_Init = value;
-        }
-        public Type ResType
-        {
-            get => m_Type;
-            set => m_Type = value;
-        }
-        public string NameString
-        {
-            get => m_NameString;
-            set => m_NameString = value;
-        }
-        public int NameNumber
-        {
-            get => m_NameNumber;
-            set => m_NameNumber = value;
-        }
-        public void Add(CraftSubRes craftSubRes)
-        {
-            List.Add(craftSubRes);
-        }
+	public bool Init { get; set; }
 
-        public void Remove(int index)
-        {
-            if (index > Count - 1 || index < 0)
-            {
-            }
-            else
-            {
-                List.RemoveAt(index);
-            }
-        }
+	public Type ResType { get; set; }
 
-        public CraftSubRes GetAt(int index)
-        {
-            return (CraftSubRes)List[index];
-        }
+	public string NameString { get; set; }
 
-        public CraftSubRes SearchFor(Type type)
-        {
-            for (int i = 0; i < List.Count; i++)
-            {
-                CraftSubRes craftSubRes = (CraftSubRes)List[i];
-                if (craftSubRes.ItemType == type)
-                {
-                    return craftSubRes;
-                }
-            }
-            return null;
-        }
-    }
+	public int NameNumber { get; set; }
+
+	public void Add(CraftSubRes craftSubRes)
+	{
+		List.Add(craftSubRes);
+	}
+
+	public void Remove(int index)
+	{
+		if (index > Count - 1 || index < 0)
+		{
+		}
+		else
+		{
+			List.RemoveAt(index);
+		}
+	}
+
+	public CraftSubRes GetAt(int index)
+	{
+		return (CraftSubRes)List[index];
+	}
+
+	public CraftSubRes SearchFor(Type type)
+	{
+		for (var i = 0; i < List.Count; i++)
+		{
+			CraftSubRes craftSubRes = (CraftSubRes)List[i];
+			if (craftSubRes != null && craftSubRes.ItemType == type)
+			{
+				return craftSubRes;
+			}
+		}
+		return null;
+	}
 }

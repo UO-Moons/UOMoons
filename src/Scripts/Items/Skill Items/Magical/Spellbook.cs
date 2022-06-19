@@ -492,7 +492,7 @@ namespace Server.Items
 			{
 				if (ns.NewSpellbook)
 				{
-					to.Send(new NewSpellbookContent(this, ItemID, BookOffset + 1, m_Content));
+					to.Send(new NewSpellbookContent(this, ItemId, BookOffset + 1, m_Content));
 				}
 				else
 				{

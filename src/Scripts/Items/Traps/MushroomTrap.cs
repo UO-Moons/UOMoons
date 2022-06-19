@@ -17,10 +17,10 @@ namespace Server.Items
 
 		public override void OnTrigger(Mobile from)
 		{
-			if (!from.Alive || ItemID != 0x1125 || from.AccessLevel > AccessLevel.Player)
+			if (!from.Alive || ItemId != 0x1125 || from.AccessLevel > AccessLevel.Player)
 				return;
 
-			ItemID = 0x1126;
+			ItemId = 0x1126;
 			Effects.PlaySound(Location, Map, 0x306);
 
 			Spells.SpellHelper.Damage(TimeSpan.FromSeconds(0.5), from, from, Utility.Dice(2, 4, 0));
@@ -31,7 +31,7 @@ namespace Server.Items
 		public virtual void OnMushroomReset()
 		{
 			if (Region.Find(Location, Map).IsPartOf(typeof(DungeonRegion)))
-				ItemID = 0x1125; // reset
+				ItemId = 0x1125; // reset
 			else
 				Delete();
 		}
@@ -53,7 +53,7 @@ namespace Server.Items
 
 			int version = reader.ReadInt();
 
-			if (ItemID == 0x1126)
+			if (ItemId == 0x1126)
 				OnMushroomReset();
 		}
 	}

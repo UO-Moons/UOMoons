@@ -229,28 +229,28 @@ namespace Server.Engines.TownHouses
 
 			if (Job == HammerJob.Flip)
 			{
-				int id = GetFlipFor(item.ItemID);
+				int id = GetFlipFor(item.ItemId);
 
-				if (id == item.ItemID)
+				if (id == item.ItemId)
 				{
 					m.SendMessage("You cannot change that with this.");
 				}
 				else
 				{
-					item.ItemID = id;
+					item.ItemId = id;
 				}
 			}
 			else
 			{
-				var id = GetNextSign(item.ItemID);
+				var id = GetNextSign(item.ItemId);
 
-				if (id == item.ItemID)
+				if (id == item.ItemId)
 				{
 					m.SendMessage("You cannot change that with this.");
 				}
 				else
 				{
-					item.ItemID = id;
+					item.ItemId = id;
 				}
 			}
 		}

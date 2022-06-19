@@ -1173,7 +1173,7 @@ namespace Server.Spells
 
 		public static bool IsMLDungeon(Map map, Point3D loc)
 		{
-			return MondainsLegacy.IsMLRegion(Region.Find(loc, map));
+			return MondainsLegacy.IsMlRegion(Region.Find(loc, map));
 		}
 
 		public static bool IsTombOfKings(Map map, Point3D loc)
@@ -1858,43 +1858,54 @@ namespace Server.Spells
 
 		public static void RemoveContext(Mobile m, TransformContext context, bool resetGraphics)
 		{
-			if (m_Table.ContainsKey(m))
+			if (!m_Table.ContainsKey(m)) return;
+			m_Table.Remove(m);
+
+			List<ResistanceMod> mods = context.Mods;
+
+			for (int i = 0; i < mods.Count; ++i)
+				m.RemoveResistanceMod(mods[i]);
+
+			if (resetGraphics)
 			{
-				m_Table.Remove(m);
-
-				List<ResistanceMod> mods = context.Mods;
-
-				for (int i = 0; i < mods.Count; ++i)
-					m.RemoveResistanceMod(mods[i]);
-
-				if (resetGraphics)
-				{
-					m.HueMod = -1;
-					m.BodyMod = 0;
-				}
-
-				context.Timer.Stop();
-				context.Spell.RemoveEffect(m);
+				m.HueMod = -1;
+				m.BodyMod = 0;
 			}
+
+			context.Timer.Stop();
+			context.Spell.RemoveEffect(m);
 		}
 
 		public static TransformContext GetContext(Mobile m)
 		{
-			m_Table.TryGetValue(m, out TransformContext context);
+			m_Table.TryGetValue(m, out var context);
 
 			return context;
 		}
 
 		public static bool UnderTransformation(Mobile m)
 		{
-			return (GetContext(m) != null);
+			return GetContext(m) != null;
 		}
 
 		public static bool UnderTransformation(Mobile m, Type type)
 		{
 			TransformContext context = GetContext(m);
 
-			return (context != null && context.Type == type);
+			return context != null && context.Type == type;
+		}
+
+		public static void CheckCastSkill(Mobile m, TransformContext context)
+		{
+			if (context.Spell is Spell spell)
+			{
+				spell.GetCastSkills(out double min, out double max);
+
+				if (m.Skills[spell.CastSkill].Value < min)
+				{
+					RemoveContext(m, context, true);
+				}
+			}
 		}
 		#endregion
 

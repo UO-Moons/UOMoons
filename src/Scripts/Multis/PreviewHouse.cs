@@ -65,7 +65,7 @@ namespace Server.Multis
 		public void AddExteriorStairs(MultiComponentList mcl)
 		{
 			// this won't work correctly without declaring a new mcl so it can then be resized
-			MultiComponentList mclNew = new(MultiData.GetComponents(ItemID));
+			MultiComponentList mclNew = new(MultiData.GetComponents(ItemId));
 
 			mclNew.Resize(mclNew.Width, mclNew.Height + 1);
 

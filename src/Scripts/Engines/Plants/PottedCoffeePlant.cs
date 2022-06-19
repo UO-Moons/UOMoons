@@ -96,10 +96,10 @@ namespace Server.Items
 			{
 				switch (value)
 				{
-					case PlantStatus.Stage1: { ItemID = 0x9A20; break; }
-					case PlantStatus.Stage2: { ItemID = 0x9A21; break; }
-					case PlantStatus.Stage3: { ItemID = 0x9A22; break; }
-					case PlantStatus.Stage4: { ItemID = 0x9A23; break; }
+					case PlantStatus.Stage1: { ItemId = 0x9A20; break; }
+					case PlantStatus.Stage2: { ItemId = 0x9A21; break; }
+					case PlantStatus.Stage3: { ItemId = 0x9A22; break; }
+					case PlantStatus.Stage4: { ItemId = 0x9A23; break; }
 				}
 
 				m_PlantStatus = value;

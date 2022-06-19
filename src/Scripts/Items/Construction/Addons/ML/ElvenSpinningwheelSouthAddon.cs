@@ -34,10 +34,10 @@ namespace Server.Items
 
         public override void OnComponentLoaded(AddonComponent c)
         {
-            switch (c.ItemID)
+            switch (c.ItemId)
             {
                 case 0x2E3E:
-                    ++c.ItemID;
+                    ++c.ItemId;
                     break;
             }
         }
@@ -49,10 +49,10 @@ namespace Server.Items
 
             foreach (AddonComponent c in Components)
             {
-                switch (c.ItemID)
+                switch (c.ItemId)
                 {
                     case 0x2E3F:
-                        --c.ItemID;
+                        --c.ItemId;
                         break;
                 }
             }
@@ -67,10 +67,10 @@ namespace Server.Items
 
             foreach (AddonComponent c in Components)
             {
-                switch (c.ItemID)
+                switch (c.ItemId)
                 {
                     case 0x2E3E:
-                        ++c.ItemID;
+                        ++c.ItemId;
                         break;
                 }
             }

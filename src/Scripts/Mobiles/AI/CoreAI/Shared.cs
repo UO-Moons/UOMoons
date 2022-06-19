@@ -217,7 +217,7 @@ namespace Server.Mobiles
                 }
                 else
                 {
-                    move = IsFieldSpell(item.ItemID);
+                    move = IsFieldSpell(item.ItemId);
                 }
             }
             eable.Free();

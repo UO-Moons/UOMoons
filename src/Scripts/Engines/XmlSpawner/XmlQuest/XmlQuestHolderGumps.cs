@@ -408,7 +408,7 @@ namespace Server.Gumps
 						AddLabel(230, 373, 55, string.Format("Weight: {0}", questitem.RewardItem.Weight));
 					}
 					AddImageTiled(330, 373, 81, 40, 200);
-					AddItem(340, 376, questitem.RewardItem.ItemID);
+					AddItem(340, 376, questitem.RewardItem.ItemId);
 
 				}
 				if (questitem.RewardAttachment != null && !questitem.RewardAttachment.Deleted)

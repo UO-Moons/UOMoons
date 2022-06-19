@@ -7,7 +7,7 @@ namespace Server.Items
 		public override bool NeedsWall => true;
 		public override Point3D WallPosition => East ? new Point3D(-1, 0, 0) : new Point3D(0, -1, 0);
 
-		public bool East => ItemID == 0x1E2F;
+		public bool East => ItemId == 0x1E2F;
 
 		[Constructable]
 		public DartBoard() : this(true)
@@ -61,7 +61,7 @@ namespace Server.Items
 			}
 
 			from.Animate(from.Mounted ? 26 : 9, 7, 1, true, false, 0);
-			from.MovingEffect(this, knife.ItemID, 7, 1, false, false);
+			from.MovingEffect(this, knife.ItemId, 7, 1, false, false);
 			from.PlaySound(0x238);
 
 			double rand = Utility.RandomDouble();

@@ -44,8 +44,8 @@ namespace Server.Items
 			if (WeaponAttributes.MageWeapon == 0)
 				WeaponAttributes.MageWeapon = 30;
 
-			if (ItemID == 0xDF1)
-				ItemID = 0xDF0;
+			if (ItemId == 0xDF1)
+				ItemId = 0xDF0;
 		}
 	}
 }

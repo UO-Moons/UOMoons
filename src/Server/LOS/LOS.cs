@@ -479,12 +479,12 @@ namespace Server.LOS
 			//----------------------------------------------------------------------
 			//  multis don't block vis (their parts do, that's different)
 			//----------------------------------------------------------------------
-			if (item.ItemID >= 0x4000)
+			if (item.ItemId >= 0x4000)
 				return false;
 			//----------------------------------------------------------------------
 			//  whitelisted items don't block viz
 			//----------------------------------------------------------------------
-			if (Config.GetInstance().WhiteListed(item.ItemID | 0x4000))
+			if (Config.GetInstance().WhiteListed(item.ItemId | 0x4000))
 				return false;
 
 			//----------------------------------------------------------------------
@@ -512,7 +512,7 @@ namespace Server.LOS
 			//  Trees
 			//----------------------------------------------------------------------
 
-			if (Config.GetInstance().Tree(item.ItemID | 0x4000))
+			if (Config.GetInstance().Tree(item.ItemId | 0x4000))
 			{
 				int treeRange = Config.GetInstance().TreeRange;
 
@@ -611,7 +611,7 @@ namespace Server.LOS
 			//  Blacklisted Items
 			//----------------------------------------------------------------------
 
-			if (Config.GetInstance().BlackListed(item.ItemID))
+			if (Config.GetInstance().BlackListed(item.ItemId))
 			{
 				return true;
 			}

@@ -4,30 +4,30 @@ namespace Server.Gumps
 {
 	public class GumpGroup : GumpEntry
 	{
-		private int m_Group;
+		private int _mGroup;
 
 		public GumpGroup(int group)
 		{
-			m_Group = group;
+			_mGroup = group;
 		}
 
 		public int Group
 		{
-			get => m_Group;
-			set => Delta(ref m_Group, value);
+			get => _mGroup;
+			set => Delta(ref _mGroup, value);
 		}
 
 		public override string Compile()
 		{
-			return string.Format("{{ group {0} }}", m_Group);
+			return $"{{ group {_mGroup} }}";
 		}
 
-		private static readonly byte[] m_LayoutName = Gump.StringToBuffer("group");
+		private static readonly byte[] MLayoutName = Gump.StringToBuffer("group");
 
 		public override void AppendTo(IGumpWriter disp)
 		{
-			disp.AppendLayout(m_LayoutName);
-			disp.AppendLayout(m_Group);
+			disp.AppendLayout(MLayoutName);
+			disp.AppendLayout(_mGroup);
 		}
 	}
 }

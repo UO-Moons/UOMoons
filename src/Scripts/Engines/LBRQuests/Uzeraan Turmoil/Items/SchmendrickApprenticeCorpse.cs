@@ -102,7 +102,7 @@ namespace Server.Engines.Quests.Haven
 
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
-			if (ItemID == 0x2006) // Corpse form
+			if (ItemId == 0x2006) // Corpse form
 			{
 				list.Add("a human corpse");
 				list.Add(1049144, Name); // the remains of ~1_NAME~ the apprentice
@@ -117,10 +117,10 @@ namespace Server.Engines.Quests.Haven
 		{
 			int hue = Notoriety.GetHue(Notoriety.ComputeCorpse(from, this));
 
-			if (ItemID == 0x2006) // Corpse form
-				from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, hue, 3, 1049144, "", Name)); // the remains of ~1_NAME~ the apprentice
+			if (ItemId == 0x2006) // Corpse form
+				from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, hue, 3, 1049144, "", Name)); // the remains of ~1_NAME~ the apprentice
 			else
-				from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, hue, 3, 1049145, "", "")); // the remains of a wizard's apprentice
+				from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, hue, 3, 1049145, "", "")); // the remains of a wizard's apprentice
 		}
 
 		public override void Open(Mobile from, bool checkSelfLoot)

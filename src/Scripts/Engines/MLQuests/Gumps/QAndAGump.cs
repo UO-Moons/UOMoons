@@ -1,93 +1,83 @@
-using System;
-using Server.Commands;
 using Server.Network;
 using Server.Engines.Quests;
 using System.Collections.Generic;
-using Server.Items;
 
-namespace Server.Gumps
+namespace Server.Gumps;
+
+public class QAndAGump : Gump
 {
-    public class QAndAGump : Gump
-    {
-        private const int FontColor = 0x000008;
+	private const int FontColor = 0x000008;
 
-        private Mobile m_From;
-        private QuestionAndAnswerObjective m_Objective;
-        private BaseQuest m_Quest;
-        private int m_Index;
+	private readonly Mobile _mFrom;
+	private readonly QuestionAndAnswerObjective _mObjective;
+	private readonly BaseQuest _mQuest;
 
-        public QAndAGump(Mobile owner, BaseQuest quest) : base(0, 0)
-        {
-            m_From = owner;
-            m_Quest = quest;
-            Closable = false;
-            Disposable = false;
+	public QAndAGump(Mobile owner, BaseQuest quest) : base(0, 0)
+	{
+		_mFrom = owner;
+		_mQuest = quest;
+		Closable = false;
+		Disposable = false;
 
-            foreach (BaseObjective objective in quest.Objectives)
-            {
-                if (objective is QuestionAndAnswerObjective)
-                {
-                    m_Objective = (QuestionAndAnswerObjective)objective;
-                    break;
-                }
-            }
+		foreach (BaseObjective objective in quest.Objectives)
+		{
+			if (objective is not QuestionAndAnswerObjective answerObjective) continue;
+			_mObjective = answerObjective;
+			break;
+		}
 
-            if (m_Objective == null)
-                return;
+		QuestionAndAnswerEntry entry = _mObjective?.GetRandomQandA();
 
-            QuestionAndAnswerEntry entry = m_Objective.GetRandomQandA();
+		if (entry == null)
+			return;
 
-            if (entry == null)
-                return;
+		AddPage(0);
+		AddImage(0, 0, 1228);
+		AddImage(40, 78, 95);
+		AddImageTiled(49, 87, 301, 3, 96);
+		AddImage(350, 78, 97);
 
-            AddPage(0);
-            AddImage(0, 0, 1228);
-            AddImage(40, 78, 95);
-            AddImageTiled(49, 87, 301, 3, 96);
-            AddImage(350, 78, 97);
+		object answer = entry.Answers[Utility.Random(entry.Answers.Length)];
 
-            object answer = entry.Answers[Utility.Random(entry.Answers.Length)];
+		List<object> selections = new(entry.WrongAnswers);
+		var mIndex = Utility.Random(selections.Count);
+		selections.Insert(mIndex, answer);
 
-            List<object> selections = new List<object>(entry.WrongAnswers);
-            m_Index = Utility.Random(selections.Count); //Gets correct answer
-            selections.Insert(m_Index, answer);
+		AddHtmlLocalized(40, 40, 320, 40, entry.Question, FontColor, false, false); //question
 
-            AddHtmlLocalized(40, 40, 320, 40, entry.Question, FontColor, false, false); //question
+		for (var i = 0; i < selections.Count; i++)
+		{
+			object selection = selections[i];
 
-            for (int i = 0; i < selections.Count; i++)
-            {
-                object selection = selections[i];
+			AddButton(49, 104 + (i * 40), 2224, 2224, selection == answer ? 1 : 0, GumpButtonType.Reply, 0);
 
-                AddButton(49, 104 + (i * 40), 2224, 2224, selection == answer ? 1 : 0, GumpButtonType.Reply, 0);
+			if (selection is int selection1)
+				AddHtmlLocalized(80, 102 + (i * 40), 200, 18, selection1, 0x0, false, false);
+			else
+				AddHtml(80, 102 + (i * 40), 200, 18, $"<BASEFONT COLOR=#{FontColor:X6}>{selection}</BASEFONT>", false, false);
+		}
+	}
 
-                if (selection is int)
-                    AddHtmlLocalized(80, 102 + (i * 40), 200, 18, (int)selection, 0x0, false, false);
-                else
-                    AddHtml(80, 102 + (i * 40), 200, 18, string.Format("<BASEFONT COLOR=#{0:X6}>{1}</BASEFONT>", FontColor, selection), false, false);
-            }
-        }
+	public override void OnResponse(NetState state, RelayInfo info)
+	{
+		if (info.ButtonID == 1) //correct answer
+		{
+			_mObjective.Update(null);
 
-        public override void OnResponse(NetState state, RelayInfo info)
-        {
-            if (info.ButtonID == 1) //correct answer
-            {
-                m_Objective.Update(null);
-
-                if (m_Quest.Completed)
-                {
-                    m_Quest.OnCompleted();
-                    m_From.SendGump(new MondainQuestGump(m_Quest, MondainQuestGump.Section.Complete, false, true));
-                }
-                else
-                {
-                    m_From.SendGump(new QAndAGump(m_From, m_Quest));
-                }
-            }
-            else
-            {
-                m_From.SendGump(new MondainQuestGump(m_Quest, MondainQuestGump.Section.Failed, false, true));
-                m_Quest.OnResign(false);
-            }
-        }
-    }
+			if (_mQuest.Completed)
+			{
+				_mQuest.OnCompleted();
+				_mFrom.SendGump(new MondainQuestGump(_mQuest, MondainQuestGump.Section.Complete, false, true));
+			}
+			else
+			{
+				_mFrom.SendGump(new QAndAGump(_mFrom, _mQuest));
+			}
+		}
+		else
+		{
+			_mFrom.SendGump(new MondainQuestGump(_mQuest, MondainQuestGump.Section.Failed, false, true));
+			_mQuest.OnResign(false);
+		}
+	}
 }

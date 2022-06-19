@@ -1,39 +1,36 @@
 using System;
 
-namespace Server.Accounting
+namespace Server.Accounting;
+
+public class AccountPrompt
 {
-	public class AccountPrompt
+	public static void Initialize()
 	{
-		public static void Initialize()
+		if (Accounts.Count != 0 || Core.Service) return;
+		Utility.WriteConsole(ConsoleColor.Cyan, "This server has no accounts.");
+		Console.Write("Do you want to create the owner account now? (y/n)");
+
+		if (Console.ReadKey(true).Key == ConsoleKey.Y)
 		{
-			if (Accounts.Count == 0 && !Core.Service)
+			Console.WriteLine();
+
+			Console.Write("Username: ");
+			string username = Console.ReadLine();
+
+			Console.Write("Password: ");
+			string password = Console.ReadLine();
+			Account unused = new(username, password)
 			{
-				Utility.WriteConsole(ConsoleColor.Cyan, "This server has no accounts.");
-				Console.Write("Do you want to create the owner account now? (y/n)");
+				AccessLevel = AccessLevel.Owner
+			};
 
-				if (Console.ReadKey(true).Key == ConsoleKey.Y)
-				{
-					Console.WriteLine();
+			Utility.WriteConsole(ConsoleColor.Green, "Account created.");
+		}
+		else
+		{
+			Console.WriteLine();
 
-					Console.Write("Username: ");
-					string username = Console.ReadLine();
-
-					Console.Write("Password: ");
-					string password = Console.ReadLine();
-					Account a = new(username, password)
-					{
-						AccessLevel = AccessLevel.Owner
-					};
-
-					Utility.WriteConsole(ConsoleColor.Green, "Account created.");
-				}
-				else
-				{
-					Console.WriteLine();
-
-					Utility.WriteConsole(ConsoleColor.Yellow, "Account not created.");
-				}
-			}
+			Utility.WriteConsole(ConsoleColor.Yellow, "Account not created.");
 		}
 	}
 }

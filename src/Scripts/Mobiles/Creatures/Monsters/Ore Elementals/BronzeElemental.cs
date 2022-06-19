@@ -49,7 +49,7 @@ namespace Server.Mobiles
 
 			Item ore = new BronzeOre(oreAmount)
 			{
-				ItemID = 0x19B9
+				ItemId = 0x19B9
 			};
 			PackItem(ore);
 		}

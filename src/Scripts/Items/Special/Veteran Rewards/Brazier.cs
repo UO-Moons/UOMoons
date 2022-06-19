@@ -62,7 +62,7 @@ namespace Server.Items
 			if (m_Fire == null)
 				m_Fire = new Item();
 
-			m_Fire.ItemID = 0x19AB;
+			m_Fire.ItemId = 0x19AB;
 			m_Fire.Movable = false;
 			m_Fire.MoveToWorld(new Point3D(X, Y, Z + ItemData.Height + 2), Map);
 		}

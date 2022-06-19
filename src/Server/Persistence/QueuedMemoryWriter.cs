@@ -7,9 +7,9 @@ namespace Server
 	{
 		private struct IndexInfo
 		{
-			public int size;
-			public int typeCode;
-			public int serial;
+			public int Size;
+			public int TypeCode;
+			public int Serial;
 		}
 
 		private readonly MemoryStream _memStream;
@@ -27,10 +27,10 @@ namespace Server
 		{
 			IndexInfo info;
 
-			info.size = size;
+			info.Size = size;
 
-			info.typeCode = serializable.TypeReference; //For guilds, this will automagically be zero.
-			info.serial = serializable.SerialIdentity;
+			info.TypeCode = serializable.TypeReference; //For guilds, this will automagically be zero.
+			info.Serial = serializable.SerialIdentity;
 
 			_orderedIndexInfo.Add(info);
 		}
@@ -59,20 +59,20 @@ namespace Server
 				for (int i = 0; i < _orderedIndexInfo.Count; i++)
 				{
 					IndexInfo info = _orderedIndexInfo[i];
-					_ = info.typeCode;
-					_ = info.serial;
-					_ = info.size;
+					_ = info.TypeCode;
+					_ = info.Serial;
+					_ = info.Size;
 
 
-					indexBuffer[0] = (byte)(info.typeCode);
-					indexBuffer[1] = (byte)(info.typeCode >> 8);
-					indexBuffer[2] = (byte)(info.typeCode >> 16);
-					indexBuffer[3] = (byte)(info.typeCode >> 24);
+					indexBuffer[0] = (byte)(info.TypeCode);
+					indexBuffer[1] = (byte)(info.TypeCode >> 8);
+					indexBuffer[2] = (byte)(info.TypeCode >> 16);
+					indexBuffer[3] = (byte)(info.TypeCode >> 24);
 
-					indexBuffer[4] = (byte)(info.serial);
-					indexBuffer[5] = (byte)(info.serial >> 8);
-					indexBuffer[6] = (byte)(info.serial >> 16);
-					indexBuffer[7] = (byte)(info.serial >> 24);
+					indexBuffer[4] = (byte)(info.Serial);
+					indexBuffer[5] = (byte)(info.Serial >> 8);
+					indexBuffer[6] = (byte)(info.Serial >> 16);
+					indexBuffer[7] = (byte)(info.Serial >> 24);
 
 					indexBuffer[8] = (byte)(actualPosition);
 					indexBuffer[9] = (byte)(actualPosition >> 8);
@@ -83,14 +83,14 @@ namespace Server
 					indexBuffer[14] = (byte)(actualPosition >> 48);
 					indexBuffer[15] = (byte)(actualPosition >> 56);
 
-					indexBuffer[16] = (byte)(info.size);
-					indexBuffer[17] = (byte)(info.size >> 8);
-					indexBuffer[18] = (byte)(info.size >> 16);
-					indexBuffer[19] = (byte)(info.size >> 24);
+					indexBuffer[16] = (byte)(info.Size);
+					indexBuffer[17] = (byte)(info.Size >> 8);
+					indexBuffer[18] = (byte)(info.Size >> 16);
+					indexBuffer[19] = (byte)(info.Size >> 24);
 
 					indexFile.Write(indexBuffer, 0, indexBuffer.Length);
 
-					actualPosition += info.size;
+					actualPosition += info.Size;
 				}
 			}
 

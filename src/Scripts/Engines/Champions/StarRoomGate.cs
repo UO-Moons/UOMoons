@@ -1,106 +1,105 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public sealed class StarRoomGate : Moongate
 {
-	public sealed class StarRoomGate : Moongate
+	private bool _mDecays;
+	private DateTime _mDecayTime;
+	private Timer _mTimer;
+	[Constructable]
+	public StarRoomGate()
+		: this(false)
 	{
-		private bool m_Decays;
-		private DateTime m_DecayTime;
-		private Timer m_Timer;
-		[Constructable]
-		public StarRoomGate()
-			: this(false)
+	}
+
+	[Constructable]
+	public StarRoomGate(bool decays, Point3D loc, Map map)
+		: this(decays)
+	{
+		MoveToWorld(loc, map);
+		Effects.PlaySound(loc, map, 0x20E);
+	}
+
+	[Constructable]
+	public StarRoomGate(bool decays)
+		: base(new Point3D(5143, 1774, 0), Map.Felucca)
+	{
+		Dispellable = false;
+		ItemId = 0x1FD4;
+
+		if (!decays)
+			return;
+
+		_mDecays = true;
+		_mDecayTime = DateTime.UtcNow + TimeSpan.FromMinutes(2.0);
+
+		_mTimer = new InternalTimer(this, _mDecayTime);
+		_mTimer.Start();
+	}
+
+	public StarRoomGate(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override int LabelNumber => 1049498;// dark moongate
+	public override void OnAfterDelete()
+	{
+		_mTimer?.Stop();
+
+		base.OnAfterDelete();
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+
+		writer.Write(_mDecays);
+
+		if (_mDecays)
+			writer.WriteDeltaTime(_mDecayTime);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		int version = reader.ReadInt();
+
+		switch (version)
 		{
-		}
-
-		[Constructable]
-		public StarRoomGate(bool decays, Point3D loc, Map map)
-			: this(decays)
-		{
-			MoveToWorld(loc, map);
-			Effects.PlaySound(loc, map, 0x20E);
-		}
-
-		[Constructable]
-		public StarRoomGate(bool decays)
-			: base(new Point3D(5143, 1774, 0), Map.Felucca)
-		{
-			Dispellable = false;
-			ItemID = 0x1FD4;
-
-			if (!decays)
-				return;
-
-			m_Decays = true;
-			m_DecayTime = DateTime.UtcNow + TimeSpan.FromMinutes(2.0);
-
-			m_Timer = new InternalTimer(this, m_DecayTime);
-			m_Timer.Start();
-		}
-
-		public StarRoomGate(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override int LabelNumber => 1049498;// dark moongate
-		public override void OnAfterDelete()
-		{
-			m_Timer?.Stop();
-
-			base.OnAfterDelete();
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write(m_Decays);
-
-			if (m_Decays)
-				writer.WriteDeltaTime(m_DecayTime);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			switch (version)
+			case 0:
 			{
-				case 0:
-					{
-						m_Decays = reader.ReadBool();
+				_mDecays = reader.ReadBool();
 
-						if (m_Decays)
-						{
-							m_DecayTime = reader.ReadDeltaTime();
+				if (_mDecays)
+				{
+					_mDecayTime = reader.ReadDeltaTime();
 
-							m_Timer = new InternalTimer(this, m_DecayTime);
-							m_Timer.Start();
-						}
+					_mTimer = new InternalTimer(this, _mDecayTime);
+					_mTimer.Start();
+				}
 
-						break;
-					}
+				break;
 			}
 		}
+	}
 
-		private class InternalTimer : Timer
+	private class InternalTimer : Timer
+	{
+		private readonly Item _mItem;
+		public InternalTimer(Item item, DateTime end)
+			: base(end - DateTime.UtcNow)
 		{
-			private readonly Item m_Item;
-			public InternalTimer(Item item, DateTime end)
-				: base(end - DateTime.UtcNow)
-			{
-				m_Item = item;
-			}
+			_mItem = item;
+		}
 
-			protected override void OnTick()
-			{
-				m_Item.Delete();
-			}
+		protected override void OnTick()
+		{
+			_mItem.Delete();
 		}
 	}
 }

@@ -1144,7 +1144,7 @@ namespace Server.Engines.ConPVP
 					Item item = new Trophy(sb.ToString(), rank);
 
 					if (pl == leader)
-						item.ItemID = 4810;
+						item.ItemId = 4810;
 
 					item.Name = string.Format("{0}, {1}", item.Name, ((KHTeamInfo)teams[i]).Name.ToLower());
 

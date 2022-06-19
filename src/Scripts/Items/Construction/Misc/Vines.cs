@@ -13,7 +13,7 @@ namespace Server.Items
 			if (v < 0 || v > 7)
 				v = 0;
 
-			ItemID += v;
+			ItemId += v;
 			Weight = 1.0;
 		}
 

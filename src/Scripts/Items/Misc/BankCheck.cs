@@ -153,7 +153,7 @@ namespace Server.Items
 			from.Send(
 				new MessageLocalizedAffix(
 					Serial,
-					ItemID,
+					ItemId,
 					MessageType.Label,
 					0x3B2,
 					3,

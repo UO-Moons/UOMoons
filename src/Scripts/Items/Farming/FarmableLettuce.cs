@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Lettuce lettuce = new Lettuce
 			{
-				ItemID = Utility.Random(3184, 2)
+				ItemId = Utility.Random(3184, 2)
 			};
 
 			return lettuce;

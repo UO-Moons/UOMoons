@@ -7758,7 +7758,7 @@ namespace Server.Mobiles
 					{
 						if (p == null)
 						{
-							p = new AsciiMessage(item.Serial, item.ItemID, type, hue, font, item.Name, text);
+							p = new AsciiMessage(item.Serial, item.ItemId, type, hue, font, item.Name, text);
 
 							p.Acquire();
 						}

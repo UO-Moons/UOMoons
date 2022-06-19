@@ -1,74 +1,71 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class GypsyMaiden : BaseVendor
 {
-	public class GypsyMaiden : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public GypsyMaiden() : base("the gypsy maiden")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+	}
 
-		[Constructable]
-		public GypsyMaiden() : base("the gypsy maiden")
+	public override bool GetGender()
+	{
+		return true; // always female
+	}
+
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbProvisioner());
+	}
+
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
+
+		switch (Utility.Random(4))
 		{
+			case 0: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
+			case 1: AddItem(new Bandana(Utility.RandomBrightHue())); break;
+			case 2: AddItem(new SkullCap(Utility.RandomBrightHue())); break;
 		}
 
-		public override bool GetGender()
-		{
-			return true; // always female
-		}
+		if (Utility.RandomBool())
+			AddItem(new HalfApron(Utility.RandomBrightHue()));
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBProvisioner());
-		}
+		Item item = FindItemOnLayer(Layer.Pants);
 
-		public override void InitOutfit()
-		{
-			base.InitOutfit();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			switch (Utility.Random(4))
-			{
-				case 0: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
-				case 1: AddItem(new Bandana(Utility.RandomBrightHue())); break;
-				case 2: AddItem(new SkullCap(Utility.RandomBrightHue())); break;
-			}
+		item = FindItemOnLayer(Layer.OuterLegs);
 
-			if (Utility.RandomBool())
-				AddItem(new HalfApron(Utility.RandomBrightHue()));
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			Item item = FindItemOnLayer(Layer.Pants);
+		item = FindItemOnLayer(Layer.InnerLegs);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
+	}
 
-			item = FindItemOnLayer(Layer.OuterLegs);
+	public GypsyMaiden(Serial serial) : base(serial)
+	{
+	}
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			item = FindItemOnLayer(Layer.InnerLegs);
-
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
-		}
-
-		public GypsyMaiden(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

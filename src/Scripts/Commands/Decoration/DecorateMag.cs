@@ -12,7 +12,7 @@ namespace Server.Commands
 	{
 		public static void Initialize()
 		{
-			CommandSystem.Register("DecorateMag", AccessLevel.Administrator, new CommandEventHandler(DecorateMag_OnCommand));
+			CommandSystem.Register("DecorateMag", AccessLevel.Administrator, DecorateMag_OnCommand);
 		}
 
 		[Usage("DecorateMag")]
@@ -413,7 +413,7 @@ namespace Server.Commands
 						AddonComponent comp = comps[i];
 
 						if (comp.Offset == Point3D.Zero)
-							comp.ItemID = m_ItemID;
+							comp.ItemId = m_ItemID;
 					}
 				}
 			}
@@ -438,7 +438,7 @@ namespace Server.Commands
 					((BaseLight)item).Protected = true;
 
 				if (m_ItemID > 0)
-					item.ItemID = m_ItemID;
+					item.ItemId = m_ItemID;
 			}
 			else if (item is Server.Mobiles.Spawner)
 			{
@@ -642,7 +642,7 @@ namespace Server.Commands
 				}
 
 				if (m_ItemID > 0)
-					item.ItemID = m_ItemID;
+					item.ItemId = m_ItemID;
 			}
 			else if (item is KeywordTeleporter)
 			{
@@ -723,7 +723,7 @@ namespace Server.Commands
 				}
 
 				if (m_ItemID > 0)
-					item.ItemID = m_ItemID;
+					item.ItemId = m_ItemID;
 			}
 			else if (item is Teleporter)
 			{
@@ -783,7 +783,7 @@ namespace Server.Commands
 				}
 
 				if (m_ItemID > 0)
-					item.ItemID = m_ItemID;
+					item.ItemId = m_ItemID;
 			}
 			else if (item is FillableContainer)
 			{
@@ -801,11 +801,11 @@ namespace Server.Commands
 				}
 
 				if (m_ItemID > 0)
-					item.ItemID = m_ItemID;
+					item.ItemId = m_ItemID;
 			}
 			else if (m_ItemID > 0)
 			{
-				item.ItemID = m_ItemID;
+				item.ItemId = m_ItemID;
 			}
 
 			item.Movable = false;
@@ -864,7 +864,7 @@ namespace Server.Commands
 
 		private static bool FindItem(int x, int y, int z, Map map, Item srcItem)
 		{
-			int itemID = srcItem.ItemID;
+			int itemID = srcItem.ItemId;
 
 			bool res = false;
 
@@ -891,7 +891,7 @@ namespace Server.Commands
 					else
 					{
 						p = bd.Location;
-						bdItemID = bd.ItemID;
+						bdItemID = bd.ItemId;
 					}
 
 					if (p.X != x || p.Y != y)
@@ -914,7 +914,7 @@ namespace Server.Commands
 				{
 					if (item.Z == z)
 					{
-						if (item.ItemID == itemID)
+						if (item.ItemId == itemID)
 						{
 							if (item.Light != lt)
 								m_DeleteQueue.Enqueue(item);
@@ -936,7 +936,7 @@ namespace Server.Commands
 
 				foreach (Item item in eable)
 				{
-					if (item.Z == z && item.ItemID == itemID)
+					if (item.Z == z && item.ItemId == itemID)
 					{
 						if (item.GetType() != type)
 							m_DeleteQueue.Enqueue(item);
@@ -951,7 +951,7 @@ namespace Server.Commands
 
 				foreach (Item item in eable)
 				{
-					if (item.Z == z && item.ItemID == itemID)
+					if (item.Z == z && item.ItemId == itemID)
 					{
 						eable.Free();
 						return true;

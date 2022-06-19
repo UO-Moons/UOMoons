@@ -79,8 +79,8 @@ namespace Server.Items
 
 		public void Toggle()
 		{
-			ItemID = (ItemID == ActiveItemID) ? InactiveItemID : ActiveItemID;
-			Visible = (ItemID != 0x1);
+			ItemId = (ItemId == ActiveItemID) ? InactiveItemID : ActiveItemID;
+			Visible = (ItemId != 0x1);
 		}
 
 		public ToggleItem(Serial serial)

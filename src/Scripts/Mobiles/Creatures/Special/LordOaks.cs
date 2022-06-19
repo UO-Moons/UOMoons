@@ -17,7 +17,7 @@ namespace Server.Mobiles
 										typeof( DjinnisRing ),
 										typeof( LieutenantOfTheBritannianRoyalGuard ),
 										typeof( SamaritanRobe ),
-										typeof( DetectiveBoots ),
+										typeof( LegendaryDetectiveBoots ),
 										typeof( TheMostKnowledgePerson ) };
 		public override Type[] DecorativeList => new Type[] { typeof( WaterTile ),
 										typeof( WindSpirit ),

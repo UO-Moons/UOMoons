@@ -86,7 +86,7 @@ namespace Server.Items
 
 				Blood blood = new Blood
 				{
-					ItemID = Utility.Random(0x122A, 5)
+					ItemId = Utility.Random(0x122A, 5)
 				};
 
 				blood.MoveToWorld(m.Location, m.Map);

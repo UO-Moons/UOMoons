@@ -12,7 +12,7 @@ namespace Server.Mobiles
 
 		public override Type[] UniqueList => new Type[] { typeof(Pacify) };
 		public override Type[] SharedList => new Type[] {     typeof( BraveKnightOfTheBritannia ),
-										typeof( DetectiveBoots ),
+										typeof( LegendaryDetectiveBoots ),
 										typeof( EmbroideredOakLeafCloak ),
 										typeof( LieutenantOfTheBritannianRoyalGuard ) };
 		public override Type[] DecorativeList => new Type[] { typeof(Futon), typeof(SwampTile) };

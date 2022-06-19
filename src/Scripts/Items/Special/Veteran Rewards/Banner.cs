@@ -46,7 +46,7 @@ namespace Server.Items
 				InvalidateProperties();
 			}
 		}
-		public bool FacingSouth => (ItemID & 0x1) == 0;
+		public bool FacingSouth => (ItemId & 0x1) == 0;
 		public override void GetProperties(ObjectPropertyList list)
 		{
 			base.GetProperties(list);

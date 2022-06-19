@@ -263,7 +263,7 @@ namespace Server.Mobiles
 				{
 					Hue = 0,
 					Name = "unholy bones",
-					ItemID = Utility.Random(0xECA, 9)
+					ItemId = Utility.Random(0xECA, 9)
 				};
 
 				bone.MoveToWorld(new Point3D(x, y, z), map);

@@ -1,21 +1,20 @@
 using Server.Items;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class PresetMapBuyInfo : GenericBuyInfo
 {
-	public class PresetMapBuyInfo : GenericBuyInfo
+	private readonly PresetMapEntry _mEntry;
+
+	public override bool CanCacheDisplay => false;
+
+	public PresetMapBuyInfo(PresetMapEntry entry, int price, int amount) : base(entry.Name.ToString(), null, price, amount, 0x14EC, 0)
 	{
-		private readonly PresetMapEntry m_Entry;
+		_mEntry = entry;
+	}
 
-		public override bool CanCacheDisplay => false;
-
-		public PresetMapBuyInfo(PresetMapEntry entry, int price, int amount) : base(entry.Name.ToString(), null, price, amount, 0x14EC, 0)
-		{
-			m_Entry = entry;
-		}
-
-		public override IEntity GetEntity()
-		{
-			return new PresetMap(m_Entry);
-		}
+	public override IEntity GetEntity()
+	{
+		return new PresetMap(_mEntry);
 	}
 }

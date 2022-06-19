@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1072749)); // Friends of the Library Membership Token.
 		}
 
-		public override QuestChain ChainID => QuestChain.LibraryFriends;
+		public override QuestChain ChainId => QuestChain.LibraryFriends;
 		public override Type NextQuest => typeof(BureaucraticDelayQuest);
 		/* Friends of the Library */
 		public override object Title => 1072716;
@@ -58,7 +58,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074871)); // A step closer to having sealing wax.
 		}
 
-		public override QuestChain ChainID => QuestChain.LibraryFriends;
+		public override QuestChain ChainId => QuestChain.LibraryFriends;
 		public override Type NextQuest => typeof(TheSecretIngredientQuest);
 		/* Bureaucratic Delay */
 		public override object Title => 1072717;
@@ -101,7 +101,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074871)); // A step closer to having sealing wax.
 		}
 
-		public override QuestChain ChainID => QuestChain.LibraryFriends;
+		public override QuestChain ChainId => QuestChain.LibraryFriends;
 		public override Type NextQuest => typeof(SpecialDeliveryQuest);
 		/* The Secret Ingredient */
 		public override object Title => 1072718;
@@ -145,7 +145,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1072749)); // Friends of the Library Membership Token.
 		}
 
-		public override QuestChain ChainID => QuestChain.LibraryFriends;
+		public override QuestChain ChainId => QuestChain.LibraryFriends;
 		public override Type NextQuest => typeof(AccessToTheStacksQuest);
 		/* Special Delivery */
 		public override object Title => 1072719;
@@ -186,7 +186,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(FriendOfTheLibraryToken), 1072749)); // Friends of the Library Membership Token.
 		}
 
-		public override QuestChain ChainID => QuestChain.LibraryFriends;
+		public override QuestChain ChainId => QuestChain.LibraryFriends;
 		/* Access to the Stacks */
 		public override object Title => 1072723;
 		/* There you are!  *pleased smile*  Don't you just love when a form is all filled in like that?  All of the sections are complete, 

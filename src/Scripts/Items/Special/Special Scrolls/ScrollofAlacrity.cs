@@ -41,7 +41,7 @@ namespace Server.Items
 		[Constructable]
 		public ScrollofAlacrity(SkillName skill) : base(skill, 0.0)
 		{
-			ItemID = 0x14EF;
+			ItemId = 0x14EF;
 			Hue = 0x4AB;
 		}
 

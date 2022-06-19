@@ -10,7 +10,7 @@ namespace Server.Items
 		[Constructable]
 		public Bonesmasher()
 		{
-			ItemID = 0x2D30;
+			ItemId = 0x2D30;
 			Hue = 0x482;
 
 			SkillBonuses.SetValues(0, SkillName.Macing, 10.0);

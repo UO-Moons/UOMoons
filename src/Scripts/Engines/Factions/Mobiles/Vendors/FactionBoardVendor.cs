@@ -12,9 +12,9 @@ namespace Server.Factions
 			SetSkill(SkillName.Lumberjacking, 60.0, 83.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBFactionBoard());
+			SbInfos.Add(new SBFactionBoard());
 		}
 
 		public override void InitOutfit()
@@ -42,7 +42,7 @@ namespace Server.Factions
 		}
 	}
 
-	public class SBFactionBoard : SBInfo
+	public class SBFactionBoard : SbInfo
 	{
 		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
 		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();

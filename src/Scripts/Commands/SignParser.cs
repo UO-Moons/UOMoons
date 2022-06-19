@@ -24,7 +24,7 @@ namespace Server.Commands
 
 		public static void Initialize()
 		{
-			CommandSystem.Register("SignGen", AccessLevel.Administrator, new CommandEventHandler(SignGen_OnCommand));
+			CommandSystem.Register("SignGen", AccessLevel.Administrator, SignGen_OnCommand);
 		}
 
 		[Usage("SignGen")]
@@ -102,7 +102,7 @@ namespace Server.Commands
 
 			foreach (Item item in eable)
 			{
-				if (item is Sign && item.Z == location.Z && item.ItemID == itemID)
+				if (item is Sign && item.Z == location.Z && item.ItemId == itemID)
 					m_ToDelete.Enqueue(item);
 			}
 

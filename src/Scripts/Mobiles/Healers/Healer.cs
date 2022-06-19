@@ -31,9 +31,9 @@ namespace Server.Mobiles
 		public override bool IsActiveVendor => true;
 		public override bool IsInvulnerable => true;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBHealer());
+			SbInfos.Add(new SbHealer());
 		}
 
 		public override bool CheckResurrect(Mobile m)

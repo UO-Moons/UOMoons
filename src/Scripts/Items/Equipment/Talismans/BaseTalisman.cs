@@ -39,7 +39,7 @@ namespace Server.Items
 
 	public class BaseTalisman : BaseEquipment, IWearableDurability, ITalismanProtection, ITalismanKiller, IFactionItem, IArtifact
 	{
-
+		private const bool UseNewHits = false;
 		public static void Initialize()
 		{
 			CommandSystem.Register("RandomTalisman", AccessLevel.GameMaster, new CommandEventHandler(RandomTalisman_OnCommand));
@@ -57,7 +57,6 @@ namespace Server.Items
 				m.AddToBackpack(Loot.RandomTalisman());
 			}
 		}
-
 		public override int LabelNumber => 1071023;// Talisman
 
 		public override bool DisplayWeight
@@ -196,6 +195,7 @@ namespace Server.Items
 
 		public virtual int InitMinHits => 0;
 		public virtual int InitMaxHits => 0;
+		public virtual int InitHits => Utility.RandomMinMax(0, 0);
 
 		#region Slayer
 		private TalismanSlayerName m_Slayer;
@@ -386,7 +386,12 @@ namespace Server.Items
 		{
 			Layer = Layer.Talisman;
 			Weight = 1.0;
-			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+			if (UseNewHits)
+			{
+				m_HitPoints = m_MaxHitPoints = InitHits;
+			}
+			else
+				m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 			m_Protection = new TalismanAttribute();
 			m_Killer = new TalismanAttribute();
 			m_Summoner = new TalismanAttribute();

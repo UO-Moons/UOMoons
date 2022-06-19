@@ -51,7 +51,7 @@ namespace Server.Mobiles
 
 			Item ore = new ValoriteOre(oreAmount)
 			{
-				ItemID = 0x19B9
+				ItemId = 0x19B9
 			};
 			PackItem(ore);
 		}

@@ -2,96 +2,89 @@ using Server.Engines.BulkOrders;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Weaver : BaseVendor
 {
-	public class Weaver : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	public override NpcGuild NpcGuild => NpcGuild.TailorsGuild;
+
+	[Constructable]
+	public Weaver() : base("the weaver")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.weaver;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Tailoring, 65.0, 88.0);
+	}
 
-		public override NpcGuild NpcGuild => NpcGuild.TailorsGuild;
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbWeaver());
+	}
 
-		[Constructable]
-		public Weaver() : base("the weaver")
+	public override VendorShoeType ShoeType => VendorShoeType.Sandals;
+
+	#region Bulk Orders
+	public override Item CreateBulkOrder(Mobile from, bool fromContextMenu)
+	{
+		if (from is not PlayerMobile pm || pm.NextTailorBulkOrder != TimeSpan.Zero ||
+		    (!fromContextMenu && !(0.2 > Utility.RandomDouble()))) return null;
+		double theirSkill = pm.Skills[SkillName.Tailoring].Base;
+
+		pm.NextTailorBulkOrder = theirSkill switch
 		{
-			Job = JobFragment.weaver;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Tailoring, 65.0, 88.0);
-		}
+			>= 70.1 => TimeSpan.FromHours(6.0),
+			>= 50.1 => TimeSpan.FromHours(2.0),
+			_ => TimeSpan.FromHours(1.0)
+		};
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBWeaver());
-		}
+		if (theirSkill >= 70.1 && (theirSkill - 40.0) / 300.0 > Utility.RandomDouble())
+			return new LargeTailorBOD();
 
-		public override VendorShoeType ShoeType => VendorShoeType.Sandals;
+		return SmallTailorBOD.CreateRandomFor(from);
 
-		#region Bulk Orders
-		public override Item CreateBulkOrder(Mobile from, bool fromContextMenu)
-		{
-			PlayerMobile pm = from as PlayerMobile;
+	}
 
-			if (pm != null && pm.NextTailorBulkOrder == TimeSpan.Zero && (fromContextMenu || 0.2 > Utility.RandomDouble()))
-			{
-				double theirSkill = pm.Skills[SkillName.Tailoring].Base;
+	public override bool IsValidBulkOrder(Item item)
+	{
+		return item is SmallTailorBOD or LargeTailorBOD;
+	}
 
-				if (theirSkill >= 70.1)
-					pm.NextTailorBulkOrder = TimeSpan.FromHours(6.0);
-				else if (theirSkill >= 50.1)
-					pm.NextTailorBulkOrder = TimeSpan.FromHours(2.0);
-				else
-					pm.NextTailorBulkOrder = TimeSpan.FromHours(1.0);
+	public override bool SupportsBulkOrders(Mobile from)
+	{
+		return from is PlayerMobile && from.Skills[SkillName.Tailoring].Base > 0;
+	}
 
-				if (theirSkill >= 70.1 && ((theirSkill - 40.0) / 300.0) > Utility.RandomDouble())
-					return new LargeTailorBOD();
+	public override TimeSpan GetNextBulkOrder(Mobile from)
+	{
+		if (from is PlayerMobile mobile)
+			return mobile.NextTailorBulkOrder;
 
-				return SmallTailorBOD.CreateRandomFor(from);
-			}
+		return TimeSpan.Zero;
+	}
 
-			return null;
-		}
+	public override void OnSuccessfulBulkOrderReceive(Mobile from)
+	{
+		if (Core.SE && from is PlayerMobile mobile)
+			mobile.NextTailorBulkOrder = TimeSpan.Zero;
+	}
+	#endregion
 
-		public override bool IsValidBulkOrder(Item item)
-		{
-			return (item is SmallTailorBOD || item is LargeTailorBOD);
-		}
+	public Weaver(Serial serial) : base(serial)
+	{
+	}
 
-		public override bool SupportsBulkOrders(Mobile from)
-		{
-			return (from is PlayerMobile && from.Skills[SkillName.Tailoring].Base > 0);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override TimeSpan GetNextBulkOrder(Mobile from)
-		{
-			if (from is PlayerMobile)
-				return ((PlayerMobile)from).NextTailorBulkOrder;
-
-			return TimeSpan.Zero;
-		}
-
-		public override void OnSuccessfulBulkOrderReceive(Mobile from)
-		{
-			if (Core.SE && from is PlayerMobile)
-				((PlayerMobile)from).NextTailorBulkOrder = TimeSpan.Zero;
-		}
-		#endregion
-
-		public Weaver(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

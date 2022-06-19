@@ -28,7 +28,7 @@ namespace Server.Items
 			typeof( ANecromancerShroud ),
 			typeof( BraveKnightOfTheBritannia ),
 			typeof( CaptainJohnsHat ),
-			typeof( DetectiveBoots ),
+			typeof( LegendaryDetectiveBoots ),
 			typeof( DjinnisRing ),
 			typeof( EmbroideredOakLeafCloak ),
 			typeof( GuantletsOfAnger ),

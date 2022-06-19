@@ -8,7 +8,7 @@ namespace Server.Items
 		public MelisandesFermentedWine()
 		{
 			Stackable = false;
-			ItemID = 0x99B;
+			ItemId = 0x99B;
 			Hue = Utility.RandomList(0xB, 0xF, 0x48D); // TODO update
 		}
 
@@ -18,7 +18,7 @@ namespace Server.Items
 
 		public override void Drink(Mobile from)
 		{
-			if (MondainsLegacy.CheckML(from))
+			if (MondainsLegacy.CheckMl(from))
 				base.Drink(from);
 		}
 

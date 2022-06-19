@@ -6,7 +6,7 @@ namespace Server.Items
 		[Constructable]
 		public AnimatedHeartShapedBox()
 		{
-			ItemID = 0x49CC;
+			ItemId = 0x49CC;
 		}
 
 		public AnimatedHeartShapedBox(Serial serial)

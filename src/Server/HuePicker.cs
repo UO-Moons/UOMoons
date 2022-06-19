@@ -4,20 +4,20 @@ namespace Server.HuePickers
 {
 	public class HuePicker
 	{
-		private static int m_NextSerial = 1;
+		private static int _mNextSerial = 1;
 
 		public int Serial { get; }
 
-		public int ItemID { get; }
+		public int ItemId { get; }
 
-		public HuePicker(int itemID)
+		public HuePicker(int itemId)
 		{
 			do
 			{
-				Serial = m_NextSerial++;
+				Serial = _mNextSerial++;
 			} while (Serial == 0);
 
-			ItemID = itemID;
+			ItemId = itemId;
 		}
 
 		public virtual void OnResponse(int hue)

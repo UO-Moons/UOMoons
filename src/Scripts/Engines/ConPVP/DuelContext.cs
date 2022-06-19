@@ -527,11 +527,11 @@ namespace Server.Engines.ConPVP
 
 			corpse.Carved = true;
 
-			if (corpse.ItemID == 0x2006)
+			if (corpse.ItemId == 0x2006)
 			{
 				corpse.ProcessDelta();
 				corpse.SendRemovePacket();
-				corpse.ItemID = Utility.Random(0xECA, 9); // bone graphic
+				corpse.ItemId = Utility.Random(0xECA, 9); // bone graphic
 				corpse.Hue = 0;
 				corpse.ProcessDelta();
 
@@ -2126,7 +2126,7 @@ namespace Server.Engines.ConPVP
 			{
 				m_Teleporter = tp;
 
-				ItemID = 0x1FD4;
+				ItemId = 0x1FD4;
 				Dispellable = false;
 
 				GumpWidth = 300;

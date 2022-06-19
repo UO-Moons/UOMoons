@@ -12,9 +12,9 @@ namespace Server.Factions
 			SetSkill(SkillName.TasteID, 65.0, 88.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBFactionBottle());
+			SbInfos.Add(new SBFactionBottle());
 		}
 
 		public override VendorShoeType ShoeType => Utility.RandomBool() ? VendorShoeType.Shoes : VendorShoeType.Sandals;
@@ -44,7 +44,7 @@ namespace Server.Factions
 		}
 	}
 
-	public class SBFactionBottle : SBInfo
+	public class SBFactionBottle : SbInfo
 	{
 		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
 		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();

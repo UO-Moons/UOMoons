@@ -34,7 +34,7 @@ namespace Server.Items
 		[Constructable]
 		public RewardScrollDeed() : this(1)
 		{
-			ItemID = 5360;
+			ItemId = 5360;
 			Movable = true;
 			Hue = 1165;
 			Name = "Reward Scroll Deed";

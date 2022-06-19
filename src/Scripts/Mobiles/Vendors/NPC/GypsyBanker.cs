@@ -1,82 +1,79 @@
 using Server.Items;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class GypsyBanker : Banker
 {
-	public class GypsyBanker : Banker
+	public override bool IsActiveVendor => false;
+	public override NpcGuild NpcGuild => NpcGuild.None;
+	public override bool ClickTitle => false;
+
+	[Constructable]
+	public GypsyBanker()
 	{
-		public override bool IsActiveVendor => false;
-		public override NpcGuild NpcGuild => NpcGuild.None;
-		public override bool ClickTitle => false;
+		Title = "the gypsy banker";
+	}
 
-		[Constructable]
-		public GypsyBanker()
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
+
+		switch (Utility.Random(4))
 		{
-			Title = "the gypsy banker";
+			case 0: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
+			case 1: AddItem(new Bandana(Utility.RandomBrightHue())); break;
+			case 2: AddItem(new SkullCap(Utility.RandomBrightHue())); break;
 		}
 
-		public override void InitOutfit()
-		{
-			base.InitOutfit();
+		Item item = FindItemOnLayer(Layer.Pants);
 
-			switch (Utility.Random(4))
-			{
-				case 0: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
-				case 1: AddItem(new Bandana(Utility.RandomBrightHue())); break;
-				case 2: AddItem(new SkullCap(Utility.RandomBrightHue())); break;
-			}
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			Item item = FindItemOnLayer(Layer.Pants);
+		item = FindItemOnLayer(Layer.Shoes);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			item = FindItemOnLayer(Layer.Shoes);
+		item = FindItemOnLayer(Layer.OuterLegs);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			item = FindItemOnLayer(Layer.OuterLegs);
+		item = FindItemOnLayer(Layer.InnerLegs);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			item = FindItemOnLayer(Layer.InnerLegs);
+		item = FindItemOnLayer(Layer.OuterTorso);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			item = FindItemOnLayer(Layer.OuterTorso);
+		item = FindItemOnLayer(Layer.InnerTorso);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			item = FindItemOnLayer(Layer.InnerTorso);
+		item = FindItemOnLayer(Layer.Shirt);
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
+	}
 
-			item = FindItemOnLayer(Layer.Shirt);
+	public GypsyBanker(Serial serial) : base(serial)
+	{
+	}
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public GypsyBanker(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

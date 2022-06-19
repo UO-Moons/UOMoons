@@ -20,7 +20,7 @@ namespace Server.Items
 		{
 			if (IsChildOf(from.Backpack))
 			{
-				if (MondainsLegacy.CheckML(from))
+				if (MondainsLegacy.CheckMl(from))
 					from.SendGump(new ConfirmGump(this));
 			}
 			else

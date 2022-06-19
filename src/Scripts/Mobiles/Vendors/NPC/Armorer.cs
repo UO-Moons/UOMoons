@@ -1,93 +1,91 @@
 using System.Collections.Generic;
+using Server.Items;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Armorer : BaseVendor
 {
-	public class Armorer : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public Armorer() : base("the armorer")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.armourer;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.ArmsLore, 64.0, 100.0);
+		SetSkill(SkillName.Blacksmith, 60.0, 83.0);
+	}
 
-		[Constructable]
-		public Armorer() : base("the armorer")
+	public override void InitSbInfo()
+	{
+		switch (Utility.Random(4))
 		{
-			Job = JobFragment.armourer;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.ArmsLore, 64.0, 100.0);
-			SetSkill(SkillName.Blacksmith, 60.0, 83.0);
-		}
-
-		public override void InitSBInfo()
-		{
-			switch (Utility.Random(4))
+			case 0:
 			{
-				case 0:
-					{
-						m_SBInfos.Add(new SBLeatherArmor());
-						m_SBInfos.Add(new SBStuddedArmor());
-						m_SBInfos.Add(new SBMetalShields());
-						m_SBInfos.Add(new SBPlateArmor());
-						m_SBInfos.Add(new SBHelmetArmor());
-						m_SBInfos.Add(new SBChainmailArmor());
-						m_SBInfos.Add(new SBRingmailArmor());
-						break;
-					}
-				case 1:
-					{
-						m_SBInfos.Add(new SBStuddedArmor());
-						m_SBInfos.Add(new SBLeatherArmor());
-						m_SBInfos.Add(new SBMetalShields());
-						m_SBInfos.Add(new SBHelmetArmor());
-						break;
-					}
-				case 2:
-					{
-						m_SBInfos.Add(new SBMetalShields());
-						m_SBInfos.Add(new SBPlateArmor());
-						m_SBInfos.Add(new SBHelmetArmor());
-						m_SBInfos.Add(new SBChainmailArmor());
-						m_SBInfos.Add(new SBRingmailArmor());
-						break;
-					}
-				case 3:
-					{
-						m_SBInfos.Add(new SBMetalShields());
-						m_SBInfos.Add(new SBHelmetArmor());
-						break;
-					}
+				_mSbInfos.Add(new SbLeatherArmor());
+				_mSbInfos.Add(new SbStuddedArmor());
+				_mSbInfos.Add(new SbMetalShields());
+				_mSbInfos.Add(new SbPlateArmor());
+				_mSbInfos.Add(new SbHelmetArmor());
+				_mSbInfos.Add(new SbChainmailArmor());
+				_mSbInfos.Add(new SbRingmailArmor());
+				break;
 			}
-			if (IsTokunoVendor)
+			case 1:
 			{
-				m_SBInfos.Add(new SBSELeatherArmor());
-				m_SBInfos.Add(new SBSEArmor());
+				_mSbInfos.Add(new SbStuddedArmor());
+				_mSbInfos.Add(new SbLeatherArmor());
+				_mSbInfos.Add(new SbMetalShields());
+				_mSbInfos.Add(new SbHelmetArmor());
+				break;
+			}
+			case 2:
+			{
+				_mSbInfos.Add(new SbMetalShields());
+				_mSbInfos.Add(new SbPlateArmor());
+				_mSbInfos.Add(new SbHelmetArmor());
+				_mSbInfos.Add(new SbChainmailArmor());
+				_mSbInfos.Add(new SbRingmailArmor());
+				break;
+			}
+			case 3:
+			{
+				_mSbInfos.Add(new SbMetalShields());
+				_mSbInfos.Add(new SbHelmetArmor());
+				break;
 			}
 		}
-
-		public override VendorShoeType ShoeType => VendorShoeType.Boots;
-
-		public override void InitOutfit()
+		if (IsTokunoVendor)
 		{
-			base.InitOutfit();
-
-			AddItem(new Server.Items.HalfApron(Utility.RandomYellowHue()));
-			AddItem(new Server.Items.Bascinet());
+			_mSbInfos.Add(new SbseLeatherArmor());
+			_mSbInfos.Add(new SbseArmor());
 		}
+	}
 
-		public Armorer(Serial serial) : base(serial)
-		{
-		}
+	public override VendorShoeType ShoeType => VendorShoeType.Boots;
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
 
-			writer.Write(0); // version
-		}
+		AddItem(new HalfApron(Utility.RandomYellowHue()));
+		AddItem(new Bascinet());
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public Armorer(Serial serial) : base(serial)
+	{
+	}
 
-			int version = reader.ReadInt();
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

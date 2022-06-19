@@ -4,409 +4,405 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class BaseEscort : MondainQuester
 {
-	public class BaseEscort : MondainQuester
+	private static readonly TimeSpan MEscortDelay = TimeSpan.FromMinutes(5.0);
+	private static readonly Dictionary<Mobile, Mobile> MEscortTable = new();
+	private Timer _mDeleteTimer;
+	private bool _mChecked;
+
+	public BaseQuest Quest { get; set; }
+	public DateTime LastSeenEscorter { get; set; }
+
+	public BaseEscort()
 	{
-		private static readonly TimeSpan m_EscortDelay = TimeSpan.FromMinutes(5.0);
-		private static readonly Dictionary<Mobile, Mobile> m_EscortTable = new();
-		private Timer m_DeleteTimer;
-		private bool m_Checked;
+		AI = AIType.AI_Melee;
+		FightMode = FightMode.Aggressor;
+		RangePerception = 22;
+		RangeFight = 1;
+		ActiveSpeed = 0.2;
+		PassiveSpeed = 1.0;
 
-		public BaseQuest Quest { get; set; }
-		public DateTime LastSeenEscorter { get; set; }
+		ControlSlots = 0;
+	}
 
-		public BaseEscort()
-			: base()
+	public BaseEscort(Serial serial)
+		: base(serial)
+	{
+	}
+
+	// public override bool InitialInnocent { get { return true; } }
+	public override bool IsInvulnerable => false;
+	public override bool Commandable => false;
+
+	public override Type[] Quests => null;
+
+	//public override bool CanAutoStable => false;
+	//public override bool CanDetectHidden => false;
+
+	public override void OnTalk(PlayerMobile player)
+	{
+		if (AcceptEscorter(player))
+			base.OnTalk(player);
+	}
+
+	public override bool CanBeRenamedBy(Mobile from)
+	{
+		return from.AccessLevel >= AccessLevel.GameMaster;
+	}
+
+	public override void AddCustomContextEntries(Mobile from, List<ContextMenuEntry> list)
+	{
+		if (from.Alive && from == ControlMaster)
+			list.Add(new AbandonEscortEntry(this));
+
+		base.AddCustomContextEntries(from, list);
+	}
+
+	public override void OnAfterDelete()
+	{
+		if (Quest != null)
 		{
-			AI = AIType.AI_Melee;
-			FightMode = FightMode.Aggressor;
-			RangePerception = 22;
-			RangeFight = 1;
-			ActiveSpeed = 0.2;
-			PassiveSpeed = 1.0;
+			Quest.RemoveQuest();
 
-			ControlSlots = 0;
+			if (Quest.Owner != null)
+				_ = MEscortTable.Remove(Quest.Owner);
 		}
 
-		public BaseEscort(Serial serial)
-			: base(serial)
+		base.OnAfterDelete();
+	}
+
+	public override void OnThink()
+	{
+		base.OnThink();
+
+		_ = CheckAtDestination();
+	}
+
+	public override bool CanBeDamaged()
+	{
+		return true;
+	}
+
+	public override void InitBody()
+	{
+		SetStr(90, 100);
+		SetDex(90, 100);
+		SetInt(15, 25);
+
+		Hue = Utility.RandomSkinHue();
+		Female = Utility.RandomBool();
+		Name = NameList.RandomName(Female ? "female" : "male");
+		Race = Race.Human;
+
+		Utility.AssignRandomHair(this);
+		Utility.AssignRandomFacialHair(this);
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+
+		writer.Write(_mDeleteTimer != null);
+
+		if (_mDeleteTimer != null)
+			writer.WriteDeltaTime(_mDeleteTimer.Next);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+
+		if (reader.ReadBool())
 		{
+			DateTime deleteTime = reader.ReadDeltaTime();
+			_mDeleteTimer = Timer.DelayCall(deleteTime - DateTime.UtcNow, Delete);
 		}
+	}
 
-		// public override bool InitialInnocent { get { return true; } }
-		public override bool IsInvulnerable => false;
-		public override bool Commandable => false;
+	public void AddHash(PlayerMobile player)
+	{
+		MEscortTable[player] = this;
+	}
 
-		public override Type[] Quests => null;
+	public virtual void StartFollow()
+	{
+		StartFollow(ControlMaster);
+	}
 
-		//public override bool CanAutoStable => false;
-		//public override bool CanDetectHidden => false;
+	public virtual void StartFollow(Mobile escorter)
+	{
+		ActiveSpeed = 0.1;
+		PassiveSpeed = 0.2;
 
-		public override void OnTalk(PlayerMobile player)
+		ControlOrder = OrderType.Follow;
+		ControlTarget = escorter;
+
+		CurrentSpeed = 0.1;
+	}
+
+	public virtual void StopFollow()
+	{
+		ActiveSpeed = 0.2;
+		PassiveSpeed = 1.0;
+
+		ControlOrder = OrderType.None;
+		ControlTarget = null;
+
+		CurrentSpeed = 1.0;
+
+		_ = SetControlMaster(null);
+	}
+
+	public virtual void BeginDelete(Mobile m)
+	{
+		StopFollow();
+
+		if (m != null)
+			_ = MEscortTable.Remove(m);
+
+		_mDeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(45.0), Delete);
+	}
+
+	public virtual bool AcceptEscorter(Mobile m)
+	{
+		if (!m.Alive)
 		{
-			if (AcceptEscorter(player))
-				base.OnTalk(player);
+			return false;
 		}
-
-		public override bool CanBeRenamedBy(Mobile from)
+		else if (_mDeleteTimer != null)
 		{
-			return from.AccessLevel >= AccessLevel.GameMaster;
+			Say(500898); // I am sorry, but I do not wish to go anywhere.
+			return false;
 		}
-
-		public override void AddCustomContextEntries(Mobile from, List<ContextMenuEntry> list)
+		else if (Controlled)
 		{
-			if (from.Alive && from == ControlMaster)
-				list.Add(new AbandonEscortEntry(this));
-
-			base.AddCustomContextEntries(from, list);
-		}
-
-		public override void OnAfterDelete()
-		{
-			if (Quest != null)
-			{
-				Quest.RemoveQuest();
-
-				if (Quest.Owner != null)
-					_ = m_EscortTable.Remove(Quest.Owner);
-			}
-
-			base.OnAfterDelete();
-		}
-
-		public override void OnThink()
-		{
-			base.OnThink();
-
-			_ = CheckAtDestination();
-		}
-
-		public override bool CanBeDamaged()
-		{
-			return true;
-		}
-
-		public override void InitBody()
-		{
-			SetStr(90, 100);
-			SetDex(90, 100);
-			SetInt(15, 25);
-
-			Hue = Utility.RandomSkinHue();
-			Female = Utility.RandomBool();
-			Name = NameList.RandomName(Female ? "female" : "male");
-			Race = Race.Human;
-
-			Utility.AssignRandomHair(this);
-			Utility.AssignRandomFacialHair(this);
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write(m_DeleteTimer != null);
-
-			if (m_DeleteTimer != null)
-				writer.WriteDeltaTime(m_DeleteTimer.Next);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (reader.ReadBool())
-			{
-				DateTime deleteTime = reader.ReadDeltaTime();
-				m_DeleteTimer = Timer.DelayCall(deleteTime - DateTime.UtcNow, new TimerCallback(Delete));
-			}
-		}
-
-		public void AddHash(PlayerMobile player)
-		{
-			m_EscortTable[player] = this;
-		}
-
-		public virtual void StartFollow()
-		{
-			StartFollow(ControlMaster);
-		}
-
-		public virtual void StartFollow(Mobile escorter)
-		{
-			ActiveSpeed = 0.1;
-			PassiveSpeed = 0.2;
-
-			ControlOrder = OrderType.Follow;
-			ControlTarget = escorter;
-
-			CurrentSpeed = 0.1;
-		}
-
-		public virtual void StopFollow()
-		{
-			ActiveSpeed = 0.2;
-			PassiveSpeed = 1.0;
-
-			ControlOrder = OrderType.None;
-			ControlTarget = null;
-
-			CurrentSpeed = 1.0;
-
-			_ = SetControlMaster(null);
-		}
-
-		public virtual void BeginDelete(Mobile m)
-		{
-			StopFollow();
-
-			if (m != null)
-				_ = m_EscortTable.Remove(m);
-
-			m_DeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(45.0), new TimerCallback(Delete));
-		}
-
-		public virtual bool AcceptEscorter(Mobile m)
-		{
-			if (!m.Alive)
-			{
-				return false;
-			}
-			else if (m_DeleteTimer != null)
-			{
-				Say(500898); // I am sorry, but I do not wish to go anywhere.
-				return false;
-			}
-			else if (Controlled)
-			{
-				if (m == ControlMaster)
-					_ = m.SendGump(new MondainQuestGump(Quest, MondainQuestGump.Section.InProgress, false));
-				else
-					Say(500897); // I am already being led!
-
-				return false;
-			}
-			else if (!m.InRange(Location, 5))
-			{
-				Say(500348); // I am too far away to do that.
-				return false;
-			}
-			else if (m_EscortTable.ContainsKey(m))
-			{
-				Say(500896); // I see you already have an escort.
-				return false;
-			}
-			else if (m is PlayerMobile mobile && (mobile.LastEscortTime + m_EscortDelay) >= DateTime.UtcNow)
-			{
-				int minutes = (int)Math.Ceiling((mobile.LastEscortTime + m_EscortDelay - DateTime.UtcNow).TotalMinutes);
-
-				Say("You must rest {0} minute{1} before we set out on this journey.", minutes, minutes == 1 ? "" : "s");
-				return false;
-			}
-
-			return true;
-		}
-
-		public virtual EscortObjective GetObjective()
-		{
-			if (Quest != null)
-			{
-				for (int i = 0; i < Quest.Objectives.Count; i++)
-				{
-					if (Quest.Objectives[i] is EscortObjective escort && !escort.Completed && !escort.Failed)
-						return escort;
-				}
-			}
-
-			return null;
-		}
-
-		public virtual Mobile GetEscorter()
-		{
-			Mobile master = ControlMaster;
-
-			if (master == null || !Controlled)
-			{
-				return master;
-			}
-			else if (master.Map != Map || !master.InRange(Location, 30) || !master.Alive)
-			{
-				TimeSpan lastSeenDelay = DateTime.UtcNow - LastSeenEscorter;
-
-				if (lastSeenDelay >= TimeSpan.FromMinutes(2.0))
-				{
-					EscortObjective escort = GetObjective();
-
-					if (escort != null)
-					{
-						master.SendLocalizedMessage(1071194); // You have failed your escort quest…
-						master.PlaySound(0x5B3);
-						escort.Fail();
-					}
-
-					master.SendLocalizedMessage(1042473); // You have lost the person you were escorting.
-					Say(1005653); // Hmmm.  I seem to have lost my master.
-
-					StopFollow();
-					_ = m_EscortTable.Remove(master);
-					m_DeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerCallback(Delete));
-
-					return null;
-				}
-				else
-				{
-					ControlOrder = OrderType.Stay;
-				}
-			}
+			if (m == ControlMaster)
+				_ = m.SendGump(new MondainQuestGump(Quest, MondainQuestGump.Section.InProgress, false));
 			else
-			{
-				if (ControlOrder != OrderType.Follow)
-					StartFollow(master);
-
-				LastSeenEscorter = DateTime.UtcNow;
-			}
-
-			return master;
-		}
-
-		public virtual Region GetDestination()
-		{
-			return null;
-		}
-
-		public virtual bool CheckAtDestination()
-		{
-			if (Quest != null)
-			{
-				EscortObjective escort = GetObjective();
-
-				if (escort == null)
-					return false;
-
-				Mobile escorter = GetEscorter();
-
-				if (escorter == null)
-					return false;
-
-				if (escort.Region != null && escort.Region.Contains(Location))
-				{
-					Say(1042809, escorter.Name); // We have arrived! I thank thee, ~1_PLAYER_NAME~! I have no further need of thy services. Here is thy pay.
-
-					escort.Complete();
-
-					if (Quest.Completed)
-					{
-						escorter.SendLocalizedMessage(1046258, null, 0x23); // Your quest is complete.		
-
-						if (QuestHelper.AnyRewards(Quest))
-							_ = escorter.SendGump(new MondainQuestGump(Quest, MondainQuestGump.Section.Rewards, false, true));
-						else
-							Quest.GiveRewards();
-
-						escorter.PlaySound(Quest.CompleteSound);
-
-						StopFollow();
-						_ = m_EscortTable.Remove(escorter);
-						m_DeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerCallback(Delete));
-
-						// fame
-						Misc.Titles.AwardFame(escorter, escort.Fame, true);
-
-						// compassion
-						bool gainedPath = false;
-
-						if (escorter is PlayerMobile pm)
-						{
-							if (pm.CompassionGains > 0 && DateTime.UtcNow > pm.NextCompassionDay)
-							{
-								pm.NextCompassionDay = DateTime.MinValue;
-								pm.CompassionGains = 0;
-							}
-
-							if (pm.CompassionGains >= 5) // have already gained 5 times in one day, can gain no more
-							{
-								pm.SendLocalizedMessage(1053004); // You must wait about a day before you can gain in compassion again.
-							}
-							else if (VirtueHelper.Award(pm, VirtueName.Compassion, escort.Compassion, ref gainedPath))
-							{
-								pm.SendLocalizedMessage(1074949, null, 0x2A);  // You have demonstrated your compassion!  Your kind actions have been noted.
-
-								if (gainedPath)
-									pm.SendLocalizedMessage(1053005); // You have achieved a path in compassion!
-								else
-									pm.SendLocalizedMessage(1053002); // You have gained in compassion.
-
-								pm.NextCompassionDay = DateTime.UtcNow + TimeSpan.FromDays(1.0); // in one day CompassionGains gets reset to 0
-								++pm.CompassionGains;
-							}
-							else
-							{
-								pm.SendLocalizedMessage(1053003); // You have achieved the highest path of compassion and can no longer gain any further.
-							}
-						}
-					}
-					else
-					{
-						escorter.PlaySound(Quest.UpdateSound);
-					}
-
-					return true;
-				}
-			}
-			else if (!m_Checked)
-			{
-				Region region = GetDestination();
-
-				if (region != null && region.Contains(Location))
-				{
-					m_DeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerCallback(Delete));
-					m_Checked = true;
-				}
-			}
+				Say(500897); // I am already being led!
 
 			return false;
 		}
-
-		private class AbandonEscortEntry : ContextMenuEntry
+		else if (!m.InRange(Location, 5))
 		{
-			private readonly BaseEscort m_Mobile;
+			Say(500348); // I am too far away to do that.
+			return false;
+		}
+		else if (MEscortTable.ContainsKey(m))
+		{
+			Say(500896); // I see you already have an escort.
+			return false;
+		}
+		else if (m is PlayerMobile mobile && (mobile.LastEscortTime + MEscortDelay) >= DateTime.UtcNow)
+		{
+			int minutes = (int)Math.Ceiling((mobile.LastEscortTime + MEscortDelay - DateTime.UtcNow).TotalMinutes);
 
-			public AbandonEscortEntry(BaseEscort m)
-				: base(6102, 3)
-			{
-				m_Mobile = m;
-			}
+			Say("You must rest {0} minute{1} before we set out on this journey.", minutes, minutes == 1 ? "" : "s");
+			return false;
+		}
 
-			public override void OnClick()
+		return true;
+	}
+
+	public virtual EscortObjective GetObjective()
+	{
+		if (Quest != null)
+		{
+			for (int i = 0; i < Quest.Objectives.Count; i++)
 			{
-				Owner.From.SendLocalizedMessage(1071194); // You have failed your escort quest…
-				Owner.From.PlaySound(0x5B3);
-				m_Mobile.Delete();
+				if (Quest.Objectives[i] is EscortObjective escort && !escort.Completed && !escort.Failed)
+					return escort;
 			}
 		}
 
-		public static void DeleteEscort(Mobile owner)
+		return null;
+	}
+
+	public virtual Mobile GetEscorter()
+	{
+		Mobile master = ControlMaster;
+
+		if (master == null || !Controlled)
 		{
-			PlayerMobile pm = owner as PlayerMobile;
+			return master;
+		}
+		else if (master.Map != Map || !master.InRange(Location, 30) || !master.Alive)
+		{
+			TimeSpan lastSeenDelay = DateTime.UtcNow - LastSeenEscorter;
 
-			foreach (var escortquest in pm.Quests.Where(x => x.Quester is BaseEscort))
+			if (lastSeenDelay >= TimeSpan.FromMinutes(2.0))
 			{
-				BaseEscort escort = (BaseEscort)escortquest.Quester;
+				EscortObjective escort = GetObjective();
 
-				_ = Timer.DelayCall(TimeSpan.FromSeconds(3), new TimerCallback(
-				delegate
+				if (escort != null)
 				{
-					escort.Say(500901); // Ack!  My escort has come to haunt me!
-					owner.SendLocalizedMessage(1071194); // You have failed your escort quest…
-					owner.PlaySound(0x5B3);
-					escort.Delete();
-				}));
+					master.SendLocalizedMessage(1071194); // You have failed your escort quest…
+					master.PlaySound(0x5B3);
+					escort.Fail();
+				}
+
+				master.SendLocalizedMessage(1042473); // You have lost the person you were escorting.
+				Say(1005653); // Hmmm.  I seem to have lost my master.
+
+				StopFollow();
+				_ = MEscortTable.Remove(master);
+				_mDeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), Delete);
+
+				return null;
 			}
+			else
+			{
+				ControlOrder = OrderType.Stay;
+			}
+		}
+		else
+		{
+			if (ControlOrder != OrderType.Follow)
+				StartFollow(master);
+
+			LastSeenEscorter = DateTime.UtcNow;
+		}
+
+		return master;
+	}
+
+	public virtual Region GetDestination()
+	{
+		return null;
+	}
+
+	public virtual bool CheckAtDestination()
+	{
+		if (Quest != null)
+		{
+			EscortObjective escort = GetObjective();
+
+			if (escort == null)
+				return false;
+
+			Mobile escorter = GetEscorter();
+
+			if (escorter == null)
+				return false;
+
+			if (escort.Region != null && escort.Region.Contains(Location))
+			{
+				Say(1042809, escorter.Name); // We have arrived! I thank thee, ~1_PLAYER_NAME~! I have no further need of thy services. Here is thy pay.
+
+				escort.Complete();
+
+				if (Quest.Completed)
+				{
+					escorter.SendLocalizedMessage(1046258, null, 0x23); // Your quest is complete.		
+
+					if (QuestHelper.AnyRewards(Quest))
+						_ = escorter.SendGump(new MondainQuestGump(Quest, MondainQuestGump.Section.Rewards, false, true));
+					else
+						Quest.GiveRewards();
+
+					escorter.PlaySound(Quest.CompleteSound);
+
+					StopFollow();
+					_ = MEscortTable.Remove(escorter);
+					_mDeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), Delete);
+
+					// fame
+					Misc.Titles.AwardFame(escorter, escort.Fame, true);
+
+					// compassion
+					bool gainedPath = false;
+
+					if (escorter is PlayerMobile pm)
+					{
+						if (pm.CompassionGains > 0 && DateTime.UtcNow > pm.NextCompassionDay)
+						{
+							pm.NextCompassionDay = DateTime.MinValue;
+							pm.CompassionGains = 0;
+						}
+
+						if (pm.CompassionGains >= 5) // have already gained 5 times in one day, can gain no more
+						{
+							pm.SendLocalizedMessage(1053004); // You must wait about a day before you can gain in compassion again.
+						}
+						else if (VirtueHelper.Award(pm, VirtueName.Compassion, escort.Compassion, ref gainedPath))
+						{
+							pm.SendLocalizedMessage(1074949, null, 0x2A);  // You have demonstrated your compassion!  Your kind actions have been noted.
+
+							if (gainedPath)
+								pm.SendLocalizedMessage(1053005); // You have achieved a path in compassion!
+							else
+								pm.SendLocalizedMessage(1053002); // You have gained in compassion.
+
+							pm.NextCompassionDay = DateTime.UtcNow + TimeSpan.FromDays(1.0); // in one day CompassionGains gets reset to 0
+							++pm.CompassionGains;
+						}
+						else
+						{
+							pm.SendLocalizedMessage(1053003); // You have achieved the highest path of compassion and can no longer gain any further.
+						}
+					}
+				}
+				else
+				{
+					escorter.PlaySound(Quest.UpdateSound);
+				}
+
+				return true;
+			}
+		}
+		else if (!_mChecked)
+		{
+			Region region = GetDestination();
+
+			if (region != null && region.Contains(Location))
+			{
+				_mDeleteTimer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), Delete);
+				_mChecked = true;
+			}
+		}
+
+		return false;
+	}
+
+	private class AbandonEscortEntry : ContextMenuEntry
+	{
+		private readonly BaseEscort _mMobile;
+
+		public AbandonEscortEntry(BaseEscort m)
+			: base(6102, 3)
+		{
+			_mMobile = m;
+		}
+
+		public override void OnClick()
+		{
+			Owner.From.SendLocalizedMessage(1071194); // You have failed your escort quest…
+			Owner.From.PlaySound(0x5B3);
+			_mMobile.Delete();
+		}
+	}
+
+	public static void DeleteEscort(Mobile owner)
+	{
+		if (owner is not PlayerMobile pm) return;
+		foreach (var escortquest in pm.Quests.Where(x => x.Quester is BaseEscort))
+		{
+			BaseEscort escort = (BaseEscort) escortquest.Quester;
+
+			_ = Timer.DelayCall(TimeSpan.FromSeconds(3), delegate
+			{
+				escort.Say(500901); // Ack!  My escort has come to haunt me!
+				owner.SendLocalizedMessage(1071194); // You have failed your escort quest…
+				owner.PlaySound(0x5B3);
+				escort.Delete();
+			});
 		}
 	}
 }

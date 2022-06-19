@@ -199,7 +199,7 @@ namespace Server.Items
 						to = mobile;
 				}
 
-				Effects.SendMovingEffect(from, to, Potion.ItemID, 7, 0, false, false, Potion.Hue, 0);
+				Effects.SendMovingEffect(from, to, Potion.ItemId, 7, 0, false, false, Potion.Hue, 0);
 
 				if (Potion.Amount > 1)
 				{

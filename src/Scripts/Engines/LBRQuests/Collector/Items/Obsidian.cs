@@ -100,11 +100,11 @@ namespace Server.Engines.Quests.Collector
 					m_Quantity = value;
 
 				if (m_Quantity < m_Partial)
-					ItemID = 0x1EA7;
+					ItemId = 0x1EA7;
 				else if (m_Quantity < m_Completed)
-					ItemID = 0x1F13;
+					ItemId = 0x1F13;
 				else
-					ItemID = 0x12CB;
+					ItemId = 0x12CB;
 
 				InvalidateProperties();
 			}
@@ -183,7 +183,7 @@ namespace Server.Engines.Quests.Collector
 			if (m_Quantity < m_Completed)
 			{
 				if (!IsChildOf(from.Backpack))
-					from.Send(new MessageLocalized(Serial, ItemID, MessageType.Regular, 0x2C, 3, 500309, "", "")); // Nothing Happens.
+					from.Send(new MessageLocalized(Serial, ItemId, MessageType.Regular, 0x2C, 3, 500309, "", "")); // Nothing Happens.
 				else
 					from.Target = new InternalTarget(this);
 			}
@@ -224,13 +224,13 @@ namespace Server.Engines.Quests.Collector
 						if (targObsidian.Quantity >= Obsidian.m_Completed)
 							targObsidian.StatueName = Obsidian.RandomName(from);
 
-						from.Send(new AsciiMessage(targObsidian.Serial, targObsidian.ItemID, MessageType.Regular, 0x59, 3, m_Obsidian.Name, "Something Happened."));
+						from.Send(new AsciiMessage(targObsidian.Serial, targObsidian.ItemId, MessageType.Regular, 0x59, 3, m_Obsidian.Name, "Something Happened."));
 
 						return;
 					}
 				}
 
-				from.Send(new MessageLocalized(m_Obsidian.Serial, m_Obsidian.ItemID, MessageType.Regular, 0x2C, 3, 500309, m_Obsidian.Name, "")); // Nothing Happens.
+				from.Send(new MessageLocalized(m_Obsidian.Serial, m_Obsidian.ItemId, MessageType.Regular, 0x2C, 3, 500309, m_Obsidian.Name, "")); // Nothing Happens.
 			}
 		}
 

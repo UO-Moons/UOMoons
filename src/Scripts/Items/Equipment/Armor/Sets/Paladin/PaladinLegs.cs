@@ -3,7 +3,7 @@ namespace Server.Items;
 public class PaladinLegs : PlateLegs
 {
 	public override int LabelNumber => 1074303;// Plate of Honor
-	public override SetItem SetID => SetItem.Paladin;
+	public override SetItem SetId => SetItem.Paladin;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 8;
 	public override int BaseFireResistance => 5;

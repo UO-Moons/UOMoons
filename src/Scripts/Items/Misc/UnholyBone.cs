@@ -26,7 +26,7 @@ namespace Server.Items
 
 			if (0.3 > Utility.RandomDouble())
 			{
-				if (ItemID == 0xF7E)
+				if (ItemId == 0xF7E)
 					from.SendMessage("You destroy the bone.");
 				else
 					from.SendMessage("You destroy the bone pile.");
@@ -41,7 +41,7 @@ namespace Server.Items
 			}
 			else
 			{
-				if (ItemID == 0xF7E)
+				if (ItemId == 0xF7E)
 					from.SendMessage("You damage the bone.");
 				else
 					from.SendMessage("You damage the bone pile.");

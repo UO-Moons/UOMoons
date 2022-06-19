@@ -121,7 +121,7 @@ namespace Server.Items
 		{
 			if (IsAccessibleTo(from) && (item is PlagueBeastInnard || item is PlagueBeastGland))
 			{
-				Rectangle2D ir = ItemBounds.Table[item.ItemID];
+				Rectangle2D ir = ItemBounds.Table[item.ItemId];
 				int x, y;
 				int cx = p.X + ir.X + ir.Width / 2;
 				int cy = p.Y + ir.Y + ir.Height / 2;
@@ -132,7 +132,7 @@ namespace Server.Items
 
 					if (innard != null)
 					{
-						Rectangle2D r = ItemBounds.Table[innard.ItemID];
+						Rectangle2D r = ItemBounds.Table[innard.ItemId];
 
 						x = innard.X + r.X;
 						y = innard.Y + r.Y;

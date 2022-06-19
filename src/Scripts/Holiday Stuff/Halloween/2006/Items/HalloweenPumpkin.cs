@@ -14,7 +14,7 @@ namespace Server.Items
 			: base()
 		{
 			Weight = Utility.RandomMinMax(3, 20);
-			ItemID = (Utility.RandomDouble() <= .02) ? Utility.RandomList(0x4694, 0x4698) : Utility.RandomList(0xc6a, 0xc6b, 0xc6c);
+			ItemId = (Utility.RandomDouble() <= .02) ? Utility.RandomList(0x4694, 0x4698) : Utility.RandomList(0xc6a, 0xc6b, 0xc6c);
 		}
 
 		public override void OnDoubleClick(Mobile from)
@@ -24,12 +24,12 @@ namespace Server.Items
 
 			bool douse = false;
 
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x4694: ItemID = 0x4691; break;
-				case 0x4691: ItemID = 0x4694; douse = true; break;
-				case 0x4698: ItemID = 0x4695; break;
-				case 0x4695: ItemID = 0x4698; douse = true; break;
+				case 0x4694: ItemId = 0x4691; break;
+				case 0x4691: ItemId = 0x4694; douse = true; break;
+				case 0x4698: ItemId = 0x4695; break;
+				case 0x4695: ItemId = 0x4698; douse = true; break;
 				default: return;
 			}
 
@@ -44,7 +44,7 @@ namespace Server.Items
 
 		public override bool OnDragLift(Mobile from)
 		{
-			if (Name == null && (ItemID == 0x4694 || ItemID == 0x4691 || ItemID == 0x4698 || ItemID == 0x4695))
+			if (Name == null && (ItemId == 0x4694 || ItemId == 0x4691 || ItemId == 0x4698 || ItemId == 0x4695))
 			{
 				if (Utility.RandomBool())
 				{

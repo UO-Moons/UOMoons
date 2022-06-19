@@ -8,7 +8,7 @@ namespace Server.Items
 			Name = "An Unknown Bard's Skeleton";
 			Movable = true;
 			GumpID = 9;
-			ItemID = 3786;
+			ItemId = 3786;
 		}
 
 		[Constructable]
@@ -38,8 +38,8 @@ namespace Server.Items
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			if (ItemID == 3787)
-				ItemID = 3786;
+			if (ItemId == 3787)
+				ItemId = 3786;
 		}
 	}
 
@@ -51,7 +51,7 @@ namespace Server.Items
 			Name = "An Unknown Rogue's Skeleton";
 			Movable = true;
 			GumpID = 9;
-			ItemID = 3788;
+			ItemId = 3788;
 		}
 
 		[Constructable]
@@ -80,8 +80,8 @@ namespace Server.Items
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			if (ItemID == 3787)
-				ItemID = 3788;
+			if (ItemId == 3787)
+				ItemId = 3788;
 		}
 	}
 
@@ -93,7 +93,7 @@ namespace Server.Items
 			Name = "An Unknown Mage's Skeleton";
 			Movable = true;
 			GumpID = 9;
-			ItemID = 3790;
+			ItemId = 3790;
 		}
 
 		[Constructable]
@@ -121,8 +121,8 @@ namespace Server.Items
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			if (ItemID == 3787)
-				ItemID = 3790;
+			if (ItemId == 3787)
+				ItemId = 3790;
 		}
 	}
 
@@ -134,7 +134,7 @@ namespace Server.Items
 			Name = "An Unknown Warrior's Skeleton";
 			Movable = true;
 			GumpID = 9;
-			ItemID = 3792;
+			ItemId = 3792;
 		}
 
 		[Constructable]
@@ -162,8 +162,8 @@ namespace Server.Items
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			if (ItemID == 3787)
-				ItemID = 3792;
+			if (ItemId == 3787)
+				ItemId = 3792;
 		}
 	}
 
@@ -175,7 +175,7 @@ namespace Server.Items
 			Name = "An Unknown Healer's Skeleton";
 			Movable = true;
 			GumpID = 9;
-			ItemID = 3794;
+			ItemId = 3794;
 		}
 
 		[Constructable]
@@ -204,8 +204,8 @@ namespace Server.Items
 			base.Deserialize(reader);
 			_ = reader.ReadInt();
 
-			if (ItemID == 3787)
-				ItemID = 3794;
+			if (ItemId == 3787)
+				ItemId = 3794;
 		}
 	}
 

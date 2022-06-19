@@ -32,7 +32,7 @@ namespace Server.Items
         }
 
         public override int LabelNumber => 1074307;// Greymist Armor
-        public override SetItem SetID => SetItem.Acolyte;
+        public override SetItem SetId => SetItem.Acolyte;
         public override int Pieces => 4;
         public override int BasePhysicalResistance => 7;
         public override int BaseFireResistance => 7;

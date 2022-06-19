@@ -388,7 +388,7 @@ namespace Server
 						{
 							Buckler shieldtomake = new Buckler();
 							shieldtomake.PoisonBonus = 0;
-							shieldtomake.ItemID = item.ItemID;
+							shieldtomake.ItemId = item.ItemId;
 							shieldtomake.Hue = item.Hue;
 							shieldtomake.Layer = item.Layer;
 							shieldtomake.Movable = false;
@@ -398,7 +398,7 @@ namespace Server
 						else if (item is BaseWeapon)
 						{
 							Broadsword weapontomake = new Broadsword();
-							weapontomake.ItemID = item.ItemID;
+							weapontomake.ItemId = item.ItemId;
 							weapontomake.Hue = item.Hue;
 							weapontomake.Layer = item.Layer;
 							weapontomake.Movable = false;
@@ -415,7 +415,7 @@ namespace Server
 						}
 						else
 						{
-							Item itemtomake = new Item(item.ItemID);
+							Item itemtomake = new Item(item.ItemId);
 							itemtomake.Hue = item.Hue;
 							itemtomake.Layer = item.Layer;
 							itemtomake.Movable = false;
@@ -1856,7 +1856,7 @@ namespace Server
 			private void Move()
 			{
 				if (!Visible)
-					ItemID = 0x36FE;
+					ItemId = 0x36FE;
 
 				MoveToWorld(m_MoveToPoint, m_MoveToMap);
 			}

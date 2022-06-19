@@ -1594,7 +1594,7 @@ namespace Server.Mobiles
 
 					var owner = c.Owner as BaseCreature;
 
-					if ((c.ItemID < 0xECA || c.ItemID > 0xED5) && m_Mobile.InLOS(c) && !c.Channeled && type != typeof(PlayerMobile) &&
+					if ((c.ItemId < 0xECA || c.ItemId > 0xED5) && m_Mobile.InLOS(c) && !c.Channeled && type != typeof(PlayerMobile) &&
 						type != null && (owner == null || (!owner.Summoned && !owner.IsBonded)))
 					{
 						eable.Free();

@@ -44,7 +44,7 @@ public class Head : BaseItem, ICarvable
 	[CommandProperty(AccessLevel.GameMaster)]
 	public HeadType HeadType { get; set; }
 
-	private DateTime Created;
+	private readonly DateTime _created;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public Mobile Owner { get; set; }
@@ -53,10 +53,7 @@ public class Head : BaseItem, ICarvable
 	public int MaxBounty { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public TimeSpan Age
-	{
-		get { return DateTime.UtcNow - Created; }
-	}
+	public TimeSpan Age => DateTime.UtcNow - _created;
 
 	public override string DefaultName
 	{
@@ -67,9 +64,9 @@ public class Head : BaseItem, ICarvable
 
 			return HeadType switch
 			{
-				HeadType.Duel => string.Format("the head of {0}, taken in a duel", PlayerName),
-				HeadType.Tournament => string.Format("the head of {0}, taken in a tournament", PlayerName),
-				_ => string.Format("the head of {0}", PlayerName),
+				HeadType.Duel => $"the head of {PlayerName}, taken in a duel",
+				HeadType.Tournament => $"the head of {PlayerName}, taken in a tournament",
+				_ => $"the head of {PlayerName}",
 			};
 		}
 	}
@@ -94,11 +91,11 @@ public class Head : BaseItem, ICarvable
 		HeadType = headType;
 		PlayerName = playerName;
 
-		Created = DateTime.UtcNow;
+		_created = DateTime.UtcNow;
 		Weight = 1.0;
 		LastMoved = DateTime.UtcNow - DefaultDecayTime + TimeSpan.FromMinutes(7.5);
 
-		if (Owner != null && !Owner.Deleted && Owner is PlayerMobile mobile)
+		if (Owner is {Deleted: false} and PlayerMobile mobile)
 			MaxBounty = mobile.Bounty;
 	}
 

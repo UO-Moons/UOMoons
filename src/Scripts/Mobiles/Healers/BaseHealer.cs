@@ -7,13 +7,13 @@ namespace Server.Mobiles
 {
 	public abstract class BaseHealer : BaseVendor
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		private readonly List<SbInfo> m_SBInfos = new List<SbInfo>();
+		protected override List<SbInfo> SbInfos => m_SBInfos;
 
 		public override bool IsActiveVendor => false;
 		public override bool IsInvulnerable => false;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
 		}
 

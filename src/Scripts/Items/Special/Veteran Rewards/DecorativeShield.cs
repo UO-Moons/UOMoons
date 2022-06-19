@@ -36,10 +36,10 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID < 0x1582)
-					return (ItemID & 0x1) == 0;
+				if (ItemId < 0x1582)
+					return (ItemId & 0x1) == 0;
 
-				return ItemID <= 0x1585;
+				return ItemId <= 0x1585;
 			}
 		}
 

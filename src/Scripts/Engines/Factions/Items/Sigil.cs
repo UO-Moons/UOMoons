@@ -75,7 +75,7 @@ namespace Server.Factions
 
 		public void Update()
 		{
-			ItemID = (m_Town == null ? 0x1869 : m_Town.Definition.SigilID);
+			ItemId = (m_Town == null ? 0x1869 : m_Town.Definition.SigilID);
 
 			if (m_Town == null)
 				AssignName(null);
@@ -393,7 +393,7 @@ namespace Server.Factions
 			return (monolith != null && !monolith.Deleted);
 		}
 
-		public override void OnParentDeleted(IEntity parent)
+		public override void OnParentDeleted(object parent)
 		{
 			base.OnParentDeleted(parent);
 

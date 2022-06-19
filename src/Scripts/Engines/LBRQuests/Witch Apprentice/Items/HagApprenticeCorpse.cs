@@ -35,7 +35,7 @@ namespace Server.Engines.Quests.Hag
 		{
 			int hue = Notoriety.GetHue(Notoriety.ComputeCorpse(from, this));
 
-			from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, hue, 3, "", "a charred corpse"));
+			from.Send(new AsciiMessage(Serial, ItemId, MessageType.Label, hue, 3, "", "a charred corpse"));
 		}
 
 		[Constructable]

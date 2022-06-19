@@ -130,7 +130,7 @@ namespace Server.Engines.Plants
 			int tileID;
 
 			if (obj is Static @static && !@static.Movable)
-				tileID = (@static.ItemID & 0x3FFF) | 0x4000;
+				tileID = (@static.ItemId & 0x3FFF) | 0x4000;
 			else if (obj is StaticTarget target)
 				tileID = (target.ItemID & 0x3FFF) | 0x4000;
 			else if (obj is LandTarget target1)

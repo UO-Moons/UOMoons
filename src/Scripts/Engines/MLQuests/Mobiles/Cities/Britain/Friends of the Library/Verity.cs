@@ -2,57 +2,56 @@ using Server.Engines.Quests;
 using Server.Items;
 using System;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Verity : MondainQuester
 {
-	public class Verity : MondainQuester
+	[Constructable]
+	public Verity()
+		: base("Verity", "the Librarian")
 	{
-		[Constructable]
-		public Verity()
-			: base("Verity", "the Librarian")
-		{
-		}
+	}
 
-		public Verity(Serial serial)
-			: base(serial)
-		{
-		}
+	public Verity(Serial serial)
+		: base(serial)
+	{
+	}
 
-		public override Type[] Quests => new Type[]
-				{
-					typeof(FriendsOfTheLibraryQuest)
-				};
-		public override void InitBody()
-		{
-			InitStats(100, 100, 25);
+	public override Type[] Quests => new Type[]
+	{
+		typeof(FriendsOfTheLibraryQuest)
+	};
+	public override void InitBody()
+	{
+		InitStats(100, 100, 25);
 
-			Female = true;
-			Race = Race.Human;
+		Female = true;
+		Race = Race.Human;
 
-			Hue = 0x83EF;
-			HairItemID = 0x2047;
-			HairHue = 0x3B3;
-		}
+		Hue = 0x83EF;
+		HairItemID = 0x2047;
+		HairHue = 0x3B3;
+	}
 
-		public override void InitOutfit()
-		{
-			AddItem(new Backpack());
-			AddItem(new Shoes(0x754));
-			AddItem(new Shirt(0x653));
-			AddItem(new Cap(0x901));
-			AddItem(new Kilt(0x901));
-		}
+	public override void InitOutfit()
+	{
+		AddItem(new Backpack());
+		AddItem(new Shoes(0x754));
+		AddItem(new Shirt(0x653));
+		AddItem(new Cap(0x901));
+		AddItem(new Kilt(0x901));
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0); // version
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

@@ -2,6 +2,7 @@ using Server.Guilds;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Server
@@ -91,7 +92,7 @@ namespace Server
 
 			//Start the producer.
 			Parallel.ForEach(items, () => new QueuedMemoryWriter(),
-				(Item item, ParallelLoopState state, QueuedMemoryWriter writer) =>
+				(item, _, writer) =>
 				{
 					long startPosition = writer.Position;
 
@@ -108,7 +109,7 @@ namespace Server
 
 					return writer;
 				},
-				(writer) =>
+				writer =>
 				{
 					writer.Flush();
 
@@ -129,7 +130,7 @@ namespace Server
 
 			//Start the producer.
 			Parallel.ForEach(mobiles, () => new QueuedMemoryWriter(),
-				(Mobile mobile, ParallelLoopState state, QueuedMemoryWriter writer) =>
+				(mobile, _, writer) =>
 				{
 					long startPosition = writer.Position;
 
@@ -141,7 +142,7 @@ namespace Server
 
 					return writer;
 				},
-				(writer) =>
+				writer =>
 				{
 					writer.Flush();
 
@@ -162,7 +163,7 @@ namespace Server
 
 			//Start the producer.
 			Parallel.ForEach(guilds, () => new QueuedMemoryWriter(),
-				(BaseGuild guild, ParallelLoopState state, QueuedMemoryWriter writer) =>
+				(guild, _, writer) =>
 				{
 					long startPosition = writer.Position;
 
@@ -174,7 +175,7 @@ namespace Server
 
 					return writer;
 				},
-				(writer) =>
+				writer =>
 				{
 					writer.Flush();
 
@@ -225,7 +226,7 @@ namespace Server
 			_guildIndex.Close();
 		}
 
-		private static void WriteCount(SequentialFileWriter indexFile, int count)
+		private static void WriteCount(Stream indexFile, int count)
 		{
 			//Equiv to GenericWriter.Write( (int)count );
 			byte[] buffer = new byte[4];

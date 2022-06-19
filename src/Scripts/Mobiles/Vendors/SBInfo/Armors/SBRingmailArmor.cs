@@ -1,41 +1,33 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class SbRingmailArmor : SbInfo
 {
-	public class SBRingmailArmor : SBInfo
+	public override IShopSellInfo SellInfo { get; } = new InternalSellInfo();
+
+	public override List<GenericBuyInfo> BuyInfo { get; } = new InternalBuyInfo();
+
+	public class InternalBuyInfo : List<GenericBuyInfo>
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
-		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
-
-		public SBRingmailArmor()
+		public InternalBuyInfo()
 		{
+			Add(new GenericBuyInfo(typeof(RingmailChest), 121, 20, 0x13ec, 0));
+			Add(new GenericBuyInfo(typeof(RingmailLegs), 90, 20, 0x13F0, 0));
+			Add(new GenericBuyInfo(typeof(RingmailArms), 85, 20, 0x13EE, 0));
+			Add(new GenericBuyInfo(typeof(RingmailGloves), 93, 20, 0x13eb, 0));
 		}
+	}
 
-		public override IShopSellInfo SellInfo => m_SellInfo;
-		public override List<GenericBuyInfo> BuyInfo => m_BuyInfo;
-
-		public class InternalBuyInfo : List<GenericBuyInfo>
+	public class InternalSellInfo : GenericSellInfo
+	{
+		public InternalSellInfo()
 		{
-			public InternalBuyInfo()
-			{
-				Add(new GenericBuyInfo(typeof(RingmailChest), 121, 20, 0x13ec, 0));
-				Add(new GenericBuyInfo(typeof(RingmailLegs), 90, 20, 0x13F0, 0));
-				Add(new GenericBuyInfo(typeof(RingmailArms), 85, 20, 0x13EE, 0));
-				Add(new GenericBuyInfo(typeof(RingmailGloves), 93, 20, 0x13eb, 0));
-
-			}
-		}
-
-		public class InternalSellInfo : GenericSellInfo
-		{
-			public InternalSellInfo()
-			{
-				Add(typeof(RingmailArms), 42);
-				Add(typeof(RingmailChest), 60);
-				Add(typeof(RingmailGloves), 26);
-				Add(typeof(RingmailLegs), 45);
-			}
+			Add(typeof(RingmailArms), 42);
+			Add(typeof(RingmailChest), 60);
+			Add(typeof(RingmailGloves), 26);
+			Add(typeof(RingmailLegs), 45);
 		}
 	}
 }

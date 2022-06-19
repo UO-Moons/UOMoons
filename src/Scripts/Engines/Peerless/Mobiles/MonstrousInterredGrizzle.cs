@@ -202,9 +202,9 @@ namespace Server.Mobiles
 
         private void OnTick()
         {
-            if (ItemID == 0x122A && m_StartTime + TimeSpan.FromSeconds(30) < DateTime.UtcNow)
+            if (ItemId == 0x122A && m_StartTime + TimeSpan.FromSeconds(30) < DateTime.UtcNow)
             {
-                ItemID++;
+                ItemId++;
             }
             else if (m_StartTime + TimeSpan.FromSeconds(35) < DateTime.UtcNow)
             {

@@ -28,18 +28,18 @@ namespace Server.Items
 
 			switch (Utility.Random(12))
 			{
-				case 0: ItemID = 2321; break;
-				case 1: ItemID = 2323; break;
-				case 2: ItemID = 2324; break;
-				case 3: ItemID = 7860; break;
-				case 4: ItemID = 3118; break;
-				case 5: ItemID = 3119; break;
-				case 6: ItemID = 3120; break;
-				case 7: ItemID = 3553; break;
-				case 8: ItemID = 3892; break;
-				case 9: ItemID = 4338; break;
-				case 10: ItemID = 4152; break;
-				case 11: ItemID = 7859; break;
+				case 0: ItemId = 2321; break;
+				case 1: ItemId = 2323; break;
+				case 2: ItemId = 2324; break;
+				case 3: ItemId = 7860; break;
+				case 4: ItemId = 3118; break;
+				case 5: ItemId = 3119; break;
+				case 6: ItemId = 3120; break;
+				case 7: ItemId = 3553; break;
+				case 8: ItemId = 3892; break;
+				case 9: ItemId = 4338; break;
+				case 10: ItemId = 4152; break;
+				case 11: ItemId = 7859; break;
 			}
 
 

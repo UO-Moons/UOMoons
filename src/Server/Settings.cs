@@ -9,7 +9,7 @@ namespace Server
 	{
 		public static readonly Settings Configuration = new("settings.ini");
 
-		public Dictionary<string, Dictionary<string, Entry>> Values { get; set; } = new Dictionary<string, Dictionary<string, Entry>>(StringComparer.OrdinalIgnoreCase);
+		public Dictionary<string, Dictionary<string, Entry>> Values { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
 		public string Filename { get; set; }
 
@@ -99,15 +99,15 @@ namespace Server
 				int io = line.IndexOf('=');
 				if (io < 0)
 				{
-					throw new FormatException(string.Format("Bad format at line {0}", i + 1));
+					throw new FormatException($"Bad format at line {i + 1}");
 				}
 
-				string key = line.Substring(0, io);
+				string key = line[..io];
 				string val = line[(io + 1)..];
 
 				if (string.IsNullOrWhiteSpace(key))
 				{
-					throw new NullReferenceException(string.Format("Key can not be null at line {0}", i + 1));
+					throw new NullReferenceException($"Key can not be null at line {i + 1}");
 				}
 
 				key = key.Trim();
@@ -135,12 +135,10 @@ namespace Server
 		private string InternalGet(string section, string key)
 		{
 			string result = null;
-			if (Values.TryGetValue(section, out Dictionary<string, Entry> sec) && sec != null)
+			if (!Values.TryGetValue(section, out Dictionary<string, Entry> sec) || sec == null) return null;
+			if (sec.TryGetValue(key, out var entry) && entry != null)
 			{
-				if (sec.TryGetValue(key, out Entry entry) && entry != null)
-				{
-					result = entry.Value;
-				}
+				result = entry.Value;
 			}
 
 			return result;
@@ -158,11 +156,7 @@ namespace Server
 
 		public T Get<T>(string section, string key, T defaultValue)
 		{
-			if (string.IsNullOrEmpty(InternalGet(section, key)))
-			{
-				return defaultValue;
-			}
-			return ConvertValue<T>(InternalGet(section, key));
+			return string.IsNullOrEmpty(InternalGet(section, key)) ? defaultValue : ConvertValue<T>(InternalGet(section, key));
 		}
 
 		private static T ConvertValue<T>(string value)

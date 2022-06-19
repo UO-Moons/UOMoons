@@ -34,8 +34,8 @@ namespace Server.Items
 						{
 							CurtainsComponent curtain = (CurtainsComponent)c;
 
-							int temp = curtain.ItemID;
-							curtain.ItemID = curtain.ClosedID;
+							int temp = curtain.ItemId;
+							curtain.ItemId = curtain.ClosedID;
 							curtain.ClosedID = temp;
 						}
 					}

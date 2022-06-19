@@ -93,11 +93,11 @@ namespace Server.Items
 			switch (direction)
 			{
 				case Direction.East:
-					ItemID = 0x2A9C;
+					ItemId = 0x2A9C;
 					AddComponent(new LocalizedContainerComponent(0x2A9D, 1074818), 0, -1, 0);
 					break;
 				case Direction.South:
-					ItemID = 0x2A9B;
+					ItemId = 0x2A9B;
 					AddComponent(new LocalizedContainerComponent(0x2A9A, 1074818), 1, 0, 0);
 					break;
 			}

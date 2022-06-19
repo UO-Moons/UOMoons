@@ -10,7 +10,7 @@ namespace Server
 
 		public static int Lookup(Mobile m)
 		{
-			return Lookup(m.Body.BodyID, DefaultItemID);
+			return Lookup(m.Body.BodyId, DefaultItemID);
 		}
 
 		public static int Lookup(int body)
@@ -20,7 +20,7 @@ namespace Server
 
 		public static int Lookup(Mobile m, int defaultValue)
 		{
-			return Lookup(m.Body.BodyID, defaultValue);
+			return Lookup(m.Body.BodyId, defaultValue);
 		}
 
 		public static int Lookup(int body, int defaultValue)

@@ -4,66 +4,52 @@ namespace Server.Gumps
 {
 	public abstract class GumpEntry
 	{
-		private Gump m_Parent;
-
-		protected GumpEntry()
-		{
-		}
+		private Gump _mParent;
 
 		protected void Delta(ref int var, int val)
 		{
-			if (var != val)
-			{
-				var = val;
+			if (var == val) return;
+			var = val;
 
-				if (m_Parent != null)
-				{
-					Gump.Invalidate();
-				}
+			if (_mParent != null)
+			{
+				Gump.Invalidate();
 			}
 		}
 
 		protected void Delta(ref bool var, bool val)
 		{
-			if (var != val)
-			{
-				var = val;
+			if (var == val) return;
+			var = val;
 
-				if (m_Parent != null)
-				{
-					Gump.Invalidate();
-				}
+			if (_mParent != null)
+			{
+				Gump.Invalidate();
 			}
 		}
 
 		protected void Delta(ref string var, string val)
 		{
-			if (var != val)
-			{
-				var = val;
+			if (var == val) return;
+			var = val;
 
-				if (m_Parent != null)
-				{
-					Gump.Invalidate();
-				}
+			if (_mParent != null)
+			{
+				Gump.Invalidate();
 			}
 		}
 
 		public Gump Parent
 		{
-			get => m_Parent;
+			get => _mParent;
 			set
 			{
-				if (m_Parent != value)
-				{
-					if (m_Parent != null)
-						m_Parent.Remove(this);
+				if (_mParent == value) return;
+				_mParent?.Remove(this);
 
-					m_Parent = value;
+				_mParent = value;
 
-					if (m_Parent != null)
-						m_Parent.Add(this);
-				}
+				_mParent?.Add(this);
 			}
 		}
 

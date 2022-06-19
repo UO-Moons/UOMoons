@@ -14,7 +14,7 @@ namespace Server.Factions
 			SetSkill(SkillName.Veterinary, 65.0, 88.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
 		}
 

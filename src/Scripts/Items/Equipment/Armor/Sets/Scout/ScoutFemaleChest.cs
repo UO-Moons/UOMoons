@@ -3,7 +3,7 @@ namespace Server.Items;
 public class ScoutFemaleChest : FemaleStuddedChest
 {
 	public override int LabelNumber => 1080479;  // Scout's Female Studded Armor
-	public override SetItem SetID => SetItem.Scout;
+	public override SetItem SetId => SetItem.Scout;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

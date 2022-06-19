@@ -372,7 +372,7 @@ namespace Server.Mobiles
 			if (m_Ticks >= 35)
 				Delete();
 			else if (m_Ticks == 30)
-				ItemID = 0x122B;
+				ItemId = 0x122B;
 		}
 
 		public void Damage(Mobile m)
@@ -426,7 +426,7 @@ namespace Server.Mobiles
 			Corrosive = reader.ReadBool();
 
 			m_Timer = Timer.DelayCall(TimeSpan.Zero, TimeSpan.FromSeconds(1), OnTick);
-			m_Ticks = (ItemID == 0x122A) ? 0 : 30;
+			m_Ticks = (ItemId == 0x122A) ? 0 : 30;
 		}
 	}
 }

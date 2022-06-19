@@ -19,7 +19,7 @@ namespace Server.Misc
 				List<Item> items = beheld.Items;
 
 				for (int i = 0; i < items.Count; ++i)
-					beholder.Send(items[i].OPLPacket);
+					beholder.Send(items[i].OplPacket);
 
 				// NOTE: OSI sends MobileUpdate when opening your own paperdoll.
 				// It has a very bad rubber-banding affect. What positive affects does it have?

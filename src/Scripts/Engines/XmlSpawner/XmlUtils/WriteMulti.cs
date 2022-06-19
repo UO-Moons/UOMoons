@@ -221,7 +221,7 @@ namespace Server.Engines.XmlSpawner2
 						if (item.Parent == null && (zmin == int.MinValue || (item.Location.Z >= zmin && item.Location.Z <= zmax)))
 						{
 							// add the item
-							if ((includeinvisible || item.Visible) && (item.ItemID <= 16383))
+							if ((includeinvisible || item.Visible) && (item.ItemId <= 16383))
 							{
 								itemlist.Add(item);
 							}
@@ -251,7 +251,7 @@ namespace Server.Engines.XmlSpawner2
 									int y = c.Y;
 									int z = c.Z;
 
-									if ((includeinvisible || item.Visible) && (item.ItemID <= 16383 || includemultis) &&
+									if ((includeinvisible || item.Visible) && (item.ItemId <= 16383 || includemultis) &&
 										(x >= sx && x <= ex && y >= sy && y <= ey && (zmin == int.MinValue || (z >= zmin && z <= zmax))))
 									{
 										itemlist.Add(c);
@@ -324,7 +324,7 @@ namespace Server.Engines.XmlSpawner2
 					int y = item.Y - from.Y;
 					int z = item.Z - from.Z;
 
-					if (item.ItemID > 16383)
+					if (item.ItemId > 16383)
 					{
 						nmultis++;
 					}
@@ -360,12 +360,12 @@ namespace Server.Engines.XmlSpawner2
 							if (item.Hue > 0)
 							{
 								// format is x y z visible hue
-								op.WriteLine("{0} {1} {2} {3} {4} {5}", item.ItemID, x, y, z, item.Visible ? 1 : 0, item.Hue);
+								op.WriteLine("{0} {1} {2} {3} {4} {5}", item.ItemId, x, y, z, item.Visible ? 1 : 0, item.Hue);
 							}
 							else
 							{
 								// format is x y z visible
-								op.WriteLine("{0} {1} {2} {3} {4}", item.ItemID, x, y, z, item.Visible ? 1 : 0);
+								op.WriteLine("{0} {1} {2} {3} {4}", item.ItemId, x, y, z, item.Visible ? 1 : 0);
 							}
 						}
 

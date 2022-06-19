@@ -57,8 +57,8 @@ namespace Server.Items
 					}
 			}
 
-			if (ItemID == 0xE41)
-				ItemID = 0xE7C;
+			if (ItemId == 0xE41)
+				ItemId = 0xE7C;
 		}
 
 		public static bool SendDeleteOnClose { get; set; }

@@ -1,50 +1,96 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class LegendaryDetectiveBoots : Boots
 {
-	public class DetectiveBoots : Boots
+	public override int LabelNumber => 1094894;// Legendary Detective of the Royal Guard [Replica]
+	public override int InitMinHits => 150;
+	public override int InitMaxHits => 150;
+	public override bool CanFortify => false;
+
+	[Constructable]
+	public LegendaryDetectiveBoots()
 	{
-		public override int LabelNumber => 1094894 + m_Level;  // [Quality] Detective of the Royal Guard [Replica]
+		Hue = 0x455;
+		Attributes.BonusInt = 2;
+	}
 
-		public override int InitMinHits => 150;
-		public override int InitMaxHits => 150;
+	public LegendaryDetectiveBoots(Serial serial) : base(serial)
+	{
+	}
 
-		public override bool CanFortify => false;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		private int m_Level;
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
 
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int Level
-		{
-			get => m_Level;
-			set { m_Level = Math.Max(Math.Min(2, value), 0); Attributes.BonusInt = 2 + m_Level; InvalidateProperties(); }
-		}
+public class ElderDetectiveBoots : Boots
+{
+	public override int LabelNumber => 1094894;// Elder Detective of the Royal Guard [Replica]
+	public override int InitMinHits => 150;
+	public override int InitMaxHits => 150;
+	public override bool CanFortify => false;
 
-		[Constructable]
-		public DetectiveBoots()
-		{
-			Hue = 0x455;
-			Level = Utility.RandomMinMax(0, 2);
-		}
+	[Constructable]
+	public ElderDetectiveBoots()
+	{
+		Hue = 0x455;
+		Attributes.BonusInt = 3;
+	}
 
-		public DetectiveBoots(Serial serial) : base(serial)
-		{
-		}
+	public ElderDetectiveBoots(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0);
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class MythicalDetectiveBoots : Boots
+{
+	public override int LabelNumber => 1094894;// Mythical Detective of the Royal Guard [Replica]
+	public override int InitMinHits => 150;
+	public override int InitMaxHits => 150;
+	public override bool CanFortify => false;
 
-			int version = reader.ReadInt();
+	[Constructable]
+	public MythicalDetectiveBoots()
+	{
+		Hue = 0x455;
+		Attributes.BonusInt = 4;
+	}
 
-			Level = Attributes.BonusInt - 2;
-		}
+	public MythicalDetectiveBoots(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

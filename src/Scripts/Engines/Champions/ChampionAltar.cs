@@ -1,54 +1,53 @@
 using Server.Items;
 
-namespace Server.Engines.Champions
+namespace Server.Engines.Champions;
+
+public sealed class ChampionAltar : PentagramAddon
 {
-	public sealed class ChampionAltar : PentagramAddon
+	private ChampionSpawn _mSpawn;
+	public ChampionAltar(ChampionSpawn spawn)
 	{
-		private ChampionSpawn m_Spawn;
-		public ChampionAltar(ChampionSpawn spawn)
-		{
-			m_Spawn = spawn;
-			Hue = 0x455;
-		}
+		_mSpawn = spawn;
+		Hue = 0x455;
+	}
 
-		public ChampionAltar(Serial serial)
-			: base(serial)
-		{
-		}
+	public ChampionAltar(Serial serial)
+		: base(serial)
+	{
+	}
 
-		public override void OnAfterDelete()
-		{
-			base.OnAfterDelete();
-			m_Spawn?.Delete();
-		}
+	public override void OnAfterDelete()
+	{
+		base.OnAfterDelete();
+		_mSpawn?.Delete();
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-			writer.Write(m_Spawn);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+		writer.Write(_mSpawn);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			var version = reader.ReadInt();
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		var version = reader.ReadInt();
 
-			switch (version)
+		switch (version)
+		{
+			case 0:
 			{
-				case 0:
-					{
-						m_Spawn = reader.ReadItem() as ChampionSpawn;
+				_mSpawn = reader.ReadItem() as ChampionSpawn;
 
-						if (m_Spawn == null)
-							Delete();
-						else if (!m_Spawn.Active)
-							Hue = 0x455;
-						else
-							Hue = 0;
+				if (_mSpawn == null)
+					Delete();
+				else if (!_mSpawn.Active)
+					Hue = 0x455;
+				else
+					Hue = 0;
 
-						break;
-					}
+				break;
 			}
 		}
 	}

@@ -4244,7 +4244,7 @@ namespace Server.Mobiles
 					item.Visible = false;    // set the spawn item visibility
 					item.Movable = false;    // Make the spawn item movable
 					item.Hue = 88;          // Bright blue colour so its easy to spot
-					item.ItemID = ShowItemId;   // Ship Mast (Very tall, easy to see if beneath other objects)
+					item.ItemId = ShowItemId;   // Ship Mast (Very tall, easy to see if beneath other objects)
 
 					// find container-held spawners to be marked with an external static
 					if ((item.Parent != null) && (item.RootParent is Container))
@@ -4290,7 +4290,7 @@ namespace Server.Mobiles
 					item.Visible = false;
 					item.Movable = false;
 					item.Hue = 0;
-					item.ItemID = BaseItemId;
+					item.ItemId = BaseItemId;
 
 					// get rid of the external static marker for container-held spawners
 					// check anything that might have been tagged with a container static
@@ -10072,7 +10072,7 @@ namespace Server.Mobiles
 			{
 				Item item = items[i];
 
-				if (item.ItemID < 0x4000 && item.AtWorldPoint(x, y))
+				if (item.ItemId < 0x4000 && item.AtWorldPoint(x, y))
 				{
 					ItemData id = item.ItemData;
 					surface = id.Surface;
@@ -10244,10 +10244,10 @@ namespace Server.Mobiles
 							if (i.ItemData.Impassable)
 								excludetile = true;
 
-							TileFlag iflags = TileData.ItemTable[i.ItemID & TileData.MaxItemValue].Flags;
+							TileFlag iflags = TileData.ItemTable[i.ItemId & TileData.MaxItemValue].Flags;
 							if (includetilelist != null && includetilelist.Count > 0)
 							{
-								includetile = includetilelist.Contains(i.ItemID & TileData.MaxItemValue);
+								includetile = includetilelist.Contains(i.ItemId & TileData.MaxItemValue);
 							}
 							else
 							{
@@ -10256,7 +10256,7 @@ namespace Server.Mobiles
 
 							if (excludetilelist != null && excludetilelist.Count > 0)
 							{
-								excludetile = excludetilelist.Contains(i.ItemID & TileData.MaxItemValue);
+								excludetile = excludetilelist.Contains(i.ItemId & TileData.MaxItemValue);
 							}
 							else
 							{

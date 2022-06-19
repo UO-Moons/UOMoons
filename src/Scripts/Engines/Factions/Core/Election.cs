@@ -422,7 +422,7 @@ namespace Server.Factions
 				case 0:
 					{
 						From = reader.ReadMobile();
-						Address = Utility.Intern(reader.ReadIPAddress());
+						Address = Utility.Intern(reader.ReadIpAddress());
 						Time = reader.ReadDateTime();
 
 						break;

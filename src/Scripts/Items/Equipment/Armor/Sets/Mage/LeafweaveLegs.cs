@@ -4,7 +4,7 @@ namespace Server.Items;
 public class LeafweaveLegs : HidePants
 {
 	public override int LabelNumber => 1074299;// Elven Leafweave
-	public override SetItem SetID => SetItem.Mage;
+	public override SetItem SetId => SetItem.Mage;
 	public override int Pieces => 4;
 	public override int BasePhysicalResistance => 4;
 	public override int BaseFireResistance => 9;

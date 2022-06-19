@@ -86,7 +86,7 @@ namespace Server.Guilds
 
 		public override string ToString()
 		{
-			return string.Format("0x{0:X} \"{1} [{2}]\"", Serial, Name, Abbreviation);
+			return $"0x{Serial:X} \"{Name} [{Abbreviation}]\"";
 		}
 	}
 }

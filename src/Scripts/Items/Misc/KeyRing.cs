@@ -168,13 +168,13 @@ namespace Server.Items
 		private void UpdateItemID()
 		{
 			if (Keys.Count < 1)
-				ItemID = 0x1011;
+				ItemId = 0x1011;
 			else if (Keys.Count < 3)
-				ItemID = 0x1769;
+				ItemId = 0x1769;
 			else if (Keys.Count < 5)
-				ItemID = 0x176A;
+				ItemId = 0x176A;
 			else
-				ItemID = 0x176B;
+				ItemId = 0x176B;
 		}
 
 		public KeyRing(Serial serial) : base(serial)

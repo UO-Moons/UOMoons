@@ -49,7 +49,7 @@ namespace Server.Items
 					{
 						Point3D loc = child.Location;
 
-						ushort cid = (ushort)child.ItemID;
+						ushort cid = (ushort)child.ItemId;
 
 						if (cid > 0x3FFF)
 							cid = 0x9D7;
@@ -84,7 +84,7 @@ namespace Server.Items
 				List<Item> items = Items;
 
 				for (int i = 0; i < items.Count; ++i)
-					to.Send(items[i].OPLPacket);
+					to.Send(items[i].OplPacket);
 			}
 		}
 
@@ -147,7 +147,7 @@ namespace Server.Items
 
 		public XmlQuestToken(int itemID)
 		{
-			ItemID = itemID;
+			ItemId = itemID;
 			//LootType = LootType.Blessed;
 			TimeCreated = DateTime.UtcNow;
 		}

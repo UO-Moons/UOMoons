@@ -1,40 +1,37 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Miller : BaseVendor
 {
-	public class Miller : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public Miller() : base("the miller")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.miller;
+		Karma = Utility.RandomMinMax(13, -45);
+	}
 
-		[Constructable]
-		public Miller() : base("the miller")
-		{
-			Job = JobFragment.miller;
-			Karma = Utility.RandomMinMax(13, -45);
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbMiller());
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBMiller());
-		}
+	public Miller(Serial serial) : base(serial)
+	{
+	}
 
-		public Miller(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

@@ -10,13 +10,13 @@ namespace Server.Items
 			if (Utility.RandomBool())
 			{
 				// thigh boots
-				ItemID = 0x1711;
+				ItemId = 0x1711;
 				Weight = 4.0;
 			}
 			else
 			{
 				// boots
-				ItemID = 0x170B;
+				ItemId = 0x170B;
 				Weight = 3.0;
 			}
 		}

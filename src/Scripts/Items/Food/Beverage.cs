@@ -131,10 +131,10 @@ namespace Server.Items
 
 		public override int ComputeItemID()
 		{
-			if (ItemID >= 0x995 && ItemID <= 0x999)
-				return ItemID;
-			else if (ItemID == 0x9CA)
-				return ItemID;
+			if (ItemId >= 0x995 && ItemId <= 0x999)
+				return ItemId;
+			else if (ItemId == 0x9CA)
+				return ItemId;
 
 			return 0x995;
 		}
@@ -179,8 +179,8 @@ namespace Server.Items
 
 		public override int ComputeItemID()
 		{
-			if (ItemID >= 0xFFF && ItemID <= 0x1002)
-				return ItemID;
+			if (ItemId >= 0xFFF && ItemId <= 0x1002)
+				return ItemId;
 
 			return 0xFFF;
 		}
@@ -225,8 +225,8 @@ namespace Server.Items
 
 		public override int ComputeItemID()
 		{
-			if (ItemID == 0x99A || ItemID == 0x9B3 || ItemID == 0x9BF || ItemID == 0x9CB)
-				return ItemID;
+			if (ItemId == 0x99A || ItemId == 0x9B3 || ItemId == 0x9BF || ItemId == 0x9CB)
+				return ItemId;
 
 			return 0x99A;
 		}
@@ -275,16 +275,16 @@ namespace Server.Items
 		public override int ComputeItemID()
 		{
 			if (IsEmpty)
-				return (ItemID >= 0x1F81 && ItemID <= 0x1F84 ? ItemID : 0x1F81);
+				return (ItemId >= 0x1F81 && ItemId <= 0x1F84 ? ItemId : 0x1F81);
 
 			switch (Content)
 			{
-				case BeverageType.Ale: return (ItemID == 0x9EF ? 0x9EF : 0x9EE);
-				case BeverageType.Cider: return (ItemID >= 0x1F7D && ItemID <= 0x1F80 ? ItemID : 0x1F7D);
-				case BeverageType.Liquor: return (ItemID >= 0x1F85 && ItemID <= 0x1F88 ? ItemID : 0x1F85);
-				case BeverageType.Milk: return (ItemID >= 0x1F89 && ItemID <= 0x1F8C ? ItemID : 0x1F89);
-				case BeverageType.Wine: return (ItemID >= 0x1F8D && ItemID <= 0x1F90 ? ItemID : 0x1F8D);
-				case BeverageType.Water: return (ItemID >= 0x1F91 && ItemID <= 0x1F94 ? ItemID : 0x1F91);
+				case BeverageType.Ale: return (ItemId == 0x9EF ? 0x9EF : 0x9EE);
+				case BeverageType.Cider: return (ItemId >= 0x1F7D && ItemId <= 0x1F80 ? ItemId : 0x1F7D);
+				case BeverageType.Liquor: return (ItemId >= 0x1F85 && ItemId <= 0x1F88 ? ItemId : 0x1F85);
+				case BeverageType.Milk: return (ItemId >= 0x1F89 && ItemId <= 0x1F8C ? ItemId : 0x1F89);
+				case BeverageType.Wine: return (ItemId >= 0x1F8D && ItemId <= 0x1F90 ? ItemId : 0x1F8D);
+				case BeverageType.Water: return (ItemId >= 0x1F91 && ItemId <= 0x1F94 ? ItemId : 0x1F91);
 			}
 
 			return 0;
@@ -335,8 +335,8 @@ namespace Server.Items
 		{
 			if (IsEmpty)
 			{
-				if (ItemID == 0x9A7 || ItemID == 0xFF7)
-					return ItemID;
+				if (ItemId == 0x9A7 || ItemId == 0xFF7)
+					return ItemId;
 
 				return 0xFF6;
 			}
@@ -345,43 +345,43 @@ namespace Server.Items
 			{
 				case BeverageType.Ale:
 					{
-						if (ItemID == 0x1F96)
-							return ItemID;
+						if (ItemId == 0x1F96)
+							return ItemId;
 
 						return 0x1F95;
 					}
 				case BeverageType.Cider:
 					{
-						if (ItemID == 0x1F98)
-							return ItemID;
+						if (ItemId == 0x1F98)
+							return ItemId;
 
 						return 0x1F97;
 					}
 				case BeverageType.Liquor:
 					{
-						if (ItemID == 0x1F9A)
-							return ItemID;
+						if (ItemId == 0x1F9A)
+							return ItemId;
 
 						return 0x1F99;
 					}
 				case BeverageType.Milk:
 					{
-						if (ItemID == 0x9AD)
-							return ItemID;
+						if (ItemId == 0x9AD)
+							return ItemId;
 
 						return 0x9F0;
 					}
 				case BeverageType.Wine:
 					{
-						if (ItemID == 0x1F9C)
-							return ItemID;
+						if (ItemId == 0x1F9C)
+							return ItemId;
 
 						return 0x1F9B;
 					}
 				case BeverageType.Water:
 					{
-						if (ItemID == 0xFF8 || ItemID == 0xFF9 || ItemID == 0x1F9E)
-							return ItemID;
+						if (ItemId == 0xFF8 || ItemId == 0xFF9 || ItemId == 0x1F9E)
+							return ItemId;
 
 						return 0x1F9D;
 					}
@@ -493,7 +493,7 @@ namespace Server.Items
 				int itemID = ComputeItemID();
 
 				if (itemID > 0)
-					ItemID = itemID;
+					ItemId = itemID;
 				else
 					Delete();
 			}
@@ -517,7 +517,7 @@ namespace Server.Items
 				int itemID = ComputeItemID();
 
 				if (itemID > 0)
-					ItemID = itemID;
+					ItemId = itemID;
 				else
 					Delete();
 			}
@@ -734,14 +734,14 @@ namespace Server.Items
 
 		public static void CheckHeaveTimer(Mobile from)
 		{
-			if (from.BAC > 0 && from.Map != Map.Internal && !from.Deleted)
+			if (from.Bac > 0 && from.Map != Map.Internal && !from.Deleted)
 			{
 				Timer t = (Timer)m_Table[from];
 
 				if (t == null)
 				{
-					if (from.BAC > 60)
-						from.BAC = 60;
+					if (from.Bac > 60)
+						from.Bac = 60;
 
 					t = new HeaveTimer(from);
 					t.Start();
@@ -784,12 +784,12 @@ namespace Server.Items
 				}
 				else if (m_Drunk.Alive)
 				{
-					if (m_Drunk.BAC > 60)
-						m_Drunk.BAC = 60;
+					if (m_Drunk.Bac > 60)
+						m_Drunk.Bac = 60;
 
 					// chance to get sober
 					if (10 > Utility.Random(100))
-						--m_Drunk.BAC;
+						--m_Drunk.Bac;
 
 					// lose some stats
 					m_Drunk.Stam -= 1;
@@ -810,7 +810,7 @@ namespace Server.Items
 						m_Drunk.PublicOverheadMessage(Network.MessageType.Regular, 0x3B2, 500849);
 					}
 
-					if (m_Drunk.BAC <= 0)
+					if (m_Drunk.Bac <= 0)
 					{
 						Stop();
 						m_Table.Remove(m_Drunk);
@@ -880,10 +880,10 @@ namespace Server.Items
 						case BeverageType.Liquor: bac = 4; break;
 					}
 
-					from.BAC += bac;
+					from.Bac += bac;
 
-					if (from.BAC > 60)
-						from.BAC = 60;
+					if (from.Bac > 60)
+						from.Bac = 60;
 
 					CheckHeaveTimer(from);
 				}
@@ -1038,14 +1038,14 @@ namespace Server.Items
 
 		public BaseBeverage()
 		{
-			ItemID = ComputeItemID();
+			ItemId = ComputeItemID();
 		}
 
 		public BaseBeverage(BeverageType type)
 		{
 			m_Content = type;
 			m_Quantity = MaxQuantity;
-			ItemID = ComputeItemID();
+			ItemId = ComputeItemID();
 		}
 
 		public BaseBeverage(Serial serial)

@@ -1,76 +1,67 @@
-namespace Server.Items
+namespace Server.Items;
+
+public abstract class BaseDecorationArtifact : BaseItem
 {
-	public abstract class BaseDecorationArtifact : BaseItem
+	public abstract int ArtifactRarity { get; }
+	public override bool ForceShowProperties => true;
+
+	public BaseDecorationArtifact(int itemID) : base(itemID)
 	{
-		public abstract int ArtifactRarity { get; }
-
-		public override bool ForceShowProperties => true;
-
-		public BaseDecorationArtifact(int itemID) : base(itemID)
-		{
-			Weight = 10.0;
-		}
-
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
-
-			list.Add(1061078, ArtifactRarity.ToString()); // artifact rarity ~1_val~
-		}
-
-		public BaseDecorationArtifact(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		Weight = 10.0;
 	}
 
-	public abstract class BaseDecorationContainerArtifact : BaseContainer
+	public override void GetProperties(ObjectPropertyList list)
 	{
-		public abstract int ArtifactRarity { get; }
+		base.GetProperties(list);
+		list.Add(1061078, ArtifactRarity.ToString()); // artifact rarity ~1_val~
+	}
 
-		public override bool ForceShowProperties => true;
+	public BaseDecorationArtifact(Serial serial) : base(serial)
+	{
+	}
 
-		public BaseDecorationContainerArtifact(int itemID) : base(itemID)
-		{
-			Weight = 10.0;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void AddNameProperties(ObjectPropertyList list)
-		{
-			base.AddNameProperties(list);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
 
-			list.Add(1061078, ArtifactRarity.ToString()); // artifact rarity ~1_val~
-		}
+public abstract class BaseDecorationContainerArtifact : BaseContainer
+{
+	public abstract int ArtifactRarity { get; }
+	public override bool ForceShowProperties => true;
 
-		public BaseDecorationContainerArtifact(Serial serial) : base(serial)
-		{
-		}
+	public BaseDecorationContainerArtifact(int itemID) : base(itemID)
+	{
+		Weight = 10.0;
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void AddNameProperties(ObjectPropertyList list)
+	{
+		base.AddNameProperties(list);
+		list.Add(1061078, ArtifactRarity.ToString()); // artifact rarity ~1_val~
+	}
 
-			writer.WriteEncodedInt(0); // version
-		}
+	public BaseDecorationContainerArtifact(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			int version = reader.ReadEncodedInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

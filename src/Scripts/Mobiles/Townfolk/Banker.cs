@@ -10,8 +10,8 @@ namespace Server.Mobiles
 {
 	public class Banker : BaseVendor
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		private readonly List<SbInfo> m_SBInfos = new List<SbInfo>();
+		protected override List<SbInfo> SbInfos => m_SBInfos;
 
 		public override NpcGuild NpcGuild => NpcGuild.MerchantsGuild;
 
@@ -22,9 +22,9 @@ namespace Server.Mobiles
 			Karma = Utility.RandomMinMax(13, -45);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			m_SBInfos.Add(new SBBanker());
+			m_SBInfos.Add(new SbBanker());
 		}
 
 		public static int GetBalance(Mobile m)

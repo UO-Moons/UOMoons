@@ -23,7 +23,7 @@ namespace Server.Mobiles
 
 		public override bool IsInvulnerable => true;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
 		}
 

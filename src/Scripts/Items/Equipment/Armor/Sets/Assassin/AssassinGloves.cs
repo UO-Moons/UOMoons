@@ -3,7 +3,7 @@ namespace Server.Items;
 public class AssassinGloves : LeatherGloves
 {
 	public override int LabelNumber => 1074304;// Assassin Armor
-	public override SetItem SetID => SetItem.Assassin;
+	public override SetItem SetId => SetItem.Assassin;
 	public override int Pieces => 4;
 	public override int BasePhysicalResistance => 9;
 	public override int BaseFireResistance => 6;

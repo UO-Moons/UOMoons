@@ -3,7 +3,7 @@ namespace Server.Items;
 public class SoleilRouge : GoldBracelet
 {
 	public override int LabelNumber => 1154371;  // Soleil Rouge
-	public override SetItem SetID => SetItem.Luck2;
+	public override SetItem SetId => SetItem.Luck2;
 	public override int Pieces => 2;
 	public override bool IsArtifact => true;
 

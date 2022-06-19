@@ -120,7 +120,7 @@ namespace Server.Misc
 					return !elfOrHuman.ElfOnly;
 				}
 
-				var itemID = item.ItemID;
+				var itemID = item.ItemId;
 
 				return !GargoyleOnlyIDs.Any(id => id == itemID) && !ElfOnlyIDs.Any(id => id == itemID);
 			}
@@ -260,7 +260,7 @@ namespace Server.Misc
 					return true;
 				}
 
-				var itemID = item.ItemID;
+				var itemID = item.ItemId;
 
 				return !GargoyleOnlyIDs.Any(id => id == itemID);
 			}
@@ -395,7 +395,7 @@ namespace Server.Misc
 
 			public override bool ValidateEquipment(Item item)
 			{
-				var itemID = item.ItemID;
+				var itemID = item.ItemId;
 
 				return /*!(item is BaseQuiver) &&*/ GargoyleOnlyIDs.Any(id => id == itemID);
 			}
@@ -449,7 +449,7 @@ namespace Server.Misc
 
 		public static bool ValidateEquipment(Mobile from, Item equipment, bool message)
 		{
-			if ((AllRaceTypes.Any(type => type == equipment.GetType()) || AllRaceIDs.Any(id => id == equipment.ItemID)) && ValidateElfOrHuman(from, equipment))
+			if ((AllRaceTypes.Any(type => type == equipment.GetType()) || AllRaceIDs.Any(id => id == equipment.ItemId)) && ValidateElfOrHuman(from, equipment))
 			{
 				return true;
 			}
@@ -515,7 +515,7 @@ namespace Server.Misc
 
 		public static Race GetRequiredRace(Item item)
 		{
-			var itemID = item.ItemID;
+			var itemID = item.ItemId;
 
 			if (GargoyleOnlyIDs.Any(id => id == itemID))
 			{

@@ -995,7 +995,7 @@ namespace Server.Gumps
 							break;
 
 						if (m_List == null)
-							m_List = new ArrayList(a.IPRestrictions);
+							m_List = new ArrayList(a.IpRestrictions);
 
 						AddHtml(10, 195, 400, 20, Color(Center("Address Restrictions"), LabelColor32), false, false);
 
@@ -1581,8 +1581,8 @@ namespace Server.Gumps
 			{
 				IPAddress[] ips = a.LoginIPs;
 
-				if (ips.Length != 0 && ip == ips[0] && AccountHandler.IPTable.ContainsKey(ips[0]))
-					--AccountHandler.IPTable[ip];
+				if (ips.Length != 0 && ip == ips[0] && AccountHandler.IpTable.ContainsKey(ips[0]))
+					--AccountHandler.IpTable[ip];
 
 				List<IPAddress> newList = new(ips);
 				newList.Remove(ip);
@@ -1611,8 +1611,8 @@ namespace Server.Gumps
 			{
 				IPAddress[] ips = a.LoginIPs;
 
-				if (ips.Length != 0 && AccountHandler.IPTable.ContainsKey(ips[0]))
-					--AccountHandler.IPTable[ips[0]];
+				if (ips.Length != 0 && AccountHandler.IpTable.ContainsKey(ips[0]))
+					--AccountHandler.IpTable[ips[0]];
 
 				a.LoginIPs = Array.Empty<IPAddress>();
 
@@ -2243,7 +2243,7 @@ namespace Server.Gumps
 									}
 									else
 									{
-										string[] list = a.IPRestrictions;
+										string[] list = a.IpRestrictions;
 
 										bool contains = false;
 										for (int i = 0; !contains && i < list.Length; ++i)
@@ -2262,7 +2262,7 @@ namespace Server.Gumps
 
 											newList[list.Length] = ip;
 
-											a.IPRestrictions = newList;
+											a.IpRestrictions = newList;
 
 											notice = string.Format("{0} : Added to restriction list.", ip);
 										}
@@ -2766,11 +2766,11 @@ namespace Server.Gumps
 							}
 							else if (m_PageType == AdminGumpPage.AccountDetails_Access_Restrictions)
 							{
-								ArrayList list = new(a.IPRestrictions);
+								ArrayList list = new(a.IpRestrictions);
 
 								list.Remove(m_List[index]);
 
-								a.IPRestrictions = (string[])list.ToArray(typeof(string));
+								a.IpRestrictions = (string[])list.ToArray(typeof(string));
 
 								from.SendGump(new AdminGump(from, AdminGumpPage.AccountDetails_Access_Restrictions, 0, null, string.Format("{0} : Removed from list.", m_List[index]), a));
 							}

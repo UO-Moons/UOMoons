@@ -3,7 +3,7 @@ namespace Server.Items;
 public class HunterGloves : LeafGloves
 {
 	public override int LabelNumber => 1074301;// Hunter's Garb
-	public override SetItem SetID => SetItem.Hunter;
+	public override SetItem SetId => SetItem.Hunter;
 	public override int Pieces => 4;
 	public override int BasePhysicalResistance => 9;
 	public override int BaseFireResistance => 6;

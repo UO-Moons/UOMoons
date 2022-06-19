@@ -1,13 +1,12 @@
-namespace Server.Engines.Champions
+namespace Server.Engines.Champions;
+
+public enum ChampionSkullType
 {
-	public enum ChampionSkullType
-	{
-		None = -1,
-		Power,
-		Enlightenment,
-		Venom,
-		Pain,
-		Greed,
-		Death
-	}
+	None = -1,
+	Power,
+	Enlightenment,
+	Venom,
+	Pain,
+	Greed,
+	Death
 }

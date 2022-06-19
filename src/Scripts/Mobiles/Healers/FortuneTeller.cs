@@ -31,10 +31,10 @@ namespace Server.Mobiles
 		public override bool IsActiveVendor => true;
 		public override bool IsInvulnerable => true;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBMage());
-			SBInfos.Add(new SBFortuneTeller());
+			SbInfos.Add(new SbMage());
+			SbInfos.Add(new SbFortuneTeller());
 		}
 
 		public override int GetRobeColor()

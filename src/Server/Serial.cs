@@ -16,7 +16,7 @@ namespace Server
 		{
 			get
 			{
-				while (World.FindMobile(Serial.LastMobile += 1) != null) ;
+				while (World.FindMobile(LastMobile += 1) != null) ;
 
 				return LastMobile;
 			}
@@ -26,7 +26,7 @@ namespace Server
 		{
 			get
 			{
-				while (World.FindItem(Serial.LastItem += 1) != null) ;
+				while (World.FindItem(LastItem += 1) != null) ;
 
 				return LastItem;
 			}
@@ -39,11 +39,11 @@ namespace Server
 			Value = serial;
 		}
 
-		public bool IsMobile => (Value > 0 && Value < 0x40000000);
+		public bool IsMobile => Value is > 0 and < 0x40000000;
 
-		public bool IsItem => (Value >= 0x40000000 && Value <= 0x7FFFFFFF);
+		public bool IsItem => Value is >= 0x40000000 and <= 0x7FFFFFFF;
 
-		public bool IsValid => (Value > 0);
+		public bool IsValid => Value > 0;
 
 		public override int GetHashCode()
 		{
@@ -57,19 +57,19 @@ namespace Server
 
 		public int CompareTo(object other)
 		{
-			if (other is Serial serial)
-				return CompareTo(serial);
-			else if (other == null)
-				return -1;
-
-			throw new ArgumentException();
+			return other switch
+			{
+				Serial serial => CompareTo(serial),
+				null => -1,
+				_ => throw new ArgumentException()
+			};
 		}
 
 		public override bool Equals(object o)
 		{
-			if (o == null || !(o is Serial)) return false;
+			if (o is not Serial serial) return false;
 
-			return ((Serial)o).Value == Value;
+			return serial.Value == Value;
 		}
 
 		public static bool operator ==(Serial l, Serial r)
@@ -109,7 +109,7 @@ namespace Server
 
 		public override string ToString()
 		{
-			return string.Format("0x{0:X8}", Value);
+			return $"0x{Value:X8}";
 		}
 
 		public static implicit operator int(Serial a)

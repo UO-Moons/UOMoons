@@ -27,7 +27,7 @@ namespace Server.Items
 		[Constructable]
 		public ScrollofTranscendence(SkillName skill, double value) : base(skill, value)
 		{
-			ItemID = 0x14EF;
+			ItemId = 0x14EF;
 			Hue = 0x490;
 		}
 

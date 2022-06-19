@@ -10,7 +10,7 @@ namespace Server.Items
 		[Constructable]
 		public RaedsGlory()
 		{
-			ItemID = 0x2D23;
+			ItemId = 0x2D23;
 			Hue = 0x1E6;
 
 			Attributes.BonusMana = 8;

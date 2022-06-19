@@ -78,7 +78,7 @@ namespace Server.Items
 		public uint KeyValue { get; set; }
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public bool IsOpen => (ItemID == 0x3ED5 || ItemID == 0x3ED4 || ItemID == 0x3E84 || ItemID == 0x3E89);
+		public bool IsOpen => (ItemId == 0x3ED5 || ItemId == 0x3ED4 || ItemId == 0x3E84 || ItemId == 0x3E89);
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Starboard => (Side == PlankSide.Starboard);
@@ -89,20 +89,20 @@ namespace Server.Items
 			{
 				switch (dir)
 				{
-					case Direction.North: ItemID = Starboard ? 0x3ED4 : 0x3ED5; break;
-					case Direction.East: ItemID = Starboard ? 0x3E84 : 0x3E89; break;
-					case Direction.South: ItemID = Starboard ? 0x3ED5 : 0x3ED4; break;
-					case Direction.West: ItemID = Starboard ? 0x3E89 : 0x3E84; break;
+					case Direction.North: ItemId = Starboard ? 0x3ED4 : 0x3ED5; break;
+					case Direction.East: ItemId = Starboard ? 0x3E84 : 0x3E89; break;
+					case Direction.South: ItemId = Starboard ? 0x3ED5 : 0x3ED4; break;
+					case Direction.West: ItemId = Starboard ? 0x3E89 : 0x3E84; break;
 				}
 			}
 			else
 			{
 				switch (dir)
 				{
-					case Direction.North: ItemID = Starboard ? 0x3EB2 : 0x3EB1; break;
-					case Direction.East: ItemID = Starboard ? 0x3E85 : 0x3E8A; break;
-					case Direction.South: ItemID = Starboard ? 0x3EB1 : 0x3EB2; break;
-					case Direction.West: ItemID = Starboard ? 0x3E8A : 0x3E85; break;
+					case Direction.North: ItemId = Starboard ? 0x3EB2 : 0x3EB1; break;
+					case Direction.East: ItemId = Starboard ? 0x3E85 : 0x3E8A; break;
+					case Direction.South: ItemId = Starboard ? 0x3EB1 : 0x3EB2; break;
+					case Direction.West: ItemId = Starboard ? 0x3E8A : 0x3E85; break;
 				}
 			}
 		}
@@ -118,12 +118,12 @@ namespace Server.Items
 			m_CloseTimer = new CloseTimer(this);
 			m_CloseTimer.Start();
 
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x3EB1: ItemID = 0x3ED5; break;
-				case 0x3E8A: ItemID = 0x3E89; break;
-				case 0x3EB2: ItemID = 0x3ED4; break;
-				case 0x3E85: ItemID = 0x3E84; break;
+				case 0x3EB1: ItemId = 0x3ED5; break;
+				case 0x3E8A: ItemId = 0x3E89; break;
+				case 0x3EB2: ItemId = 0x3ED4; break;
+				case 0x3E85: ItemId = 0x3E84; break;
 			}
 
 			if (Boat != null)
@@ -147,13 +147,13 @@ namespace Server.Items
 
 				int rx = 0, ry = 0;
 
-				if (ItemID == 0x3ED4)
+				if (ItemId == 0x3ED4)
 					rx = 1;
-				else if (ItemID == 0x3ED5)
+				else if (ItemId == 0x3ED5)
 					rx = -1;
-				else if (ItemID == 0x3E84)
+				else if (ItemId == 0x3E84)
 					ry = 1;
-				else if (ItemID == 0x3E89)
+				else if (ItemId == 0x3E89)
 					ry = -1;
 
 				for (int i = 1; i <= 6; ++i)
@@ -222,12 +222,12 @@ namespace Server.Items
 
 			m_CloseTimer = null;
 
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x3ED5: ItemID = 0x3EB1; break;
-				case 0x3E89: ItemID = 0x3E8A; break;
-				case 0x3ED4: ItemID = 0x3EB2; break;
-				case 0x3E84: ItemID = 0x3E85; break;
+				case 0x3ED5: ItemId = 0x3EB1; break;
+				case 0x3E89: ItemId = 0x3E8A; break;
+				case 0x3ED4: ItemId = 0x3EB2; break;
+				case 0x3E84: ItemId = 0x3E85; break;
 			}
 
 			if (Boat != null)

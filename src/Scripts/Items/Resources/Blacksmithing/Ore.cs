@@ -138,7 +138,7 @@ namespace Server.Items
 			int itemID = 0;
 
 			if (obj is Item item)
-				itemID = item.ItemID;
+				itemID = item.ItemId;
 			else if (obj is StaticTarget staticTarget)
 				itemID = staticTarget.ItemID;
 
@@ -186,18 +186,18 @@ namespace Server.Items
 
 					int worth = ore.Amount;
 
-					if (ore.ItemID == 0x19B9)
+					if (ore.ItemId == 0x19B9)
 						worth *= 8;
-					else if (ore.ItemID == 0x19B7)
+					else if (ore.ItemId == 0x19B7)
 						worth *= 2;
 					else
 						worth *= 4;
 
 					int sourceWorth = m_Ore.Amount;
 
-					if (m_Ore.ItemID == 0x19B9)
+					if (m_Ore.ItemId == 0x19B9)
 						sourceWorth *= 8;
-					else if (m_Ore.ItemID == 0x19B7)
+					else if (m_Ore.ItemId == 0x19B7)
 						sourceWorth *= 2;
 					else
 						sourceWorth *= 4;
@@ -205,17 +205,17 @@ namespace Server.Items
 					worth += sourceWorth;
 
 					int plusWeight = 0;
-					int newID = ore.ItemID;
+					int newID = ore.ItemId;
 
 					if (ore.DefaultWeight != m_Ore.DefaultWeight)
 					{
-						if (ore.ItemID == 0x19B7 || m_Ore.ItemID == 0x19B7)
+						if (ore.ItemId == 0x19B7 || m_Ore.ItemId == 0x19B7)
 						{
 							newID = 0x19B7;
 						}
-						else if (ore.ItemID == 0x19B9)
+						else if (ore.ItemId == 0x19B9)
 						{
-							newID = m_Ore.ItemID;
+							newID = m_Ore.ItemId;
 							plusWeight = ore.Amount * 2;
 						}
 						else
@@ -224,7 +224,7 @@ namespace Server.Items
 						}
 					}
 
-					if ((ore.ItemID == 0x19B9 && worth > 120000) || ((ore.ItemID == 0x19B8 || ore.ItemID == 0x19BA) && worth > 60000) || (ore.ItemID == 0x19B7 && worth > 30000))
+					if ((ore.ItemId == 0x19B9 && worth > 120000) || ((ore.ItemId == 0x19B8 || ore.ItemId == 0x19BA) && worth > 60000) || (ore.ItemId == 0x19B7 && worth > 30000))
 					{
 						from.SendLocalizedMessage(1062844); // There is too much ore to combine.
 						return;
@@ -235,11 +235,11 @@ namespace Server.Items
 						return;
 					}
 
-					ore.ItemID = newID;
+					ore.ItemId = newID;
 
-					if (ore.ItemID == 0x19B9)
+					if (ore.ItemId == 0x19B9)
 						ore.Amount = worth / 8;
-					else if (ore.ItemID == 0x19B7)
+					else if (ore.ItemId == 0x19B7)
 						ore.Amount = worth / 2;
 					else
 						ore.Amount = worth / 4;
@@ -272,7 +272,7 @@ namespace Server.Items
 						return;
 					}
 
-					if (m_Ore.ItemID == 0x19B7 && m_Ore.Amount < 2)
+					if (m_Ore.ItemId == 0x19B7 && m_Ore.Amount < 2)
 					{
 						from.SendLocalizedMessage(501987); // There is not enough metal-bearing ore in this pile to make an ingot.
 						return;
@@ -293,14 +293,14 @@ namespace Server.Items
 
 							int ingotAmount;
 
-							if (m_Ore.ItemID == 0x19B7)
+							if (m_Ore.ItemId == 0x19B7)
 							{
 								ingotAmount = toConsume / 2;
 
 								if (toConsume % 2 != 0)
 									--toConsume;
 							}
-							else if (m_Ore.ItemID == 0x19B9)
+							else if (m_Ore.ItemId == 0x19B9)
 							{
 								ingotAmount = toConsume * 2;
 							}
@@ -323,10 +323,10 @@ namespace Server.Items
 					{
 						if (m_Ore.Amount < 2)
 						{
-							if (m_Ore.ItemID == 0x19B9)
-								m_Ore.ItemID = 0x19B8;
+							if (m_Ore.ItemId == 0x19B9)
+								m_Ore.ItemId = 0x19B8;
 							else
-								m_Ore.ItemID = 0x19B7;
+								m_Ore.ItemId = 0x19B7;
 						}
 						else
 						{
@@ -355,7 +355,7 @@ namespace Server.Items
 		public IronOre(bool fixedSize) : this(1)
 		{
 			if (fixedSize)
-				ItemID = 0x19B8;
+				ItemId = 0x19B8;
 		}
 
 		public IronOre(Serial serial) : base(serial)

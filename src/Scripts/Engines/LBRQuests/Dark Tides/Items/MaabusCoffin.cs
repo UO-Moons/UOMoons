@@ -122,12 +122,12 @@ namespace Server.Engines.Quests.Necro
 
 		public void TurnToEmpty()
 		{
-			ItemID = m_EmptyItemID;
+			ItemId = m_EmptyItemID;
 		}
 
 		public void TurnToFull()
 		{
-			ItemID = m_FullItemID;
+			ItemId = m_FullItemID;
 		}
 
 		public MaabusCoffinComponent(Serial serial) : base(serial)

@@ -16,7 +16,7 @@ namespace Server.Items
 		{
 			get
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
 					case 0x10F5: case 0x10F6: case 0x10F7: return StoneFaceTrapType.NorthWestWall;
 					case 0x10FC: case 0x10FD: case 0x10FE: return StoneFaceTrapType.NorthWall;
@@ -29,19 +29,19 @@ namespace Server.Items
 			{
 				bool breathing = Breathing;
 
-				ItemID = (breathing ? GetFireID(value) : GetBaseID(value));
+				ItemId = (breathing ? GetFireID(value) : GetBaseID(value));
 			}
 		}
 
 		public bool Breathing
 		{
-			get => (ItemID == GetFireID(Type));
+			get => (ItemId == GetFireID(Type));
 			set
 			{
 				if (value)
-					ItemID = GetFireID(Type);
+					ItemId = GetFireID(Type);
 				else
-					ItemID = GetBaseID(Type);
+					ItemId = GetBaseID(Type);
 			}
 		}
 

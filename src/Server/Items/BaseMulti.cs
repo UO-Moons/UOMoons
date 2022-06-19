@@ -15,12 +15,12 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public override int ItemID
+		public override int ItemId
 		{
-			get => base.ItemID;
+			get => base.ItemId;
 			set
 			{
-				if (base.ItemID != value)
+				if (base.ItemId != value)
 				{
 					Map facet = (Parent == null ? Map : null);
 
@@ -29,7 +29,7 @@ namespace Server.Items
 						facet.OnLeave(this);
 					}
 
-					base.ItemID = value;
+					base.ItemId = value;
 
 					if (facet != null)
 					{
@@ -86,7 +86,7 @@ namespace Server.Items
 			return 22;
 		}
 
-		public virtual MultiComponentList Components => MultiData.GetComponents(ItemID);
+		public virtual MultiComponentList Components => MultiData.GetComponents(ItemId);
 
 		public virtual bool Contains(Point2D p)
 		{

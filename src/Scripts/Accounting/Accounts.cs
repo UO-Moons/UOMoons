@@ -4,142 +4,145 @@ using System.Collections;
 using System.IO;
 using System.Xml;
 
-namespace Server.Accounting
+namespace Server.Accounting;
+
+public class Accounts
 {
-	public class Accounts
+	private static Dictionary<string, IAccount> _mAccounts = new();
+	private static readonly Hashtable MAccsByMail = new();
+
+	public static void Configure()
 	{
-		private static Dictionary<string, IAccount> m_Accounts = new();
-		private static Hashtable m_AccsByMail = new Hashtable();
+		EventSink.OnWorldLoad += OnWorldLoad;
+		EventSink.OnWorldSave += OnWorldSave;
+	}
 
-		public static void Configure()
-		{
-			EventSink.OnWorldLoad += OnWorldLoad;
-			EventSink.OnWorldSave += OnWorldSave;
-		}
+	static Accounts()
+	{
+	}
 
-		static Accounts()
-		{
-		}
+	public static int Count => _mAccounts.Count;
 
-		public static int Count => m_Accounts.Count;
+	public static ICollection<IAccount> GetAccounts()
+	{
+		return _mAccounts.Values;
+	}
 
-		public static ICollection<IAccount> GetAccounts()
-		{
-			return m_Accounts.Values;
-		}
+	public static IAccount GetAccount(string username)
+	{
 
-		public static IAccount GetAccount(string username)
-		{
+		_mAccounts.TryGetValue(username, out IAccount a);
 
-			m_Accounts.TryGetValue(username, out IAccount a);
+		return a;
+	}
 
-			return a;
-		}
+	public static Account AddAccount(string user, string pass, string email)
+	{
+		Account a = new(user, pass);
+		if (_mAccounts.Count == 0)
+			a.AccessLevel = AccessLevel.Administrator;
 
-		public static Account AddAccount(string user, string pass, string email)
-		{
-			Account a = new(user, pass);
-			if (m_Accounts.Count == 0)
-				a.AccessLevel = AccessLevel.Administrator;
+		_mAccounts[a.Username] = a;
 
-			m_Accounts[a.Username] = a;
+		SetEmail(a, email);
 
-			SetEmail(a, email);
+		return a;
+	}
 
-			return a;
-		}
+	public static void SetEmail(Account acc, string email)
+	{
+		if (acc.Email == "" || acc.Email != email)
+			acc.Email = email;
+	}
 
-		public static void SetEmail(Account acc, string email)
-		{
-			if (acc.Email == "" || acc.Email != email)
-				acc.Email = email;
-		}
-
-		public static bool RegisterEmail(Account acc, string newMail)
-		{
-			UnregisterEmail(acc.Email);
-			if (newMail == "")
-				return true;
-
-			if (m_AccsByMail.Contains(newMail))
-				return false;
-
-			m_AccsByMail.Add(newMail, acc);
+	public static bool RegisterEmail(Account acc, string newMail)
+	{
+		UnregisterEmail(acc.Email);
+		if (newMail == "")
 			return true;
-		}
 
-		public static void UnregisterEmail(string mail)
+		if (MAccsByMail.Contains(newMail))
+			return false;
+
+		MAccsByMail.Add(newMail, acc);
+		return true;
+	}
+
+	public static void UnregisterEmail(string mail)
+	{
+		if (!string.IsNullOrEmpty(mail))
+			MAccsByMail.Remove(mail);
+	}
+
+	public static Account GetByMail(string email)
+	{
+		return MAccsByMail[email] as Account;
+	}
+
+	public static void Add(IAccount a)
+	{
+		_mAccounts[a.Username] = a;
+	}
+
+	public static void Remove(string username)
+	{
+		_mAccounts.Remove(username);
+	}
+
+	public static void OnWorldLoad()
+	{
+		_mAccounts = new Dictionary<string, IAccount>(32, StringComparer.OrdinalIgnoreCase);
+
+		string filePath = Path.Combine("Saves/Accounts", "accounts.xml");
+
+		if (!File.Exists(filePath))
+			return;
+
+		XmlDocument doc = new();
+		doc.Load(filePath);
+
+		XmlElement root = doc["accounts"];
+
+		if (root == null) return;
+		foreach (XmlElement account in root.GetElementsByTagName("account"))
 		{
-			if (mail != null && mail != "")
-				m_AccsByMail.Remove(mail);
-		}
-
-		public static Account GetByMail(string email)
-		{
-			return m_AccsByMail[email] as Account;
-		}
-
-		public static void Add(IAccount a)
-		{
-			m_Accounts[a.Username] = a;
-		}
-
-		public static void Remove(string username)
-		{
-			m_Accounts.Remove(username);
-		}
-
-		public static void OnWorldLoad()
-		{
-			m_Accounts = new Dictionary<string, IAccount>(32, StringComparer.OrdinalIgnoreCase);
-
-			string filePath = Path.Combine("Saves/Accounts", "accounts.xml");
-
-			if (!File.Exists(filePath))
-				return;
-
-			XmlDocument doc = new();
-			doc.Load(filePath);
-
-			XmlElement root = doc["accounts"];
-
-			foreach (XmlElement account in root.GetElementsByTagName("account"))
+			try
 			{
-				try
-				{
-					Account acct = new(account);
-				}
-				catch
-				{
-					Console.WriteLine("Warning: Account instance load failed");
-				}
+				Account acct = new(account);
+			}
+			catch
+			{
+				Console.WriteLine("Warning: Account instance load failed");
 			}
 		}
+	}
 
-		public static void OnWorldSave()
+	public static void OnWorldSave()
+	{
+		if (!Directory.Exists("Saves/Accounts"))
+			Directory.CreateDirectory("Saves/Accounts");
+
+		string filePath = Path.Combine("Saves/Accounts", "accounts.xml");
+
+		using StreamWriter op = new(filePath);
+		XmlTextWriter xml = new(op)
 		{
-			if (!Directory.Exists("Saves/Accounts"))
-				Directory.CreateDirectory("Saves/Accounts");
+			Formatting = Formatting.Indented,
+			IndentChar = '\t',
+			Indentation = 1
+		};
 
-			string filePath = Path.Combine("Saves/Accounts", "accounts.xml");
+		xml.WriteStartDocument(true);
+		xml.WriteStartElement("accounts");
+		xml.WriteAttributeString("count", _mAccounts.Count.ToString());
 
-			using StreamWriter op = new(filePath);
-			XmlTextWriter xml = new(op)
-			{
-				Formatting = Formatting.Indented,
-				IndentChar = '\t',
-				Indentation = 1
-			};
-
-			xml.WriteStartDocument(true);
-			xml.WriteStartElement("accounts");
-			xml.WriteAttributeString("count", m_Accounts.Count.ToString());
-
-			foreach (Account a in GetAccounts())
-				a.Save(xml);
-
-			xml.WriteEndElement();
-			xml.Close();
+		foreach (var account in GetAccounts())
+		{
+			var a = (Account) account;
+			a.Save(xml);
 		}
+
+		xml.WriteEndElement();
+		xml.Close();
 	}
 }

@@ -57,11 +57,11 @@ namespace Server.Items
 					return;
 				}
 
-				if (m_Heart.ItemID == 0x1363)
+				if (m_Heart.ItemId == 0x1363)
 				{
 					if (m_Delay)
 					{
-						m_Heart.ItemID = 0x1367;
+						m_Heart.ItemId = 0x1367;
 						m_Heart.Owner.PlaySound(0x11F);
 					}
 
@@ -69,7 +69,7 @@ namespace Server.Items
 				}
 				else
 				{
-					m_Heart.ItemID = 0x1363;
+					m_Heart.ItemId = 0x1363;
 					m_Heart.Owner.PlaySound(0x120);
 					m_Delay = false;
 				}

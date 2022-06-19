@@ -146,7 +146,7 @@ namespace Server.Items
 			set
 			{
 				m_Type = value;
-				ItemID = MonsterStatuetteInfo.GetInfo(m_Type).ItemID;
+				ItemId = MonsterStatuetteInfo.GetInfo(m_Type).ItemID;
 
 				if (m_Type == MonsterStatuetteType.Slime)
 					Hue = Utility.RandomSlimeHue();

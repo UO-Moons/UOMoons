@@ -1,62 +1,60 @@
 using System.Collections.Generic;
+using Server.Items;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+[TypeAlias("Server.Mobiles.Bower")]
+public class Bowyer : BaseVendor
 {
-	[TypeAlias("Server.Mobiles.Bower")]
-	public class Bowyer : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public Bowyer() : base("the bowyer")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.bowyer;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Fletching, 80.0, 100.0);
+		SetSkill(SkillName.Archery, 80.0, 100.0);
+	}
 
-		[Constructable]
-		public Bowyer() : base("the bowyer")
-		{
-			Job = JobFragment.bowyer;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Fletching, 80.0, 100.0);
-			SetSkill(SkillName.Archery, 80.0, 100.0);
-		}
+	public override VendorShoeType ShoeType => Female ? VendorShoeType.ThighBoots : VendorShoeType.Boots;
 
-		public override VendorShoeType ShoeType => Female ? VendorShoeType.ThighBoots : VendorShoeType.Boots;
+	public override int GetShoeHue()
+	{
+		return 0;
+	}
 
-		public override int GetShoeHue()
-		{
-			return 0;
-		}
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
 
-		public override void InitOutfit()
-		{
-			base.InitOutfit();
+		AddItem(new Bow());
+		AddItem(new LeatherGorget());
+	}
 
-			AddItem(new Server.Items.Bow());
-			AddItem(new Server.Items.LeatherGorget());
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbBowyer());
+		_mSbInfos.Add(new SbRangedWeapon());
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBBowyer());
-			m_SBInfos.Add(new SBRangedWeapon());
+		if (IsTokunoVendor)
+			_mSbInfos.Add(new SbseBowyer());
+	}
 
-			if (IsTokunoVendor)
-				m_SBInfos.Add(new SBSEBowyer());
-		}
+	public Bowyer(Serial serial) : base(serial)
+	{
+	}
 
-		public Bowyer(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

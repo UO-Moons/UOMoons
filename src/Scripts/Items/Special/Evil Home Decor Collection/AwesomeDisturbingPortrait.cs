@@ -7,7 +7,7 @@ namespace Server.Items
 	public class AwesomeDisturbingPortraitComponent : AddonComponent
 	{
 		public override int LabelNumber => 1074479;  // Disturbing portrait
-		public bool FacingSouth => ItemID < 0x2A61;
+		public bool FacingSouth => ItemId < 0x2A61;
 
 		private InternalTimer m_Timer;
 
@@ -70,36 +70,36 @@ namespace Server.Items
 			if (FacingSouth)
 			{
 				if (hours < 4)
-					ItemID = 0x2A60;
+					ItemId = 0x2A60;
 				else if (hours < 6)
-					ItemID = 0x2A5F;
+					ItemId = 0x2A5F;
 				else if (hours < 8)
-					ItemID = 0x2A5E;
+					ItemId = 0x2A5E;
 				else if (hours < 16)
-					ItemID = 0x2A5D;
+					ItemId = 0x2A5D;
 				else if (hours < 18)
-					ItemID = 0x2A5E;
+					ItemId = 0x2A5E;
 				else if (hours < 20)
-					ItemID = 0x2A5F;
+					ItemId = 0x2A5F;
 				else
-					ItemID = 0x2A60;
+					ItemId = 0x2A60;
 			}
 			else
 			{
 				if (hours < 4)
-					ItemID = 0x2A64;
+					ItemId = 0x2A64;
 				else if (hours < 6)
-					ItemID = 0x2A63;
+					ItemId = 0x2A63;
 				else if (hours < 8)
-					ItemID = 0x2A62;
+					ItemId = 0x2A62;
 				else if (hours < 16)
-					ItemID = 0x2A61;
+					ItemId = 0x2A61;
 				else if (hours < 18)
-					ItemID = 0x2A62;
+					ItemId = 0x2A62;
 				else if (hours < 20)
-					ItemID = 0x2A63;
+					ItemId = 0x2A63;
 				else
-					ItemID = 0x2A64;
+					ItemId = 0x2A64;
 			}
 		}
 

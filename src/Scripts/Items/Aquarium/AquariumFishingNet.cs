@@ -7,7 +7,7 @@ namespace Server.Items
 		[Constructable]
 		public AquariumFishNet()
 		{
-			ItemID = 0xDC8;
+			ItemId = 0xDC8;
 
 			if (Hue == 0x8A0)
 				Hue = 0x240;

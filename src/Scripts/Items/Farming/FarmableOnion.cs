@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Onion onion = new Onion
 			{
-				ItemID = Utility.Random(3181, 2)
+				ItemId = Utility.Random(3181, 2)
 			};
 
 			return onion;

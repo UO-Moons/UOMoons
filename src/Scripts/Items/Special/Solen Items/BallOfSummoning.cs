@@ -255,7 +255,7 @@ namespace Server.Items
 			}
 			else if (from.Map == Map.Ilshenar || from.Region.IsPartOf(typeof(DungeonRegion)) || from.Region.IsPartOf(typeof(Jail)) || from.Region.IsPartOf(typeof(Server.Engines.ConPVP.SafeZone)))
 			{
-				from.Send(new AsciiMessage(Serial, ItemID, MessageType.Regular, 0x22, 3, "", "You cannot summon your pet to this location."));
+				from.Send(new AsciiMessage(Serial, ItemId, MessageType.Regular, 0x22, 3, "", "You cannot summon your pet to this location."));
 			}
 			else if (Core.ML && from is PlayerMobile && DateTime.UtcNow < ((PlayerMobile)from).LastPetBallTime.AddSeconds(15.0))
 			{

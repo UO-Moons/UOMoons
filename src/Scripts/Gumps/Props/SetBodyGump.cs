@@ -186,7 +186,7 @@ namespace Server.Gumps
 			for (int i = 0; i < entries.Count; ++i)
 			{
 				BodyEntry oldEntry = entries[i];
-				int bodyID = oldEntry.Body.BodyID;
+				int bodyID = oldEntry.Body.BodyId;
 
 				if (((Body)bodyID).IsEmpty)
 					continue;

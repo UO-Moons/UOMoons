@@ -42,7 +42,7 @@ namespace Server.Items
 				case 0:
 					{
 						From = reader.ReadMobile();
-						Address = Utility.Intern(reader.ReadIPAddress());
+						Address = Utility.Intern(reader.ReadIpAddress());
 						Date = reader.ReadDateTime();
 
 						break;
@@ -212,7 +212,7 @@ namespace Server.Items
 								if (stone.Visible)
 								{
 									stone.Visible = false;
-									stone.ItemID = 0x1B7B; // Non-blocking ItemID
+									stone.ItemId = 0x1B7B; // Non-blocking ItemID
 								}
 
 								break;

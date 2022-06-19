@@ -12,7 +12,7 @@ public class ShadowDancerLeggings : LeatherLegs
 	[Constructable]
 	public ShadowDancerLeggings()
 	{
-		ItemID = 0x13D2;
+		ItemId = 0x13D2;
 		Hue = 0x455;
 		SkillBonuses.SetValues(0, SkillName.Stealth, 20.0);
 		SkillBonuses.SetValues(1, SkillName.Stealing, 20.0);

@@ -4,64 +4,64 @@ namespace Server.Gumps
 {
 	public class GumpBackground : GumpEntry
 	{
-		private int m_X, m_Y;
-		private int m_Width, m_Height;
-		private int m_GumpID;
+		private int _mX, _mY;
+		private int _mWidth, _mHeight;
+		private int _mGumpId;
 
 		public int X
 		{
-			get => m_X;
-			set => Delta(ref m_X, value);
+			get => _mX;
+			set => Delta(ref _mX, value);
 		}
 
 		public int Y
 		{
-			get => m_Y;
-			set => Delta(ref m_Y, value);
+			get => _mY;
+			set => Delta(ref _mY, value);
 		}
 
 		public int Width
 		{
-			get => m_Width;
-			set => Delta(ref m_Width, value);
+			get => _mWidth;
+			set => Delta(ref _mWidth, value);
 		}
 
 		public int Height
 		{
-			get => m_Height;
-			set => Delta(ref m_Height, value);
+			get => _mHeight;
+			set => Delta(ref _mHeight, value);
 		}
 
-		public int GumpID
+		public int GumpId
 		{
-			get => m_GumpID;
-			set => Delta(ref m_GumpID, value);
+			get => _mGumpId;
+			set => Delta(ref _mGumpId, value);
 		}
 
-		public GumpBackground(int x, int y, int width, int height, int gumpID)
+		public GumpBackground(int x, int y, int width, int height, int gumpId)
 		{
-			m_X = x;
-			m_Y = y;
-			m_Width = width;
-			m_Height = height;
-			m_GumpID = gumpID;
+			_mX = x;
+			_mY = y;
+			_mWidth = width;
+			_mHeight = height;
+			_mGumpId = gumpId;
 		}
 
 		public override string Compile()
 		{
-			return string.Format("{{ resizepic {0} {1} {2} {3} {4} }}", m_X, m_Y, m_GumpID, m_Width, m_Height);
+			return $"{{ resizepic {_mX} {_mY} {_mGumpId} {_mWidth} {_mHeight} }}";
 		}
 
-		private static readonly byte[] m_LayoutName = Gump.StringToBuffer("resizepic");
+		private static readonly byte[] MLayoutName = Gump.StringToBuffer("resizepic");
 
 		public override void AppendTo(IGumpWriter disp)
 		{
-			disp.AppendLayout(m_LayoutName);
-			disp.AppendLayout(m_X);
-			disp.AppendLayout(m_Y);
-			disp.AppendLayout(m_GumpID);
-			disp.AppendLayout(m_Width);
-			disp.AppendLayout(m_Height);
+			disp.AppendLayout(MLayoutName);
+			disp.AppendLayout(_mX);
+			disp.AppendLayout(_mY);
+			disp.AppendLayout(_mGumpId);
+			disp.AppendLayout(_mWidth);
+			disp.AppendLayout(_mHeight);
 		}
 	}
 }

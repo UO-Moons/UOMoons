@@ -1,114 +1,105 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class VesperCollectionRing : GoldRing
 {
-	public class VesperCollectionRing : GoldRing
+	public override bool IsArtifact => true;
+	public VesperCollectionRing()
 	{
-		public override bool IsArtifact => true;
-		public VesperCollectionRing()
-			: base()
-		{
-		}
-
-		public VesperCollectionRing(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
 	}
 
-	public class VesperCollectionNecklace : GoldNecklace
+	public VesperCollectionRing(Serial serial)
+		: base(serial)
 	{
-		public override bool IsArtifact => true;
-		public VesperCollectionNecklace()
-			: base()
-		{
-		}
-
-		public VesperCollectionNecklace(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
 	}
 
-	public class VesperCollectionBracelet : GoldBracelet
+	public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
+	public override void Serialize(GenericWriter writer)
 	{
-		public override bool IsArtifact => true;
-		public VesperCollectionBracelet()
-			: base()
-		{
-		}
-
-		public VesperCollectionBracelet(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+		base.Serialize(writer);
+		writer.Write(0);
 	}
 
-	public class VesperCollectionEarrings : GoldEarrings
+	public override void Deserialize(GenericReader reader)
 	{
-		public override bool IsArtifact => true;
-		public VesperCollectionEarrings()
-			: base()
-		{
-		}
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
 
-		public VesperCollectionEarrings(Serial serial)
-			: base(serial)
-		{
-		}
+public class VesperCollectionNecklace : GoldNecklace
+{
+	public override bool IsArtifact => true;
+	public VesperCollectionNecklace()
+	{
+	}
 
-		public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public VesperCollectionNecklace(Serial serial)
+		: base(serial)
+	{
+	}
 
-			writer.Write(0); // version
-		}
+	public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); 
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
+
+public class VesperCollectionBracelet : GoldBracelet
+{
+	public override bool IsArtifact => true;
+	public VesperCollectionBracelet()
+	{
+	}
+
+	public VesperCollectionBracelet(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+}
+
+public class VesperCollectionEarrings : GoldEarrings
+{
+	public override bool IsArtifact => true;
+	public VesperCollectionEarrings()
+	{
+	}
+
+	public VesperCollectionEarrings(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override int LabelNumber => 1073234;// A Souvenir from the Museum of Vesper
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

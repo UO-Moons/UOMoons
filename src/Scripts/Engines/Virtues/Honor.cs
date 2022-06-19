@@ -223,12 +223,12 @@ namespace Server
 
 			m_Timer = new InternalTimer(this);
 			m_Timer.Start();
-			source.m_hontime = DateTime.UtcNow + TimeSpan.FromMinutes(40);
+			source.MHontime = DateTime.UtcNow + TimeSpan.FromMinutes(40);
 
 			Timer.DelayCall(TimeSpan.FromMinutes(40),
 				delegate ()
 				{
-					if (source.m_hontime < DateTime.UtcNow && source.SentHonorContext != null)
+					if (source.MHontime < DateTime.UtcNow && source.SentHonorContext != null)
 					{
 						Cancel();
 					}

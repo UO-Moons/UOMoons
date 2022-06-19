@@ -4851,7 +4851,7 @@ namespace Server.Mobiles
 
 		public override void OnDoubleClick(Mobile from)
 		{
-			if (from.AccessLevel >= AccessLevel.GameMaster && !Body.IsHuman)
+			if (from.IsStaff() && !Body.IsHuman)
 			{
 				Container pack = Backpack;
 
@@ -4882,13 +4882,7 @@ namespace Server.Mobiles
 
 			protected override void OnTarget(Mobile from, object targeted)
 			{
-				if (!m_Charmed.DeathAdderCharmable || m_Charmed.Combatant != null || !from.CanBeHarmful(m_Charmed, false))
-					return;
-
-				if (SummonFamiliarSpell.Table[from] is not DeathAdder da || da.Deleted)
-					return;
-
-				if (targeted is not Mobile targ || !from.CanBeHarmful(targ, false))
+				if (!m_Charmed.DeathAdderCharmable || m_Charmed.Combatant != null || !from.CanBeHarmful(m_Charmed, false) || SummonFamiliarSpell.Table[from] is not DeathAdder da || da.Deleted || targeted is not Mobile targ || !from.CanBeHarmful(targ, false))
 					return;
 
 				from.RevealingAction();

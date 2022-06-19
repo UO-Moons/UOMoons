@@ -647,7 +647,7 @@ namespace Server.Items
 					Item item = poster.Items[i];
 
 					if (item.Layer >= Layer.OneHanded && item.Layer <= Layer.Mount)
-						list.Add(new BulletinEquip(item.ItemID, item.Hue));
+						list.Add(new BulletinEquip(item.ItemId, item.Hue));
 				}
 
 				PostedEquip = list.ToArray();

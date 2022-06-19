@@ -611,7 +611,7 @@ namespace Server
 		#region Mondain's Legacy
 		private static bool IsMondain(Mobile m)
 		{
-			return MondainsLegacy.IsMLRegion(m.Region);
+			return MondainsLegacy.IsMlRegion(m.Region);
 		}
 		#endregion
 

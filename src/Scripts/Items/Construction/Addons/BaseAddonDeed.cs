@@ -60,13 +60,13 @@ namespace Server.Items
 
 				if (UseCraftResource)
 				{
-					if (m_ReDeed && ItemID == 0x14F0)
+					if (m_ReDeed && ItemId == 0x14F0)
 					{
-						ItemID = 0x14EF;
+						ItemId = 0x14EF;
 					}
-					else if (!m_ReDeed && ItemID == 0x14EF)
+					else if (!m_ReDeed && ItemId == 0x14EF)
 					{
-						ItemID = 0x14F0;
+						ItemId = 0x14F0;
 					}
 				}
 			}

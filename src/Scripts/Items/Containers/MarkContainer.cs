@@ -89,10 +89,10 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Bone
 		{
-			get => ItemID == 0xECA;
+			get => ItemId == 0xECA;
 			set
 			{
-				ItemID = value ? 0xECA : 0xE79;
+				ItemId = value ? 0xECA : 0xE79;
 				Hue = value ? 1102 : 0;
 			}
 		}

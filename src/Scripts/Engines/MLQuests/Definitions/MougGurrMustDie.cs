@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(TreasureBag), 1072583));
 		}
 
-		public override QuestChain ChainID => QuestChain.MiniBoss;
+		public override QuestChain ChainId => QuestChain.MiniBoss;
 		public override Type NextQuest => typeof(LeaderOfThePackQuest);
 		/* Moug-Guur Must Die */
 		public override object Title => 1072368;
@@ -56,7 +56,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(TreasureBag), 1072583));
 		}
 
-		public override QuestChain ChainID => QuestChain.MiniBoss;
+		public override QuestChain ChainId => QuestChain.MiniBoss;
 		public override Type NextQuest => typeof(SayonaraSzavetraQuest);
 		/* Leader of the Pack */
 		public override object Title => 1072560;
@@ -101,7 +101,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(RewardBox), 1072584));
 		}
 
-		public override QuestChain ChainID => QuestChain.MiniBoss;
+		public override QuestChain ChainId => QuestChain.MiniBoss;
 		/* Sayonara, Szavetra */
 		public override object Title => 1072375;
 		/* Hmm, maybe you aren't entirely worthless.  I suspect a demoness of Szavetra's calibre will tear you 

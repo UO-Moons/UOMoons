@@ -1,18 +1,17 @@
-namespace Server.ContextMenus
+namespace Server.ContextMenus;
+
+public class PaperdollEntry : ContextMenuEntry
 {
-	public class PaperdollEntry : ContextMenuEntry
+	private readonly Mobile _mMobile;
+
+	public PaperdollEntry(Mobile m) : base(6123, 18)
 	{
-		private readonly Mobile m_Mobile;
+		_mMobile = m;
+	}
 
-		public PaperdollEntry(Mobile m) : base(6123, 18)
-		{
-			m_Mobile = m;
-		}
-
-		public override void OnClick()
-		{
-			if (m_Mobile.CanPaperdollBeOpenedBy(Owner.From))
-				m_Mobile.DisplayPaperdollTo(Owner.From);
-		}
+	public override void OnClick()
+	{
+		if (_mMobile.CanPaperdollBeOpenedBy(Owner.From))
+			_mMobile.DisplayPaperdollTo(Owner.From);
 	}
 }

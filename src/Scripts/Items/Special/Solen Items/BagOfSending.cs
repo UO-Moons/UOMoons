@@ -208,7 +208,7 @@ namespace Server.Items
 					}
 					else if (item is BagOfSending || item is Container)
 					{
-						from.Send(new AsciiMessage(m_Bag.Serial, m_Bag.ItemID, MessageType.Regular, 0x3B2, 3, "", "You cannot send a container through the bag of sending."));
+						from.Send(new AsciiMessage(m_Bag.Serial, m_Bag.ItemId, MessageType.Regular, 0x3B2, 3, "", "You cannot send a container through the bag of sending."));
 					}
 					else if (item.LootType == LootType.Cursed)
 					{

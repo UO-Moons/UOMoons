@@ -17,7 +17,7 @@ namespace Server.Items
 		[Constructable]
 		public BoneMachete()
 		{
-			ItemID = 0x20E;
+			ItemId = 0x20E;
 		}
 
 		public BoneMachete(Serial serial)

@@ -33,7 +33,7 @@ namespace Server.Engines.TownHouses
 					continue;
 				}
 
-				if (gump.Serial != serial || gump.TypeID != typeId)
+				if (gump.Serial != serial || gump.TypeId != typeId)
 				{
 					continue;
 				}

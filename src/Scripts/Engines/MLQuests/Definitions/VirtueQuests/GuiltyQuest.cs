@@ -3,10 +3,9 @@ using Server.Mobiles;
 
 namespace Server.Engines.Quests
 {
-	public class GuiltyQuest : BaseQuest
+	public sealed class GuiltyQuest : BaseQuest
 	{
 		public GuiltyQuest()
-			: base()
 		{
 			AddObjective(new SlayObjective(typeof(Gregorio), "Gregorio", 1));
 
@@ -31,17 +30,5 @@ namespace Server.Engines.Quests
         has been lifted from me. Here, I would like you to take this necklace. It belonged to my mother. She said it has some 
         magic, but I have never been able to discover how it works. Perhaps you can. */
 		public override object Complete => 1075316;
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
 	}
 }

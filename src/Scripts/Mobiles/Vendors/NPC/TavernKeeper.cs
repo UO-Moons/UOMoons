@@ -1,47 +1,45 @@
 using System.Collections.Generic;
+using Server.Items;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class TavernKeeper : BaseVendor
 {
-	public class TavernKeeper : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public TavernKeeper() : base("the tavern keeper")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.tavkeep;
+		Karma = Utility.RandomMinMax(13, -45);
+	}
 
-		[Constructable]
-		public TavernKeeper() : base("the tavern keeper")
-		{
-			Job = JobFragment.tavkeep;
-			Karma = Utility.RandomMinMax(13, -45);
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbTavernKeeper());
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBTavernKeeper());
-		}
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
 
-		public override void InitOutfit()
-		{
-			base.InitOutfit();
+		AddItem(new HalfApron());
+	}
 
-			AddItem(new Server.Items.HalfApron());
-		}
+	public TavernKeeper(Serial serial) : base(serial)
+	{
+	}
 
-		public TavernKeeper(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

@@ -20,10 +20,17 @@ namespace Server.Network
 		void DecodeIncomingPacket(NetState from, ref byte[] buffer, ref int length);
 	}
 
+	public interface IPacketEncryptor
+	{
+		void EncryptOutgoingPacket(NetState to, ref byte[] buffer, ref int length);
+		void DecryptIncomingPacket(NetState from, ref byte[] buffer, ref int length);
+	}
+
 	public delegate void NetStateCreatedCallback(NetState ns);
 
 	public class NetState : IComparable<NetState>
 	{
+		public static bool BufferStaticPackets = false;
 		private byte[] m_RecvBuffer;
 		private readonly SendQueue m_SendQueue;
 
@@ -59,6 +66,7 @@ namespace Server.Network
 		private readonly object m_AsyncLock = new object();
 
 		public IPacketEncoder PacketEncoder { get; set; } = null;
+		public IPacketEncryptor PacketEncryptor { get; set; }
 		public static NetStateCreatedCallback CreatedCallback { get; set; }
 		public bool SentFirstPacket { get; set; }
 		public bool BlockAllPackets { get; set; }
@@ -455,7 +463,13 @@ namespace Server.Network
 
 		public static List<NetState> Instances { get; } = new List<NetState>();
 
-		private static readonly BufferPool m_ReceiveBufferPool = new BufferPool("Receive", 2048, 2048);
+		//private static readonly BufferPool m_ReceiveBufferPool = new BufferPool("Receive", 2048, 2048);
+
+		public const int SendBufferCapacity = 1024, SendBufferSize = 8092;
+		public const int ReceiveBufferCapacity = 1024, ReceiveBufferSize = 2048;
+
+		public static BufferPool SendBuffers { get; } = new BufferPool("Send", SendBufferCapacity, SendBufferSize);
+		public static BufferPool ReceiveBuffers { get; } = new BufferPool("Receive", ReceiveBufferCapacity, ReceiveBufferSize);
 
 		public NetState(Socket socket, MessagePump messagePump)
 		{
@@ -463,7 +477,7 @@ namespace Server.Network
 			Buffer = new ByteQueue();
 			Seeded = false;
 			Running = false;
-			m_RecvBuffer = m_ReceiveBufferPool.AcquireBuffer();
+			m_RecvBuffer = ReceiveBuffers.AcquireBuffer();
 			m_MessagePump = messagePump;
 			Gumps = new List<Gump>();
 			HuePickers = new List<HuePicker>();
@@ -498,13 +512,20 @@ namespace Server.Network
 
 		public virtual void Send(Packet p)
 		{
+			if (p == null)
+			{
+				return;
+			}
+
 			if (Socket == null || BlockAllPackets)
 			{
 				p.OnSend();
 				return;
 			}
 
-			byte[] buffer = p.Compile(CompressionEnabled, out int length);
+			int length;
+
+			var buffer = p.Compile(CompressionEnabled, out length);
 
 			if (buffer != null)
 			{
@@ -523,9 +544,44 @@ namespace Server.Network
 					prof.Start();
 				}
 
-				if (PacketEncoder != null)
+				//if (PacketEncoder != null)
+				//{
+				//	PacketEncoder.EncodeOutgoingPacket(this, ref buffer, ref length);
+				//}
+				var buffered = false;
+				if (PacketEncoder != null || PacketEncryptor != null)
 				{
-					PacketEncoder.EncodeOutgoingPacket(this, ref buffer, ref length);
+					var packetBuffer = buffer;
+					var packetLength = length;
+
+					if (BufferStaticPackets && p.State.HasFlag(PacketState.Acquired))
+					{
+						if (packetLength <= SendBufferSize)
+						{
+							packetBuffer = SendBuffers.AcquireBuffer();
+						}
+						else
+						{
+							packetBuffer = new byte[packetLength];
+						}
+
+						System.Buffer.BlockCopy(buffer, 0, packetBuffer, 0, packetLength);
+					}
+
+					if (PacketEncoder != null)
+					{
+						PacketEncoder.EncodeOutgoingPacket(this, ref packetBuffer, ref packetLength);
+					}
+
+					if (PacketEncryptor != null)
+					{
+						PacketEncryptor.EncryptOutgoingPacket(this, ref packetBuffer, ref packetLength);
+					}
+
+					buffered = buffer != packetBuffer && packetBuffer.Length == SendBufferSize;
+
+					buffer = packetBuffer;
+					length = packetLength;
 				}
 
 				try
@@ -565,10 +621,19 @@ namespace Server.Network
 
 				p.OnSend();
 
-				if (prof != null)
-				{
-					prof.Finish(length);
-				}
+				prof?.Finish(length);
+
+				//if (p is SpeedControl)
+				//{
+				//	if (p == SpeedControl.Disable)
+				//	{
+				//		SpeedControl = null;
+				//	}
+				//	else
+				//	{
+				//		SpeedControl = (SpeedControl)p;
+				//	}
+				//}
 			}
 			else
 			{
@@ -1110,11 +1175,16 @@ namespace Server.Network
 
 			if (m_RecvBuffer != null)
 			{
-				lock (m_ReceiveBufferPool)
-					m_ReceiveBufferPool.ReleaseBuffer(m_RecvBuffer);
+				lock (ReceiveBuffers)
+				{
+					ReceiveBuffers.ReleaseBuffer(m_RecvBuffer);
+				}
 			}
 
 			Socket = null;
+
+			PacketEncoder = null;
+			PacketEncryptor = null;
 
 			Buffer = null;
 			m_RecvBuffer = null;

@@ -77,11 +77,11 @@ namespace Server.Items
 	{
 		public PlagueBeastOrgan Organ { get; set; }
 
-		public bool IsBrain => ItemID == 0x1CF0;
+		public bool IsBrain => ItemId == 0x1CF0;
 
-		public bool IsGland => ItemID == 0x1CEF;
+		public bool IsGland => ItemId == 0x1CEF;
 
-		public bool IsReceptacle => ItemID == 0x9DF;
+		public bool IsReceptacle => ItemId == 0x9DF;
 
 		public PlagueBeastComponent(int itemID, int hue) : this(itemID, hue, false)
 		{

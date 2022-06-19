@@ -160,12 +160,12 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 			#region Mondain's Legacy Sets
 			if (IsSetItem)
 			{
-				m_SetEquipped = SetHelper.FullSetEquipped(from, SetID, Pieces);
+				m_SetEquipped = SetHelper.FullSetEquipped(from, SetId, Pieces);
 
 				if (m_SetEquipped)
 				{
 					m_LastEquipped = true;
-					SetHelper.AddSetBonus(from, SetID);
+					SetHelper.AddSetBonus(from, SetId);
 				}
 			}
 			#endregion
@@ -198,7 +198,7 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 			#region Mondain's Legacy Sets
 			if (IsSetItem && m_SetEquipped)
 			{
-				SetHelper.RemoveSetBonus(from, SetID, this);
+				SetHelper.RemoveSetBonus(from, SetId, this);
 			}
 			#endregion
 		}
@@ -659,21 +659,21 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		{
 			if (IsSetItem && m_SetEquipped)
 			{
-				SetHelper.RemoveSetBonus(from, SetID, this);
+				SetHelper.RemoveSetBonus(from, SetId, this);
 			}
 		}
 
 		return base.OnDragLift(from);
 	}
 
-	public virtual SetItem SetID => SetItem.None;
+	public virtual SetItem SetId => SetItem.None;
 	public virtual int Pieces => 0;
 
-	public virtual bool BardMasteryBonus => SetID == SetItem.Virtuoso;
+	public virtual bool BardMasteryBonus => SetId == SetItem.Virtuoso;
 
 	public virtual bool MixedSet => false;
 
-	public bool IsSetItem => SetID != SetItem.None;
+	public bool IsSetItem => SetId != SetItem.None;
 
 	private int m_SetHue;
 	private bool m_SetEquipped;

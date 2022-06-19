@@ -10,7 +10,7 @@ namespace Server.Items
 		[Constructable]
 		public TalonBite()
 		{
-			ItemID = 0x2D34;
+			ItemId = 0x2D34;
 			Hue = 0x47E;
 
 			SkillBonuses.SetValues(0, SkillName.Tactics, 10.0);

@@ -25,7 +25,7 @@ namespace Server.Items
 
 				Item i = null;
 
-				switch (Utility.Random((from.BAC >= 5) ? 6 : 5))
+				switch (Utility.Random((from.Bac >= 5) ? 6 : 5))
 				{
 					case 0: i = new OrigamiButterfly(); break;
 					case 1: i = new OrigamiSwan(); break;

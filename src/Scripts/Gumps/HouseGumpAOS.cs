@@ -852,11 +852,11 @@ namespace Server.Gumps
 
 				if ((house is BaseContestHouse house1 && house1.HouseType == ContestHouseType.Keep) || house is Keep)
 				{
-					entries = HousePlacementEntry.HousesEJ.Where(e => e.MultiID != house.ItemID && (e.MultiID == 0x007C || e.MultiID == 0x147E || e.MultiID >= 0x1484)).ToArray();
+					entries = HousePlacementEntry.HousesEJ.Where(e => e.MultiID != house.ItemId && (e.MultiID == 0x007C || e.MultiID == 0x147E || e.MultiID >= 0x1484)).ToArray();
 				}
 				else if ((house is BaseContestHouse house2 && house2.HouseType == ContestHouseType.Castle) || house is Castle)
 				{
-					entries = HousePlacementEntry.HousesEJ.Where(e => e.MultiID != house.ItemID && (e.MultiID == 0x007E || (e.MultiID >= 0x147F && e.MultiID <= 0x1483))).ToArray();
+					entries = HousePlacementEntry.HousesEJ.Where(e => e.MultiID != house.ItemId && (e.MultiID == 0x007E || (e.MultiID >= 0x147F && e.MultiID <= 0x1483))).ToArray();
 				}
 
 				if (entries != null)
@@ -1377,7 +1377,7 @@ namespace Server.Gumps
 							Item hanger = foundation.SignHanger;
 
 							if (hanger != null)
-								hanger.ItemID = m_HangerNumbers[index];
+								hanger.ItemId = m_HangerNumbers[index];
 
 							from.SendGump(new HouseGumpAOS(HouseGumpPageAOS.Customize, from, m_House));
 						}

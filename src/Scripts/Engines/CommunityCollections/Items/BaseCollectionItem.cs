@@ -5,333 +5,309 @@ using Server.Network;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Items
+namespace Server.Items;
+
+public abstract class BaseCollectionItem : BaseItem, IComunityCollection
 {
-	public abstract class BaseCollectionItem : BaseItem, IComunityCollection
+	#region IComunityCollection		
+	public abstract Collection CollectionId { get; }
+	public abstract int MaxTier { get; }
+
+	public List<CollectionItem> Donations { get; private set; }
+
+	public List<CollectionItem> Rewards { get; private set; }
+
+	private long _mPoints;
+	private long _mStartTier;
+	private long _mNextTier;
+	private long _mDailyDecay;
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long Points
 	{
-		#region IComunityCollection		
-		public abstract Collection CollectionID { get; }
-		public abstract int MaxTier { get; }
-
-		private List<CollectionItem> m_Donations;
-		private List<CollectionItem> m_Rewards;
-
-		public List<CollectionItem> Donations => m_Donations;
-
-		public List<CollectionItem> Rewards => m_Rewards;
-
-		private long m_Points;
-		private long m_StartTier;
-		private long m_NextTier;
-		private long m_DailyDecay;
-		private int m_Tier;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long Points
+		get => _mPoints;
+		set
 		{
-			get
-			{
-				return m_Points;
-			}
-			set
-			{
-				m_Points = value;
+			_mPoints = value;
 
-				if (m_Points < 0)
-					m_Points = 0;
+			if (_mPoints < 0)
+				_mPoints = 0;
 
-				while (m_Tier > 0 && m_Points < PreviousTier)
-					DecreaseTier();
+			while (Tier > 0 && _mPoints < PreviousTier)
+				DecreaseTier();
 
-				while (m_Tier < MaxTier && m_Points > CurrentTier)
-					IncreaseTier();
-
-				InvalidateProperties();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long PreviousTier
-		{
-			get
-			{
-				if (m_Tier > 2)
-				{
-					long tier = m_StartTier * 2;
-
-					for (int i = 0; i < m_Tier - 2; i++)
-						tier += (i + 3) * m_NextTier;
-
-					return tier;
-				}
-
-				return m_StartTier * m_Tier;
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long CurrentTier
-		{
-			get
-			{
-				if (m_Tier > 1)
-					return PreviousTier + (m_Tier + 1) * m_NextTier;
-
-				return m_StartTier + m_StartTier * m_Tier;
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long StartTier
-		{
-			get
-			{
-				return m_StartTier;
-			}
-			set
-			{
-				m_StartTier = value;
-				InvalidateProperties();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long NextTier
-		{
-			get
-			{
-				return m_NextTier;
-			}
-			set
-			{
-				m_NextTier = value;
-				InvalidateProperties();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public long DailyDecay
-		{
-			get
-			{
-				return m_DailyDecay;
-			}
-			set
-			{
-				m_DailyDecay = value;
-				InvalidateProperties();
-			}
-		}
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int Tier => m_Tier;
-		#endregion
-
-		private List<List<object>> m_Tiers;
-
-		public List<List<object>> Tiers => m_Tiers;
-
-		public BaseCollectionItem(int itemID)
-			: base(itemID)
-		{
-			Movable = false;
-
-			Init();
-		}
-
-		public BaseCollectionItem(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (from.Alive)
-			{
-				if (from.NetState == null || !from.NetState.SupportsExpansion(Expansion.ML))
-				{
-					from.SendLocalizedMessage(1073651); // You must have Mondain's Legacy before proceeding...			
-					return;
-				}
-				else if (!MondainsLegacy.PublicDonations && (int)from.AccessLevel < (int)AccessLevel.GameMaster)
-				{
-					from.SendLocalizedMessage(1042753, "Public donations"); // ~1_SOMETHING~ has been temporarily disabled.
-					return;
-				}
-
-				if (from.InRange(Location, 2) && from is PlayerMobile mobile && CanDonate(mobile))
-				{
-					from.CloseGump(typeof(CommunityCollectionGump));
-					from.SendGump(new CommunityCollectionGump(mobile, this, Location));
-				}
-				else
-					from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that.
-			}
-		}
-
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			AddNameProperty(list);
-
-			list.Add(1072819, m_Tier.ToString()); // Current Tier: ~1_TIER~
-			list.Add(1072820, m_Points.ToString()); // Current Points: ~1_POINTS~
-			list.Add(1072821, m_Tier > MaxTier ? 0.ToString() : CurrentTier.ToString()); // Points until next tier: ~1_POINTS~
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write(m_Points);
-			writer.Write(m_StartTier);
-			writer.Write(m_NextTier);
-			writer.Write(m_DailyDecay);
-			writer.Write(m_Tier);
-
-			writer.Write(m_Tiers.Count);
-
-			for (int i = 0; i < m_Tiers.Count; i++)
-			{
-				writer.Write(m_Tiers[i].Count);
-
-				for (int j = 0; j < m_Tiers[i].Count; j++)
-					QuestWriter.Object(writer, m_Tiers[i][j]);
-			}
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-
-			m_Points = reader.ReadLong();
-			m_StartTier = reader.ReadLong();
-			m_NextTier = reader.ReadLong();
-			m_DailyDecay = reader.ReadLong();
-			m_Tier = reader.ReadInt();
-
-			Init();
-
-			for (int i = reader.ReadInt(); i > 0; i--)
-			{
-				List<object> list = new();
-
-				for (int j = reader.ReadInt(); j > 0; j--)
-					list.Add(QuestReader.Object(reader));
-
-				m_Tiers.Add(list);
-			}
-		}
-
-		#region IComunityCollection
-		public virtual void Donate(PlayerMobile player, CollectionItem item, int amount)
-		{
-			int points = (int)Math.Round(amount * item.Points);
-
-			player.AddCollectionPoints(CollectionID, points);
-
-			player.SendLocalizedMessage(1072816); // Thank you for your donation!
-			player.SendLocalizedMessage(1072817, points.ToString()); // You have earned ~1_POINTS~ reward points for this donation.	
-			player.SendLocalizedMessage(1072818, points.ToString()); // The Collection has been awarded ~1_POINTS~ points
-
-			Points += points;
+			while (Tier < MaxTier && _mPoints > CurrentTier)
+				IncreaseTier();
 
 			InvalidateProperties();
 		}
+	}
 
-		public virtual void Reward(PlayerMobile player, CollectionItem reward, int hue)
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long PreviousTier
+	{
+		get
 		{
-			Item item = QuestHelper.Construct(reward.Type) as Item;
+			if (Tier <= 2) return _mStartTier * Tier;
+			long tier = _mStartTier * 2;
 
-			if (item != null && player.AddToBackpack(item))
+			for (var i = 0; i < Tier - 2; i++)
+				tier += (i + 3) * _mNextTier;
+
+			return tier;
+
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long CurrentTier
+	{
+		get
+		{
+			if (Tier > 1)
+				return PreviousTier + (Tier + 1) * _mNextTier;
+
+			return _mStartTier + _mStartTier * Tier;
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long StartTier
+	{
+		get => _mStartTier;
+		set
+		{
+			_mStartTier = value;
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long NextTier
+	{
+		get => _mNextTier;
+		set
+		{
+			_mNextTier = value;
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public long DailyDecay
+	{
+		get => _mDailyDecay;
+		set
+		{
+			_mDailyDecay = value;
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int Tier { get; private set; }
+
+	#endregion
+
+	public List<List<object>> Tiers { get; private set; }
+
+	public BaseCollectionItem(int itemId)
+		: base(itemId)
+	{
+		Movable = false;
+
+		Init();
+	}
+
+	public BaseCollectionItem(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		if (from.Alive)
+		{
+			if (from.NetState == null || !from.NetState.SupportsExpansion(Expansion.ML))
 			{
-				if (hue > 0)
-					item.Hue = hue;
-
-				player.AddCollectionPoints(CollectionID, (int)reward.Points * -1);
-				player.SendLocalizedMessage(1073621); // Your reward has been placed in your backpack.
-				player.PlaySound(0x5A7);
-
-				if (reward.QuestItem)
-					CollectionsObtainObjective.CheckReward(player, item);
-
-				reward.OnGiveReward(player, item, this, hue);
+				from.SendLocalizedMessage(1073651); // You must have Mondain's Legacy before proceeding...			
+				return;
 			}
-			else if (item != null)
+			else if (!MondainsLegacy.PublicDonations && (int)from.AccessLevel < (int)AccessLevel.GameMaster)
 			{
-				player.SendLocalizedMessage(1074361); // The reward could not be given.  Make sure you have room in your pack.
-				item.Delete();
+				from.SendLocalizedMessage(1042753, "Public donations"); // ~1_SOMETHING~ has been temporarily disabled.
+				return;
 			}
 
-			player.CloseGump(typeof(CommunityCollectionGump));
-			player.SendGump(new CommunityCollectionGump(player, this, Location));
-		}
-
-		public virtual void DonatePet(PlayerMobile player, BaseCreature pet)
-		{
-			for (int i = 0; i < m_Donations.Count; i++)
+			if (from.InRange(Location, 2) && from is PlayerMobile mobile && CanDonate(mobile))
 			{
-				if (m_Donations[i].Type == pet.GetType() || MoonglowDonationBox.HasGroup(pet.GetType(), m_Donations[i].Type))
-				{
-					pet.Delete();
-					Donate(player, m_Donations[i], 1);
-					return;
-				}
+				from.CloseGump(typeof(CommunityCollectionGump));
+				from.SendGump(new CommunityCollectionGump(mobile, this, Location));
 			}
+			else
+				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that.
+		}
+	}
 
-			player.SendLocalizedMessage(1073113); // This Collection is not accepting that type of creature.
+	public override void GetProperties(ObjectPropertyList list)
+	{
+		AddNameProperty(list);
+
+		list.Add(1072819, Tier.ToString()); // Current Tier: ~1_TIER~
+		list.Add(1072820, _mPoints.ToString()); // Current Points: ~1_POINTS~
+		list.Add(1072821, Tier > MaxTier ? 0.ToString() : CurrentTier.ToString()); // Points until next tier: ~1_POINTS~
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+
+		writer.Write(_mPoints);
+		writer.Write(_mStartTier);
+		writer.Write(_mNextTier);
+		writer.Write(_mDailyDecay);
+		writer.Write(Tier);
+
+		writer.Write(Tiers.Count);
+
+		for (var i = 0; i < Tiers.Count; i++)
+		{
+			writer.Write(Tiers[i].Count);
+
+			for (var j = 0; j < Tiers[i].Count; j++)
+				QuestWriter.Object(writer, Tiers[i][j]);
+		}
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+
+		_mPoints = reader.ReadLong();
+		_mStartTier = reader.ReadLong();
+		_mNextTier = reader.ReadLong();
+		_mDailyDecay = reader.ReadLong();
+		Tier = reader.ReadInt();
+
+		Init();
+
+		for (int i = reader.ReadInt(); i > 0; i--)
+		{
+			List<object> list = new();
+
+			for (var j = reader.ReadInt(); j > 0; j--)
+				list.Add(QuestReader.Object(reader));
+
+			Tiers.Add(list);
+		}
+	}
+
+	#region IComunityCollection
+	public virtual void Donate(PlayerMobile player, CollectionItem item, int amount)
+	{
+		int points = (int)Math.Round(amount * item.Points);
+
+		player.AddCollectionPoints(CollectionId, points);
+
+		player.SendLocalizedMessage(1072816); // Thank you for your donation!
+		player.SendLocalizedMessage(1072817, points.ToString()); // You have earned ~1_POINTS~ reward points for this donation.	
+		player.SendLocalizedMessage(1072818, points.ToString()); // The Collection has been awarded ~1_POINTS~ points
+
+		Points += points;
+
+		InvalidateProperties();
+	}
+
+	public virtual void Reward(PlayerMobile player, CollectionItem reward, int hue)
+	{
+		Item item = QuestHelper.Construct(reward.Type) as Item;
+
+		if (item != null && player.AddToBackpack(item))
+		{
+			if (hue > 0)
+				item.Hue = hue;
+
+			player.AddCollectionPoints(CollectionId, (int)reward.Points * -1);
+			player.SendLocalizedMessage(1073621); // Your reward has been placed in your backpack.
+			player.PlaySound(0x5A7);
+
+			if (reward.QuestItem)
+				CollectionsObtainObjective.CheckReward(player, item);
+
+			reward.OnGiveReward(player, item, this, hue);
+		}
+		else if (item != null)
+		{
+			player.SendLocalizedMessage(1074361); // The reward could not be given.  Make sure you have room in your pack.
+			item.Delete();
 		}
 
-		#endregion
+		player.CloseGump(typeof(CommunityCollectionGump));
+		player.SendGump(new CommunityCollectionGump(player, this, Location));
+	}
 
-		public virtual void IncreaseTier()
+	public virtual void DonatePet(PlayerMobile player, BaseCreature pet)
+	{
+		for (var i = 0; i < Donations.Count; i++)
 		{
-			m_Tier += 1;
+			if (Donations[i].Type != pet.GetType() &&
+			    !MoonglowDonationBox.HasGroup(pet.GetType(), Donations[i].Type)) continue;
+			pet.Delete();
+			Donate(player, Donations[i], 1);
+			return;
 		}
 
-		public virtual void DecreaseTier()
-		{
-			m_Tier -= 1;
+		player.SendLocalizedMessage(1073113); // This Collection is not accepting that type of creature.
+	}
 
-			if (m_Tiers != null && m_Tiers.Count > 0)
+	#endregion
+
+	public virtual void IncreaseTier()
+	{
+		Tier += 1;
+	}
+
+	public virtual void DecreaseTier()
+	{
+		Tier -= 1;
+
+		if (Tiers is not {Count: > 0}) return;
+		for (var i = 0; i < Tiers[^1].Count; i++)
+		{
+			switch (Tiers[^1][i])
 			{
-				for (int i = 0; i < m_Tiers[m_Tiers.Count - 1].Count; i++)
-				{
-					if (m_Tiers[^1][i] is Item item)
-						item.Delete();
-					else if (m_Tiers[m_Tiers.Count - 1][i] is Mobile)
-						((Mobile)m_Tiers[m_Tiers.Count - 1][i]).Delete();
-				}
-
-				m_Tiers.RemoveAt(m_Tiers.Count - 1);
+				case Item item:
+					item.Delete();
+					break;
+				case Mobile:
+					((Mobile)Tiers[^1][i]).Delete();
+					break;
 			}
 		}
 
-		public virtual void Init()
-		{
-			if (m_Donations == null)
-				m_Donations = new List<CollectionItem>();
+		Tiers.RemoveAt(Tiers.Count - 1);
+	}
 
-			if (m_Rewards == null)
-				m_Rewards = new List<CollectionItem>();
+	public virtual void Init()
+	{
+		Donations ??= new List<CollectionItem>();
 
-			if (m_Tiers == null)
-				m_Tiers = new List<List<object>>();
+		Rewards ??= new List<CollectionItem>();
 
-			// start decay timer
-			if (m_DailyDecay > 0)
-			{
-				DateTime today = DateTime.Today.AddDays(1);
+		Tiers ??= new List<List<object>>();
 
-				_ = new CollectionDecayTimer(this, today - DateTime.UtcNow);
-			}
-		}
+		// start decay timer
+		if (_mDailyDecay <= 0) return;
+		DateTime today = DateTime.Today.AddDays(1);
 
-		public virtual bool CanDonate(PlayerMobile player)
-		{
-			return true;
-		}
+		_ = new CollectionDecayTimer(this, today - DateTime.UtcNow);
+	}
+
+	public virtual bool CanDonate(PlayerMobile player)
+	{
+		return true;
 	}
 }

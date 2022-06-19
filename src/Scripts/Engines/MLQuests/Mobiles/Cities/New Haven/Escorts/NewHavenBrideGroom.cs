@@ -2,63 +2,62 @@ using System;
 using Server.Items;
 using Server.Engines.Quests;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class NewHavenBrideGroom : NewHavenEscortable
 {
-    public class NewHavenBrideGroom : NewHavenEscortable
-    {
-        [Constructable]
-        public NewHavenBrideGroom()
-        {
-            if (Female)
-                Title = "the bride";
-            else
-                Title = "the groom";
-        }
+	[Constructable]
+	public NewHavenBrideGroom()
+	{
+		if (Female)
+			Title = "the bride";
+		else
+			Title = "the groom";
+	}
 
-        public NewHavenBrideGroom(Serial serial)
-            : base(serial)
-        {
-        }
+	public NewHavenBrideGroom(Serial serial)
+		: base(serial)
+	{
+	}
 
-        public override bool ClickTitle => false;
-        public override void InitOutfit()
-        {
-            if (Female)
-                AddItem(new FancyDress());
-            else
-                AddItem(new FancyShirt());
+	public override bool ClickTitle => false;
+	public override void InitOutfit()
+	{
+		if (Female)
+			AddItem(new FancyDress());
+		else
+			AddItem(new FancyShirt());
 
-            int lowHue = GetRandomHue();
+		int lowHue = GetRandomHue();
 
-            AddItem(new LongPants(lowHue));
+		AddItem(new LongPants(lowHue));
 
-            if (Female)
-                AddItem(new Shoes(lowHue));
-            else
-                AddItem(new Boots(lowHue));
+		if (Female)
+			AddItem(new Shoes(lowHue));
+		else
+			AddItem(new Boots(lowHue));
 
-            if (Utility.RandomBool())
-                HairItemID = 0x203B;
-            else
-                HairItemID = 0x203C;
+		if (Utility.RandomBool())
+			HairItemID = 0x203B;
+		else
+			HairItemID = 0x203C;
 
-            HairHue = Race.RandomHairHue();
+		HairHue = Race.RandomHairHue();
 
-            //PackItem(Loot.PackGold(200, 250));
-        }
+		//PackItem(Loot.PackGold(200, 250));
+	}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-            writer.WriteEncodedInt(0); // version
-        }
+		writer.WriteEncodedInt(0); // version
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-            int version = reader.ReadEncodedInt();
-        }
-    }
+		int version = reader.ReadEncodedInt();
+	}
 }

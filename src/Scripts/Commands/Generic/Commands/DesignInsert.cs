@@ -93,7 +93,7 @@ namespace Server.Commands.Generic
 		#region Area targeting mode
 		public override void ExecuteList(CommandEventArgs e, ArrayList list)
 		{
-			e.Mobile.SendGump(new WarningGump(1060637, 30720, string.Format("You are about to insert {0} objects. This cannot be undone without a full server revert.<br><br>Continue?", list.Count), 0xFFC000, 420, 280, new WarningGumpCallback(OnConfirmCallback), new object[] { e, list, (e.Length < 1 || !e.GetBoolean(0)) }));
+			e.Mobile.SendGump(new WarningGump(1060637, 30720, string.Format("You are about to insert {0} objects. This cannot be undone without a full server revert.<br><br>Continue?", list.Count), 0xFFC000, 420, 280, OnConfirmCallback, new object[] { e, list, (e.Length < 1 || !e.GetBoolean(0)) }));
 			AddResponse("Awaiting confirmation...");
 		}
 
@@ -176,10 +176,10 @@ namespace Server.Commands.Generic
 			int y = item.Y - house.Y;
 			int z = item.Z - house.Z;
 
-			if (!TryInsertIntoState(house.CurrentState, item.ItemID, x, y, z))
+			if (!TryInsertIntoState(house.CurrentState, item.ItemId, x, y, z))
 				return DesignInsertResult.OutsideHouseBounds;
 
-			TryInsertIntoState(house.DesignState, item.ItemID, x, y, z);
+			TryInsertIntoState(house.DesignState, item.ItemId, x, y, z);
 			item.Delete();
 
 			return DesignInsertResult.Valid;

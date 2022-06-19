@@ -22,14 +22,12 @@ namespace Server
 
 	public static class Effects
 	{
-		private static ParticleSupportType m_ParticleSupportType = ParticleSupportType.Detect;
-
-		public static ParticleSupportType ParticleSupportType { get => m_ParticleSupportType; set => m_ParticleSupportType = value; }
+		public static ParticleSupportType ParticleSupportType { get; set; } = ParticleSupportType.Detect;
 
 		public static bool SendParticlesTo(NetState state)
 		{
-			return (m_ParticleSupportType == ParticleSupportType.Full ||
-					(m_ParticleSupportType == ParticleSupportType.Detect && (state.IsUOTDClient || state.IsEnhancedClient)));
+			return ParticleSupportType == ParticleSupportType.Full ||
+			       (ParticleSupportType == ParticleSupportType.Detect && (state.IsUOTDClient || state.IsEnhancedClient));
 		}
 
 		public static void PlayExplodeSound(IPoint3D p, Map map)
@@ -37,9 +35,9 @@ namespace Server
 			PlaySound(p, map, Utility.RandomList(283, 284, 285, 286, 519, 773, 774, 775, 776, 777, 1231));
 		}
 
-		public static void PlaySound(IPoint3D p, Map map, int soundID)
+		public static void PlaySound(IPoint3D p, Map map, int soundId)
 		{
-			if (soundID <= -1)
+			if (soundId <= -1)
 			{
 				return;
 			}
@@ -54,10 +52,7 @@ namespace Server
 				{
 					state.Mobile.ProcessDelta();
 
-					if (playSound == null)
-					{
-						playSound = Packet.Acquire(new PlaySound(soundID, p));
-					}
+					playSound ??= Packet.Acquire(new PlaySound(soundId, p));
 
 					state.Send(playSound);
 				}
@@ -113,10 +108,7 @@ namespace Server
 
 					if (sendParticles)
 					{
-						if (preEffect == null)
-						{
-							preEffect = Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
-						}
+						preEffect ??= Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
 
 						state.Send(preEffect);
 					}
@@ -137,20 +129,15 @@ namespace Server
 
 					if (sendParticles)
 					{
-						if (postEffect == null)
-						{
-							postEffect = Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location, e.Location, 0, 0, false, 0));
-						}
+						postEffect ??= Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location,
+							e.Location, 0, 0, false, 0));
 
 						state.Send(postEffect);
 					}
 
 					if (sound)
 					{
-						if (playSound == null)
-						{
-							playSound = Packet.Acquire(new PlaySound(0x29, e));
-						}
+						playSound ??= Packet.Acquire(new PlaySound(0x29, e));
 
 						state.Send(playSound);
 					}
@@ -165,39 +152,39 @@ namespace Server
 			eable.Free();
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemID, int duration)
+		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration)
 		{
-			SendLocationEffect(p, map, itemID, duration, 10, 0, 0);
+			SendLocationEffect(p, map, itemId, duration, 10, 0, 0);
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemID, int duration, int speed)
+		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int speed)
 		{
-			SendLocationEffect(p, map, itemID, duration, speed, 0, 0);
+			SendLocationEffect(p, map, itemId, duration, speed, 0, 0);
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemID, int duration, int hue, int renderMode)
+		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int hue, int renderMode)
 		{
-			SendLocationEffect(p, map, itemID, duration, 10, hue, renderMode);
+			SendLocationEffect(p, map, itemId, duration, 10, hue, renderMode);
 		}
 
 		public static void SendLocationEffect(
-			IPoint3D p, Map map, int itemID, int duration, int speed, int hue, int renderMode)
+			IPoint3D p, Map map, int itemId, int duration, int speed, int hue, int renderMode)
 		{
-			SendPacket(p, map, new LocationEffect(p, itemID, speed, duration, hue, renderMode));
+			SendPacket(p, map, new LocationEffect(p, itemId, speed, duration, hue, renderMode));
 		}
 
-		public static void SendLocationParticles(IEntity e, int itemID, int speed, int duration, int effect)
+		public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect)
 		{
-			SendLocationParticles(e, itemID, speed, duration, 0, 0, effect, 0);
+			SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, 0);
 		}
 
-		public static void SendLocationParticles(IEntity e, int itemID, int speed, int duration, int effect, int unknown)
+		public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect, int unknown)
 		{
-			SendLocationParticles(e, itemID, speed, duration, 0, 0, effect, unknown);
+			SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, unknown);
 		}
 
 		public static void SendLocationParticles(
-			IEntity e, int itemID, int speed, int duration, int hue, int renderMode, int effect, int unknown)
+			IEntity e, int itemId, int speed, int duration, int hue, int renderMode, int effect, int unknown)
 		{
 			Map map = e.Map;
 
@@ -213,20 +200,13 @@ namespace Server
 
 					if (SendParticlesTo(state))
 					{
-						if (particles == null)
-						{
-							particles =
-								Packet.Acquire(new LocationParticleEffect(e, itemID, speed, duration, hue, renderMode, effect, unknown));
-						}
+						particles ??= Packet.Acquire(new LocationParticleEffect(e, itemId, speed, duration, hue, renderMode, effect, unknown));
 
 						state.Send(particles);
 					}
-					else if (itemID != 0)
+					else if (itemId != 0)
 					{
-						if (regular == null)
-						{
-							regular = Packet.Acquire(new LocationEffect(e, itemID, speed, duration, hue, renderMode));
-						}
+						regular ??= Packet.Acquire(new LocationEffect(e, itemId, speed, duration, hue, renderMode));
 
 						state.Send(regular);
 					}
@@ -240,46 +220,46 @@ namespace Server
 			//SendPacket( e.Location, e.Map, new LocationParticleEffect( e, itemID, speed, duration, hue, renderMode, effect, unknown ) );
 		}
 
-		public static void SendTargetEffect(IEntity target, int itemID, int duration)
+		public static void SendTargetEffect(IEntity target, int itemId, int duration)
 		{
-			SendTargetEffect(target, itemID, duration, 0, 0);
+			SendTargetEffect(target, itemId, duration, 0, 0);
 		}
 
-		public static void SendTargetEffect(IEntity target, int itemID, int speed, int duration)
+		public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration)
 		{
-			SendTargetEffect(target, itemID, speed, duration, 0, 0);
+			SendTargetEffect(target, itemId, speed, duration, 0, 0);
 		}
 
-		public static void SendTargetEffect(IEntity target, int itemID, int duration, int hue, int renderMode)
+		public static void SendTargetEffect(IEntity target, int itemId, int duration, int hue, int renderMode)
 		{
-			SendTargetEffect(target, itemID, 10, duration, hue, renderMode);
+			SendTargetEffect(target, itemId, 10, duration, hue, renderMode);
 		}
 
-		public static void SendTargetEffect(IEntity target, int itemID, int speed, int duration, int hue, int renderMode)
+		public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration, int hue, int renderMode)
 		{
-			if (target is Mobile)
+			if (target is Mobile mobile)
 			{
-				((Mobile)target).ProcessDelta();
+				mobile.ProcessDelta();
 			}
 
-			SendPacket(target.Location, target.Map, new TargetEffect(target, itemID, speed, duration, hue, renderMode));
+			SendPacket(target.Location, target.Map, new TargetEffect(target, itemId, speed, duration, hue, renderMode));
 		}
 
 		public static void SendTargetParticles(
-			IEntity target, int itemID, int speed, int duration, int effect, EffectLayer layer)
+			IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer)
 		{
-			SendTargetParticles(target, itemID, speed, duration, 0, 0, effect, layer, 0);
+			SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, 0);
 		}
 
 		public static void SendTargetParticles(
-			IEntity target, int itemID, int speed, int duration, int effect, EffectLayer layer, int unknown)
+			IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer, int unknown)
 		{
-			SendTargetParticles(target, itemID, speed, duration, 0, 0, effect, layer, unknown);
+			SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, unknown);
 		}
 
 		public static void SendTargetParticles(
 			IEntity target,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			int hue,
@@ -288,9 +268,9 @@ namespace Server
 			EffectLayer layer,
 			int unknown)
 		{
-			if (target is Mobile)
+			if (target is Mobile mobile)
 			{
-				((Mobile)target).ProcessDelta();
+				mobile.ProcessDelta();
 			}
 
 			Map map = target.Map;
@@ -307,21 +287,14 @@ namespace Server
 
 					if (SendParticlesTo(state))
 					{
-						if (particles == null)
-						{
-							particles =
-								Packet.Acquire(
-									new TargetParticleEffect(target, itemID, speed, duration, hue, renderMode, effect, (int)layer, unknown));
-						}
+						particles ??= Packet.Acquire(
+							new TargetParticleEffect(target, itemId, speed, duration, hue, renderMode, effect, (int) layer, unknown));
 
 						state.Send(particles);
 					}
-					else if (itemID != 0)
+					else if (itemId != 0)
 					{
-						if (regular == null)
-						{
-							regular = Packet.Acquire(new TargetEffect(target, itemID, speed, duration, hue, renderMode));
-						}
+						regular ??= Packet.Acquire(new TargetEffect(target, itemId, speed, duration, hue, renderMode));
 
 						state.Send(regular);
 					}
@@ -337,15 +310,15 @@ namespace Server
 		}
 
 		public static void SendMovingEffect(
-			IEntity from, IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes)
+			IEntity from, IEntity to, int itemId, int speed, int duration, bool fixedDirection, bool explodes)
 		{
-			SendMovingEffect(from, to, itemID, speed, duration, fixedDirection, explodes, 0, 0);
+			SendMovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0);
 		}
 
 		public static void SendMovingEffect(
 			IEntity from,
 			IEntity to,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			bool fixedDirection,
@@ -353,26 +326,26 @@ namespace Server
 			int hue,
 			int renderMode)
 		{
-			if (from is Mobile)
+			if (from is Mobile mobile)
 			{
-				((Mobile)from).ProcessDelta();
+				mobile.ProcessDelta();
 			}
 
-			if (to is Mobile)
+			if (to is Mobile mobile1)
 			{
-				((Mobile)to).ProcessDelta();
+				mobile1.ProcessDelta();
 			}
 
 			SendPacket(
 				from.Location,
 				from.Map,
-				new MovingEffect(from, to, itemID, speed, duration, fixedDirection, explodes, hue, renderMode));
+				new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue, renderMode));
 		}
 
 		public static void SendMovingParticles(
 			IEntity from,
 			IEntity to,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			bool fixedDirection,
@@ -382,13 +355,13 @@ namespace Server
 			int explodeSound)
 		{
 			SendMovingParticles(
-				from, to, itemID, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, 0);
+				from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, 0);
 		}
 
 		public static void SendMovingParticles(
 			IEntity from,
 			IEntity to,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			bool fixedDirection,
@@ -399,13 +372,13 @@ namespace Server
 			int unknown)
 		{
 			SendMovingParticles(
-				from, to, itemID, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, unknown);
+				from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, unknown);
 		}
 
 		public static void SendMovingParticles(
 			IEntity from,
 			IEntity to,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			bool fixedDirection,
@@ -420,7 +393,7 @@ namespace Server
 			SendMovingParticles(
 				from,
 				to,
-				itemID,
+				itemId,
 				speed,
 				duration,
 				fixedDirection,
@@ -437,7 +410,7 @@ namespace Server
 		public static void SendMovingParticles(
 			IEntity from,
 			IEntity to,
-			int itemID,
+			int itemId,
 			int speed,
 			int duration,
 			bool fixedDirection,
@@ -450,14 +423,14 @@ namespace Server
 			EffectLayer layer,
 			int unknown)
 		{
-			if (from is Mobile)
+			if (from is Mobile mobile)
 			{
-				((Mobile)from).ProcessDelta();
+				mobile.ProcessDelta();
 			}
 
-			if (to is Mobile)
+			if (to is Mobile mobile1)
 			{
-				((Mobile)to).ProcessDelta();
+				mobile1.ProcessDelta();
 			}
 
 			Map map = from.Map;
@@ -474,36 +447,29 @@ namespace Server
 
 					if (SendParticlesTo(state))
 					{
-						if (particles == null)
-						{
-							particles =
-								Packet.Acquire(
-									new MovingParticleEffect(
-										from,
-										to,
-										itemID,
-										speed,
-										duration,
-										fixedDirection,
-										explodes,
-										hue,
-										renderMode,
-										effect,
-										explodeEffect,
-										explodeSound,
-										layer,
-										unknown));
-						}
+						particles ??= Packet.Acquire(
+							new MovingParticleEffect(
+								from,
+								to,
+								itemId,
+								speed,
+								duration,
+								fixedDirection,
+								explodes,
+								hue,
+								renderMode,
+								effect,
+								explodeEffect,
+								explodeSound,
+								layer,
+								unknown));
 
 						state.Send(particles);
 					}
-					else if (itemID > 1)
+					else if (itemId > 1)
 					{
-						if (regular == null)
-						{
-							regular =
-								Packet.Acquire(new MovingEffect(from, to, itemID, speed, duration, fixedDirection, explodes, hue, renderMode));
-						}
+						regular ??= Packet.Acquire(new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue,
+							renderMode));
 
 						state.Send(regular);
 					}

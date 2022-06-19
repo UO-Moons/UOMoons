@@ -22,16 +22,16 @@ namespace Server.Items
 			{
 				if (!Utility.InRange(old, Location, 2) && Utility.InRange(m.Location, Location, 2))
 				{
-					if (ItemID == 0x2A7B || ItemID == 0x2A7D)
+					if (ItemId == 0x2A7B || ItemId == 0x2A7D)
 					{
 						Effects.PlaySound(Location, Map, Utility.RandomMinMax(0x551, 0x553));
-						ItemID += 1;
+						ItemId += 1;
 					}
 				}
 				else if (Utility.InRange(old, Location, 2) && !Utility.InRange(m.Location, Location, 2))
 				{
-					if (ItemID == 0x2A7C || ItemID == 0x2A7E)
-						ItemID -= 1;
+					if (ItemId == 0x2A7C || ItemId == 0x2A7E)
+						ItemId -= 1;
 				}
 			}
 		}

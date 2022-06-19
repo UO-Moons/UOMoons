@@ -21,10 +21,10 @@ namespace Server.Items
 		{
 			switch (dir)
 			{
-				case Direction.East: ItemID = 0x3E65; break;
-				case Direction.West: ItemID = 0x3E93; break;
-				case Direction.North: ItemID = 0x3EAE; break;
-				case Direction.South: ItemID = 0x3EB9; break;
+				case Direction.East: ItemId = 0x3E65; break;
+				case Direction.West: ItemId = 0x3E93; break;
+				case Direction.North: ItemId = 0x3EAE; break;
+				case Direction.South: ItemId = 0x3EB9; break;
 			}
 		}
 

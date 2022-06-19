@@ -730,7 +730,7 @@ namespace Server.Mobiles
                         type = items.Owner.GetType();
                     }
 
-                    if (items.ItemID != 0x2006 || items.Channeled || type == typeof(PlayerMobile) || type == null || (items.Owner != null && items.Owner.Fame < 100) || ((items.Owner != null) && (items.Owner is BaseCreature) && (((BaseCreature)items.Owner).Summoned || ((BaseCreature)items.Owner).IsBonded)))
+                    if (items.ItemId != 0x2006 || items.Channeled || type == typeof(PlayerMobile) || type == null || (items.Owner != null && items.Owner.Fame < 100) || ((items.Owner != null) && (items.Owner is BaseCreature) && (((BaseCreature)items.Owner).Summoned || ((BaseCreature)items.Owner).IsBonded)))
                     {
                         continue;
                     }

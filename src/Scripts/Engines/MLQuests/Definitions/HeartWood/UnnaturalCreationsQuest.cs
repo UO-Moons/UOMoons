@@ -16,7 +16,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(SpellweavingBook), 1031600)); // Spellweaving Spellbook
 		}
 
-		public override QuestChain ChainID => QuestChain.Spellweaving;
+		public override QuestChain ChainId => QuestChain.Spellweaving;
 		/* Unnatural Creations */
 		public override object Title => 1072758;
 		/* You have proven your desire to contribute to the community and serve the 

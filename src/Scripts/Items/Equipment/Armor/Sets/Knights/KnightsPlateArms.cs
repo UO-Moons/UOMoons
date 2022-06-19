@@ -3,7 +3,7 @@ namespace Server.Items;
 public class KnightsPlateArms : PlateArms
 {
 	public override int LabelNumber => 1080162;  // Knight's Arms
-	public override SetItem SetID => SetItem.Knights;
+	public override SetItem SetId => SetItem.Knights;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

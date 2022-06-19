@@ -11,7 +11,7 @@ namespace Server.Items
 		[Constructable]
 		public TheDryadBow()
 		{
-			ItemID = 0x13B1;
+			ItemId = 0x13B1;
 			Hue = 0x48F;
 			SkillBonuses.SetValues(0, m_PossibleBonusSkills[Utility.Random(m_PossibleBonusSkills.Length)], (Utility.Random(4) == 0 ? 10.0 : 5.0));
 			WeaponAttributes.SelfRepair = 5;

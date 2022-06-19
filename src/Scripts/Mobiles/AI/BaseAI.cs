@@ -1622,7 +1622,7 @@ namespace Server.Mobiles
 				{
 					Name = creature.Name;
 				}
-				else if (ItemID == ShrinkTable.DefaultItemID || creature.GetType().IsDefined(typeof(FriendlyNameAttribute), false) || creature is Reptalon)
+				else if (ItemId == ShrinkTable.DefaultItemID || creature.GetType().IsDefined(typeof(FriendlyNameAttribute), false) || creature is Reptalon)
 					Name = FriendlyNameAttribute.GetFriendlyNameFor(creature.GetType()).ToString();
 
 				//(As Per OSI)No name.  Normally, set by the ItemID of the Shrink Item unless we either explicitly set it with an Attribute, or, no lookup found

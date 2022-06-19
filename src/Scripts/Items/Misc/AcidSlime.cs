@@ -53,7 +53,7 @@ namespace Server.Items
 				if (!m_Drying && age > (m_Duration - age))
 				{
 					m_Drying = true;
-					ItemID = 0x122B;
+					ItemId = 0x122B;
 				}
 
 				List<Mobile> toDamage = new List<Mobile>();

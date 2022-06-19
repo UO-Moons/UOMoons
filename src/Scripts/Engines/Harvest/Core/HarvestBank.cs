@@ -1,95 +1,94 @@
 using System;
 
-namespace Server.Engines.Harvest
+namespace Server.Engines.Harvest;
+
+public class HarvestBank
 {
-    public class HarvestBank
-    {
-        private readonly int m_Maximum;
-        private int m_Current;
-        private DateTime m_NextRespawn;
-        private HarvestVein m_Vein, m_DefaultVein;
-        public HarvestBank(HarvestDefinition def, HarvestVein defaultVein)
-        {
-            m_Maximum = Utility.RandomMinMax(def.MinTotal, def.MaxTotal);
-            m_Current = m_Maximum;
-            m_DefaultVein = defaultVein;
-            m_Vein = m_DefaultVein;
+	private readonly int _mMaximum;
+	private int _mCurrent;
+	private DateTime _mNextRespawn;
+	private HarvestVein _mVein, _mDefaultVein;
+	public HarvestBank(HarvestDefinition def, HarvestVein defaultVein)
+	{
+		_mMaximum = Utility.RandomMinMax(def.MinTotal, def.MaxTotal);
+		_mCurrent = _mMaximum;
+		_mDefaultVein = defaultVein;
+		_mVein = _mDefaultVein;
 
-            Definition = def;
-        }
+		Definition = def;
+	}
 
-        public HarvestDefinition Definition { get; }
-        public int Current
-        {
-            get
-            {
-                CheckRespawn();
-                return m_Current;
-            }
-        }
-        public HarvestVein Vein
-        {
-            get
-            {
-                CheckRespawn();
-                return m_Vein;
-            }
-            set => m_Vein = value;
-        }
-        public HarvestVein DefaultVein
-        {
-            get
-            {
-                CheckRespawn();
-                return m_DefaultVein;
-            }
-        }
-        public void CheckRespawn()
-        {
-            if (m_Current == m_Maximum || m_NextRespawn > DateTime.UtcNow)
-            {
-                return;
-            }
+	public HarvestDefinition Definition { get; }
+	public int Current
+	{
+		get
+		{
+			CheckRespawn();
+			return _mCurrent;
+		}
+	}
+	public HarvestVein Vein
+	{
+		get
+		{
+			CheckRespawn();
+			return _mVein;
+		}
+		set => _mVein = value;
+	}
+	public HarvestVein DefaultVein
+	{
+		get
+		{
+			CheckRespawn();
+			return _mDefaultVein;
+		}
+	}
+	public void CheckRespawn()
+	{
+		if (_mCurrent == _mMaximum || _mNextRespawn > DateTime.UtcNow)
+		{
+			return;
+		}
 
-            m_Current = m_Maximum;
+		_mCurrent = _mMaximum;
 
-            if (Definition.RandomizeVeins)
-            {
-                m_DefaultVein = Definition.GetVeinFrom(Utility.RandomDouble());
-            }
+		if (Definition.RandomizeVeins)
+		{
+			_mDefaultVein = Definition.GetVeinFrom(Utility.RandomDouble());
+		}
 
-            m_Vein = m_DefaultVein;
-        }
+		_mVein = _mDefaultVein;
+	}
 
-        public void Consume(int amount, Mobile from)
-        {
-            CheckRespawn();
+	public void Consume(int amount, Mobile from)
+	{
+		CheckRespawn();
 
-            if (m_Current == m_Maximum)
-            {
-                double min = Definition.MinRespawn.TotalMinutes;
-                double max = Definition.MaxRespawn.TotalMinutes;
-                double rnd = Utility.RandomDouble();
+		if (_mCurrent == _mMaximum)
+		{
+			double min = Definition.MinRespawn.TotalMinutes;
+			double max = Definition.MaxRespawn.TotalMinutes;
+			double rnd = Utility.RandomDouble();
 
-                m_Current = m_Maximum - amount;
+			_mCurrent = _mMaximum - amount;
 
-                double minutes = min + (rnd * (max - min));
-                if (Definition.RaceBonus && from.Race == Race.Elf)    //def.RaceBonus = Core.ML
-                {
-                    minutes *= .75;    //25% off the time.  
-                }
+			double minutes = min + (rnd * (max - min));
+			if (Definition.RaceBonus && from.Race == Race.Elf)    //def.RaceBonus = Core.ML
+			{
+				minutes *= .75;    //25% off the time.  
+			}
 
-                m_NextRespawn = DateTime.UtcNow + TimeSpan.FromMinutes(minutes);
-            }
-            else
-            {
-                m_Current -= amount;
-            }
+			_mNextRespawn = DateTime.UtcNow + TimeSpan.FromMinutes(minutes);
+		}
+		else
+		{
+			_mCurrent -= amount;
+		}
 
-            if (m_Current < 0)
-            {
-                m_Current = 0;
-            }
-        }
-    }
+		if (_mCurrent < 0)
+		{
+			_mCurrent = 0;
+		}
+	}
 }

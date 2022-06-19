@@ -69,8 +69,8 @@ namespace Server.Items
 
 			int version = reader.ReadInt();
 
-			if (ItemID == 0x2809) // Temporary solution for clients 7.0.0.0 and up
-				ItemID = 0x2808;
+			if (ItemId == 0x2809) // Temporary solution for clients 7.0.0.0 and up
+				ItemId = 0x2808;
 		}
 	}
 }

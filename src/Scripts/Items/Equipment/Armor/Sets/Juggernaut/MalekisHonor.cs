@@ -3,7 +3,7 @@ namespace Server.Items;
 public class MalekisHonor : MetalKiteShield
 {
 	public override int LabelNumber => 1074312;// Maleki's Honor (Juggernaut Set)
-	public override SetItem SetID => SetItem.Juggernaut;
+	public override SetItem SetId => SetItem.Juggernaut;
 	public override int Pieces => 2;
 	public override int BasePhysicalResistance => 3;
 	public override int BaseFireResistance => 3;

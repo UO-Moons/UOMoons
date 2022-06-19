@@ -4,10 +4,9 @@ using Server.Targeting;
 
 namespace Server.Items
 {
-	public class ParrotItem : Item
+	public sealed class ParrotItem : Item
 	{
-		private static readonly int[] m_Hues = new int[]
-		{
+		private static readonly int[] MHues = {
 			0x3, 0xD, 0x13, 0x1C, 0x21, 0x30, 0x3F, 0x44, 0x59, 0x62, 0x71
 		};
 		[Constructable]
@@ -15,7 +14,7 @@ namespace Server.Items
 			: base(0x20EE)
 		{
 			Weight = 1;
-			Hue = Utility.RandomList(m_Hues);
+			Hue = Utility.RandomList(MHues);
 		}
 
 		public ParrotItem(Serial serial)
@@ -38,8 +37,7 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -50,11 +48,11 @@ namespace Server.Items
 
 		public class InternalTarget : Target
 		{
-			private readonly ParrotItem m_Parrot;
+			private readonly ParrotItem _mParrot;
 			public InternalTarget(ParrotItem parrot)
 				: base(2, false, TargetFlags.None)
 			{
-				m_Parrot = parrot;
+				_mParrot = parrot;
 			}
 
 			protected override void OnTarget(Mobile from, object targeted)
@@ -71,13 +69,13 @@ namespace Server.Items
 							{
 								PetParrot parrot = new()
 								{
-									Hue = m_Parrot.Hue
+									Hue = _mParrot.Hue
 								};
 								parrot.MoveToWorld(perch.Location, perch.Map);
 								parrot.Z += 12;
 
 								perch.Parrot = parrot;
-								m_Parrot.Delete();
+								_mParrot.Delete();
 							}
 							else
 								from.SendLocalizedMessage(1072616); //That Parrot Perch already has a Parrot.

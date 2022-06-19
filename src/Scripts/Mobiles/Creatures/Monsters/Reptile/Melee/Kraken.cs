@@ -44,7 +44,7 @@ namespace Server.Mobiles
 
 			Rope rope = new Rope
 			{
-				ItemID = 0x14F8
+				ItemId = 0x14F8
 			};
 			PackItem(rope);
 

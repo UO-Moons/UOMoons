@@ -711,7 +711,7 @@ namespace Server.Gumps
 			private readonly Mobile m_Vendor;
 			private readonly Mobile m_Mob;
 
-			public PVHuePicker(Item item, Mobile v, Mobile from) : base(item.ItemID)
+			public PVHuePicker(Item item, Mobile v, Mobile from) : base(item.ItemId)
 			{
 				m_Item = item;
 				m_Vendor = v;

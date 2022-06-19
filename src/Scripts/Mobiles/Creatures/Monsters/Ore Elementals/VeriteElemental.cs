@@ -1,4 +1,6 @@
+using System;
 using Server.Items;
+using Server.Network;
 
 namespace Server.Mobiles
 {
@@ -42,12 +44,6 @@ namespace Server.Mobiles
 			Karma = -3500;
 
 			VirtualArmor = 35;
-
-			Item ore = new VeriteOre(oreAmount)
-			{
-				ItemID = 0x19B9
-			};
-			PackItem(ore);
 		}
 
 		public override void GenerateLoot()
@@ -56,15 +52,40 @@ namespace Server.Mobiles
 			AddLoot(LootPack.Gems, 2);
 		}
 
+		public override void OnDeath(Container corpseLoot)
+		{
+			corpseLoot.DropItem(new VeriteOre(25));
+			//ore.ItemID = 0x19B9;
+			base.OnDeath(corpseLoot);
+		}
+
 		public override bool AutoDispel => true;
 		public override bool BleedImmune => true;
 		public override int TreasureMapLevel => 1;
 
-		public override void AlterMeleeDamageTo(Mobile to, ref int damage)
+		public static void OnHit(Mobile defender, Item item, int damage)
 		{
-			if (0.5 >= Utility.RandomDouble())
+			if (item is not IWearableDurability dur || dur.MaxHitPoints == 0 || item.LootType == LootType.Blessed || item.Insured)
 			{
-				Ability.DamageArmor(to, 1, 5);
+				return;
+			}
+
+			if (damage < 10)
+				damage = 10;
+
+			if (dur.HitPoints > 0)
+			{
+				dur.HitPoints = Math.Max(0, dur.HitPoints - damage);
+			}
+			else
+			{
+				defender.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
+				dur.MaxHitPoints = Math.Max(0, dur.MaxHitPoints - damage);
+
+				if (!item.Deleted && dur.MaxHitPoints == 0)
+				{
+					item.Delete();
+				}
 			}
 		}
 

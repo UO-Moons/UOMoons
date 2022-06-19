@@ -8,7 +8,7 @@ namespace Server.Engines.Quests.Necro
 		[Constructable]
 		public KronusScrollBox()
 		{
-			ItemID = 0xE80;
+			ItemId = 0xE80;
 			Movable = false;
 
 			for (int i = 0; i < 40; i++)

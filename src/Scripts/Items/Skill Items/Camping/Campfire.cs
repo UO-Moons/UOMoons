@@ -55,7 +55,7 @@ namespace Server.Items
 		{
 			get
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
 					case 0xDE3:
 						return CampfireStatus.Burning;
@@ -75,17 +75,17 @@ namespace Server.Items
 				switch (value)
 				{
 					case CampfireStatus.Burning:
-						ItemID = 0xDE3;
+						ItemId = 0xDE3;
 						Light = LightType.Circle300;
 						break;
 
 					case CampfireStatus.Extinguishing:
-						ItemID = 0xDE9;
+						ItemId = 0xDE9;
 						Light = LightType.Circle150;
 						break;
 
 					default:
-						ItemID = 0xDEA;
+						ItemId = 0xDEA;
 						Light = LightType.ArchedWindowEast;
 						ClearEntries();
 						break;

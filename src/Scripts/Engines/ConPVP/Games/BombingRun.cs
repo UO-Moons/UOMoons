@@ -325,7 +325,7 @@ namespace Server.Engines.ConPVP
 		private void DoAnim(Point3D start, Point3D end, Map map)
 		{
 			Effects.SendMovingEffect(new Entity(Serial.Zero, start, map), new Entity(Serial.Zero, end, map),
-				ItemID, 15, 0, false, false, Hue, 0);
+				ItemId, 15, 0, false, false, Hue, 0);
 		}
 
 		private void DoCatch(Mobile m)
@@ -560,7 +560,7 @@ namespace Server.Engines.ConPVP
 				IPooledEnumerable area = Map.GetItemsInBounds(rect);
 				foreach (Item i in area)
 				{
-					if (i == this || i.ItemID >= 0x4000)
+					if (i == this || i.ItemId >= 0x4000)
 						continue;
 
 					if (i is BRGoal)
@@ -861,7 +861,7 @@ namespace Server.Engines.ConPVP
 		{
 			Name = "Bombing Run Goal";
 
-			ItemID = 0x51D;
+			ItemId = 0x51D;
 			Hue = 0x84C;
 			Visible = true;
 
@@ -1783,7 +1783,7 @@ namespace Server.Engines.ConPVP
 					Item item = new Trophy(sb.ToString(), rank);
 
 					if (pl == leader)
-						item.ItemID = 4810;
+						item.ItemId = 4810;
 
 					item.Name = string.Format("{0}, {1} team", item.Name, ((BRTeamInfo)teams[i]).Name.ToLower());
 

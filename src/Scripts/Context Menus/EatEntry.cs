@@ -1,24 +1,23 @@
 using Server.Items;
 
-namespace Server.ContextMenus
+namespace Server.ContextMenus;
+
+public class EatEntry : ContextMenuEntry
 {
-	public class EatEntry : ContextMenuEntry
+	private readonly Mobile _mFrom;
+	private readonly Food _mFood;
+
+	public EatEntry(Mobile from, Food food) : base(6135, 1)
 	{
-		private readonly Mobile m_From;
-		private readonly Food m_Food;
+		_mFrom = from;
+		_mFood = food;
+	}
 
-		public EatEntry(Mobile from, Food food) : base(6135, 1)
-		{
-			m_From = from;
-			m_Food = food;
-		}
+	public override void OnClick()
+	{
+		if (_mFood.Deleted || !_mFood.Movable || !_mFrom.CheckAlive() || !_mFood.CheckItemUse(_mFrom))
+			return;
 
-		public override void OnClick()
-		{
-			if (m_Food.Deleted || !m_Food.Movable || !m_From.CheckAlive() || !m_Food.CheckItemUse(m_From))
-				return;
-
-			m_Food.Eat(m_From);
-		}
+		_mFood.Eat(_mFrom);
 	}
 }

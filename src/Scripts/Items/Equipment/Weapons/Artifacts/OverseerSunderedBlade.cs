@@ -7,7 +7,7 @@ namespace Server.Items
 		[Constructable]
 		public OverseerSunderedBlade()
 		{
-			ItemID = 0x2D27;
+			ItemId = 0x2D27;
 			Hue = 0x485;
 
 			Attributes.RegenStam = 2;

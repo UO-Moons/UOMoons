@@ -10,95 +10,93 @@ namespace Server.Gumps
 
 	public class GumpButton : GumpEntry
 	{
-		private int m_X, m_Y;
-		private int m_ID1, m_ID2;
-		private int m_ButtonID;
-		private GumpButtonType m_Type;
-		private int m_Param;
+		private int _mX, _mY;
+		private int _mId1, _mId2;
+		private int _mButtonId;
+		private GumpButtonType _mType;
+		private int _mParam;
 
-		public GumpButton(int x, int y, int normalID, int pressedID, int buttonID, GumpButtonType type, int param)
+		public GumpButton(int x, int y, int normalId, int pressedId, int buttonId, GumpButtonType type, int param)
 		{
-			m_X = x;
-			m_Y = y;
-			m_ID1 = normalID;
-			m_ID2 = pressedID;
-			m_ButtonID = buttonID;
-			m_Type = type;
-			m_Param = param;
+			_mX = x;
+			_mY = y;
+			_mId1 = normalId;
+			_mId2 = pressedId;
+			_mButtonId = buttonId;
+			_mType = type;
+			_mParam = param;
 		}
 
 		public int X
 		{
-			get => m_X;
-			set => Delta(ref m_X, value);
+			get => _mX;
+			set => Delta(ref _mX, value);
 		}
 
 		public int Y
 		{
-			get => m_Y;
-			set => Delta(ref m_Y, value);
+			get => _mY;
+			set => Delta(ref _mY, value);
 		}
 
-		public int NormalID
+		public int NormalId
 		{
-			get => m_ID1;
-			set => Delta(ref m_ID1, value);
+			get => _mId1;
+			set => Delta(ref _mId1, value);
 		}
 
-		public int PressedID
+		public int PressedId
 		{
-			get => m_ID2;
-			set => Delta(ref m_ID2, value);
+			get => _mId2;
+			set => Delta(ref _mId2, value);
 		}
 
-		public int ButtonID
+		public int ButtonId
 		{
-			get => m_ButtonID;
-			set => Delta(ref m_ButtonID, value);
+			get => _mButtonId;
+			set => Delta(ref _mButtonId, value);
 		}
 
 		public GumpButtonType Type
 		{
-			get => m_Type;
+			get => _mType;
 			set
 			{
-				if (m_Type != value)
+				if (_mType == value) return;
+				_mType = value;
+
+				Gump parent = Parent;
+
+				if (parent != null)
 				{
-					m_Type = value;
-
-					Gump parent = Parent;
-
-					if (parent != null)
-					{
-						Gump.Invalidate();
-					}
+					Gump.Invalidate();
 				}
 			}
 		}
 
 		public int Param
 		{
-			get => m_Param;
-			set => Delta(ref m_Param, value);
+			get => _mParam;
+			set => Delta(ref _mParam, value);
 		}
 
 		public override string Compile()
 		{
-			return string.Format("{{ button {0} {1} {2} {3} {4} {5} {6} }}", m_X, m_Y, m_ID1, m_ID2, (int)m_Type, m_Param, m_ButtonID);
+			return $"{{ button {_mX} {_mY} {_mId1} {_mId2} {(int) _mType} {_mParam} {_mButtonId} }}";
 		}
 
-		private static readonly byte[] m_LayoutName = Gump.StringToBuffer("button");
+		private static readonly byte[] MLayoutName = Gump.StringToBuffer("button");
 
 		public override void AppendTo(IGumpWriter disp)
 		{
-			disp.AppendLayout(m_LayoutName);
-			disp.AppendLayout(m_X);
-			disp.AppendLayout(m_Y);
-			disp.AppendLayout(m_ID1);
-			disp.AppendLayout(m_ID2);
-			disp.AppendLayout((int)m_Type);
-			disp.AppendLayout(m_Param);
-			disp.AppendLayout(m_ButtonID);
+			disp.AppendLayout(MLayoutName);
+			disp.AppendLayout(_mX);
+			disp.AppendLayout(_mY);
+			disp.AppendLayout(_mId1);
+			disp.AppendLayout(_mId2);
+			disp.AppendLayout((int)_mType);
+			disp.AppendLayout(_mParam);
+			disp.AppendLayout(_mButtonId);
 		}
 	}
 }

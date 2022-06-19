@@ -8,7 +8,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x1583 || ItemID == 0x1854)
+				if (ItemId == 0x1583 || ItemId == 0x1854)
 					return 0x1854;
 
 				return 0x1858;
@@ -19,7 +19,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x1853 || ItemID == 0x1584)
+				if (ItemId == 0x1853 || ItemId == 0x1584)
 					return 0x1853;
 
 				return 0x1857;

@@ -41,7 +41,7 @@ namespace Server.Mobiles
 			PackItem(new BlackPearl(3));
 			Item ore = new IronOre(3)
 			{
-				ItemID = 0x19B8
+				ItemId = 0x19B8
 			};
 			PackItem(ore);
 		}

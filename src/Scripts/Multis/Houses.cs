@@ -27,7 +27,7 @@ namespace Server.Multis
         public override HousePlacementEntry ConvertEntry => HousePlacementEntry.TwoStoryFoundations[0];
         public override HouseDeed GetDeed()
         {
-            switch (ItemID)
+            switch (ItemId)
             {
                 case 0x64:
                     return new StonePlasterHouseDeed();
@@ -129,7 +129,7 @@ namespace Server.Multis
         public override int DefaultPrice => 192400;
         public override HouseDeed GetDeed()
         {
-            switch (ItemID)
+            switch (ItemId)
             {
                 case 0x76:
                     return new TwoStoryWoodPlasterHouseDeed();
@@ -565,13 +565,13 @@ namespace Server.Multis
         {
         }
 
-        public override Rectangle2D[] Area => (ItemID == 0x40A2 ? AreaArray1 : AreaArray2);
+        public override Rectangle2D[] Area => (ItemId == 0x40A2 ? AreaArray1 : AreaArray2);
         public override Point3D BaseBanLocation => new Point3D(3, 4, 0);
         public override int DefaultPrice => 63000;
         public override HousePlacementEntry ConvertEntry => HousePlacementEntry.TwoStoryFoundations[0];
         public override HouseDeed GetDeed()
         {
-            switch (ItemID)
+            switch (ItemId)
             {
                 case 0xA0:
                     return new StoneWorkshopDeed();

@@ -1,32 +1,22 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class SbRancher : SbInfo
 {
-	public class SBRancher : SBInfo
+	public override IShopSellInfo SellInfo { get; } = new InternalSellInfo();
+
+	public override List<GenericBuyInfo> BuyInfo { get; } = new InternalBuyInfo();
+
+	public class InternalBuyInfo : List<GenericBuyInfo>
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
-		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
-
-		public SBRancher()
+		public InternalBuyInfo()
 		{
+			Add(new AnimalBuyInfo(1, typeof(PackHorse), 631, 10, 291, 0));
 		}
+	}
 
-		public override IShopSellInfo SellInfo => m_SellInfo;
-		public override List<GenericBuyInfo> BuyInfo => m_BuyInfo;
-
-		public class InternalBuyInfo : List<GenericBuyInfo>
-		{
-			public InternalBuyInfo()
-			{
-				Add(new AnimalBuyInfo(1, typeof(PackHorse), 631, 10, 291, 0));
-			}
-		}
-
-		public class InternalSellInfo : GenericSellInfo
-		{
-			public InternalSellInfo()
-			{
-			}
-		}
+	public class InternalSellInfo : GenericSellInfo
+	{
 	}
 }

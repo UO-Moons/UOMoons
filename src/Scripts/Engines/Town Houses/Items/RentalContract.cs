@@ -17,7 +17,7 @@ namespace Server.Engines.TownHouses
 
 		public RentalContract() : base()
 		{
-			ItemID = 0x14F0;
+			ItemId = 0x14F0;
 			Movable = true;
 			RentByTime = TimeSpan.FromDays(1);
 			RecurRent = true;

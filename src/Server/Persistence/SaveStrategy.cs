@@ -10,19 +10,10 @@ namespace Server
 			{
 				int processorCount = Core.ProcessorCount;
 
-				if (processorCount > 2)
-				{
-					return new DualSaveStrategy(); // return new DynamicSaveStrategy(); (4.0 or return new ParallelSaveStrategy(processorCount); (2.0)
-				}
-				else
-				{
-					return new DualSaveStrategy();
-				}
+				return new DualSaveStrategy();
 			}
-			else
-			{
-				return new StandardSaveStrategy();
-			}
+
+			return new StandardSaveStrategy();
 		}
 
 		public abstract void Save(bool permitBackgroundWrite);

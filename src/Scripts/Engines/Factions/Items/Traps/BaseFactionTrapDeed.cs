@@ -97,7 +97,7 @@ namespace Server.Factions
 
 		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 		{
-			ItemID = 0x14F0;
+			ItemId = 0x14F0;
 			Faction = Faction.Find(from);
 
 			return 1;

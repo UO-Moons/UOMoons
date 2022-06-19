@@ -10,40 +10,40 @@ namespace Server
 	{
 		public override string Name => "Parallel";
 
-		private readonly int processorCount;
+		private readonly int _processorCount;
 
 		public ParallelSaveStrategy(int processorCount)
 		{
-			this.processorCount = processorCount;
+			_processorCount = processorCount;
 
 			_decayQueue = new Queue<Item>();
 		}
 
 		private int GetThreadCount()
 		{
-			return processorCount - 1;
+			return _processorCount - 1;
 		}
 
-		private SequentialFileWriter itemData, itemIndex;
-		private SequentialFileWriter mobileData, mobileIndex;
-		private SequentialFileWriter guildData, guildIndex;
+		private SequentialFileWriter _itemData, _itemIndex;
+		private SequentialFileWriter _mobileData, _mobileIndex;
+		private SequentialFileWriter _guildData, _guildIndex;
 
 		private readonly Queue<Item> _decayQueue;
 
-		private Consumer[] consumers;
-		private int cycle;
+		private Consumer[] _consumers;
+		private int _cycle;
 
-		private bool finished;
+		private bool _finished;
 
 		public override void Save(bool permitBackgroundWrite)
 		{
 			OpenFiles();
 
-			consumers = new Consumer[GetThreadCount()];
+			_consumers = new Consumer[GetThreadCount()];
 
-			for (int i = 0; i < consumers.Length; ++i)
+			for (var i = 0; i < _consumers.Length; ++i)
 			{
-				consumers[i] = new Consumer(this, 256);
+				_consumers[i] = new Consumer(this, 256);
 			}
 
 			IEnumerable<ISerializable> collection = new Producer();
@@ -59,17 +59,14 @@ namespace Server
 				}
 			}
 
-			finished = true;
+			_finished = true;
 
 			SaveTypeDatabases();
 
 			WaitHandle.WaitAll(
 				Array.ConvertAll<Consumer, WaitHandle>(
-					consumers,
-					delegate (Consumer input)
-					{
-						return input.completionEvent;
-					}
+					_consumers,
+					input => input.CompletionEvent
 				)
 			);
 
@@ -115,18 +112,18 @@ namespace Server
 
 		private void OpenFiles()
 		{
-			itemData = new SequentialFileWriter(World.ItemDataPath);
-			itemIndex = new SequentialFileWriter(World.ItemIndexPath);
+			_itemData = new SequentialFileWriter(World.ItemDataPath);
+			_itemIndex = new SequentialFileWriter(World.ItemIndexPath);
 
-			mobileData = new SequentialFileWriter(World.MobileDataPath);
-			mobileIndex = new SequentialFileWriter(World.MobileIndexPath);
+			_mobileData = new SequentialFileWriter(World.MobileDataPath);
+			_mobileIndex = new SequentialFileWriter(World.MobileIndexPath);
 
-			guildData = new SequentialFileWriter(World.GuildDataPath);
-			guildIndex = new SequentialFileWriter(World.GuildIndexPath);
+			_guildData = new SequentialFileWriter(World.GuildDataPath);
+			_guildIndex = new SequentialFileWriter(World.GuildIndexPath);
 
-			WriteCount(itemIndex, World.Items.Count);
-			WriteCount(mobileIndex, World.Mobiles.Count);
-			WriteCount(guildIndex, World.Guilds.Count);
+			WriteCount(_itemIndex, World.Items.Count);
+			WriteCount(_mobileIndex, World.Mobiles.Count);
+			WriteCount(_guildIndex, World.Guilds.Count);
 		}
 
 		private static void WriteCount(SequentialFileWriter indexFile, int count)
@@ -143,46 +140,40 @@ namespace Server
 
 		private void CloseFiles()
 		{
-			itemData.Close();
-			itemIndex.Close();
+			_itemData.Close();
+			_itemIndex.Close();
 
-			mobileData.Close();
-			mobileIndex.Close();
+			_mobileData.Close();
+			_mobileIndex.Close();
 
-			guildData.Close();
-			guildIndex.Close();
+			_guildData.Close();
+			_guildIndex.Close();
 
 			World.NotifyDiskWriteComplete();
 		}
 
 		private void OnSerialized(ConsumableEntry entry)
 		{
-			ISerializable value = entry.value;
-			BinaryMemoryWriter writer = entry.writer;
+			ISerializable value = entry.Value;
+			BinaryMemoryWriter writer = entry.Writer;
 
-			if (value is Item item)
+			switch (value)
 			{
-				Save(item, writer);
-			}
-			else
-			{
-				if (value is Mobile mob)
-				{
+				case Item item:
+					Save(item, writer);
+					break;
+				case Mobile mob:
 					Save(mob, writer);
-				}
-				else
-				{
-					if (value is BaseGuild guild)
-					{
-						Save(guild, writer);
-					}
-				}
+					break;
+				case BaseGuild guild:
+					Save(guild, writer);
+					break;
 			}
 		}
 
 		private void Save(Item item, BinaryMemoryWriter writer)
 		{
-			_ = writer.CommitTo(itemData, itemIndex, item.m_TypeRef, item.Serial);
+			_ = writer.CommitTo(_itemData, _itemIndex, item.MTypeRef, item.Serial);
 
 			if (item.Decays && item.Parent == null && item.Map != Map.Internal && DateTime.UtcNow > (item.LastMoved + item.DecayTime))
 			{
@@ -192,27 +183,25 @@ namespace Server
 
 		private void Save(Mobile mob, BinaryMemoryWriter writer)
 		{
-			_ = writer.CommitTo(mobileData, mobileIndex, mob.m_TypeRef, mob.Serial);
+			_ = writer.CommitTo(_mobileData, _mobileIndex, mob.MTypeRef, mob.Serial);
 		}
 
 		private void Save(BaseGuild guild, BinaryMemoryWriter writer)
 		{
-			_ = writer.CommitTo(guildData, guildIndex, 0, guild.Serial);
+			_ = writer.CommitTo(_guildData, _guildIndex, 0, guild.Serial);
 		}
 
 		private bool Enqueue(ISerializable value)
 		{
-			for (int i = 0; i < consumers.Length; ++i)
+			for (var i = 0; i < _consumers.Length; ++i)
 			{
-				Consumer consumer = consumers[cycle++ % consumers.Length];
+				Consumer consumer = _consumers[_cycle++ % _consumers.Length];
 
-				if ((consumer.tail - consumer.head) < consumer.buffer.Length)
-				{
-					consumer.buffer[consumer.tail % consumer.buffer.Length].value = value;
-					consumer.tail++;
+				if (consumer.Tail - consumer.Head >= consumer.Buffer.Length) continue;
+				consumer.Buffer[consumer.Tail % consumer.Buffer.Length].Value = value;
+				consumer.Tail++;
 
-					return true;
-				}
+				return true;
 			}
 
 			return false;
@@ -222,14 +211,14 @@ namespace Server
 		{
 			bool committed = false;
 
-			for (int i = 0; i < consumers.Length; ++i)
+			for (var i = 0; i < _consumers.Length; ++i)
 			{
-				Consumer consumer = consumers[i];
+				Consumer consumer = _consumers[i];
 
-				while (consumer.head < consumer.done)
+				while (consumer.Head < consumer.Done)
 				{
-					OnSerialized(consumer.buffer[consumer.head % consumer.buffer.Length]);
-					consumer.head++;
+					OnSerialized(consumer.Buffer[consumer.Head % consumer.Buffer.Length]);
+					consumer.Head++;
 
 					committed = true;
 				}
@@ -240,30 +229,30 @@ namespace Server
 
 		private sealed class Producer : IEnumerable<ISerializable>
 		{
-			private readonly IEnumerable<Item> items;
-			private readonly IEnumerable<Mobile> mobiles;
-			private readonly IEnumerable<BaseGuild> guilds;
+			private readonly IEnumerable<Item> _items;
+			private readonly IEnumerable<Mobile> _mobiles;
+			private readonly IEnumerable<BaseGuild> _guilds;
 
 			public Producer()
 			{
-				items = World.Items.Values;
-				mobiles = World.Mobiles.Values;
-				guilds = World.Guilds.Values;
+				_items = World.Items.Values;
+				_mobiles = World.Mobiles.Values;
+				_guilds = World.Guilds.Values;
 			}
 
 			public IEnumerator<ISerializable> GetEnumerator()
 			{
-				foreach (Item item in items)
+				foreach (Item item in _items)
 				{
 					yield return item;
 				}
 
-				foreach (Mobile mob in mobiles)
+				foreach (Mobile mob in _mobiles)
 				{
 					yield return mob;
 				}
 
-				foreach (BaseGuild guild in guilds)
+				foreach (BaseGuild guild in _guilds)
 				{
 					yield return guild;
 				}
@@ -277,35 +266,33 @@ namespace Server
 
 		private struct ConsumableEntry
 		{
-			public ISerializable value;
-			public BinaryMemoryWriter writer;
+			public ISerializable Value;
+			public BinaryMemoryWriter Writer;
 		}
 
 		private sealed class Consumer
 		{
-			private readonly ParallelSaveStrategy owner;
+			private readonly ParallelSaveStrategy _owner;
 
-			public ManualResetEvent completionEvent;
+			public readonly ManualResetEvent CompletionEvent;
 
-			public ConsumableEntry[] buffer;
-			public int head, done, tail;
-
-			private readonly Thread thread;
+			public readonly ConsumableEntry[] Buffer;
+			public int Head, Done, Tail;
 
 			public Consumer(ParallelSaveStrategy owner, int bufferSize)
 			{
-				this.owner = owner;
+				_owner = owner;
 
-				buffer = new ConsumableEntry[bufferSize];
+				Buffer = new ConsumableEntry[bufferSize];
 
-				for (int i = 0; i < buffer.Length; ++i)
+				for (var i = 0; i < Buffer.Length; ++i)
 				{
-					buffer[i].writer = new BinaryMemoryWriter();
+					Buffer[i].Writer = new BinaryMemoryWriter();
 				}
 
-				completionEvent = new ManualResetEvent(false);
+				CompletionEvent = new ManualResetEvent(false);
 
-				thread = new Thread(Processor)
+				var thread = new Thread(Processor)
 				{
 					Name = "Parallel Serialization Thread"
 				};
@@ -316,7 +303,7 @@ namespace Server
 			{
 				try
 				{
-					while (!owner.finished)
+					while (!_owner._finished)
 					{
 						Process();
 						Thread.Sleep(0);
@@ -324,7 +311,7 @@ namespace Server
 
 					Process();
 
-					completionEvent.Set();
+					CompletionEvent.Set();
 				}
 				catch (Exception ex)
 				{
@@ -334,15 +321,13 @@ namespace Server
 
 			private void Process()
 			{
-				ConsumableEntry entry;
-
-				while (done < tail)
+				while (Done < Tail)
 				{
-					entry = buffer[done % buffer.Length];
+					var entry = Buffer[Done % Buffer.Length];
 
-					entry.value.Serialize(entry.writer);
+					entry.Value.Serialize(entry.Writer);
 
-					++done;
+					++Done;
 				}
 			}
 		}

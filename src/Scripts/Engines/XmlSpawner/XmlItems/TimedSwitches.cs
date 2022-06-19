@@ -443,18 +443,18 @@ namespace Server.Items
 				case Direction.Right:
 				case Direction.Up:
 					if (m_LeverType == TleverType.Two_State)
-						ItemID = 0x108c + State * 2;
+						ItemId = 0x108c + State * 2;
 					else
-						ItemID = 0x108c + State;
+						ItemId = 0x108c + State;
 					break;
 				case Direction.East:
 				case Direction.West:
 				case Direction.Left:
 				case Direction.Down:
 					if (m_LeverType == TleverType.Two_State)
-						ItemID = 0x1093 + State * 2;
+						ItemId = 0x1093 + State * 2;
 					else
-						ItemID = 0x1093 + State;
+						ItemId = 0x1093 + State;
 					break;
 				default:
 					break;
@@ -699,7 +699,7 @@ namespace Server.Items
 		public void SetSwitchStatic()
 		{
 
-			ItemID = Direction switch
+			ItemId = Direction switch
 			{
 				Direction.North or Direction.South or Direction.Right or Direction.Up => 0x108f + State,
 				Direction.East or Direction.West or Direction.Left or Direction.Down => 0x1091 + State,
@@ -992,10 +992,10 @@ namespace Server.Items
 			switch (State)
 			{
 				case 0:
-					ItemID = ItemID0;
+					ItemId = ItemID0;
 					break;
 				case 1:
-					ItemID = ItemID1;
+					ItemId = ItemID1;
 					break;
 				default:
 					break;

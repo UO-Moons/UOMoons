@@ -162,7 +162,7 @@ namespace Server.Factions
 			NetState ns = to.NetState;
 
 			if (ns != null)
-				ns.Send(new MessageLocalized(Serial, ItemID, MessageType.Regular, hue, 3, number, name, args));
+				ns.Send(new MessageLocalized(Serial, ItemId, MessageType.Regular, hue, 3, number, name, args));
 		}
 
 		public BaseFactionTrap(Faction f, Mobile m, int itemID) : base(itemID)

@@ -13,7 +13,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074872)); // The opportunity to learn the ways of the Arcanist.
 		}
 
-		public override QuestChain ChainID => QuestChain.Spellweaving;
+		public override QuestChain ChainId => QuestChain.Spellweaving;
 		public override Type NextQuest => typeof(MakingContributionHeartwoodQuest);
 		/* Needs of the Many - The Heartwood */
 		public override object Title => 1072797;

@@ -293,7 +293,7 @@ namespace Server.Mobiles
 
 		public Item CloneItem(Item item)
 		{
-			Item cloned = new Item(item.ItemID)
+			Item cloned = new Item(item.ItemId)
 			{
 				Layer = item.Layer,
 				Name = item.Name,

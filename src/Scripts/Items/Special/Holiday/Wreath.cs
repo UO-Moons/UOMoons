@@ -33,7 +33,7 @@ namespace Server.Items
 			if (!map.CanFit(p.X, p.Y, p.Z, ItemData.Height))
 				return false;
 
-			if (ItemID == 0x232C)
+			if (ItemId == 0x232C)
 				return BaseAddon.IsWall(p.X, p.Y - 1, p.Z, map); // North wall
 			else
 				return BaseAddon.IsWall(p.X - 1, p.Y, p.Z, map); // West wall
@@ -282,7 +282,7 @@ namespace Server.Items
 			{
 				Item addon = new WreathAddon(Hue);
 
-				addon.ItemID = itemID;
+				addon.ItemId = itemID;
 				addon.MoveToWorld(loc, from.Map);
 
 				house.Addons[addon] = from;

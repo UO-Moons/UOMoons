@@ -2,81 +2,80 @@ using Server.Items;
 using Server.Mobiles;
 using System;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public class Gareth : MondainQuester
 {
-	public class Gareth : MondainQuester
+	[Constructable]
+	public Gareth()
+		: base("Gareth", "the Emissary of the RBC")
 	{
-		[Constructable]
-		public Gareth()
-			: base("Gareth", "the Emissary of the RBC")
+		m_NextTalk = DateTime.UtcNow;
+	}
+
+	public Gareth(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override Type[] Quests => new Type[] { typeof(TheQuestionsQuest) };
+
+	public override void OnOfferFailed()
+	{
+		Say(1075787); // I feel that thou hast yet more to learn about Humility... Please ponder these things further, and visit me again on the 'morrow.
+	}
+
+	public override void InitBody()
+	{
+		InitStats(100, 100, 25);
+
+		Female = false;
+		Race = Race.Human;
+		Body = 0x190;
+
+		Hue = 0x83EA;
+		HairItemID = 0x2049;
+	}
+
+	public override void InitOutfit()
+	{
+		AddItem(new Backpack());
+		AddItem(new Boots());
+		AddItem(new BodySash());
+		AddItem(new FancyShirt(6));
+		AddItem(new LongPants());
+	}
+
+	private DateTime m_NextTalk;
+
+	public override void OnMovement(Mobile m, Point3D oldLocation)
+	{
+		if (m_NextTalk < DateTime.UtcNow && m is PlayerMobile mobile && m.Backpack != null && m.InRange(Location, 8))
 		{
-			m_NextTalk = DateTime.UtcNow;
-		}
-
-		public Gareth(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override Type[] Quests => new Type[] { typeof(TheQuestionsQuest) };
-
-		public override void OnOfferFailed()
-		{
-			Say(1075787); // I feel that thou hast yet more to learn about Humility... Please ponder these things further, and visit me again on the 'morrow.
-		}
-
-		public override void InitBody()
-		{
-			InitStats(100, 100, 25);
-
-			Female = false;
-			Race = Race.Human;
-			Body = 0x190;
-
-			Hue = 0x83EA;
-			HairItemID = 0x2049;
-		}
-
-		public override void InitOutfit()
-		{
-			AddItem(new Backpack());
-			AddItem(new Boots());
-			AddItem(new BodySash());
-			AddItem(new FancyShirt(6));
-			AddItem(new LongPants());
-		}
-
-		private DateTime m_NextTalk;
-
-		public override void OnMovement(Mobile m, Point3D oldLocation)
-		{
-			if (m_NextTalk < DateTime.UtcNow && m is PlayerMobile mobile && m.Backpack != null && m.InRange(Location, 8))
+			if (QuestHelper.GetQuest(mobile, typeof(WhosMostHumbleQuest)) is WhosMostHumbleQuest)
 			{
-				if (QuestHelper.GetQuest(mobile, typeof(WhosMostHumbleQuest)) is WhosMostHumbleQuest)
-				{
-					Item chain = mobile.Backpack.FindItemByType(typeof(IronChain));
+				Item chain = mobile.Backpack.FindItemByType(typeof(IronChain));
 
-					if (chain != null && chain.QuestItem)
-					{
-						SayTo(m, 1075773);
-						m_NextTalk = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-					}
+				if (chain != null && chain.QuestItem)
+				{
+					SayTo(m, 1075773);
+					m_NextTalk = DateTime.UtcNow + TimeSpan.FromSeconds(10);
 				}
 			}
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0); // version
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 
-			m_NextTalk = DateTime.UtcNow;
-		}
+		m_NextTalk = DateTime.UtcNow;
 	}
 }

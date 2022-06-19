@@ -36,8 +36,8 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x1A03 || ItemID == 0x1A05 || ItemID == 0x1A09 ||
-					 ItemID == 0x1B1E || ItemID == 0x1B7F)
+				if (ItemId == 0x1A03 || ItemId == 0x1A05 || ItemId == 0x1A09 ||
+					 ItemId == 0x1B1E || ItemId == 0x1B7F)
 					return true;
 
 				return false;

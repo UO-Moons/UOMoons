@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Turnip turnip = new Turnip
 			{
-				ItemID = Utility.Random(3385, 2)
+				ItemId = Utility.Random(3385, 2)
 			};
 
 			return turnip;

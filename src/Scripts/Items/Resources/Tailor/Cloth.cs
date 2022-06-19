@@ -55,7 +55,7 @@ namespace Server.Items
 		{
 			int number = (Amount == 1) ? 1049124 : 1049123;
 
-			from.Send(new MessageLocalized(Serial, ItemID, MessageType.Regular, 0x3B2, 3, number, "", Amount.ToString()));
+			from.Send(new MessageLocalized(Serial, ItemId, MessageType.Regular, 0x3B2, 3, number, "", Amount.ToString()));
 		}
 
 		public bool Scissor(Mobile from, Scissors scissors)

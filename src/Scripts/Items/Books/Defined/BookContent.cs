@@ -1,54 +1,52 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class BookContent
 {
-	public class BookContent
+	public string Title { get; }
+	public string Author { get; }
+
+	public BookPageInfo[] Pages { get; }
+
+	public BookContent(string title, string author, params BookPageInfo[] pages)
 	{
-		public string Title { get; }
-		public string Author { get; }
+		Title = title;
+		Author = author;
+		Pages = pages;
+	}
 
-		public BookPageInfo[] Pages { get; }
+	public BookPageInfo[] Copy()
+	{
+		BookPageInfo[] copy = new BookPageInfo[Pages.Length];
 
-		public BookContent(string title, string author, params BookPageInfo[] pages)
+		for (int i = 0; i < copy.Length; ++i)
+			copy[i] = new BookPageInfo(Pages[i].Lines);
+
+		return copy;
+	}
+
+	public bool IsMatch(BookPageInfo[] cmp)
+	{
+		if (cmp.Length != Pages.Length)
+			return false;
+
+		for (int i = 0; i < cmp.Length; ++i)
 		{
-			Title = title;
-			Author = author;
-			Pages = pages;
-		}
+			string[] a = Pages[i].Lines;
+			string[] b = cmp[i].Lines;
 
-		public BookPageInfo[] Copy()
-		{
-			BookPageInfo[] copy = new BookPageInfo[Pages.Length];
-
-			for (int i = 0; i < copy.Length; ++i)
-				copy[i] = new BookPageInfo(Pages[i].Lines);
-
-			return copy;
-		}
-
-		public bool IsMatch(BookPageInfo[] cmp)
-		{
-			if (cmp.Length != Pages.Length)
-				return false;
-
-			for (int i = 0; i < cmp.Length; ++i)
+			if (a.Length != b.Length)
 			{
-				string[] a = Pages[i].Lines;
-				string[] b = cmp[i].Lines;
-
-				if (a.Length != b.Length)
+				return false;
+			}
+			else if (a != b)
+			{
+				for (int j = 0; j < a.Length; ++j)
 				{
-					return false;
-				}
-				else if (a != b)
-				{
-					for (int j = 0; j < a.Length; ++j)
-					{
-						if (a[j] != b[j])
-							return false;
-					}
+					if (a[j] != b[j])
+						return false;
 				}
 			}
-
-			return true;
 		}
+		return true;
 	}
 }

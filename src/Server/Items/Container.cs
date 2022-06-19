@@ -103,16 +103,16 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public override int ItemID
+		public override int ItemId
 		{
-			get => base.ItemID;
+			get => base.ItemId;
 			set
 			{
-				int oldID = ItemID;
+				int oldID = ItemId;
 
-				base.ItemID = value;
+				base.ItemId = value;
 
-				if (ItemID != oldID)
+				if (ItemId != oldID)
 					UpdateContainerData();
 			}
 		}
@@ -159,7 +159,7 @@ namespace Server.Items
 
 		public virtual void UpdateContainerData()
 		{
-			ContainerData = ContainerData.GetData(ItemID);
+			ContainerData = ContainerData.GetData(ItemId);
 		}
 
 		public virtual Rectangle2D Bounds => ContainerData.Bounds;
@@ -1771,7 +1771,7 @@ namespace Server.Items
 				List<Item> items = Items;
 
 				for (int i = 0; i < items.Count; ++i)
-					to.Send(items[i].OPLPacket);
+					to.Send(items[i].OplPacket);
 			}
 		}
 

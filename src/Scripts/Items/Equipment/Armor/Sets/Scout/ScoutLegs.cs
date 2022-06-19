@@ -3,7 +3,7 @@ namespace Server.Items;
 public class ScoutLegs : StuddedLegs
 {
 	public override int LabelNumber => 1080478;  // Scout's Studded Leggings
-	public override SetItem SetID => SetItem.Scout;
+	public override SetItem SetId => SetItem.Scout;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 7;

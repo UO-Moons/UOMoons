@@ -3,7 +3,7 @@ namespace Server.Items;
 public class DeathBoneHelm : BoneHelm
 {
 	public override int LabelNumber => 1074305;// Death's Essence
-	public override SetItem SetID => SetItem.Necromancer;
+	public override SetItem SetId => SetItem.Necromancer;
 	public override int Pieces => 5;
 	public override int BasePhysicalResistance => 4;
 	public override int BaseFireResistance => 9;

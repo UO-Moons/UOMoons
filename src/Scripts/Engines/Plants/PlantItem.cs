@@ -234,22 +234,22 @@ namespace Server.Engines.Plants
 		{
 			if (m_PlantStatus >= PlantStatus.DeadTwigs)
 			{
-				ItemID = 0x1B9D;
+				ItemId = 0x1B9D;
 				Hue = PlantHueInfo.GetInfo(m_PlantHue).Hue;
 			}
 			else if (m_PlantStatus >= PlantStatus.FullGrownPlant)
 			{
-				ItemID = PlantTypeInfo.GetInfo(m_PlantType).ItemID;
+				ItemId = PlantTypeInfo.GetInfo(m_PlantType).ItemID;
 				Hue = PlantHueInfo.GetInfo(m_PlantHue).Hue;
 			}
 			else if (m_PlantStatus >= PlantStatus.Plant)
 			{
-				ItemID = GreenBowlID;
+				ItemId = GreenBowlID;
 				Hue = 0;
 			}
 			else
 			{
-				ItemID = BowlOfDirtID;
+				ItemId = BowlOfDirtID;
 				Hue = 0;
 			}
 

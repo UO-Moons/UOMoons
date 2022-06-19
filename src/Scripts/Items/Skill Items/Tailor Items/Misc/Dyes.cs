@@ -60,7 +60,7 @@ namespace Server.Items
 			{
 				private readonly DyeTub m_Tub;
 
-				public InternalPicker(DyeTub tub) : base(tub.ItemID)
+				public InternalPicker(DyeTub tub) : base(tub.ItemId)
 				{
 					m_Tub = tub;
 				}

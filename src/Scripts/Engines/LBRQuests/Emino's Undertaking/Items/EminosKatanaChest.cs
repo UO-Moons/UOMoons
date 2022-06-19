@@ -10,7 +10,7 @@ namespace Server.Engines.Quests.Ninja
 		public EminosKatanaChest()
 		{
 			Movable = false;
-			ItemID = 0xE42;
+			ItemId = 0xE42;
 
 			GenerateTreasure();
 		}

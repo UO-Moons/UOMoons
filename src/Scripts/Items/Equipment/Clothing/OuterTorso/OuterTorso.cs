@@ -500,9 +500,9 @@ namespace Server.Items
 		public void Update()
 		{
 			if (IsArcane)
-				ItemID = 0x26B0;
-			else if (ItemID == 0x26B0)
-				ItemID = 0x13C6;
+				ItemId = 0x26B0;
+			else if (ItemId == 0x26B0)
+				ItemId = 0x13C6;
 
 			if (IsArcane && CurArcaneCharges == 0)
 			{
@@ -521,10 +521,10 @@ namespace Server.Items
 
 		public void Flip()
 		{
-			if (ItemID == 0x13C6)
-				ItemID = 0x13CE;
-			else if (ItemID == 0x13CE)
-				ItemID = 0x13C6;
+			if (ItemId == 0x13C6)
+				ItemId = 0x13CE;
+			else if (ItemId == 0x13CE)
+				ItemId = 0x13C6;
 		}
 		#endregion
 

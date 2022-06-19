@@ -45,7 +45,7 @@ public class BOBGump : Gump
 
 	public bool CheckFilter(BulkMaterialType mat, int amountMax, bool isLarge, bool reqExc, BODType deedType, Type itemType)
 	{
-		BOBFilter f = m_From.UseOwnFilter ? m_From.BOBFilter : m_Book.Filter;
+		BOBFilter f = m_From.UseOwnFilter ? m_From.BobFilter : m_Book.Filter;
 
 		if (f.IsDefault)
 			return true;
@@ -582,7 +582,7 @@ public class BOBGump : Gump
 		AddButton(35, 32, 4005, 4007, 1, GumpButtonType.Reply, 0);
 		AddHtmlLocalized(70, 32, 200, 32, 1062476, LabelColor, false, false); // Set Filter
 
-		BOBFilter f = (from.UseOwnFilter ? from.BOBFilter : book.Filter);
+		BOBFilter f = (from.UseOwnFilter ? from.BobFilter : book.Filter);
 
 		if (f.IsDefault)
 			AddHtmlLocalized(canPrice ? 470 : 386, 32, 120, 32, 1062475, 16927, false, false); // Using No Filter

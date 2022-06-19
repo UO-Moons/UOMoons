@@ -53,10 +53,10 @@ namespace Server.Items
 
 		private void Change()
 		{
-			if (ItemID < 0x2A61)
-				ItemID = Utility.RandomMinMax(0x2A5D, 0x2A60);
+			if (ItemId < 0x2A61)
+				ItemId = Utility.RandomMinMax(0x2A5D, 0x2A60);
 			else
-				ItemID = Utility.RandomMinMax(0x2A61, 0x2A64);
+				ItemId = Utility.RandomMinMax(0x2A61, 0x2A64);
 		}
 	}
 

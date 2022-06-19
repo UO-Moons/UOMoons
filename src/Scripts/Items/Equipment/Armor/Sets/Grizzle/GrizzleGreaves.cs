@@ -3,7 +3,7 @@ namespace Server.Items;
 public class GrizzleGreaves : BoneLegs
 {
 	public override int LabelNumber => 1074468;// Greaves of the Grizzle
-	public override SetItem SetID => SetItem.Grizzle;
+	public override SetItem SetId => SetItem.Grizzle;
 	public override int Pieces => 5;
 	public override int BasePhysicalResistance => 6;
 	public override int BaseFireResistance => 10;

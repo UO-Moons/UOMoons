@@ -258,7 +258,7 @@ namespace Server.Multis
                     {
                         HouseTeleporter check = Fixtures[(i + j) % Fixtures.Count] as HouseTeleporter;
 
-                        if (check != null && check.ItemID == tp.ItemID)
+                        if (check != null && check.ItemId == tp.ItemId)
                         {
                             tp.Target = check;
                             break;
@@ -518,7 +518,7 @@ namespace Server.Multis
         public MultiComponentList GetEmptyFoundation()
         {
             // Copy original foundation layout
-            MultiComponentList mcl = new MultiComponentList(MultiData.GetComponents(ItemID));
+            MultiComponentList mcl = new MultiComponentList(MultiData.GetComponents(ItemId));
 
             mcl.Resize(mcl.Width, mcl.Height + 1);
 
@@ -567,7 +567,7 @@ namespace Server.Multis
             }
             else
             {
-                Signpost.ItemID = SignpostGraphic;
+                Signpost.ItemId = SignpostGraphic;
                 Signpost.MoveToWorld(new Point3D(X + x, Y + y, Z + 7), Map);
             }
         }

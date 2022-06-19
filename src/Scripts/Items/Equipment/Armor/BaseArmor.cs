@@ -4,6 +4,7 @@ using Server.Factions;
 using Server.Misc;
 using Server.Network;
 using System;
+using System.Linq;
 using AMA = Server.Items.ArmorMeditationAllowance;
 using AMT = Server.Items.ArmorMaterialType;
 
@@ -11,20 +12,20 @@ namespace Server.Items;
 
 public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICraftable, IWearableDurability, IResource, ISetItem
 {
-	private static readonly bool UseNewHits = true;
-	private int m_MaxHitPoints;
-	private int m_HitPoints;
-	private DurabilityLevel m_Durability;
-	private ArmorProtectionLevel m_Protection;
-	private int m_PhysicalBonus, m_FireBonus, m_ColdBonus, m_PoisonBonus, m_EnergyBonus;
-	private AosArmorAttributes m_AosArmorAttributes;
-	private AosSkillBonuses m_AosSkillBonuses;
-	private AosWeaponAttributes m_AosWeaponAttributes;
-	private TalismanAttribute m_TalismanProtection;
-	private int m_ArmorBase = -1;
-	private int m_StrBonus = -1, m_DexBonus = -1, m_IntBonus = -1;
-	private int m_StrReq = -1, m_DexReq = -1, m_IntReq = -1;
-	private AMA m_Meditate = (AMA)(-1);
+	private const bool UseNewHits = true;
+	private int _mMaxHitPoints;
+	private int _mHitPoints;
+	private DurabilityLevel _mDurability;
+	private ArmorProtectionLevel _mProtection;
+	private int _mPhysicalBonus, _mFireBonus, _mColdBonus, _mPoisonBonus, _mEnergyBonus;
+	private AosArmorAttributes _mAosArmorAttributes;
+	private AosSkillBonuses _mAosSkillBonuses;
+	private AosWeaponAttributes _mAosWeaponAttributes;
+	private TalismanAttribute _mTalismanProtection;
+	private int _mArmorBase = -1;
+	private int _mStrBonus = -1, _mDexBonus = -1, _mIntBonus = -1;
+	private int _mStrReq = -1, _mDexReq = -1, _mIntReq = -1;
+	private AMA _mMeditate = (AMA)(-1);
 	public abstract AMT MaterialType { get; }
 	public virtual int ArmorBase => 0;
 	public virtual AMA DefMedAllowance => AMA.None;
@@ -39,8 +40,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AMA MeditationAllowance
 	{
-		get => m_Meditate == (AMA)(-1) ? DefMedAllowance : m_Meditate;
-		set => m_Meditate = value;
+		get => _mMeditate == (AMA)(-1) ? DefMedAllowance : _mMeditate;
+		set => _mMeditate = value;
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
@@ -48,14 +49,19 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		get
 		{
-			if (m_ArmorBase == -1)
+			if (_mArmorBase == -1)
+			{
 				return ArmorBase;
+			}
 			else
-				return m_ArmorBase;
+			{
+				return _mArmorBase;
+			}
 		}
 		set
 		{
-			m_ArmorBase = value; Invalidate();
+			_mArmorBase = value;
+			Invalidate();
 		}
 	}
 
@@ -65,43 +71,43 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int StrBonus
 	{
-		get => m_StrBonus == -1 ? StrBonusValue : m_StrBonus;
-		set { m_StrBonus = value; InvalidateProperties(); }
+		get => _mStrBonus == -1 ? StrBonusValue : _mStrBonus;
+		set { _mStrBonus = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int DexBonus
 	{
-		get => m_DexBonus == -1 ? DexBonusValue : m_DexBonus;
-		set { m_DexBonus = value; InvalidateProperties(); }
+		get => _mDexBonus == -1 ? DexBonusValue : _mDexBonus;
+		set { _mDexBonus = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int IntBonus
 	{
-		get => m_IntBonus == -1 ? IntBonusValue : m_IntBonus;
-		set { m_IntBonus = value; InvalidateProperties(); }
+		get => _mIntBonus == -1 ? IntBonusValue : _mIntBonus;
+		set { _mIntBonus = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int StrRequirement
 	{
-		get => m_StrReq == -1 ? StrReq : m_StrReq;
-		set { m_StrReq = value; InvalidateProperties(); }
+		get => _mStrReq == -1 ? StrReq : _mStrReq;
+		set { _mStrReq = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int DexRequirement
 	{
-		get => m_DexReq == -1 ? DexReq : m_DexReq;
-		set { m_DexReq = value; InvalidateProperties(); }
+		get => _mDexReq == -1 ? DexReq : _mDexReq;
+		set { _mDexReq = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int IntRequirement
 	{
-		get => m_IntReq == -1 ? IntReq : m_IntReq;
-		set { m_IntReq = value; InvalidateProperties(); }
+		get => _mIntReq == -1 ? IntReq : _mIntReq;
+		set { _mIntReq = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
@@ -110,25 +116,23 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		get => base.Resource;
 		set
 		{
-			if (Resource != value)
+			if (Resource == value) return;
+			UnscaleDurability();
+
+			base.Resource = value;
+
+			if (CraftItem.RetainsColor(GetType()))
 			{
-				UnscaleDurability();
-
-				base.Resource = value;
-
-				if (CraftItem.RetainsColor(GetType()))
-				{
-					Hue = CraftResources.GetHue(Resource);
-				}
-
-				Invalidate();
-				InvalidateProperties();
-
-				if (Parent is Mobile mob)
-					mob.UpdateResistances();
-
-				ScaleDurability();
+				Hue = CraftResources.GetHue(Resource);
 			}
+
+			Invalidate();
+			InvalidateProperties();
+
+			if (Parent is Mobile mob)
+				mob.UpdateResistances();
+
+			ScaleDurability();
 		}
 	}
 
@@ -148,27 +152,25 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int MaxHitPoints
 	{
-		get => m_MaxHitPoints;
-		set { m_MaxHitPoints = value; InvalidateProperties(); }
+		get => _mMaxHitPoints;
+		set { _mMaxHitPoints = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int HitPoints
 	{
-		get => m_HitPoints;
+		get => _mHitPoints;
 		set
 		{
-			if (value != m_HitPoints && MaxHitPoints > 0)
-			{
-				m_HitPoints = value;
+			if (value == _mHitPoints || MaxHitPoints <= 0) return;
+			_mHitPoints = value;
 
-				if (m_HitPoints < 0)
-					Delete();
-				else if (m_HitPoints > MaxHitPoints)
-					m_HitPoints = MaxHitPoints;
+			if (_mHitPoints < 0)
+				Delete();
+			else if (_mHitPoints > MaxHitPoints)
+				_mHitPoints = MaxHitPoints;
 
-				InvalidateProperties();
-			}
+			InvalidateProperties();
 		}
 	}
 
@@ -189,50 +191,48 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public DurabilityLevel Durability
 	{
-		get => m_Durability;
-		set { UnscaleDurability(); m_Durability = value; ScaleDurability(); InvalidateProperties(); }
+		get => _mDurability;
+		set { UnscaleDurability(); _mDurability = value; ScaleDurability(); InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public ArmorProtectionLevel ProtectionLevel
 	{
-		get => m_Protection;
+		get => _mProtection;
 		set
 		{
-			if (m_Protection != value)
-			{
-				m_Protection = value;
+			if (_mProtection == value) return;
+			_mProtection = value;
 
-				Invalidate();
-				InvalidateProperties();
+			Invalidate();
+			InvalidateProperties();
 
-				if (Parent is Mobile mobile)
-					mobile.UpdateResistances();
-			}
+			if (Parent is Mobile mobile)
+				mobile.UpdateResistances();
 		}
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AosArmorAttributes ArmorAttributes
 	{
-		get => m_AosArmorAttributes;
+		get => _mAosArmorAttributes;
 		set { }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public AosWeaponAttributes WeaponAttributes { get => m_AosWeaponAttributes; set { } }
+	public AosWeaponAttributes WeaponAttributes { get => _mAosWeaponAttributes; set { } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public TalismanAttribute Protection
 	{
-		get => m_TalismanProtection;
-		set { m_TalismanProtection = value; InvalidateProperties(); }
+		get => _mTalismanProtection;
+		set { _mTalismanProtection = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AosSkillBonuses SkillBonuses
 	{
-		get => m_AosSkillBonuses;
+		get => _mAosSkillBonuses;
 		set { }
 	}
 
@@ -242,25 +242,47 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		{
 			int ar = BaseArmorRating;
 
-			if (m_Protection != ArmorProtectionLevel.Regular)
-				ar += 10 + (5 * (int)m_Protection);
+			if (_mProtection != ArmorProtectionLevel.Regular)
+				ar += 10 + 5 * (int)_mProtection;
 
-			switch (Resource)
+			switch (base.Resource)
 			{
-				case CraftResource.DullCopper: ar += 2; break;
-				case CraftResource.ShadowIron: ar += 4; break;
-				case CraftResource.Copper: ar += 6; break;
-				case CraftResource.Bronze: ar += 8; break;
-				case CraftResource.Gold: ar += 10; break;
-				case CraftResource.Agapite: ar += 12; break;
-				case CraftResource.Verite: ar += 14; break;
-				case CraftResource.Valorite: ar += 16; break;
-				case CraftResource.SpinedLeather: ar += 10; break;
-				case CraftResource.HornedLeather: ar += 13; break;
-				case CraftResource.BarbedLeather: ar += 16; break;
+				case CraftResource.DullCopper:
+					ar += 2;
+					break;
+				case CraftResource.ShadowIron:
+					ar += 4;
+					break;
+				case CraftResource.Copper:
+					ar += 6;
+					break;
+				case CraftResource.Bronze:
+					ar += 8;
+					break;
+				case CraftResource.Gold:
+					ar += 10;
+					break;
+				case CraftResource.Agapite:
+					ar += 12;
+					break;
+				case CraftResource.Verite:
+					ar += 14;
+					break;
+				case CraftResource.Valorite:
+					ar += 16;
+					break;
+				case CraftResource.SpinedLeather:
+					ar += 10;
+					break;
+				case CraftResource.HornedLeather:
+					ar += 13;
+					break;
+				case CraftResource.BarbedLeather:
+					ar += 16;
+					break;
 			}
 
-			ar += -8 + (8 * (int)Quality);
+			ar += -8 + 8 * (int)Quality;
 			return ScaleArmorByDurability(ar);
 		}
 	}
@@ -269,55 +291,51 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		base.OnAfterDuped(newItem);
 
-		if (newItem != null && newItem is BaseArmor armor)
-		{
-			armor.m_AosArmorAttributes = new AosArmorAttributes(newItem, m_AosArmorAttributes);
-			armor.m_AosSkillBonuses = new AosSkillBonuses(newItem, m_AosSkillBonuses);
-			armor.m_AosWeaponAttributes = new AosWeaponAttributes(newItem, m_AosWeaponAttributes);
-			armor.m_TalismanProtection = new TalismanAttribute(m_TalismanProtection);
-			armor.m_SetAttributes = new AosAttributes(newItem, m_SetAttributes);
-			armor.m_SetSkillBonuses = new AosSkillBonuses(newItem, m_SetSkillBonuses);
-		}
+		if (newItem is not BaseArmor armor) return;
+		armor._mAosArmorAttributes = new AosArmorAttributes(newItem, _mAosArmorAttributes);
+		armor._mAosSkillBonuses = new AosSkillBonuses(newItem, _mAosSkillBonuses);
+		armor._mAosWeaponAttributes = new AosWeaponAttributes(newItem, _mAosWeaponAttributes);
+		armor._mTalismanProtection = new TalismanAttribute(_mTalismanProtection);
+		armor._mSetAttributes = new AosAttributes(newItem, _mSetAttributes);
+		armor._mSetSkillBonuses = new AosSkillBonuses(newItem, _mSetSkillBonuses);
 	}
 
 	public override int ComputeStatReq(StatType type)
 	{
-		int v;
-
-		if (type == StatType.Str)
-			v = StrRequirement;
-		else if (type == StatType.Dex)
-			v = DexRequirement;
-		else
-			v = IntRequirement;
+		int v = type switch
+		{
+			StatType.Str => StrRequirement,
+			StatType.Dex => DexRequirement,
+			_ => IntRequirement
+		};
 
 		return AOS.Scale(v, 100 - GetLowerStatReq());
 	}
 
 	public override int ComputeStatBonus(StatType type)
 	{
-		if (type == StatType.Str)
-			return StrBonus + Attributes.BonusStr;
-		else if (type == StatType.Dex)
-			return DexBonus + Attributes.BonusDex;
-		else
-			return IntBonus + Attributes.BonusInt;
+		return type switch
+		{
+			StatType.Str => StrBonus + Attributes.BonusStr,
+			StatType.Dex => DexBonus + Attributes.BonusDex,
+			_ => IntBonus + Attributes.BonusInt
+		};
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int PhysicalBonus { get => m_PhysicalBonus; set { m_PhysicalBonus = value; InvalidateProperties(); } }
+	public int PhysicalBonus { get => _mPhysicalBonus; set { _mPhysicalBonus = value; InvalidateProperties(); } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int FireBonus { get => m_FireBonus; set { m_FireBonus = value; InvalidateProperties(); } }
+	public int FireBonus { get => _mFireBonus; set { _mFireBonus = value; InvalidateProperties(); } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ColdBonus { get => m_ColdBonus; set { m_ColdBonus = value; InvalidateProperties(); } }
+	public int ColdBonus { get => _mColdBonus; set { _mColdBonus = value; InvalidateProperties(); } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int PoisonBonus { get => m_PoisonBonus; set { m_PoisonBonus = value; InvalidateProperties(); } }
+	public int PoisonBonus { get => _mPoisonBonus; set { _mPoisonBonus = value; InvalidateProperties(); } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int EnergyBonus { get => m_EnergyBonus; set { m_EnergyBonus = value; InvalidateProperties(); } }
+	public int EnergyBonus { get => _mEnergyBonus; set { _mEnergyBonus = value; InvalidateProperties(); } }
 
 	public virtual int BasePhysicalResistance => 0;
 	public virtual int BaseFireResistance => 0;
@@ -325,15 +343,15 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	public virtual int BasePoisonResistance => 0;
 	public virtual int BaseEnergyResistance => 0;
 
-	public override int PhysicalResistance => BasePhysicalResistance + GetProtOffset() + GetResourceAttrs().ArmorPhysicalResist + m_PhysicalBonus;
-	public override int FireResistance => BaseFireResistance + GetProtOffset() + GetResourceAttrs().ArmorFireResist + m_FireBonus;
-	public override int ColdResistance => BaseColdResistance + GetProtOffset() + GetResourceAttrs().ArmorColdResist + m_ColdBonus;
-	public override int PoisonResistance => BasePoisonResistance + GetProtOffset() + GetResourceAttrs().ArmorPoisonResist + m_PoisonBonus;
-	public override int EnergyResistance => BaseEnergyResistance + GetProtOffset() + GetResourceAttrs().ArmorEnergyResist + m_EnergyBonus;
+	public override int PhysicalResistance => BasePhysicalResistance + GetProtOffset() + GetResourceAttrs().ArmorPhysicalResist + _mPhysicalBonus;
+	public override int FireResistance => BaseFireResistance + GetProtOffset() + GetResourceAttrs().ArmorFireResist + _mFireBonus;
+	public override int ColdResistance => BaseColdResistance + GetProtOffset() + GetResourceAttrs().ArmorColdResist + _mColdBonus;
+	public override int PoisonResistance => BasePoisonResistance + GetProtOffset() + GetResourceAttrs().ArmorPoisonResist + _mPoisonBonus;
+	public override int EnergyResistance => BaseEnergyResistance + GetProtOffset() + GetResourceAttrs().ArmorEnergyResist + _mEnergyBonus;
 
 	public virtual int InitMinHits => 0;
 	public virtual int InitMaxHits => 0;
-	public virtual int InitHits => Utility.RandomMinMax(0, 0);
+	public virtual int InitHits => Utility.RandomMinMax(InitMinHits, InitMaxHits);
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public ArmorBodyType BodyPosition => Layer switch
@@ -349,15 +367,15 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 	public void DistributeBonuses(int amount)
 	{
-		for (int i = 0; i < amount; ++i)
+		for (var i = 0; i < amount; ++i)
 		{
 			switch (Utility.Random(5))
 			{
-				case 0: ++m_PhysicalBonus; break;
-				case 1: ++m_FireBonus; break;
-				case 2: ++m_ColdBonus; break;
-				case 3: ++m_PoisonBonus; break;
-				case 4: ++m_EnergyBonus; break;
+				case 0: ++_mPhysicalBonus; break;
+				case 1: ++_mFireBonus; break;
+				case 2: ++_mColdBonus; break;
+				case 3: ++_mPoisonBonus; break;
+				case 4: ++_mEnergyBonus; break;
 			}
 		}
 
@@ -368,15 +386,12 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
-		if (info == null)
-			return CraftAttributeInfo.Blank;
-
-		return info.AttributeInfo;
+		return info == null ? CraftAttributeInfo.Blank : info.AttributeInfo;
 	}
 
 	public int GetProtOffset()
 	{
-		switch (m_Protection)
+		switch (_mProtection)
 		{
 			case ArmorProtectionLevel.Guarding: return 1;
 			case ArmorProtectionLevel.Hardening: return 2;
@@ -395,8 +410,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		int scale = 100 + GetDurabilityBonus();
 
-		m_HitPoints = ((m_HitPoints * 100) + (scale - 1)) / scale;
-		m_MaxHitPoints = ((m_MaxHitPoints * 100) + (scale - 1)) / scale;
+		_mHitPoints = (_mHitPoints * 100 + (scale - 1)) / scale;
+		_mMaxHitPoints = (_mMaxHitPoints * 100 + (scale - 1)) / scale;
 		InvalidateProperties();
 	}
 
@@ -404,8 +419,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		int scale = 100 + GetDurabilityBonus();
 
-		m_HitPoints = ((m_HitPoints * scale) + 99) / 100;
-		m_MaxHitPoints = ((m_MaxHitPoints * scale) + 99) / 100;
+		_mHitPoints = (_mHitPoints * scale + 99) / 100;
+		_mMaxHitPoints = (_mMaxHitPoints * scale + 99) / 100;
 		InvalidateProperties();
 	}
 
@@ -416,28 +431,30 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		if (Quality == ItemQuality.Exceptional)
 			bonus += 20;
 
-		switch (m_Durability)
+		switch (_mDurability)
 		{
 			case DurabilityLevel.Durable: bonus += 20; break;
 			case DurabilityLevel.Substantial: bonus += 50; break;
 			case DurabilityLevel.Massive: bonus += 70; break;
 			case DurabilityLevel.Fortified: bonus += 100; break;
 			case DurabilityLevel.Indestructible: bonus += 120; break;
+			case DurabilityLevel.Regular:
+				break;
+			default:
+				throw new ArgumentOutOfRangeException();
 		}
 
-		if (Core.AOS)
-		{
-			bonus += m_AosArmorAttributes.DurabilityBonus;
+		if (!Core.AOS) return bonus;
+		bonus += _mAosArmorAttributes.DurabilityBonus;
 
-			CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
-			CraftAttributeInfo attrInfo = null;
+		CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
+		CraftAttributeInfo attrInfo = null;
 
-			if (resInfo != null)
-				attrInfo = resInfo.AttributeInfo;
+		if (resInfo != null)
+			attrInfo = resInfo.AttributeInfo;
 
-			if (attrInfo != null)
-				bonus += attrInfo.ArmorDurability;
-		}
+		if (attrInfo != null)
+			bonus += attrInfo.ArmorDurability;
 
 		return bonus;
 	}
@@ -471,6 +488,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			}
 			catch
 			{
+				// ignored
 			}
 		}
 
@@ -485,17 +503,14 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		if (!Core.AOS)
 			return 0;
 
-		int v = m_AosArmorAttributes.LowerStatReq;
+		int v = _mAosArmorAttributes.LowerStatReq;
 
 		CraftResourceInfo info = CraftResources.GetInfo(Resource);
 
-		if (info != null)
-		{
-			CraftAttributeInfo attrInfo = info.AttributeInfo;
+		CraftAttributeInfo attrInfo = info?.AttributeInfo;
 
-			if (attrInfo != null)
-				v += attrInfo.ArmorLowerRequirements;
-		}
+		if (attrInfo != null)
+			v += attrInfo.ArmorLowerRequirements;
 
 		if (v > 100)
 			v = 100;
@@ -505,36 +520,34 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 	public override void OnAdded(IEntity parent)
 	{
-		if (parent is Mobile from)
+		if (parent is not Mobile from) return;
+
+		if (Core.AOS)
+			_mAosSkillBonuses.AddTo(from);
+
+		#region Mondain's Legacy Sets
+		if (Core.ML && IsSetItem)
 		{
-			if (Core.AOS)
-				m_AosSkillBonuses.AddTo(from);
+			SetEquipped = SetHelper.FullSetEquipped(from, SetId, Pieces);
 
-			#region Mondain's Legacy Sets
-			if (Core.ML && IsSetItem)
+			if (SetEquipped)
 			{
-				SetEquipped = SetHelper.FullSetEquipped(from, SetID, Pieces);
-
-				if (SetEquipped)
-				{
-					LastEquipped = true;
-					SetHelper.AddSetBonus(from, SetID);
-				}
+				LastEquipped = true;
+				SetHelper.AddSetBonus(from, SetId);
 			}
-			#endregion
-
-			from.Delta(MobileDelta.Armor); // Tell them armor rating has changed
 		}
+		#endregion
+
+		from.Delta(MobileDelta.Armor); // Tell them armor rating has changed
 	}
 
 	public virtual double ScaleArmorByDurability(double armor)
 	{
 		int scale = 100;
 
-		if (m_MaxHitPoints > 0 && m_HitPoints < m_MaxHitPoints)
-			scale = 50 + ((50 * m_HitPoints) / m_MaxHitPoints);
-
-		return (armor * scale) / 100;
+		if (_mMaxHitPoints > 0 && _mHitPoints < _mMaxHitPoints)
+			scale = 50 + 50 * _mHitPoints / _mMaxHitPoints;
+		return armor * scale / 100;
 	}
 
 	protected void Invalidate()
@@ -574,7 +587,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		IntReq = 0x00006000,
 		MedAllowance = 0x00008000,
 		SkillBonuses = 0x00010000,
-		xWeaponAttributes = 0x00020000,
+		XWeaponAttributes = 0x00020000,
 		TalismanProtection = 0x00040000
 	}
 
@@ -602,17 +615,10 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 		if (flags != SaveFlag.None)
 		{
-			flags = SaveFlag.xWeaponAttributes;
+			flags = SaveFlag.XWeaponAttributes;
 		}
 
-		if (flags.HasFlag(SaveFlag.xWeaponAttributes))
-		{
-			m_AosWeaponAttributes = new AosWeaponAttributes(item, reader);
-		}
-		else
-		{
-			m_AosWeaponAttributes = new AosWeaponAttributes(item);
-		}
+		_mAosWeaponAttributes = flags.HasFlag(SaveFlag.XWeaponAttributes) ? new AosWeaponAttributes(item, reader) : new AosWeaponAttributes(item);
 	}
 
 	public override void Serialize(GenericWriter writer)
@@ -622,58 +628,58 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		writer.Write(0); // version
 		SetFlag sflags = SetFlag.None;
 
-		Utility.SetSaveFlag(ref sflags, SetFlag.Attributes, !m_SetAttributes.IsEmpty);
-		Utility.SetSaveFlag(ref sflags, SetFlag.SkillBonuses, !m_SetSkillBonuses.IsEmpty);
-		Utility.SetSaveFlag(ref sflags, SetFlag.PhysicalBonus, m_SetPhysicalBonus != 0);
-		Utility.SetSaveFlag(ref sflags, SetFlag.FireBonus, m_SetFireBonus != 0);
-		Utility.SetSaveFlag(ref sflags, SetFlag.ColdBonus, m_SetColdBonus != 0);
-		Utility.SetSaveFlag(ref sflags, SetFlag.PoisonBonus, m_SetPoisonBonus != 0);
-		Utility.SetSaveFlag(ref sflags, SetFlag.EnergyBonus, m_SetEnergyBonus != 0);
-		Utility.SetSaveFlag(ref sflags, SetFlag.Hue, m_SetHue != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.Attributes, !_mSetAttributes.IsEmpty);
+		Utility.SetSaveFlag(ref sflags, SetFlag.SkillBonuses, !_mSetSkillBonuses.IsEmpty);
+		Utility.SetSaveFlag(ref sflags, SetFlag.PhysicalBonus, _mSetPhysicalBonus != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.FireBonus, _mSetFireBonus != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.ColdBonus, _mSetColdBonus != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.PoisonBonus, _mSetPoisonBonus != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.EnergyBonus, _mSetEnergyBonus != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.Hue, _mSetHue != 0);
 		Utility.SetSaveFlag(ref sflags, SetFlag.LastEquipped, LastEquipped);
 		Utility.SetSaveFlag(ref sflags, SetFlag.SetEquipped, SetEquipped);
-		Utility.SetSaveFlag(ref sflags, SetFlag.SetSelfRepair, m_SetSelfRepair != 0);
+		Utility.SetSaveFlag(ref sflags, SetFlag.SetSelfRepair, _mSetSelfRepair != 0);
 
 		writer.WriteEncodedInt((int)sflags);
 
 		if (sflags.HasFlag(SetFlag.Attributes))
 		{
-			m_SetAttributes.Serialize(writer);
+			_mSetAttributes.Serialize(writer);
 		}
 
 		if (sflags.HasFlag(SetFlag.SkillBonuses))
 		{
-			m_SetSkillBonuses.Serialize(writer);
+			_mSetSkillBonuses.Serialize(writer);
 		}
 
 		if (sflags.HasFlag(SetFlag.PhysicalBonus))
 		{
-			writer.WriteEncodedInt(m_SetPhysicalBonus);
+			writer.WriteEncodedInt(_mSetPhysicalBonus);
 		}
 
 		if (sflags.HasFlag(SetFlag.FireBonus))
 		{
-			writer.WriteEncodedInt(m_SetFireBonus);
+			writer.WriteEncodedInt(_mSetFireBonus);
 		}
 
 		if (sflags.HasFlag(SetFlag.ColdBonus))
 		{
-			writer.WriteEncodedInt(m_SetColdBonus);
+			writer.WriteEncodedInt(_mSetColdBonus);
 		}
 
 		if (sflags.HasFlag(SetFlag.PoisonBonus))
 		{
-			writer.WriteEncodedInt(m_SetPoisonBonus);
+			writer.WriteEncodedInt(_mSetPoisonBonus);
 		}
 
 		if (sflags.HasFlag(SetFlag.EnergyBonus))
 		{
-			writer.WriteEncodedInt(m_SetEnergyBonus);
+			writer.WriteEncodedInt(_mSetEnergyBonus);
 		}
 
 		if (sflags.HasFlag(SetFlag.Hue))
 		{
-			writer.WriteEncodedInt(m_SetHue);
+			writer.WriteEncodedInt(_mSetHue);
 		}
 
 		if (sflags.HasFlag(SetFlag.LastEquipped))
@@ -688,100 +694,100 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 		if (sflags.HasFlag(SetFlag.SetSelfRepair))
 		{
-			writer.WriteEncodedInt(m_SetSelfRepair);
+			writer.WriteEncodedInt(_mSetSelfRepair);
 		}
 
 		SaveFlag flags = SaveFlag.None;
 
-		Utility.SetSaveFlag(ref flags, SaveFlag.xWeaponAttributes, !m_AosWeaponAttributes.IsEmpty);
-		Utility.SetSaveFlag(ref flags, SaveFlag.ArmorAttributes, !m_AosArmorAttributes.IsEmpty);
-		Utility.SetSaveFlag(ref flags, SaveFlag.PhysicalBonus, m_PhysicalBonus != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.FireBonus, m_FireBonus != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.ColdBonus, m_ColdBonus != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.PoisonBonus, m_PoisonBonus != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.EnergyBonus, m_EnergyBonus != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.MaxHitPoints, m_MaxHitPoints != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.HitPoints, m_HitPoints != 0);
-		Utility.SetSaveFlag(ref flags, SaveFlag.Durability, m_Durability != DurabilityLevel.Regular);
-		Utility.SetSaveFlag(ref flags, SaveFlag.Protection, m_Protection != ArmorProtectionLevel.Regular);
-		Utility.SetSaveFlag(ref flags, SaveFlag.BaseArmor, m_ArmorBase != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.StrBonus, m_StrBonus != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.DexBonus, m_DexBonus != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.IntBonus, m_IntBonus != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.StrReq, m_StrReq != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.DexReq, m_DexReq != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.IntReq, m_IntReq != -1);
-		Utility.SetSaveFlag(ref flags, SaveFlag.MedAllowance, m_Meditate != (AMA)(-1));
-		Utility.SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !m_AosSkillBonuses.IsEmpty);
+		Utility.SetSaveFlag(ref flags, SaveFlag.XWeaponAttributes, !_mAosWeaponAttributes.IsEmpty);
+		Utility.SetSaveFlag(ref flags, SaveFlag.ArmorAttributes, !_mAosArmorAttributes.IsEmpty);
+		Utility.SetSaveFlag(ref flags, SaveFlag.PhysicalBonus, _mPhysicalBonus != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.FireBonus, _mFireBonus != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.ColdBonus, _mColdBonus != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.PoisonBonus, _mPoisonBonus != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.EnergyBonus, _mEnergyBonus != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.MaxHitPoints, _mMaxHitPoints != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.HitPoints, _mHitPoints != 0);
+		Utility.SetSaveFlag(ref flags, SaveFlag.Durability, _mDurability != DurabilityLevel.Regular);
+		Utility.SetSaveFlag(ref flags, SaveFlag.Protection, _mProtection != ArmorProtectionLevel.Regular);
+		Utility.SetSaveFlag(ref flags, SaveFlag.BaseArmor, _mArmorBase != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.StrBonus, _mStrBonus != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.DexBonus, _mDexBonus != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.IntBonus, _mIntBonus != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.StrReq, _mStrReq != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.DexReq, _mDexReq != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.IntReq, _mIntReq != -1);
+		Utility.SetSaveFlag(ref flags, SaveFlag.MedAllowance, _mMeditate != (AMA)(-1));
+		Utility.SetSaveFlag(ref flags, SaveFlag.SkillBonuses, !_mAosSkillBonuses.IsEmpty);
 
 		writer.WriteEncodedInt((int)flags);
 
-		if (flags.HasFlag(SaveFlag.xWeaponAttributes))
+		if (flags.HasFlag(SaveFlag.XWeaponAttributes))
 		{
-			m_AosWeaponAttributes.Serialize(writer);
+			_mAosWeaponAttributes.Serialize(writer);
 		}
 
 		if (flags.HasFlag(SaveFlag.TalismanProtection))
 		{
-			m_TalismanProtection.Serialize(writer);
+			_mTalismanProtection.Serialize(writer);
 		}
 
 		if (flags.HasFlag(SaveFlag.ArmorAttributes))
-			m_AosArmorAttributes.Serialize(writer);
+			_mAosArmorAttributes.Serialize(writer);
 
 		if (flags.HasFlag(SaveFlag.PhysicalBonus))
-			writer.WriteEncodedInt(m_PhysicalBonus);
+			writer.WriteEncodedInt(_mPhysicalBonus);
 
 		if (flags.HasFlag(SaveFlag.FireBonus))
-			writer.WriteEncodedInt(m_FireBonus);
+			writer.WriteEncodedInt(_mFireBonus);
 
 		if (flags.HasFlag(SaveFlag.ColdBonus))
-			writer.WriteEncodedInt(m_ColdBonus);
+			writer.WriteEncodedInt(_mColdBonus);
 
 		if (flags.HasFlag(SaveFlag.PoisonBonus))
-			writer.WriteEncodedInt(m_PoisonBonus);
+			writer.WriteEncodedInt(_mPoisonBonus);
 
 		if (flags.HasFlag(SaveFlag.EnergyBonus))
-			writer.WriteEncodedInt(m_EnergyBonus);
+			writer.WriteEncodedInt(_mEnergyBonus);
 
 		if (flags.HasFlag(SaveFlag.MaxHitPoints))
-			writer.WriteEncodedInt(m_MaxHitPoints);
+			writer.WriteEncodedInt(_mMaxHitPoints);
 
 		if (flags.HasFlag(SaveFlag.HitPoints))
-			writer.WriteEncodedInt(m_HitPoints);
+			writer.WriteEncodedInt(_mHitPoints);
 
 		if (flags.HasFlag(SaveFlag.Durability))
-			writer.WriteEncodedInt((int)m_Durability);
+			writer.WriteEncodedInt((int)_mDurability);
 
 		if (flags.HasFlag(SaveFlag.Protection))
-			writer.WriteEncodedInt((int)m_Protection);
+			writer.WriteEncodedInt((int)_mProtection);
 
 		if (flags.HasFlag(SaveFlag.BaseArmor))
-			writer.WriteEncodedInt(m_ArmorBase);
+			writer.WriteEncodedInt(_mArmorBase);
 
 		if (flags.HasFlag(SaveFlag.StrBonus))
-			writer.WriteEncodedInt(m_StrBonus);
+			writer.WriteEncodedInt(_mStrBonus);
 
 		if (flags.HasFlag(SaveFlag.DexBonus))
-			writer.WriteEncodedInt(m_DexBonus);
+			writer.WriteEncodedInt(_mDexBonus);
 
 		if (flags.HasFlag(SaveFlag.IntBonus))
-			writer.WriteEncodedInt(m_IntBonus);
+			writer.WriteEncodedInt(_mIntBonus);
 
 		if (flags.HasFlag(SaveFlag.StrReq))
-			writer.WriteEncodedInt(m_StrReq);
+			writer.WriteEncodedInt(_mStrReq);
 
 		if (flags.HasFlag(SaveFlag.DexReq))
-			writer.WriteEncodedInt(m_DexReq);
+			writer.WriteEncodedInt(_mDexReq);
 
 		if (flags.HasFlag(SaveFlag.IntReq))
-			writer.WriteEncodedInt(m_IntReq);
+			writer.WriteEncodedInt(_mIntReq);
 
 		if (flags.HasFlag(SaveFlag.MedAllowance))
-			writer.WriteEncodedInt((int)m_Meditate);
+			writer.WriteEncodedInt((int)_mMeditate);
 
 		if (flags.HasFlag(SaveFlag.SkillBonuses))
-			m_AosSkillBonuses.Serialize(writer);
+			_mAosSkillBonuses.Serialize(writer);
 	}
 
 	public override void Deserialize(GenericReader reader)
@@ -796,57 +802,43 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 				{
 					SetFlag sflags = (SetFlag)reader.ReadEncodedInt();
 
-					if (sflags.HasFlag(SetFlag.Attributes))
-					{
-						m_SetAttributes = new AosAttributes(this, reader);
-					}
-					else
-					{
-						m_SetAttributes = new AosAttributes(this);
-					}
+					_mSetAttributes = sflags.HasFlag(SetFlag.Attributes) ? new AosAttributes(this, reader) : new AosAttributes(this);
 
 					if (sflags.HasFlag(SetFlag.ArmorAttributes))
 					{
-						m_SetSelfRepair = (new AosArmorAttributes(this, reader)).SelfRepair;
+						_mSetSelfRepair = (new AosArmorAttributes(this, reader)).SelfRepair;
 					}
 
-					if (sflags.HasFlag(SetFlag.SkillBonuses))
-					{
-						m_SetSkillBonuses = new AosSkillBonuses(this, reader);
-					}
-					else
-					{
-						m_SetSkillBonuses = new AosSkillBonuses(this);
-					}
+					_mSetSkillBonuses = sflags.HasFlag(SetFlag.SkillBonuses) ? new AosSkillBonuses(this, reader) : new AosSkillBonuses(this);
 
 					if (sflags.HasFlag(SetFlag.PhysicalBonus))
 					{
-						m_SetPhysicalBonus = reader.ReadEncodedInt();
+						_mSetPhysicalBonus = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.FireBonus))
 					{
-						m_SetFireBonus = reader.ReadEncodedInt();
+						_mSetFireBonus = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.ColdBonus))
 					{
-						m_SetColdBonus = reader.ReadEncodedInt();
+						_mSetColdBonus = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.PoisonBonus))
 					{
-						m_SetPoisonBonus = reader.ReadEncodedInt();
+						_mSetPoisonBonus = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.EnergyBonus))
 					{
-						m_SetEnergyBonus = reader.ReadEncodedInt();
+						_mSetEnergyBonus = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.Hue))
 					{
-						m_SetHue = reader.ReadEncodedInt();
+						_mSetHue = reader.ReadEncodedInt();
 					}
 
 					if (sflags.HasFlag(SetFlag.LastEquipped))
@@ -861,164 +853,114 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 					if (sflags.HasFlag(SetFlag.SetSelfRepair))
 					{
-						m_SetSelfRepair = reader.ReadEncodedInt();
+						_mSetSelfRepair = reader.ReadEncodedInt();
 					}
 
 					SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
-					if (flags.HasFlag(SaveFlag.xWeaponAttributes))
-					{
-						m_AosWeaponAttributes = new AosWeaponAttributes(this, reader);
-					}
-					else
-					{
-						m_AosWeaponAttributes = new AosWeaponAttributes(this);
-					}
+					_mAosWeaponAttributes = flags.HasFlag(SaveFlag.XWeaponAttributes) ? new AosWeaponAttributes(this, reader) : new AosWeaponAttributes(this);
 
-					if (flags.HasFlag(SaveFlag.TalismanProtection))
-					{
-						m_TalismanProtection = new TalismanAttribute(reader);
-					}
-					else
-					{
-						m_TalismanProtection = new TalismanAttribute();
-					}
+					_mTalismanProtection = flags.HasFlag(SaveFlag.TalismanProtection) ? new TalismanAttribute(reader) : new TalismanAttribute();
 
-					if (flags.HasFlag(SaveFlag.ArmorAttributes))
-						m_AosArmorAttributes = new AosArmorAttributes(this, reader);
-					else
-						m_AosArmorAttributes = new AosArmorAttributes(this);
+					_mAosArmorAttributes = flags.HasFlag(SaveFlag.ArmorAttributes) ? new AosArmorAttributes(this, reader) : new AosArmorAttributes(this);
 
 					if (flags.HasFlag(SaveFlag.PhysicalBonus))
-						m_PhysicalBonus = reader.ReadEncodedInt();
+						_mPhysicalBonus = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.FireBonus))
-						m_FireBonus = reader.ReadEncodedInt();
+						_mFireBonus = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.ColdBonus))
-						m_ColdBonus = reader.ReadEncodedInt();
+						_mColdBonus = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.PoisonBonus))
-						m_PoisonBonus = reader.ReadEncodedInt();
+						_mPoisonBonus = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.EnergyBonus))
-						m_EnergyBonus = reader.ReadEncodedInt();
+						_mEnergyBonus = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.MaxHitPoints))
-						m_MaxHitPoints = reader.ReadEncodedInt();
+						_mMaxHitPoints = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.HitPoints))
-						m_HitPoints = reader.ReadEncodedInt();
+						_mHitPoints = reader.ReadEncodedInt();
 
 					if (flags.HasFlag(SaveFlag.Durability))
 					{
-						m_Durability = (DurabilityLevel)reader.ReadEncodedInt();
+						_mDurability = (DurabilityLevel)reader.ReadEncodedInt();
 
-						if (m_Durability > DurabilityLevel.Indestructible)
-							m_Durability = DurabilityLevel.Durable;
+						if (_mDurability > DurabilityLevel.Indestructible)
+							_mDurability = DurabilityLevel.Durable;
 					}
 
 					if (flags.HasFlag(SaveFlag.Protection))
 					{
-						m_Protection = (ArmorProtectionLevel)reader.ReadEncodedInt();
+						_mProtection = (ArmorProtectionLevel)reader.ReadEncodedInt();
 
-						if (m_Protection > ArmorProtectionLevel.Invulnerability)
-							m_Protection = ArmorProtectionLevel.Defense;
+						if (_mProtection > ArmorProtectionLevel.Invulnerability)
+							_mProtection = ArmorProtectionLevel.Defense;
 					}
 
-					if (flags.HasFlag(SaveFlag.BaseArmor))
-						m_ArmorBase = reader.ReadEncodedInt();
-					else
-						m_ArmorBase = -1;
+					_mArmorBase = flags.HasFlag(SaveFlag.BaseArmor) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.StrBonus))
-						m_StrBonus = reader.ReadEncodedInt();
-					else
-						m_StrBonus = -1;
+					_mStrBonus = flags.HasFlag(SaveFlag.StrBonus) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.DexBonus))
-						m_DexBonus = reader.ReadEncodedInt();
-					else
-						m_DexBonus = -1;
+					_mDexBonus = flags.HasFlag(SaveFlag.DexBonus) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.IntBonus))
-						m_IntBonus = reader.ReadEncodedInt();
-					else
-						m_IntBonus = -1;
+					_mIntBonus = flags.HasFlag(SaveFlag.IntBonus) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.StrReq))
-						m_StrReq = reader.ReadEncodedInt();
-					else
-						m_StrReq = -1;
+					_mStrReq = flags.HasFlag(SaveFlag.StrReq) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.DexReq))
-						m_DexReq = reader.ReadEncodedInt();
-					else
-						m_DexReq = -1;
+					_mDexReq = flags.HasFlag(SaveFlag.DexReq) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.IntReq))
-						m_IntReq = reader.ReadEncodedInt();
-					else
-						m_IntReq = -1;
+					_mIntReq = flags.HasFlag(SaveFlag.IntReq) ? reader.ReadEncodedInt() : -1;
 
-					if (flags.HasFlag(SaveFlag.MedAllowance))
-						m_Meditate = (AMA)reader.ReadEncodedInt();
-					else
-						m_Meditate = (AMA)(-1);
+					_mMeditate = flags.HasFlag(SaveFlag.MedAllowance) ? (AMA) reader.ReadEncodedInt() : (AMA) (-1);
 
 					if (flags.HasFlag(SaveFlag.SkillBonuses))
-						m_AosSkillBonuses = new AosSkillBonuses(this, reader);
+						_mAosSkillBonuses = new AosSkillBonuses(this, reader);
 
 					break;
 				}
 		}
 
 		#region Mondain's Legacy Sets
-		if (m_SetAttributes == null)
-		{
-			m_SetAttributes = new AosAttributes(this);
-		}
+		_mSetAttributes ??= new AosAttributes(this);
 
-		if (m_SetSkillBonuses == null)
-		{
-			m_SetSkillBonuses = new AosSkillBonuses(this);
-		}
+		_mSetSkillBonuses ??= new AosSkillBonuses(this);
 		#endregion
 
-		if (m_AosSkillBonuses == null)
-			m_AosSkillBonuses = new AosSkillBonuses(this);
+		_mAosSkillBonuses ??= new AosSkillBonuses(this);
 
 		if (Core.AOS && Parent is Mobile mobile)
-			m_AosSkillBonuses.AddTo(mobile);
+			_mAosSkillBonuses.AddTo(mobile);
 
-		if (Parent is Mobile mob)
-		{
-			AddStatBonuses(mob);
-			mob.CheckStatTimers();
-		}
+		if (Parent is not Mobile mob) return;
+		AddStatBonuses(mob);
+		mob.CheckStatTimers();
 	}
 	#endregion
 
 	public virtual CraftResource DefaultResource => CraftResource.Iron;
 
-	public BaseArmor(int itemID) : base(itemID)
+	public BaseArmor(int itemId) : base(itemId)
 	{
 		Layer = (Layer)ItemData.Quality;
-		m_Durability = DurabilityLevel.Regular;
+		_mDurability = DurabilityLevel.Regular;
 		base.Resource = DefaultResource;
 		Hue = CraftResources.GetHue(Resource);
 		if (UseNewHits)
 		{
-			m_HitPoints = m_MaxHitPoints = InitHits;
+			_mHitPoints = _mMaxHitPoints = InitHits;
 		}
 		else
-			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
-		m_AosArmorAttributes = new AosArmorAttributes(this);
-		m_AosSkillBonuses = new AosSkillBonuses(this);
-		m_SetAttributes = new AosAttributes(this);
-		m_SetSkillBonuses = new AosSkillBonuses(this);
-		m_AosWeaponAttributes = new AosWeaponAttributes(this);
-		m_TalismanProtection = new TalismanAttribute();
+			_mHitPoints = _mMaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
+		_mAosArmorAttributes = new AosArmorAttributes(this);
+		_mAosSkillBonuses = new AosSkillBonuses(this);
+		_mSetAttributes = new AosAttributes(this);
+		_mSetSkillBonuses = new AosSkillBonuses(this);
+		_mAosWeaponAttributes = new AosWeaponAttributes(this);
+		_mTalismanProtection = new TalismanAttribute();
 	}
 
 	//public override bool AllowSecureTrade(Mobile from, Mobile to, Mobile newOwner, bool accepted)
@@ -1036,7 +978,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 		if (from.IsPlayer())
 		{
-			if (this is IAccountRestricted restricted && restricted.Account != null)
+			if (this is IAccountRestricted {Account: { }} restricted)
 			{
 				if (from.Account is not Accounting.Account acct || acct.Username != restricted.Account)
 				{
@@ -1055,7 +997,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			{
 				return false;
 			}
-			else if (!AllowMaleWearer && !from.Female)
+
+			if (!AllowMaleWearer && !from.Female)
 			{
 				if (AllowFemaleWearer)
 					from.SendLocalizedMessage(1010388); // Only females can wear this.
@@ -1064,7 +1007,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 				return false;
 			}
-			else if (!AllowFemaleWearer && from.Female)
+
+			if (!AllowFemaleWearer && from.Female)
 			{
 				if (AllowMaleWearer)
 					from.SendLocalizedMessage(1063343); // Only males can wear this.
@@ -1073,27 +1017,27 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 				return false;
 			}
-			else
-			{
-				int strBonus = ComputeStatBonus(StatType.Str), strReq = ComputeStatReq(StatType.Str);
-				int dexBonus = ComputeStatBonus(StatType.Dex), dexReq = ComputeStatReq(StatType.Dex);
-				int intBonus = ComputeStatBonus(StatType.Int), intReq = ComputeStatReq(StatType.Int);
 
-				if (from.Dex < dexReq || (from.Dex + dexBonus) < 1)
-				{
-					from.SendLocalizedMessage(502077); // You do not have enough dexterity to equip this item.
-					return false;
-				}
-				else if (from.Str < strReq || (from.Str + strBonus) < 1)
-				{
-					from.SendLocalizedMessage(500213); // You are not strong enough to equip that.
-					return false;
-				}
-				else if (from.Int < intReq || (from.Int + intBonus) < 1)
-				{
-					from.SendMessage("You are not smart enough to equip that.");
-					return false;
-				}
+			int strBonus = ComputeStatBonus(StatType.Str), strReq = ComputeStatReq(StatType.Str);
+			int dexBonus = ComputeStatBonus(StatType.Dex), dexReq = ComputeStatReq(StatType.Dex);
+			int intBonus = ComputeStatBonus(StatType.Int), intReq = ComputeStatReq(StatType.Int);
+
+			if (from.Dex < dexReq || from.Dex + dexBonus < 1)
+			{
+				from.SendLocalizedMessage(502077); // You do not have enough dexterity to equip this item.
+				return false;
+			}
+
+			if (from.Str < strReq || from.Str + strBonus < 1)
+			{
+				from.SendLocalizedMessage(500213); // You are not strong enough to equip that.
+				return false;
+			}
+
+			if (from.Int < intReq || from.Int + intBonus < 1)
+			{
+				from.SendMessage("You are not smart enough to equip that.");
+				return false;
 			}
 		}
 
@@ -1101,10 +1045,8 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		{
 			return false;
 		}
-		else
-		{
-			return base.CanEquip(from);
-		}
+
+		return base.CanEquip(from);
 	}
 
 	public override bool CheckPropertyConfliction(Mobile m)
@@ -1112,13 +1054,12 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		if (base.CheckPropertyConfliction(m))
 			return true;
 
-		if (Layer == Layer.Pants)
-			return (m.FindItemOnLayer(Layer.InnerLegs) != null);
-
-		if (Layer == Layer.Shirt)
-			return (m.FindItemOnLayer(Layer.InnerTorso) != null);
-
-		return false;
+		return Layer switch
+		{
+			Layer.Pants => m.FindItemOnLayer(Layer.InnerLegs) != null,
+			Layer.Shirt => m.FindItemOnLayer(Layer.InnerTorso) != null,
+			_ => false
+		};
 	}
 
 	public override bool OnEquip(Mobile from)
@@ -1138,15 +1079,15 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			RemoveStatBonuses(m);
 
 			if (Core.AOS)
-				m_AosSkillBonuses.Remove();
+				_mAosSkillBonuses.Remove();
 
-			((Mobile)parent).Delta(MobileDelta.Armor); // Tell them armor rating has changed
+			m.Delta(MobileDelta.Armor); // Tell them armor rating has changed
 			m.CheckStatTimers();
 
 			#region Mondain's Legacy Sets
 			if (Core.ML && IsSetItem && SetEquipped)
 			{
-				SetHelper.RemoveSetBonus(m, SetID, this);
+				SetHelper.RemoveSetBonus(m, SetId, this);
 			}
 			#endregion
 		}
@@ -1156,19 +1097,21 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 	public virtual int OnHit(BaseWeapon weapon, int damageTaken)
 	{
-		double HalfAr = ArmorRating / 2.0;
-		int Absorbed = (int)(HalfAr + HalfAr * Utility.RandomDouble());
+		double halfAr = ArmorRating / 2.0;
+		int absorbed = (int)(halfAr + halfAr * Utility.RandomDouble());
 
-		damageTaken -= Absorbed;
+		damageTaken -= absorbed;
 		if (damageTaken < 0)
 			damageTaken = 0;
 
-		if (Absorbed < 2)
-			Absorbed = 2;
-
-		if (25 > Utility.Random(100)) // 25% chance to lower durability
+		if (absorbed < 2)
+			absorbed = 2;
+		double chance = 25;
+		//double chance = NegativeAttributes.Antique > 0 ? 80 : 25;
+		// if (chance >= Utility.Random(100)) // 25% chance to lower durability
+		if (chance >= Utility.Random(100)) // 25% chance to lower durability
 		{
-			if (Core.AOS && m_AosArmorAttributes.SelfRepair > Utility.Random(10))
+			if (Core.AOS && _mAosArmorAttributes.SelfRepair > Utility.Random(10))
 			{
 				HitPoints += 2;
 			}
@@ -1177,13 +1120,13 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 				int wear;
 
 				if (weapon.Type == WeaponType.Bashing)
-					wear = Absorbed / 2;
+					wear = absorbed / 2;
 				else
 					wear = Utility.Random(2);
 
-				if (wear > 0 && m_MaxHitPoints > 0)
+				if (wear > 0 && _mMaxHitPoints > 0)
 				{
-					if (m_HitPoints >= wear)
+					if (_mHitPoints >= wear)
 					{
 						HitPoints -= wear;
 						wear = 0;
@@ -1196,7 +1139,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 					if (wear > 0)
 					{
-						if (m_MaxHitPoints > wear)
+						if (_mMaxHitPoints > wear)
 						{
 							MaxHitPoints -= wear;
 
@@ -1248,15 +1191,9 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		CraftResourceInfo resInfo = CraftResources.GetInfo(Resource);
 
-		if (resInfo == null)
-			return 0;
+		CraftAttributeInfo attrInfo = resInfo?.AttributeInfo;
 
-		CraftAttributeInfo attrInfo = resInfo.AttributeInfo;
-
-		if (attrInfo == null)
-			return 0;
-
-		return attrInfo.ArmorLuck;
+		return attrInfo?.ArmorLuck ?? 0;
 	}
 
 	public override void AddCraftedProperties(ObjectPropertyList list)
@@ -1312,14 +1249,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		#region Mondain's Legacy Sets
 		if (Core.ML && IsSetItem)
 		{
-			if (MixedSet)
-			{
-				list.Add(1073491, Pieces.ToString()); // Part of a Weapon/Armor Set (~1_val~ pieces)
-			}
-			else
-			{
-				list.Add(1072376, Pieces.ToString()); // Part of an Armor Set (~1_val~ pieces)
-			}
+			list.Add(MixedSet ? 1073491 : 1072376, Pieces.ToString());
 
 			if (BardMasteryBonus)
 			{
@@ -1353,7 +1283,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			list.Add(1111709); // Gargoyles Only
 		}
 
-		m_AosSkillBonuses.GetProperties(list);
+		_mAosSkillBonuses.GetProperties(list);
 
 		int prop;
 
@@ -1362,89 +1292,89 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			list.Add(1061078, prop.ToString()); // artifact rarity ~1_val~
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitColdArea) != 0)
+		if ((prop = _mAosWeaponAttributes.HitColdArea) != 0)
 		{
 			list.Add(1060416, prop.ToString()); // hit cold area ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitDispel) != 0)
+		if ((prop = _mAosWeaponAttributes.HitDispel) != 0)
 		{
 			list.Add(1060417, prop.ToString()); // hit dispel ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitEnergyArea) != 0)
+		if ((prop = _mAosWeaponAttributes.HitEnergyArea) != 0)
 		{
 			list.Add(1060418, prop.ToString()); // hit energy area ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitFireArea) != 0)
+		if ((prop = _mAosWeaponAttributes.HitFireArea) != 0)
 		{
 			list.Add(1060419, prop.ToString()); // hit fire area ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitFireball) != 0)
+		if ((prop = _mAosWeaponAttributes.HitFireball) != 0)
 		{
 			list.Add(1060420, prop.ToString()); // hit fireball ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitHarm) != 0)
+		if ((prop = _mAosWeaponAttributes.HitHarm) != 0)
 		{
 			list.Add(1060421, prop.ToString()); // hit harm ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLeechHits) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLeechHits) != 0)
 		{
 			list.Add(1060422, prop.ToString()); // hit life leech ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLightning) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLightning) != 0)
 		{
 			list.Add(1060423, prop.ToString()); // hit lightning ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLowerAttack) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLowerAttack) != 0)
 		{
 			list.Add(1060424, prop.ToString()); // hit lower attack ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLowerDefend) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLowerDefend) != 0)
 		{
 			list.Add(1060425, prop.ToString()); // hit lower defense ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitMagicArrow) != 0)
+		if ((prop = _mAosWeaponAttributes.HitMagicArrow) != 0)
 		{
 			list.Add(1060426, prop.ToString()); // hit magic arrow ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLeechMana) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLeechMana) != 0)
 		{
 			list.Add(1060427, prop.ToString()); // hit mana leech ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitPhysicalArea) != 0)
+		if ((prop = _mAosWeaponAttributes.HitPhysicalArea) != 0)
 		{
 			list.Add(1060428, prop.ToString()); // hit physical area ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitPoisonArea) != 0)
+		if ((prop = _mAosWeaponAttributes.HitPoisonArea) != 0)
 		{
 			list.Add(1060429, prop.ToString()); // hit poison area ~1_val~%
 		}
 
-		if ((prop = m_AosWeaponAttributes.HitLeechStam) != 0)
+		if ((prop = _mAosWeaponAttributes.HitLeechStam) != 0)
 		{
 			list.Add(1060430, prop.ToString()); // hit stamina leech ~1_val~%
 		}
 
-		if ((prop = m_AosArmorAttributes.DurabilityBonus) != 0)
+		if ((prop = _mAosArmorAttributes.DurabilityBonus) != 0)
 		{
 			list.Add(1151780, prop.ToString()); // durability +~1_VAL~%
 		}
 
-		if (m_TalismanProtection != null && !m_TalismanProtection.IsEmpty && m_TalismanProtection.Amount > 0)
+		if (_mTalismanProtection is {IsEmpty: false, Amount: > 0})
 		{
-			list.Add(1072387, "{0}\t{1}", m_TalismanProtection.Name != null ? m_TalismanProtection.Name.ToString() : "Unknown", m_TalismanProtection.Amount); // ~1_NAME~ Protection: +~2_val~%
+			list.Add(1072387, "{0}\t{1}", _mTalismanProtection.Name != null ? _mTalismanProtection.Name.ToString() : "Unknown", _mTalismanProtection.Amount); // ~1_NAME~ Protection: +~2_val~%
 		}
 
 		if (Attributes.SpellChanneling != 0)
@@ -1452,7 +1382,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			list.Add(1060482); // spell channeling
 		}
 
-		if ((prop = m_AosArmorAttributes.SelfRepair) != 0)
+		if ((prop = _mAosArmorAttributes.SelfRepair) != 0)
 		{
 			list.Add(1060450, prop.ToString()); // self repair ~1_val~
 		}
@@ -1574,7 +1504,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 		AddResistanceProperties(list);
 
-		if (m_AosArmorAttributes.MageArmor != 0)
+		if (_mAosArmorAttributes.MageArmor != 0)
 		{
 			list.Add(1060437); // mage armor
 		}
@@ -1598,9 +1528,9 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 				list.Add(1060662, "{0}\t{1}", "intelligence requirement", prop.ToString());
 		}
 
-		if (m_HitPoints >= 0 && m_MaxHitPoints > 0)
+		if (_mHitPoints >= 0 && _mMaxHitPoints > 0)
 		{
-			list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
+			list.Add(1060639, "{0}\t{1}", _mHitPoints, _mMaxHitPoints); // durability ~1_val~ / ~2_val~
 		}
 
 		XmlAttach.AddAttachmentProperties(this, list);
@@ -1627,10 +1557,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		#region Mondain's Legacy
 		if (!Core.ML || !craftItem.ForceNonExceptional)
 		{
-			if (typeRes == null)
-			{
-				typeRes = craftItem.Resources.GetAt(0).ItemType;
-			}
+			typeRes ??= craftItem.Resources.GetAt(0).ItemType;
 
 			Resource = CraftResources.GetFromType(typeRes);
 		}
@@ -1682,29 +1609,29 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		{
 			switch (Utility.Random(5))
 			{
-				case 0: ++m_PhysicalBonus; break;
-				case 1: ++m_FireBonus; break;
-				case 2: ++m_ColdBonus; break;
-				case 3: ++m_PoisonBonus; break;
-				case 4: ++m_EnergyBonus; break;
+				case 0: ++_mPhysicalBonus; break;
+				case 1: ++_mFireBonus; break;
+				case 2: ++_mColdBonus; break;
+				case 3: ++_mPoisonBonus; break;
+				case 4: ++_mEnergyBonus; break;
 			}
 		}
 
 		// Arms Lore Bonus
 		if (Core.ML && from != null)
 		{
-			double div = 20;
+			const double div = 20;
 			int bonus = (int)(from.Skills.ArmsLore.Value / div);
 
-			for (int i = 0; i < bonus; i++)
+			for (var i = 0; i < bonus; i++)
 			{
 				switch (Utility.Random(5))
 				{
-					case 0: m_PhysicalBonus++; break;
-					case 1: m_FireBonus++; break;
-					case 2: m_ColdBonus++; break;
-					case 3: m_EnergyBonus++; break;
-					case 4: m_PoisonBonus++; break;
+					case 0: _mPhysicalBonus++; break;
+					case 1: _mFireBonus++; break;
+					case 2: _mColdBonus++; break;
+					case 3: _mEnergyBonus++; break;
+					case 4: _mPoisonBonus++; break;
 				}
 			}
 
@@ -1712,9 +1639,9 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		}
 
 		// Gives MageArmor property for certain armor types
-		if (Core.SA && m_AosArmorAttributes.MageArmor <= 0 && IsMageArmorType(this))
+		if (Core.SA && _mAosArmorAttributes.MageArmor <= 0 && IsMageArmorType(this))
 		{
-			m_AosArmorAttributes.MageArmor = 1;
+			_mAosArmorAttributes.MageArmor = 1;
 		}
 
 		InvalidateProperties();
@@ -1729,21 +1656,21 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 			info = GetResourceAttrs(oldResource);
 
 			// Remove old bonus
-			m_PhysicalBonus = Math.Max(0, m_PhysicalBonus - info.ArmorPhysicalResist);
-			m_FireBonus = Math.Max(0, m_FireBonus - info.ArmorFireResist);
-			m_ColdBonus = Math.Max(0, m_ColdBonus - info.ArmorColdResist);
-			m_PoisonBonus = Math.Max(0, m_PoisonBonus - info.ArmorPoisonResist);
-			m_EnergyBonus = Math.Max(0, m_EnergyBonus - info.ArmorEnergyResist);
+			_mPhysicalBonus = Math.Max(0, _mPhysicalBonus - info.ArmorPhysicalResist);
+			_mFireBonus = Math.Max(0, _mFireBonus - info.ArmorFireResist);
+			_mColdBonus = Math.Max(0, _mColdBonus - info.ArmorColdResist);
+			_mPoisonBonus = Math.Max(0, _mPoisonBonus - info.ArmorPoisonResist);
+			_mEnergyBonus = Math.Max(0, _mEnergyBonus - info.ArmorEnergyResist);
 		}
 
 		info = GetResourceAttrs(Resource);
 
 		// add new bonus
-		m_PhysicalBonus += info.ArmorPhysicalResist;
-		m_FireBonus += info.ArmorFireResist;
-		m_ColdBonus += info.ArmorColdResist;
-		m_PoisonBonus += info.ArmorPoisonResist;
-		m_EnergyBonus += info.ArmorEnergyResist;
+		_mPhysicalBonus += info.ArmorPhysicalResist;
+		_mFireBonus += info.ArmorFireResist;
+		_mColdBonus += info.ArmorColdResist;
+		_mPoisonBonus += info.ArmorPoisonResist;
+		_mEnergyBonus += info.ArmorEnergyResist;
 	}
 
 	public virtual void DistributeMaterialBonus(CraftAttributeInfo attrInfo)
@@ -1763,7 +1690,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 				case 1: Attributes.AttackChance += attrInfo.ArmorHitChance; break;
 				//case 2: m_AosArmorAttributes.MageArmor += attrInfo.ArmorMage; break;
 				case 2: Attributes.Luck += attrInfo.ArmorLuck; break;
-				case 3: m_AosArmorAttributes.LowerStatReq += attrInfo.ArmorLowerRequirements; break;
+				case 3: _mAosArmorAttributes.LowerStatReq += attrInfo.ArmorLowerRequirements; break;
 			}
 		}
 	}
@@ -1772,31 +1699,17 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	{
 		CraftResourceInfo info = CraftResources.GetInfo(res);
 
-		if (info == null)
-		{
-			return CraftAttributeInfo.Blank;
-		}
-
-		return info.AttributeInfo;
+		return info == null ? CraftAttributeInfo.Blank : info.AttributeInfo;
 	}
 
 	public static bool IsMageArmorType(BaseArmor armor)
 	{
 		Type t = armor.GetType();
 
-		foreach (Type type in _MageArmorTypes)
-		{
-			if (type == t || t.IsSubclassOf(type))
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return MageArmorTypes.Any(type => type == t || t.IsSubclassOf(type));
 	}
 
-	public static readonly Type[] _MageArmorTypes = new Type[]
-	{
+	public static readonly Type[] MageArmorTypes = {
 		typeof(HeavyPlateJingasa),  typeof(LightPlateJingasa),
 		typeof(PlateMempo),         typeof(PlateDo),
 		typeof(PlateHiroSode),      typeof(PlateSuneate),
@@ -1812,30 +1725,30 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		{
 			if (IsSetItem && SetEquipped)
 			{
-				SetHelper.RemoveSetBonus(from, SetID, this);
+				SetHelper.RemoveSetBonus(from, SetId, this);
 			}
 		}
 
 		return base.OnDragLift(from);
 	}
 
-	public virtual SetItem SetID => SetItem.None;
+	public virtual SetItem SetId => SetItem.None;
 	public virtual bool MixedSet => false;
 	public virtual int Pieces => 0;
 
-	public virtual bool BardMasteryBonus => SetID == SetItem.Virtuoso;
+	public virtual bool BardMasteryBonus => SetId == SetItem.Virtuoso;
 
-	public bool IsSetItem => SetID != SetItem.None;
+	public bool IsSetItem => SetId != SetItem.None;
 
-	private int m_SetHue;
+	private int _mSetHue;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetHue
 	{
-		get => m_SetHue;
+		get => _mSetHue;
 		set
 		{
-			m_SetHue = value;
+			_mSetHue = value;
 			InvalidateProperties();
 		}
 	}
@@ -1844,14 +1757,14 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 	public bool LastEquipped { get; set; }
 
-	private AosAttributes m_SetAttributes;
-	private AosSkillBonuses m_SetSkillBonuses;
-	private int m_SetSelfRepair;
+	private AosAttributes _mSetAttributes;
+	private AosSkillBonuses _mSetSkillBonuses;
+	private int _mSetSelfRepair;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AosAttributes SetAttributes
 	{
-		get => m_SetAttributes;
+		get => _mSetAttributes;
 		set
 		{
 		}
@@ -1860,7 +1773,7 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AosSkillBonuses SetSkillBonuses
 	{
-		get => m_SetSkillBonuses;
+		get => _mSetSkillBonuses;
 		set
 		{
 		}
@@ -1869,23 +1782,23 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetSelfRepair
 	{
-		get => m_SetSelfRepair;
+		get => _mSetSelfRepair;
 		set
 		{
-			m_SetSelfRepair = value;
+			_mSetSelfRepair = value;
 			InvalidateProperties();
 		}
 	}
 
-	private int m_SetPhysicalBonus, m_SetFireBonus, m_SetColdBonus, m_SetPoisonBonus, m_SetEnergyBonus;
+	private int _mSetPhysicalBonus, _mSetFireBonus, _mSetColdBonus, _mSetPoisonBonus, _mSetEnergyBonus;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetPhysicalBonus
 	{
-		get => m_SetPhysicalBonus;
+		get => _mSetPhysicalBonus;
 		set
 		{
-			m_SetPhysicalBonus = value;
+			_mSetPhysicalBonus = value;
 			InvalidateProperties();
 		}
 	}
@@ -1893,10 +1806,10 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetFireBonus
 	{
-		get => m_SetFireBonus;
+		get => _mSetFireBonus;
 		set
 		{
-			m_SetFireBonus = value;
+			_mSetFireBonus = value;
 			InvalidateProperties();
 		}
 	}
@@ -1904,10 +1817,10 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetColdBonus
 	{
-		get => m_SetColdBonus;
+		get => _mSetColdBonus;
 		set
 		{
-			m_SetColdBonus = value;
+			_mSetColdBonus = value;
 			InvalidateProperties();
 		}
 	}
@@ -1915,10 +1828,10 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetPoisonBonus
 	{
-		get => m_SetPoisonBonus;
+		get => _mSetPoisonBonus;
 		set
 		{
-			m_SetPoisonBonus = value;
+			_mSetPoisonBonus = value;
 			InvalidateProperties();
 		}
 	}
@@ -1926,10 +1839,10 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int SetEnergyBonus
 	{
-		get => m_SetEnergyBonus;
+		get => _mSetEnergyBonus;
 		set
 		{
-			m_SetEnergyBonus = value;
+			_mSetEnergyBonus = value;
 			InvalidateProperties();
 		}
 	}
@@ -1940,89 +1853,89 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 		if (!SetEquipped)
 		{
-			if (m_SetPhysicalBonus != 0)
+			if (_mSetPhysicalBonus != 0)
 			{
-				list.Add(1072382, m_SetPhysicalBonus.ToString()); // physical resist +~1_val~%
+				list.Add(1072382, _mSetPhysicalBonus.ToString()); // physical resist +~1_val~%
 			}
 
-			if (m_SetFireBonus != 0)
+			if (_mSetFireBonus != 0)
 			{
-				list.Add(1072383, m_SetFireBonus.ToString()); // fire resist +~1_val~%
+				list.Add(1072383, _mSetFireBonus.ToString()); // fire resist +~1_val~%
 			}
 
-			if (m_SetColdBonus != 0)
+			if (_mSetColdBonus != 0)
 			{
-				list.Add(1072384, m_SetColdBonus.ToString()); // cold resist +~1_val~%
+				list.Add(1072384, _mSetColdBonus.ToString()); // cold resist +~1_val~%
 			}
 
-			if (m_SetPoisonBonus != 0)
+			if (_mSetPoisonBonus != 0)
 			{
-				list.Add(1072385, m_SetPoisonBonus.ToString()); // poison resist +~1_val~%
+				list.Add(1072385, _mSetPoisonBonus.ToString()); // poison resist +~1_val~%
 			}
 
-			if (m_SetEnergyBonus != 0)
+			if (_mSetEnergyBonus != 0)
 			{
-				list.Add(1072386, m_SetEnergyBonus.ToString()); // energy resist +~1_val~%		
+				list.Add(1072386, _mSetEnergyBonus.ToString()); // energy resist +~1_val~%		
 			}
 		}
 		else if (SetEquipped && SetHelper.ResistsBonusPerPiece(this) && RootParent is Mobile mobile)
 		{
-			if (m_SetPhysicalBonus != 0)
+			if (_mSetPhysicalBonus != 0)
 			{
 				list.Add(1080361, SetHelper.GetSetTotalResist(mobile, ResistanceType.Physical).ToString()); // physical resist ~1_val~% (total)
 			}
 
-			if (m_SetFireBonus != 0)
+			if (_mSetFireBonus != 0)
 			{
 				list.Add(1080362, SetHelper.GetSetTotalResist(mobile, ResistanceType.Fire).ToString()); // fire resist ~1_val~% (total)
 			}
 
-			if (m_SetColdBonus != 0)
+			if (_mSetColdBonus != 0)
 			{
 				list.Add(1080363, SetHelper.GetSetTotalResist(mobile, ResistanceType.Cold).ToString()); // cold resist ~1_val~% (total)
 			}
 
-			if (m_SetPoisonBonus != 0)
+			if (_mSetPoisonBonus != 0)
 			{
 				list.Add(1080364, SetHelper.GetSetTotalResist(mobile, ResistanceType.Poison).ToString()); // poison resist ~1_val~% (total)
 			}
 
-			if (m_SetEnergyBonus != 0)
+			if (_mSetEnergyBonus != 0)
 			{
 				list.Add(1080365, SetHelper.GetSetTotalResist(mobile, ResistanceType.Energy).ToString()); // energy resist ~1_val~% (total)
 			}
 		}
 		else
 		{
-			if (m_SetPhysicalBonus != 0)
+			if (_mSetPhysicalBonus != 0)
 			{
-				list.Add(1080361, ((BasePhysicalResistance * Pieces) + m_SetPhysicalBonus).ToString()); // physical resist ~1_val~% (total)
+				list.Add(1080361, ((BasePhysicalResistance * Pieces) + _mSetPhysicalBonus).ToString()); // physical resist ~1_val~% (total)
 			}
 
-			if (m_SetFireBonus != 0)
+			if (_mSetFireBonus != 0)
 			{
-				list.Add(1080362, ((BaseFireResistance * Pieces) + m_SetFireBonus).ToString()); // fire resist ~1_val~% (total)
+				list.Add(1080362, ((BaseFireResistance * Pieces) + _mSetFireBonus).ToString()); // fire resist ~1_val~% (total)
 			}
 
-			if (m_SetColdBonus != 0)
+			if (_mSetColdBonus != 0)
 			{
-				list.Add(1080363, ((BaseColdResistance * Pieces) + m_SetColdBonus).ToString()); // cold resist ~1_val~% (total)
+				list.Add(1080363, ((BaseColdResistance * Pieces) + _mSetColdBonus).ToString()); // cold resist ~1_val~% (total)
 			}
 
-			if (m_SetPoisonBonus != 0)
+			if (_mSetPoisonBonus != 0)
 			{
-				list.Add(1080364, ((BasePoisonResistance * Pieces) + m_SetPoisonBonus).ToString()); // poison resist ~1_val~% (total)
+				list.Add(1080364, ((BasePoisonResistance * Pieces) + _mSetPoisonBonus).ToString()); // poison resist ~1_val~% (total)
 			}
 
-			if (m_SetEnergyBonus != 0)
+			if (_mSetEnergyBonus != 0)
 			{
-				list.Add(1080365, ((BaseEnergyResistance * Pieces) + m_SetEnergyBonus).ToString()); // energy resist ~1_val~% (total)
+				list.Add(1080365, ((BaseEnergyResistance * Pieces) + _mSetEnergyBonus).ToString()); // energy resist ~1_val~% (total)
 			}
 		}
 
 		int prop;
 
-		if ((prop = m_SetSelfRepair) != 0 && m_AosArmorAttributes.SelfRepair == 0)
+		if ((prop = _mSetSelfRepair) != 0 && _mAosArmorAttributes.SelfRepair == 0)
 		{
 			list.Add(1060450, prop.ToString()); // self repair ~1_val~
 		}
@@ -2034,22 +1947,22 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 		{
 			switch (resist)
 			{
-				case ResistanceType.Physical: return SetEquipped ? PhysicalResistance + m_SetPhysicalBonus : PhysicalResistance;
-				case ResistanceType.Fire: return SetEquipped ? FireResistance + m_SetFireBonus : FireResistance;
-				case ResistanceType.Cold: return SetEquipped ? ColdResistance + m_SetColdBonus : ColdResistance;
-				case ResistanceType.Poison: return SetEquipped ? PoisonResistance + m_SetPoisonBonus : PoisonResistance;
-				case ResistanceType.Energy: return SetEquipped ? EnergyResistance + m_SetEnergyBonus : EnergyResistance;
+				case ResistanceType.Physical: return SetEquipped ? PhysicalResistance + _mSetPhysicalBonus : PhysicalResistance;
+				case ResistanceType.Fire: return SetEquipped ? FireResistance + _mSetFireBonus : FireResistance;
+				case ResistanceType.Cold: return SetEquipped ? ColdResistance + _mSetColdBonus : ColdResistance;
+				case ResistanceType.Poison: return SetEquipped ? PoisonResistance + _mSetPoisonBonus : PoisonResistance;
+				case ResistanceType.Energy: return SetEquipped ? EnergyResistance + _mSetEnergyBonus : EnergyResistance;
 			}
 		}
 		else
 		{
 			switch (resist)
 			{
-				case ResistanceType.Physical: return SetEquipped ? LastEquipped ? (PhysicalResistance * Pieces) + m_SetPhysicalBonus : 0 : PhysicalResistance;
-				case ResistanceType.Fire: return SetEquipped ? LastEquipped ? (FireResistance * Pieces) + m_SetFireBonus : 0 : FireResistance;
-				case ResistanceType.Cold: return SetEquipped ? LastEquipped ? (ColdResistance * Pieces) + m_SetColdBonus : 0 : ColdResistance;
-				case ResistanceType.Poison: return SetEquipped ? LastEquipped ? (PoisonResistance * Pieces) + m_SetPoisonBonus : 0 : PoisonResistance;
-				case ResistanceType.Energy: return SetEquipped ? LastEquipped ? (EnergyResistance * Pieces) + m_SetEnergyBonus : 0 : EnergyResistance;
+				case ResistanceType.Physical: return SetEquipped ? LastEquipped ? (PhysicalResistance * Pieces) + _mSetPhysicalBonus : 0 : PhysicalResistance;
+				case ResistanceType.Fire: return SetEquipped ? LastEquipped ? (FireResistance * Pieces) + _mSetFireBonus : 0 : FireResistance;
+				case ResistanceType.Cold: return SetEquipped ? LastEquipped ? (ColdResistance * Pieces) + _mSetColdBonus : 0 : ColdResistance;
+				case ResistanceType.Poison: return SetEquipped ? LastEquipped ? (PoisonResistance * Pieces) + _mSetPoisonBonus : 0 : PoisonResistance;
+				case ResistanceType.Energy: return SetEquipped ? LastEquipped ? (EnergyResistance * Pieces) + _mSetEnergyBonus : 0 : EnergyResistance;
 			}
 		}
 
@@ -2059,6 +1972,6 @@ public abstract class BaseArmor : BaseEquipment, IScissorable, IFactionItem, ICr
 
 	public virtual void SetProtection(Type type, TextDefinition name, int amount)
 	{
-		m_TalismanProtection = new TalismanAttribute(type, name, amount);
+		_mTalismanProtection = new TalismanAttribute(type, name, amount);
 	}
 }

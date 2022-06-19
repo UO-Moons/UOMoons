@@ -1,17 +1,16 @@
-namespace Server.ContextMenus
+namespace Server.ContextMenus;
+
+public class OpenBackpackEntry : ContextMenuEntry
 {
-	public class OpenBackpackEntry : ContextMenuEntry
+	private readonly Mobile _mMobile;
+
+	public OpenBackpackEntry(Mobile m) : base(6145)
 	{
-		private readonly Mobile m_Mobile;
+		_mMobile = m;
+	}
 
-		public OpenBackpackEntry(Mobile m) : base(6145)
-		{
-			m_Mobile = m;
-		}
-
-		public override void OnClick()
-		{
-			m_Mobile.Use(m_Mobile.Backpack);
-		}
+	public override void OnClick()
+	{
+		_mMobile.Use(_mMobile.Backpack);
 	}
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -13,8 +14,8 @@ namespace Server.Mobiles
 
 	public class AttitudeList : IStringList
 	{
-		private readonly Attitude[] m_Atts;
-		private readonly IStringList[] m_Strings;
+		private readonly Attitude[] _mAtts;
+		private readonly IStringList[] _mStrings;
 
 		public AttitudeList(FileStrBuff file)
 		{
@@ -28,6 +29,7 @@ namespace Server.Mobiles
 				}
 				catch
 				{
+					// ignored
 				}
 			}
 
@@ -35,11 +37,11 @@ namespace Server.Mobiles
 				return;
 
 			file.Seek(-1);
-			m_Strings = KeywordCollection.MakeList(file);
+			_mStrings = KeywordCollection.MakeList(file);
 			if (att.Count > 0)
-				m_Atts = (Attitude[])att.ToArray(typeof(Attitude));
+				_mAtts = (Attitude[])att.ToArray(typeof(Attitude));
 			else
-				m_Strings = null;
+				_mStrings = null;
 		}
 
 		public string GetString(BaseConvo npc, Mobile pc)
@@ -47,21 +49,18 @@ namespace Server.Mobiles
 			Attitude test = npc.Attitude;
 			while (true)
 			{
-				for (int i = 0; i < m_Atts.Length; i++)
+				if (_mAtts.Any(t => t == test))
 				{
-					if (m_Atts[i] == test)
-					{
-						string str = null;
-						for (int s = 0; s < m_Strings.Length && str == null; s++)
-							str = m_Strings[s].GetString(npc, pc);
-						return str;
-					}
+					string str = null;
+					for (var s = 0; s < _mStrings.Length && str == null; s++)
+						str = _mStrings[s].GetString(npc, pc);
+					return str;
 				}
 
 				if (test < Attitude.Neutral)
-					test = (Attitude)(((int)test) + 1);
+					test = (Attitude)((int)test + 1);
 				else if (test > Attitude.Neutral)
-					test = (Attitude)(((int)test) - 1);
+					test = (Attitude)((int)test - 1);
 				else
 					break;
 			}
@@ -71,8 +70,8 @@ namespace Server.Mobiles
 
 	public class NotorietyList : IStringList
 	{
-		private readonly IStringList[] m_Strings;
-		private readonly NotoVal[] m_Notos;
+		private readonly IStringList[] _mStrings;
+		private readonly NotoVal[] _mNotos;
 
 		public NotorietyList(FileStrBuff file)
 		{
@@ -86,6 +85,7 @@ namespace Server.Mobiles
 				}
 				catch
 				{
+					// ignored
 				}
 			}
 
@@ -93,60 +93,54 @@ namespace Server.Mobiles
 				return;
 
 			file.Seek(-1);
-			m_Strings = KeywordCollection.MakeList(file);
+			_mStrings = KeywordCollection.MakeList(file);
 			if (noto.Count > 0)
-				m_Notos = (NotoVal[])noto.ToArray(typeof(NotoVal));
+				_mNotos = (NotoVal[])noto.ToArray(typeof(NotoVal));
 			else
-				m_Strings = null;
+				_mStrings = null;
 		}
 
 		private static NotoVal GetNotoValFor(Mobile pc)
 		{
 			int val = (int)((pc.Karma + 128.0) / 52.0);
-			if (val <= 0)
-				return NotoVal.Infamous;
-			else if (val >= 4)
-				return NotoVal.Famous;
-			else
-				return (NotoVal)val;
+			return val switch
+			{
+				<= 0 => NotoVal.Infamous,
+				>= 4 => NotoVal.Famous,
+				_ => (NotoVal) val
+			};
 		}
 
 		public string GetString(BaseConvo npc, Mobile pc)
 		{
 			NotoVal noto = GetNotoValFor(pc);
-			for (int i = 0; i < m_Notos.Length; i++)
-			{
-				if (m_Notos[i] == noto || m_Notos[i] == noto + 1 || m_Notos[i] == noto - 1)
-				{
-					string str = null;
-					for (int s = 0; s < m_Strings.Length && str == null; s++)
-						str = m_Strings[s].GetString(npc, pc);
-					return str;
-				}
-			}
-			return null;
+			if (!_mNotos.Any(t => t == noto || t == noto + 1 || t == noto - 1)) return null;
+			string str = null;
+			for (var s = 0; s < _mStrings.Length && str == null; s++)
+				str = _mStrings[s].GetString(npc, pc);
+			return str;
 		}
 	}
 
 	public class PhraseList : IStringList
 	{
-		private readonly ArrayList m_Strings;
+		private readonly ArrayList _mStrings;
 		public PhraseList()
 		{
-			m_Strings = new ArrayList();
+			_mStrings = new ArrayList();
 		}
 
 		public string GetString(BaseConvo npc, Mobile pc)
 		{
-			if (m_Strings != null && m_Strings.Count > 0)
+			if (_mStrings is {Count: > 0})
 			{
-				object obj = m_Strings[Utility.Random(m_Strings.Count)];
-				if (obj is string @string)
-					return @string;
-				else if (obj is string[] v)
-					return v[pc.Female ? 1 : 0];
-				else
-					return null;
+				object obj = _mStrings[Utility.Random(_mStrings.Count)];
+				return obj switch
+				{
+					string @string => @string,
+					string[] v => v[pc.Female ? 1 : 0],
+					_ => null
+				};
 			}
 			else
 			{
@@ -158,37 +152,36 @@ namespace Server.Mobiles
 		{
 			StringBuilder male = new(str.Length);
 			StringBuilder female = null;
-			const int BOTH = 0, MALEONLY = 1, FEMALEONLY = 2;
+			const int both = 0, maleonly = 1, femaleonly = 2;
 			int gender = 0; // 0=both, 1=male,2=female
 
-			for (int i = 0; i < str.Length; i++)
+			for (var i = 0; i < str.Length; i++)
 			{
 				char p = str[i];
 				switch (p)
 				{
 					case '$': // $milord/milady$
-						if (gender == FEMALEONLY)
+						if (gender == femaleonly)
 						{
-							gender = BOTH;
+							gender = both;
 						}
 						else
 						{
-							gender = MALEONLY;
+							gender = maleonly;
 							if (female == null)
 								female = new StringBuilder(male.ToString());
 						}
 						break;
 
 					case '/':// $milord/milady$
-						if (gender == MALEONLY)
+						if (gender == maleonly)
 						{
-							gender = FEMALEONLY;
+							gender = femaleonly;
 						}
 						else
 						{
 							male.Append(p);
-							if (female != null)
-								female.Append(p);
+							female?.Append(p);
 						}
 						break;
 
@@ -203,26 +196,22 @@ namespace Server.Mobiles
 							case 'N':
 							case 'n':
 								male.Append(@"{0}");
-								if (female != null)
-									female.Append(@"{0}");
+								female?.Append(@"{0}");
 								break;
 							case 'M':
 							case 'm':
 								male.Append(@"{1}");
-								if (female != null)
-									female.Append(@"{1}");
+								female?.Append(@"{1}");
 								break;
 							case 'J':
 							case 'j':
 								male.Append(@"{2}");
-								if (female != null)
-									female.Append(@"{2}");
+								female?.Append(@"{2}");
 								break;
 							case 'T':
 							case 't':
 								male.Append(@"{3}");
-								if (female != null)
-									female.Append(@"{3}");
+								female?.Append(@"{3}");
 								break;
 						}
 
@@ -245,55 +234,54 @@ namespace Server.Mobiles
 						i++;
 
 						male.Append(@"{4}");
-						if (female != null)
-							female.Append(@"{4}");
+						female?.Append(@"{4}");
 						break;
 
 					default:
-						if (gender != FEMALEONLY)
+						if (gender != femaleonly)
 							male.Append(p);
-						if (female != null && gender != MALEONLY)
+						if (female != null && gender != maleonly)
 							female.Append(p);
 						break;
 				}
 			}
 
 			if (female != null)
-				return new string[] { male.ToString(), female.ToString() };
+				return new[] { male.ToString(), female.ToString() };
 			else
 				return male.ToString();
 		}
 
 		public void Add(string str)
 		{
-			m_Strings.Add(Parse(str));
+			_mStrings.Add(Parse(str));
 		}
 	}
 
 	public class Keyword
 	{
-		private readonly Regex m_Keywords;
+		private readonly Regex _mKeywords;
 		public readonly IStringList[] Lists;
 
 		public Keyword(string keyexp, IStringList[] lists)
 		{
 			Lists = lists;
-			m_Keywords = new Regex(keyexp, RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
+			_mKeywords = new Regex(keyexp, RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.IgnoreCase);
 		}
 
 		public bool Match(string said)
 		{
-			return m_Keywords != null && m_Keywords.IsMatch(said);
+			return _mKeywords != null && _mKeywords.IsMatch(said);
 		}
 	}
 
 	public class KeywordCollection
 	{
-		private readonly ArrayList m_Keys;
+		private readonly ArrayList _mKeys;
 
 		public KeywordCollection(FileStrBuff file)
 		{
-			m_Keys = new ArrayList();
+			_mKeys = new ArrayList();
 
 			file.SkipUntil('{');
 			file.NextChar();
@@ -318,15 +306,11 @@ namespace Server.Mobiles
 							{
 								if (tok[0] == '@')
 								{
-									if (tok == "@InternalGreeting")
-									{
-										if (count > 0)
-											keyExp.Append('|');
-										count += 7;
-										keyExp.Append("(*hi*)|(*hello*)|(*hail*)|(*greeting*)|(*how*((*you*)|(*thou*)))|(*good*see*thee*)");
-									}
-
-									continue;
+									if (tok != "@InternalGreeting") continue;
+									if (count > 0)
+										keyExp.Append('|');
+									count += 7;
+									keyExp.Append("(*hi*)|(*hello*)|(*hail*)|(*greeting*)|(*how*((*you*)|(*thou*)))|(*good*see*thee*)");
 								}
 								else
 								{
@@ -347,8 +331,8 @@ namespace Server.Mobiles
 								{
 									keyExp.Replace("*", ".*");
 									string exp = keyExp.ToString();
-									if (exp != null && exp.Length > 0)
-										m_Keys.Add(new Keyword(exp, lists));
+									if (!string.IsNullOrEmpty(exp))
+										_mKeys.Add(new Keyword(exp, lists));
 								}
 							}
 							break;
@@ -368,16 +352,14 @@ namespace Server.Mobiles
 
 		public string GetString(BaseConvo npc, Mobile pc, string said)
 		{
-			for (int i = 0; i < m_Keys.Count; i++)
+			for (int i = 0; i < _mKeys.Count; i++)
 			{
-				Keyword k = (Keyword)m_Keys[i];
-				if (k.Match(said))
-				{
-					string str = null;
-					for (int s = 0; s < k.Lists.Length && str == null; s++)
-						str = k.Lists[s].GetString(npc, pc);
-					return str;
-				}
+				Keyword k = (Keyword)_mKeys[i];
+				if (!k.Match(said)) continue;
+				string str = null;
+				for (int s = 0; s < k.Lists.Length && str == null; s++)
+					str = k.Lists[s].GetString(npc, pc);
+				return str;
 			}
 
 			return null;
@@ -404,10 +386,15 @@ namespace Server.Mobiles
 					case '#':
 						{
 							string lwr = tok.ToLower();
-							if (lwr == "#attitude")
-								list.Add(new AttitudeList(file));
-							else if (lwr == "#notoriety")
-								list.Add(new NotorietyList(file));
+							switch (lwr)
+							{
+								case "#attitude":
+									list.Add(new AttitudeList(file));
+									break;
+								case "#notoriety":
+									list.Add(new NotorietyList(file));
+									break;
+							}
 							//else
 							//	Console.WriteLine( "MakeList : Unknown token '{0}'", lwr );
 							break;
@@ -421,12 +408,18 @@ namespace Server.Mobiles
 							while (!file.Eof() && brace > 0)
 							{
 								tok = file.GetNextToken();
-								if (tok == "{")
-									brace++;
-								else if (tok == "}")
-									brace--;
-								else
-									pl.Add(tok);
+								switch (tok)
+								{
+									case "{":
+										brace++;
+										break;
+									case "}":
+										brace--;
+										break;
+									default:
+										pl.Add(tok);
+										break;
+								}
 							}
 							list.Add(pl);
 							break;
@@ -451,36 +444,47 @@ namespace Server.Mobiles
 			while (!file.Eof())
 			{
 				string tok = file.GetNextToken().ToLower();
-				if (tok == null || tok.Length <= 0)
+				if (tok is not {Length: > 0})
 					continue;
 
-				if (tok == "#sophistication")
+				switch (tok)
 				{
-					Sophistication s;
-					string level = file.GetNextToken();
-					try
+					case "#sophistication":
 					{
-						s = (Sophistication)Enum.Parse(typeof(Sophistication), level, true);
-					}
-					catch
-					{
-						//Console.WriteLine( "Fragment : Error, invalid Sophistication {0}", level );
-						continue;
-					}
+						Sophistication s;
+						string level = file.GetNextToken();
+						try
+						{
+							s = (Sophistication)Enum.Parse(typeof(Sophistication), level, true);
+						}
+						catch
+						{
+							//Console.WriteLine( "Fragment : Error, invalid Sophistication {0}", level );
+							continue;
+						}
 
-					m_Collections[(int)s] = new KeywordCollection(file);
-				}
-				else if (tok == "#fragment")
-				{
-					while (!file.Eof())
-					{
-						if (file.GetNextToken() == "{")
-							break;
+						m_Collections[(int)s] = new KeywordCollection(file);
+						break;
 					}
-				}
-				else if (tok != "{" && tok != "}")
-				{
-					//Console.WriteLine( "Fragment : Unknown token '{0}'", tok );
+					case "#fragment":
+					{
+						while (!file.Eof())
+						{
+							if (file.GetNextToken() == "{")
+								break;
+						}
+
+						break;
+					}
+					default:
+					{
+						if (tok != "{" && tok != "}")
+						{
+							//Console.WriteLine( "Fragment : Unknown token '{0}'", tok );
+						}
+
+						break;
+					}
 				}
 			}
 		}
@@ -489,105 +493,105 @@ namespace Server.Mobiles
 		{
 			int soph = (int)npc.Sophistication;
 			string str = m_Collections[soph].GetString(npc, pc, said);
-			if (str == null)
+			if (str != null) return str;
+			switch (soph)
 			{
-				if (soph == (int)Sophistication.High)
+				case (int)Sophistication.High:
 					soph--;
-				else if (soph == (int)Sophistication.Low)
+					break;
+				case (int)Sophistication.Low:
 					soph++;
-				else
+					break;
+				default:
 					return null;
-				str = m_Collections[soph].GetString(npc, pc, said);
 			}
+			str = m_Collections[soph].GetString(npc, pc, said);
 			return str;
 		}
 	}
 
 	public class FileStrBuff
 	{
-		private readonly string m_Data;
-		private int m_Pos;
+		private readonly string _mData;
+		private int _mPos;
 
 		public FileStrBuff(string fileName)
 		{
-			m_Pos = 0;
+			_mPos = 0;
 			using StreamReader reader = new(fileName);
-			m_Data = reader.ReadToEnd();
+			_mData = reader.ReadToEnd();
 		}
 
 		public int SkipUntil(char stop)
 		{
-			int start = m_Pos;
-			while (m_Pos < m_Data.Length && m_Data[m_Pos] != stop)
-				m_Pos++;
-			return m_Pos - start;
+			int start = _mPos;
+			while (_mPos < _mData.Length && _mData[_mPos] != stop)
+				_mPos++;
+			return _mPos - start;
 		}
 
 		private static bool IsSkipChar(char c)
 		{
 			// include commas (used to seperate lists) as "whipespace"
-			return c == ',' || c == '\t' || c == ' ' || c == '\n' || c == '\r'; //Char.IsWhiteSpace( c );
+			return c is ',' or '\t' or ' ' or '\n' or '\r'; //Char.IsWhiteSpace( c );
 		}
 
 		public char Peek()
 		{
-			if (!Eof())
-				return m_Data[m_Pos];
-			else
-				return '\x0';
+			return !Eof() ? _mData[_mPos] : '\x0';
 		}
 
 		public void NextChar()
 		{
-			m_Pos++;
+			_mPos++;
 		}
 
 		public void Seek(int amount)
 		{
-			m_Pos += amount;
+			_mPos += amount;
 		}
 
 		public bool Eof()
 		{
-			return m_Pos >= m_Data.Length;
+			return _mPos >= _mData.Length;
 		}
 
 		public string GetNextToken()
 		{
 			SkipWhitespace();
-			if (m_Pos >= m_Data.Length)
+			if (_mPos >= _mData.Length)
 				return string.Empty;
 			StringBuilder token = new();
-			if (m_Data[m_Pos] == '\"')
+			if (_mData[_mPos] == '\"')
 			{
-				m_Pos++; // skip the opening "
-				while (m_Pos < m_Data.Length && m_Data[m_Pos] != '\"')
+				_mPos++; // skip the opening "
+				while (_mPos < _mData.Length && _mData[_mPos] != '\"')
 				{
-					if (m_Data[m_Pos] != '\n')
-						token.Append(m_Data[m_Pos]);
-					m_Pos++;
+					if (_mData[_mPos] != '\n')
+						token.Append(_mData[_mPos]);
+					_mPos++;
 				}
-				m_Pos++; // skip the closing "
+				_mPos++; // skip the closing "
 			}
 			else
 			{
 				bool firstChar = true;
-				while (m_Pos < m_Data.Length && !IsSkipChar(m_Data[m_Pos]))
+				while (_mPos < _mData.Length && !IsSkipChar(_mData[_mPos]))
 				{
-					if (m_Data[m_Pos] == '{' || m_Data[m_Pos] == '}')
+					if (_mData[_mPos] == '{' || _mData[_mPos] == '}')
 					{
 						if (firstChar)
 						{
-							token.Append(m_Data[m_Pos]);
-							m_Pos++;
+							token.Append(_mData[_mPos]);
+							_mPos++;
 						}
 						break;
 					}
 					else
 					{
 						firstChar = false;
-						token.Append(m_Data[m_Pos]);
-						m_Pos++;
+						token.Append(_mData[_mPos]);
+						_mPos++;
 					}
 				}
 			}
@@ -596,32 +600,32 @@ namespace Server.Mobiles
 
 		private void SkipWhitespace()
 		{
-			if (m_Pos >= m_Data.Length)
+			if (_mPos >= _mData.Length)
 				return;
 
-			bool newLine = m_Pos == 0 || m_Data[m_Pos] == '\n' || m_Data[m_Pos - 1] == '\n';
+			bool newLine = _mPos == 0 || _mData[_mPos] == '\n' || _mData[_mPos - 1] == '\n';
 
-			while (m_Pos < m_Data.Length)
+			while (_mPos < _mData.Length)
 			{
-				if (IsSkipChar(m_Data[m_Pos]))
+				if (IsSkipChar(_mData[_mPos]))
 				{
-					if (m_Data[m_Pos] == '\n')
+					if (_mData[_mPos] == '\n')
 						newLine = true;
 				}
-				else if (newLine && m_Pos + 1 < m_Data.Length && m_Data[m_Pos] == '/' && m_Data[m_Pos + 1] == '/')
+				else if (newLine && _mPos + 1 < _mData.Length && _mData[_mPos] == '/' && _mData[_mPos + 1] == '/')
 				{
 					// its a comment, skip the whole line
-					m_Pos += 2;
-					while (m_Pos < m_Data.Length && m_Data[m_Pos] != '\n')
-						m_Pos++;
+					_mPos += 2;
+					while (_mPos < _mData.Length && _mData[_mPos] != '\n')
+						_mPos++;
 					newLine = true;
 				}
-				else if (m_Pos + 1 < m_Data.Length && m_Data[m_Pos] == '/' && m_Data[m_Pos + 1] == '*')
+				else if (_mPos + 1 < _mData.Length && _mData[_mPos] == '/' && _mData[_mPos + 1] == '*')
 				{
 					// its a block comment, skip until its closed
-					m_Pos += 2; // skip opener
-					while (m_Pos + 1 < m_Data.Length && !(m_Data[m_Pos] == '*' && m_Data[m_Pos + 1] == '/'))
-						m_Pos++;
+					_mPos += 2; // skip opener
+					while (_mPos + 1 < _mData.Length && !(_mData[_mPos] == '*' && _mData[_mPos + 1] == '/'))
+						_mPos++;
 				}
 				else
 				{
@@ -629,7 +633,7 @@ namespace Server.Mobiles
 					break;
 				}
 
-				m_Pos++;
+				_mPos++;
 			}
 		}
 	}
@@ -641,7 +645,7 @@ namespace Server.Mobiles
 		private const int BritanniaFragment = 1;
 		private const int DefaultFragment = 0;
 		public static bool Enabled => Settings.Configuration.Get<bool>("Mobiles", "NpcSpeech");
-		private static readonly Hashtable m_Frg = new();
+		private static readonly Hashtable MFrg = new();
 
 		private static Fragment LoadFrg(string name)
 		{
@@ -657,21 +661,21 @@ namespace Server.Mobiles
 		{
 			Console.Write("Loading convo fragments... ");
 
-			m_Frg[DefaultFragment] = LoadFrg("bdefault.frg");
-			m_Frg[BritanniaFragment] = LoadFrg("britanni.frg");
-			m_Frg[GreetingFragment] = LoadFrg("greetings.frg");
-			m_Frg[EndFragment] = LoadFrg("convbye.frg");
+			MFrg[DefaultFragment] = LoadFrg("bdefault.frg");
+			MFrg[BritanniaFragment] = LoadFrg("britanni.frg");
+			MFrg[GreetingFragment] = LoadFrg("greetings.frg");
+			MFrg[EndFragment] = LoadFrg("convbye.frg");
 
 			for (int i = ((int)RegionFragment._Offset) + 1; i < (int)RegionFragment._End; i++)
-				m_Frg[i] = LoadFrg($"{(RegionFragment)i}.frg");
+				MFrg[i] = LoadFrg($"{(RegionFragment)i}.frg");
 
 			for (int i = ((int)JobFragment._Offset) + 1; i < (int)JobFragment._End; i++)
-				m_Frg[i] = LoadFrg($"{(JobFragment)i}.frg");
+				MFrg[i] = LoadFrg($"{(JobFragment)i}.frg");
 
 			Console.WriteLine("Done.");
 		}
 
-		private ArrayList m_ConvoList;
+		private ArrayList _mConvoList;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public Sophistication Sophistication { get; set; }
@@ -684,22 +688,22 @@ namespace Server.Mobiles
 
 		private class ConvoTimer : Timer
 		{
-			private readonly BaseConvo m_Owner;
+			private readonly BaseConvo _mOwner;
 			public Mobile Mobile { get; }
 
 			public ConvoTimer(BaseConvo owner, Mobile m) : base(TimeSpan.FromSeconds(30.0))
 			{
-				m_Owner = owner;
+				_mOwner = owner;
 				Mobile = m;
 				Priority = TimerPriority.OneSecond;
 			}
 
 			protected override void OnTick()
 			{
-				if (m_Owner.m_ConvoList != null)
-					m_Owner.m_ConvoList.Remove(this);
-				if (m_Owner.FocusMob == Mobile)
-					m_Owner.FocusMob = null;
+				if (_mOwner._mConvoList != null)
+					_mOwner._mConvoList.Remove(this);
+				if (_mOwner.FocusMob == Mobile)
+					_mOwner.FocusMob = null;
 			}
 
 			public void Refresh()
@@ -721,38 +725,26 @@ namespace Server.Mobiles
 			}
 			*/
 
-			if (m_ConvoList == null)
-				m_ConvoList = new ArrayList(1);
+			_mConvoList ??= new ArrayList(1);
 			ConvoTimer ct = new(this, m);
-			m_ConvoList.Add(ct);
+			_mConvoList.Add(ct);
 			ct.Start();
 
 			return ct;
 		}
 
-		private ConvoTimer GetConvo(Mobile m)
+		private ConvoTimer GetConvo(IEntity m)
 		{
-			if (m_ConvoList != null)
-			{
-				for (int i = 0; i < m_ConvoList.Count; i++)
-				{
-					ConvoTimer ct = (ConvoTimer)m_ConvoList[i];
-					if (ct.Mobile == m)
-						return ct;
-				}
-			}
-			return null;
+			return _mConvoList?.Cast<ConvoTimer>().FirstOrDefault(ct => ct.Mobile == m);
 		}
 
 		public override void OnAfterDelete()
 		{
 			base.OnAfterDelete();
 
-			if (m_ConvoList != null)
-			{
-				for (int i = 0; i < m_ConvoList.Count; i++)
-					((Timer)m_ConvoList[i]).Stop();
-			}
+			if (_mConvoList == null) return;
+			for (int i = 0; i < _mConvoList.Count; i++)
+				((Timer)_mConvoList[i])?.Stop();
 		}
 
 		public BaseConvo(AIType ai, FightMode mode, int iRangePerception, int iRangeFight, double dActiveSpeed, double dPassiveSpeed)
@@ -817,118 +809,114 @@ namespace Server.Mobiles
 			return true;
 		}
 
-		private static readonly ArrayList m_List = new(10);
+		private static readonly ArrayList MList = new(10);
 		public override void OnSpeech(SpeechEventArgs e)
 		{
 			Mobile pc = e.Mobile;
 			if (base.HandlesOnSpeech(pc))
 				base.OnSpeech(e);
 
-			if (Enabled && !e.Handled && !e.Blocked && pc != null && pc.Player && pc.Alive && (int)GetDistanceToSqrt(pc) < 4 && InLOS(pc) && pc != ControlMaster)
+			if (!Enabled || e.Handled || e.Blocked || pc is not {Player: true, Alive: true} || (int) GetDistanceToSqrt(pc) >= 4 || !InLOS(pc) || pc == ControlMaster) return;
+			string said = e.Speech;
+			string str = null;
+
+			if (said == null)
+				return;
+
+			ConvoTimer ct = GetConvo(pc);
+			if (ct == null)
 			{
-				string said = e.Speech;
-				string str = null;
+				bool convo = false;
 
-				if (said == null)
-					return;
-
-				ConvoTimer ct = GetConvo(pc);
-				if (ct == null)
+				Fragment f = (Fragment)MFrg[GreetingFragment];
+				if (f != null)
 				{
-					bool convo = false;
+					str = f.GetString(this, pc, said);
+					convo = str != null && str.Length > 0;
+				}
 
-					Fragment f = (Fragment)m_Frg[GreetingFragment];
-					if (f != null)
-					{
-						str = f.GetString(this, pc, said);
-						convo = str != null && str.Length > 0;
-					}
+				if (!convo && Name != null)
+					convo = said.ToLower().IndexOf(Name.ToLower(), StringComparison.Ordinal) != -1;
 
-					if (!convo && Name != null)
-						convo = said.ToLower().IndexOf(Name.ToLower()) != -1;
+				if (convo)
+				{
+					DebugSay("They are talking to me!");
 
-					if (convo)
-					{
-						DebugSay("They are talking to me!");
-
-						_ = StartConvo(pc);
-						if (str == null)
-							str = "Hail, traveler.";
-						if (!OnConvoStart(pc))
-							str = null;
-					}
-					else
-					{
-						DebugSay("I dont think they are talking to me.");
-					}
+					_ = StartConvo(pc);
+					str ??= "Hail, traveler.";
+					if (!OnConvoStart(pc))
+						str = null;
 				}
 				else
 				{
-					DebugSay("I'm conversing with them!");
+					DebugSay("I dont think they are talking to me.");
+				}
+			}
+			else
+			{
+				DebugSay("I'm conversing with them!");
 
-					m_List.Clear();
-					if (Job != JobFragment.None)
-						m_List.Add((int)Job);
+				MList.Clear();
+				if (Job != JobFragment.None)
+					MList.Add((int)Job);
 
-					GetConvoFragments(m_List);
+				GetConvoFragments(MList);
 
-					if (m_List.Count > 0)
+				if (MList.Count > 0)
+				{
+					for (int i = 0; i < MList.Count && str == null; i++)
 					{
-						for (int i = 0; i < m_List.Count && str == null; i++)
-						{
-							Fragment f = (Fragment)m_Frg[(int)m_List[i]];
-							if (f != null)
-								str = f.GetString(this, pc, said);
-						}
+						Fragment f = (Fragment)MFrg[(int)MList[i]!];
+						if (f != null)
+							str = f.GetString(this, pc, said);
 					}
+				}
+
+				if (str == null)
+				{
+					Fragment f = (Fragment)MFrg[EndFragment];
+					if (f != null)
+						str = f.GetString(this, pc, said);
 
 					if (str == null)
 					{
-						Fragment f = (Fragment)m_Frg[EndFragment];
-						if (f != null)
+						f = (Fragment)MFrg[DefaultFragment];
+						if (f != null && Utility.Random(4) == 0)
 							str = f.GetString(this, pc, said);
-
-						if (str == null)
-						{
-							f = (Fragment)m_Frg[DefaultFragment];
-							if (f != null && Utility.Random(4) == 0)
-								str = f.GetString(this, pc, said);
-						}
-						else
-						{
-							DebugSay("They ended the conversation");
-							if (FocusMob == pc)
-								FocusMob = null;
-
-							ct.Stop();
-
-							if (m_ConvoList != null)
-								m_ConvoList.Remove(ct);
-						}
 					}
-					else if (AIObject != null)
+					else
 					{
-						ct.Refresh();
+						DebugSay("They ended the conversation");
+						if (FocusMob == pc)
+							FocusMob = null;
 
-						if (AIObject.Action == ActionType.Wander || AIObject.Action == ActionType.Interact)
-						{
-							AIObject.Action = ActionType.Interact;
-							FocusMob = pc;
-						}
+						ct.Stop();
+
+						_mConvoList?.Remove(ct);
 					}
 				}
-
-				if (str != null && str.Length > 0)
+				else if (AIObject != null)
 				{
-					string town = Region.Name;// : "wilderness";
-					if (town == null || town.Length <= 1)
-						town = "great wide open";
+					ct.Refresh();
 
-					string job = Title != null && Title.StartsWith("the") ? Title[5..] : Job.ToString();
-
-					Say(string.Format(str, pc != null ? pc.Name : "someone", Name, job, town, ""));
-					e.Handled = true;
+					if (AIObject.Action is ActionType.Wander or ActionType.Interact)
+					{
+						AIObject.Action = ActionType.Interact;
+						FocusMob = pc;
+					}
 				}
+			}
+
+			if (!string.IsNullOrEmpty(str))
+			{
+				string town = Region.Name;// : "wilderness";
+				if (town is not {Length: > 1})
+					town = "great wide open";
+
+				string job = Title != null && Title.StartsWith("the") ? Title[5..] : Job.ToString();
+
+				Say(string.Format(str, pc.Name, Name, job, town, ""));
+				e.Handled = true;
 			}
 		}
 	}

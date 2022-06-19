@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074873)); // The opportunity to prove yourself worthy of learning to Summon Fiends. (Sufficient spellweaving skill is required to cast the spell)
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFiend;
+		public override QuestChain ChainId => QuestChain.SummonFiend;
 		public override Type NextQuest => typeof(CrackingTheWhipQuest);
 		/* Fiendish Friends */
 		public override object Title => 1074283;
@@ -55,7 +55,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1075028)); // A step closer to learning to summon and control fiends.
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFiend;
+		public override QuestChain ChainId => QuestChain.SummonFiend;
 		public override Type NextQuest => typeof(IronWillQuest);
 		/* Cracking the Whip */
 		public override object Title => 1074295;
@@ -97,7 +97,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(SummonFiendScroll), 1071033));
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFiend;
+		public override QuestChain ChainId => QuestChain.SummonFiend;
 		public override Type NextQuest => typeof(TheBrainsOfTheOperationQuest);
 		/* Iron Will */
 		public override object Title => 1074296;

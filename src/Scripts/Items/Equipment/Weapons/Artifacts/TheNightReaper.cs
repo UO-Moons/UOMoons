@@ -7,7 +7,7 @@ namespace Server.Items
 		[Constructable]
 		public TheNightReaper()
 		{
-			ItemID = 0x26CD;
+			ItemId = 0x26CD;
 			Hue = 0x41C;
 
 			Slayer = SlayerName.Exorcism;

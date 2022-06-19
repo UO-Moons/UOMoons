@@ -23,7 +23,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x2336)
+				if (ItemId == 0x2336)
 					return true;
 
 				return false;

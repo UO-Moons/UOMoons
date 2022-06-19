@@ -9,7 +9,6 @@ namespace Server.Items
 		public class StealableEntry
 		{
 			private Point3D m_Location;
-
 			public Map Map { get; }
 			public Point3D Location => m_Location;
 			public int MinDelay { get; }
@@ -83,7 +82,6 @@ namespace Server.Items
 				new StealableEntry( Map.Malas, new Point3D( 467,  92,  4 ), 36864, 55296, typeof( InquisitorsResolution ) ),
 				// Doom - Artifact rarity 12
 				new StealableEntry( Map.Malas, new Point3D( 487, 364, -1 ), 147456, 221184, typeof( RuinedPaintingArtifact ) ),
-
 				// Yomotsu Mines - Artifact rarity 1
 				new StealableEntry( Map.Malas, new Point3D(  18, 110, -1 ), 72, 108, typeof( Basket1Artifact ) ),
 				new StealableEntry( Map.Malas, new Point3D(  66, 114, -1 ), 72, 108, typeof( Basket2Artifact ) ),
@@ -101,7 +99,6 @@ namespace Server.Items
 				new StealableEntry( Map.Malas, new Point3D(  84,  40, -1 ), 288, 432, typeof( TowerLanternArtifact ) ),
 				// Yomotsu Mines - Artifact rarity 9
 				new StealableEntry( Map.Malas, new Point3D(  94,   7, -1 ), 18432, 27648, typeof( ManStatuetteSouthArtifact ) ),
-
 				// Fan Dancer's Dojo - Artifact rarity 1
 				new StealableEntry( Map.Malas, new Point3D( 113, 640, -2 ), 72, 108, typeof( Basket3NorthArtifact ) ),
 				new StealableEntry( Map.Malas, new Point3D( 102, 355, -1 ), 72, 108, typeof( Basket3WestArtifact ) ),
@@ -174,10 +171,7 @@ namespace Server.Items
 
 		private static int GetLampPostHue()
 		{
-			if (0.9 > Utility.RandomDouble())
-				return 0;
-
-			return Utility.RandomList(0x455, 0x47E, 0x482, 0x486, 0x48F, 0x4F2, 0x58C, 0x66C);
+			return 0.9 > Utility.RandomDouble() ? 0 : Utility.RandomList(0x455, 0x47E, 0x482, 0x486, 0x48F, 0x4F2, 0x58C, 0x66C);
 		}
 
 
@@ -232,10 +226,7 @@ namespace Server.Items
 
 		public static StealableInstance GetStealableInstance(Item item)
 		{
-			if (Instance == null)
-				return null;
-
-			return (StealableInstance)Instance.m_Table[item];
+			return Instance == null ? null : (StealableInstance)Instance.m_Table[item];
 		}
 
 
@@ -350,9 +341,7 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-
+			writer.WriteEncodedInt(0);
 			writer.WriteEncodedInt(m_Artifacts.Length);
 
 			for (int i = 0; i < m_Artifacts.Length; i++)
@@ -382,7 +371,7 @@ namespace Server.Items
 
 				if (i < m_Artifacts.Length)
 				{
-					StealableInstance si = new StealableInstance(Entries[i], item, nextRespawn);
+					StealableInstance si = new(Entries[i], item, nextRespawn);
 					m_Artifacts[i] = si;
 
 					if (si.Item != null)

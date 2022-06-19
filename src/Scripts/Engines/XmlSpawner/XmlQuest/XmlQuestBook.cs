@@ -70,7 +70,7 @@ namespace Server.Items
 		[Constructable]
 		public XmlQuestBook(int itemid) : this()
 		{
-			ItemID = itemid;
+			ItemId = itemid;
 		}
 
 		[Constructable]

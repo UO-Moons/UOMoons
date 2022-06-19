@@ -465,8 +465,8 @@ namespace Server.Items
 
 			int version = reader.ReadInt();
 
-			if (version <= 0 && ItemID == 0x318F)
-				ItemID = 0x318C;
+			if (version <= 0 && ItemId == 0x318F)
+				ItemId = 0x318C;
 		}
 	}
 

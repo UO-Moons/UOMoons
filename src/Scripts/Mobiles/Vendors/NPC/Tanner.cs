@@ -1,39 +1,36 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Tanner : BaseVendor
 {
-	public class Tanner : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public Tanner() : base("the tanner")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		SetSkill(SkillName.Tailoring, 36.0, 68.0);
+	}
 
-		[Constructable]
-		public Tanner() : base("the tanner")
-		{
-			SetSkill(SkillName.Tailoring, 36.0, 68.0);
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbTanner());
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBTanner());
-		}
+	public Tanner(Serial serial) : base(serial)
+	{
+	}
 
-		public Tanner(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

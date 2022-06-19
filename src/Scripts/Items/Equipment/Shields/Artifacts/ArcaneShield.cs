@@ -11,7 +11,7 @@ namespace Server.Items
 		[Constructable]
 		public ArcaneShield()
 		{
-			ItemID = 0x1B78;
+			ItemId = 0x1B78;
 			Hue = 0x556;
 			Attributes.NightSight = 1;
 			Attributes.SpellChanneling = 1;

@@ -1,10 +1,10 @@
-using System;
-using Server;
-using Server.Items;
+namespace Server.Items;
 
 public class TallRoundBasket : BaseContainer
 {
-    [Constructable]
+	public override int LabelNumber => 1112297;//Tall Round Basket
+
+	[Constructable]
     public TallRoundBasket()
         : base(0x24D8)
     {
@@ -16,19 +16,15 @@ public class TallRoundBasket : BaseContainer
     {
     }
 
-    public override int LabelNumber => 1112297;//Tall Round Basket
-
     public override void Serialize(GenericWriter writer)
     {
         base.Serialize(writer);
-
-        writer.Write(0); // version
+        writer.Write(0);
     }
 
     public override void Deserialize(GenericReader reader)
     {
-        base.Deserialize(reader);
-
-        int version = reader.ReadInt();
+	    base.Deserialize(reader);
+	    reader.ReadInt();
     }
 }

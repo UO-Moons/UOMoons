@@ -35,7 +35,7 @@ namespace Server.Commands
 
 		public static void Initialize()
 		{
-			CommandSystem.Register("RebuildCategorization", AccessLevel.Administrator, new CommandEventHandler(RebuildCategorization_OnCommand));
+			CommandSystem.Register("RebuildCategorization", AccessLevel.Administrator, RebuildCategorization_OnCommand);
 		}
 
 		[Usage("RebuildCategorization")]
@@ -101,10 +101,10 @@ namespace Server.Commands
 
 				if (obj is Item item)
 				{
-					int itemID = item.ItemID;
+					int itemID = item.ItemId;
 
 					if (item is BaseAddon addon && addon.Components.Count == 1)
-						itemID = addon.Components[0].ItemID;
+						itemID = addon.Components[0].ItemId;
 
 					if (itemID > TileData.MaxItemValue)
 						itemID = 1;

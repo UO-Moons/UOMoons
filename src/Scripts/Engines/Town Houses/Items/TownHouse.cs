@@ -282,7 +282,7 @@ namespace Server.Engines.TownHouses
 				Price = 1;
 			}
 
-			ItemID = 0x1DD6 | 0x4000;
+			ItemId = 0x1DD6 | 0x4000;
 		}
 	}
 }

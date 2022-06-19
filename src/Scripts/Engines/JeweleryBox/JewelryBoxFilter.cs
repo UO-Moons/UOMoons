@@ -1,120 +1,119 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class JewelryBoxFilter
 {
-	public class JewelryBoxFilter
+	public bool IsDefault => !Ring && !Bracelet && !Earrings && !Necklace && !Talisman;
+
+	public void Clear()
 	{
-		public bool IsDefault => !Ring && !Bracelet && !Earrings && !Necklace && !Talisman;
+		m_Ring = false;
+		_mBracelet = false;
+		_mEarrings = false;
+		_mNecklace = false;
+		_mTalisman = false;
+	}
 
-		public void Clear()
+	private bool m_Ring;
+
+	public bool Ring
+	{
+		get => m_Ring;
+		set
 		{
-			m_Ring = false;
-			m_Bracelet = false;
-			m_Earrings = false;
-			m_Necklace = false;
-			m_Talisman = false;
+			if (value)
+				Clear();
+
+			m_Ring = value;
 		}
+	}
 
-		private bool m_Ring;
-
-		public bool Ring
+	private bool _mBracelet;
+	public bool Bracelet
+	{
+		get => _mBracelet;
+		set
 		{
-			get { return m_Ring; }
-			set
-			{
-				if (value == true)
-					Clear();
+			if (value)
+				Clear();
 
-				m_Ring = value;
-			}
+			_mBracelet = value;
 		}
+	}
 
-		private bool m_Bracelet;
-		public bool Bracelet
+	private bool _mEarrings;
+	public bool Earrings
+	{
+		get => _mEarrings;
+		set
 		{
-			get { return m_Bracelet; }
-			set
-			{
-				if (value == true)
-					Clear();
+			if (value)
+				Clear();
 
-				m_Bracelet = value;
-			}
+			_mEarrings = value;
 		}
+	}
 
-		private bool m_Earrings;
-		public bool Earrings
+	private bool _mNecklace;
+	public bool Necklace
+	{
+		get => _mNecklace;
+		set
 		{
-			get { return m_Earrings; }
-			set
-			{
-				if (value == true)
-					Clear();
+			if (value)
+				Clear();
 
-				m_Earrings = value;
-			}
+			_mNecklace = value;
 		}
+	}
 
-		private bool m_Necklace;
-		public bool Necklace
+	private bool _mTalisman;
+	public bool Talisman
+	{
+		get => _mTalisman;
+		set
 		{
-			get { return m_Necklace; }
-			set
-			{
-				if (value == true)
-					Clear();
+			if (value)
+				Clear();
 
-				m_Necklace = value;
-			}
+			_mTalisman = value;
 		}
+	}
 
-		private bool m_Talisman;
-		public bool Talisman
+	public JewelryBoxFilter()
+	{
+	}
+
+	public JewelryBoxFilter(GenericReader reader)
+	{
+		var version = reader.ReadInt();
+
+		switch (version)
 		{
-			get { return m_Talisman; }
-			set
-			{
-				if (value == true)
-					Clear();
-
-				m_Talisman = value;
-			}
+			case 1:
+				Ring = reader.ReadBool();
+				Bracelet = reader.ReadBool();
+				Earrings = reader.ReadBool();
+				Necklace = reader.ReadBool();
+				Talisman = reader.ReadBool();
+				break;
 		}
+	}
 
-		public JewelryBoxFilter()
+	public void Serialize(GenericWriter writer)
+	{
+		if (IsDefault)
 		{
+			writer.Write(0);
 		}
-
-		public JewelryBoxFilter(GenericReader reader)
+		else
 		{
-			int version = reader.ReadInt();
+			writer.Write(1);
 
-			switch (version)
-			{
-				case 1:
-					Ring = reader.ReadBool();
-					Bracelet = reader.ReadBool();
-					Earrings = reader.ReadBool();
-					Necklace = reader.ReadBool();
-					Talisman = reader.ReadBool();
-					break;
-			}
-		}
-
-		public void Serialize(GenericWriter writer)
-		{
-			if (IsDefault)
-			{
-				writer.Write(0);
-			}
-			else
-			{
-				writer.Write(1);
-
-				writer.Write(Ring);
-				writer.Write(Bracelet);
-				writer.Write(Earrings);
-				writer.Write(Necklace);
-				writer.Write(Talisman);
-			}
+			writer.Write(Ring);
+			writer.Write(Bracelet);
+			writer.Write(Earrings);
+			writer.Write(Necklace);
+			writer.Write(Talisman);
 		}
 	}
 }

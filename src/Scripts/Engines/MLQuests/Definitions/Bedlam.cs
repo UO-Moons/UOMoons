@@ -7,14 +7,13 @@ namespace Server.Engines.Quests
 	public class MistakenIdentityQuest : BaseQuest
 	{
 		public MistakenIdentityQuest()
-			: base()
 		{
 			AddObjective(new DeliverObjective(typeof(TuitionReimbursementForm), "Tuition Reimbursement Form", 1, typeof(Gorrow), "Gorrow (Luna)"));
 
 			AddReward(new BaseReward(1074634)); // Tuition Reimbursement
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(YouScratchMyBackQuest);
 		/* Mistaken Identity */
 		public override object Title => 1074573;
@@ -52,7 +51,6 @@ namespace Server.Engines.Quests
 	public class YouScratchMyBackQuest : BaseQuest
 	{
 		public YouScratchMyBackQuest()
-			: base()
 		{
 			AddObjective(new ObtainObjective(typeof(UnicornRibs), "Unicorn Ribs", 1));
 			AddObjective(new ObtainObjective(typeof(KirinBrains), "Ki-Rin Brains", 2));
@@ -61,7 +59,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074634)); // Tuition Reimbursement
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(FoolingAernyaQuest);
 		/* You Scratch My Back */
 		public override object Title => 1074608;
@@ -107,7 +105,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074634)); // Tuition Reimbursement
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(NotQuiteThatEasyQuest);
 		/* Fooling Aernya */
 		public override object Title => 1074618;
@@ -149,7 +147,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074634)); // Tuition Reimbursement
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(ConvinceMeQuest);
 		/* Not Quite That Easy */
 		public override object Title => 1074623;
@@ -202,7 +200,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074634)); // Tuition Reimbursement
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(TuitionReimbursementQuest);
 		/* Convince Me */
 		public override object Title => 1074629;
@@ -244,7 +242,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(RewardBox), 1072584));
 		}
 
-		public override QuestChain ChainID => QuestChain.TuitionReimbursement;
+		public override QuestChain ChainId => QuestChain.TuitionReimbursement;
 		public override Type NextQuest => typeof(TheGoldenHornQuest);
 		/* Tuition Reimbursement */
 		public override object Title => 1074634;

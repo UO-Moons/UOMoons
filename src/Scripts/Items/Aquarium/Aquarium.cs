@@ -108,7 +108,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x3062)
+				if (ItemId == 0x3062)
 					return new AquariumEastDeed();
 				else
 					return new AquariumNorthDeed();

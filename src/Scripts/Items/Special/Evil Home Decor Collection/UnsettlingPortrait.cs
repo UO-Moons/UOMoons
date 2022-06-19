@@ -53,14 +53,14 @@ namespace Server.Items
 
 		private void ChangeDirection()
 		{
-			if (ItemID == 0x2A65)
-				ItemID += 1;
-			else if (ItemID == 0x2A66)
-				ItemID -= 1;
-			else if (ItemID == 0x2A67)
-				ItemID += 1;
-			else if (ItemID == 0x2A68)
-				ItemID -= 1;
+			if (ItemId == 0x2A65)
+				ItemId += 1;
+			else if (ItemId == 0x2A66)
+				ItemId -= 1;
+			else if (ItemId == 0x2A67)
+				ItemId += 1;
+			else if (ItemId == 0x2A68)
+				ItemId -= 1;
 		}
 	}
 

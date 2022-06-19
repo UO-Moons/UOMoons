@@ -39,7 +39,7 @@ namespace Server.Items
 		}
 
 		public RecipeScroll(Recipe r)
-			: this(r.ID)
+			: this(r.Id)
 		{
 		}
 

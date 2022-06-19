@@ -32,12 +32,12 @@ namespace Server.Mobiles
 				{
 					if (value && !m_Transparent)
 					{
-						ItemID = m_TransparentMountedID;
+						ItemId = m_TransparentMountedID;
 						Hue = m_TransparentMountedHue;
 					}
 					else if (!value && m_Transparent)
 					{
-						ItemID = m_NonTransparentMountedID;
+						ItemId = m_NonTransparentMountedID;
 						Hue = m_NonTransparentMountedHue;
 					}
 				}
@@ -58,7 +58,7 @@ namespace Server.Mobiles
 
 					if (m_Rider != null && Transparent)
 					{
-						ItemID = value;
+						ItemId = value;
 					}
 
 					InvalidateProperties();
@@ -78,7 +78,7 @@ namespace Server.Mobiles
 
 					if (m_Rider != null && !Transparent)
 					{
-						ItemID = value;
+						ItemId = value;
 					}
 
 					InvalidateProperties();
@@ -138,7 +138,7 @@ namespace Server.Mobiles
 
 					if (m_Rider == null)
 					{
-						ItemID = value;
+						ItemId = value;
 					}
 				}
 			}
@@ -447,7 +447,7 @@ namespace Server.Mobiles
 		{
 			Container bp = m_Rider.Backpack;
 
-			ItemID = m_StatueID;
+			ItemId = m_StatueID;
 			Layer = Layer.Invalid;
 
 			Movable = true;
@@ -479,7 +479,7 @@ namespace Server.Mobiles
 		{
 			StatueHue = Hue;
 
-			ItemID = MountedID;
+			ItemId = MountedID;
 			Hue = MountedHue;
 
 			Layer = Layer.Mount;

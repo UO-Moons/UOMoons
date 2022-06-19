@@ -38,11 +38,11 @@ public class Cloak : BaseCloak, IArcaneEquip
 	{
 		if (IsArcane)
 		{
-			ItemID = 0x26AD;
+			ItemId = 0x26AD;
 		}
-		else if (ItemID == 0x26AD)
+		else if (ItemId == 0x26AD)
 		{
-			ItemID = 0x1515;
+			ItemId = 0x1515;
 		}
 
 		if (IsArcane && CurArcaneCharges == 0)
@@ -74,13 +74,13 @@ public class Cloak : BaseCloak, IArcaneEquip
 
 	public void Flip()
 	{
-		if (ItemID == 0x1515)
+		if (ItemId == 0x1515)
 		{
-			ItemID = 0x1530;
+			ItemId = 0x1530;
 		}
-		else if (ItemID == 0x1530)
+		else if (ItemId == 0x1530)
 		{
-			ItemID = 0x1515;
+			ItemId = 0x1515;
 		}
 	}
 

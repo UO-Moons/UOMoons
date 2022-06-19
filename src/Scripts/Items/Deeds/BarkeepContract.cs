@@ -2,88 +2,86 @@ using Server.Mobiles;
 using Server.Multis;
 using Server.Network;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class BarkeepContract : BaseItem
 {
-	public class BarkeepContract : BaseItem
+	public override int LabelNumber => 1153779;//a barkeep contract
+
+	[Constructable]
+	public BarkeepContract() : base(0x14F0)
 	{
-		public override string DefaultName => "a barkeep contract";
+		Weight = 1.0;
+		LootType = LootType.Blessed;
+	}
 
-		[Constructable]
-		public BarkeepContract() : base(0x14F0)
+	public BarkeepContract(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		if (!IsChildOf(from.Backpack))
 		{
-			Weight = 1.0;
-			LootType = LootType.Blessed;
+			from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
 		}
-
-		public BarkeepContract(Serial serial) : base(serial)
+		else if (from.AccessLevel >= AccessLevel.GameMaster)
 		{
-		}
+			from.SendLocalizedMessage(503248); // Your godly powers allow you to place this vendor whereever you wish.
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); //version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (!IsChildOf(from.Backpack))
+			Mobile v = new PlayerBarkeeper(from, BaseHouse.FindHouseAt(from))
 			{
-				from.SendLocalizedMessage(1042001); // That must be in your pack for you to use it.
+				Direction = from.Direction & Direction.Mask
+			};
+			v.MoveToWorld(from.Location, from.Map);
+
+			Delete();
+		}
+		else
+		{
+			BaseHouse house = BaseHouse.FindHouseAt(from);
+
+			if (house == null || !house.IsOwner(from))
+			{
+				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, false, "You are not the full owner of this house.");
 			}
-			else if (from.AccessLevel >= AccessLevel.GameMaster)
+			else if (!house.CanPlaceNewBarkeep())
 			{
-				from.SendLocalizedMessage(503248); // Your godly powers allow you to place this vendor whereever you wish.
-
-				Mobile v = new PlayerBarkeeper(from, BaseHouse.FindHouseAt(from))
-				{
-					Direction = from.Direction & Direction.Mask
-				};
-				v.MoveToWorld(from.Location, from.Map);
-
-				Delete();
+				from.SendLocalizedMessage(1062490); // That action would exceed the maximum number of barkeeps for this house.
 			}
 			else
 			{
-				BaseHouse house = BaseHouse.FindHouseAt(from);
+				BaseHouse.IsThereVendor(from.Location, from.Map, out bool vendor, out bool contract);
 
-				if (house == null || !house.IsOwner(from))
+				if (vendor)
 				{
-					from.LocalOverheadMessage(MessageType.Regular, 0x3B2, false, "You are not the full owner of this house.");
+					from.SendLocalizedMessage(1062677); // You cannot place a vendor or barkeep at this location.
 				}
-				else if (!house.CanPlaceNewBarkeep())
+				else if (contract)
 				{
-					from.SendLocalizedMessage(1062490); // That action would exceed the maximum number of barkeeps for this house.
+					from.SendLocalizedMessage(1062678); // You cannot place a vendor or barkeep on top of a rental contract!
 				}
 				else
 				{
-					BaseHouse.IsThereVendor(from.Location, from.Map, out bool vendor, out bool contract);
+					Mobile v = new PlayerBarkeeper(from, house)
+					{
+						Direction = from.Direction & Direction.Mask
+					};
+					v.MoveToWorld(from.Location, from.Map);
 
-					if (vendor)
-					{
-						from.SendLocalizedMessage(1062677); // You cannot place a vendor or barkeep at this location.
-					}
-					else if (contract)
-					{
-						from.SendLocalizedMessage(1062678); // You cannot place a vendor or barkeep on top of a rental contract!
-					}
-					else
-					{
-						Mobile v = new PlayerBarkeeper(from, house)
-						{
-							Direction = from.Direction & Direction.Mask
-						};
-						v.MoveToWorld(from.Location, from.Map);
-
-						Delete();
-					}
+					Delete();
 				}
 			}
 		}

@@ -11,7 +11,7 @@ namespace Server.Items
 		{
 			Pumpkin pumpkin = new Pumpkin
 			{
-				ItemID = Utility.Random(3178, 3)
+				ItemId = Utility.Random(3178, 3)
 			};
 
 			return pumpkin;

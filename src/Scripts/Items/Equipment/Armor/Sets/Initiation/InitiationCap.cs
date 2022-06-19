@@ -3,7 +3,7 @@ namespace Server.Items;
 public class InitiationCap : LeatherCap
 {
 	public override int LabelNumber => 1116255;  // Armor of Initiation
-	public override SetItem SetID => SetItem.Initiation;
+	public override SetItem SetId => SetItem.Initiation;
 	public override int Pieces => 6;
 	public override int BasePhysicalResistance => 7;
 	public override int BaseFireResistance => 4;

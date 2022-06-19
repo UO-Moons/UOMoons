@@ -349,7 +349,7 @@ namespace Server.Items
 
 			ProcessDelta();
 			SendRemovePacket();
-			ItemID = Utility.Random(0xECA, 9); // bone graphic
+			ItemId = Utility.Random(0xECA, 9); // bone graphic
 			Hue = 0;
 			ProcessDelta();
 
@@ -733,7 +733,7 @@ namespace Server.Items
 		{
 			base.SendInfoTo(state, sendOplPacket);
 
-			if (((Body)Amount).IsHuman && ItemID == 0x2006)
+			if (((Body)Amount).IsHuman && ItemId == 0x2006)
 			{
 				if (state.ContainerGridLines)
 				{
@@ -997,11 +997,11 @@ namespace Server.Items
 					{
 						SetFlag(CorpseFlag.Carved, true);
 
-						if (ItemID == 0x2006)
+						if (ItemId == 0x2006)
 						{
 							ProcessDelta();
 							SendRemovePacket();
-							ItemID = Utility.Random(0xECA, 9); // bone graphic
+							ItemId = Utility.Random(0xECA, 9); // bone graphic
 							Hue = 0;
 							ProcessDelta();
 						}
@@ -1096,7 +1096,7 @@ namespace Server.Items
 
 		public override void AddNameProperty(ObjectPropertyList list)
 		{
-			if (ItemID == 0x2006) // Corpse form
+			if (ItemId == 0x2006) // Corpse form
 			{
 				if (m_CorpseName != null)
 					list.Add(m_CorpseName);
@@ -1115,23 +1115,23 @@ namespace Server.Items
 			ObjectPropertyList opl = PropertyList;
 
 			if (opl.Header > 0)
-				from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, hue, 3, opl.Header, Name, opl.HeaderArgs));
+				from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, hue, 3, opl.Header, Name, opl.HeaderArgs));
 		}
 
 		public override void OnSingleClick(Mobile from)
 		{
 			int hue = Notoriety.GetHue(NotorietyHandlers.CorpseNotoriety(from, this));
 
-			if (ItemID == 0x2006) // Corpse form
+			if (ItemId == 0x2006) // Corpse form
 			{
 				if (m_CorpseName != null)
-					from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, hue, 3, "", m_CorpseName));
+					from.Send(new AsciiMessage(Serial, ItemId, MessageType.Label, hue, 3, "", m_CorpseName));
 				else
-					from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, hue, 3, 1046414, "", Name));
+					from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, hue, 3, 1046414, "", Name));
 			}
 			else // Bone form
 			{
-				from.Send(new MessageLocalized(Serial, ItemID, MessageType.Label, hue, 3, 1046414, "", Name));
+				from.Send(new MessageLocalized(Serial, ItemId, MessageType.Label, hue, 3, 1046414, "", Name));
 			}
 		}
 
@@ -1153,7 +1153,7 @@ namespace Server.Items
 			{
 				from.SendLocalizedMessage(500485); // You see nothing useful to carve from the corpse.
 			}
-			else if (((Body)Amount).IsHuman && ItemID == 0x2006)
+			else if (((Body)Amount).IsHuman && ItemId == 0x2006)
 			{
 				new Blood(0x122D).MoveToWorld(Location, Map);
 
@@ -1168,7 +1168,7 @@ namespace Server.Items
 
 				ProcessDelta();
 				SendRemovePacket();
-				ItemID = Utility.Random(0xECA, 9); // bone graphic
+				ItemId = Utility.Random(0xECA, 9); // bone graphic
 				Hue = 0;
 				ProcessDelta();
 

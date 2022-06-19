@@ -1610,7 +1610,7 @@ namespace Server.Multis
 		public virtual void ChangeSignType(int itemID)
 		{
 			if (Sign != null)
-				Sign.ItemID = itemID;
+				Sign.ItemId = itemID;
 		}
 
 		public abstract Rectangle2D[] Area { get; }
@@ -1766,7 +1766,7 @@ namespace Server.Multis
 
 		protected static void ConvertDoor(BaseDoor door, int closedID, bool invert)
 		{
-			door.ItemID = closedID;
+			door.ItemId = closedID;
 			door.ClosedID = closedID;
 			door.OpenedID = closedID + 1;
 		}

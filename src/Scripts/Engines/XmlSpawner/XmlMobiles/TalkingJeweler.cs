@@ -4,8 +4,8 @@ namespace Server.Mobiles
 {
 	public class TalkingJeweler : TalkingBaseVendor
 	{
-		private readonly List<SBInfo> m_SBInfos = new();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		private readonly List<SbInfo> m_SBInfos = new();
+		protected override List<SbInfo> SbInfos => m_SBInfos;
 
 		[Constructable]
 		public TalkingJeweler() : base("the jeweler")
@@ -13,9 +13,9 @@ namespace Server.Mobiles
 			SetSkill(SkillName.ItemID, 64.0, 100.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			m_SBInfos.Add(new SBJewel());
+			m_SBInfos.Add(new SbJewel());
 		}
 
 		public TalkingJeweler(Serial serial) : base(serial)

@@ -1175,7 +1175,7 @@ namespace Server.Multis
 
 			foreach (Item item in eable)
 			{
-				if (item is BaseMulti || item.ItemID > TileData.MaxItemValue || item.Z < p.Z || !item.Visible)
+				if (item is BaseMulti || item.ItemId > TileData.MaxItemValue || item.Z < p.Z || !item.Visible)
 					continue;
 
 				int x = item.X - p.X + newComponents.Min.X;
@@ -1376,7 +1376,7 @@ namespace Server.Multis
 
 			for (int i = 1; i <= speed; ++i)
 			{
-				if (!CanFit(new Point3D(X + (i * rx), Y + (i * ry), Z), Map, ItemID))
+				if (!CanFit(new Point3D(X + (i * rx), Y + (i * ry), Z), Map, ItemId))
 				{
 					if (i == 1)
 					{
@@ -1417,7 +1417,7 @@ namespace Server.Multis
 
 					for (int j = 1; j <= speed; ++j)
 					{
-						if (!CanFit(new Point3D(newX + (j * rx), newY + (j * ry), Z), Map, ItemID))
+						if (!CanFit(new Point3D(newX + (j * rx), newY + (j * ry), Z), Map, ItemId))
 						{
 							if (message && TillerMan != null)
 								TillerMan.Say(501424); // Ar, we've stopped sir.
@@ -1613,10 +1613,10 @@ namespace Server.Multis
 
 			switch (facing)
 			{
-				case Direction.North: ItemID = NorthID; break;
-				case Direction.East: ItemID = EastID; break;
-				case Direction.South: ItemID = SouthID; break;
-				case Direction.West: ItemID = WestID; break;
+				case Direction.North: ItemId = NorthID; break;
+				case Direction.East: ItemId = EastID; break;
+				case Direction.South: ItemId = SouthID; break;
+				case Direction.West: ItemId = WestID; break;
 			}
 
 			return true;
@@ -1757,7 +1757,7 @@ namespace Server.Multis
 						m_Stream.Write((byte)0x02);
 						m_Stream.Write(bm.Serial);
 						// TODO: Mask no longer needed, merge with Item case?
-						m_Stream.Write((ushort)(bm.ItemID & 0x3FFF));
+						m_Stream.Write((ushort)(bm.ItemId & 0x3FFF));
 						m_Stream.Write((byte)0);
 
 						m_Stream.Write((short)bm.Amount);
@@ -1793,7 +1793,7 @@ namespace Server.Multis
 					{
 						m_Stream.Write((byte)0x00);
 						m_Stream.Write(item.Serial);
-						m_Stream.Write((ushort)(item.ItemID & 0xFFFF));
+						m_Stream.Write((ushort)(item.ItemId & 0xFFFF));
 						m_Stream.Write((byte)0);
 
 						m_Stream.Write((short)item.Amount);

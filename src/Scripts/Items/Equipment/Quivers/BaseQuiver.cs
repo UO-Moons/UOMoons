@@ -374,12 +374,12 @@ namespace Server.Items
                 #region Mondain's Legacy Sets
                 if (IsSetItem)
                 {
-                    m_SetEquipped = SetHelper.FullSetEquipped(mob, SetID, Pieces);
+                    m_SetEquipped = SetHelper.FullSetEquipped(mob, SetId, Pieces);
 
                     if (m_SetEquipped)
                     {
                         m_LastEquipped = true;
-                        SetHelper.AddSetBonus(mob, SetID);
+                        SetHelper.AddSetBonus(mob, SetId);
                     }
                 }
                 #endregion
@@ -397,7 +397,7 @@ namespace Server.Items
 
                 #region Mondain's Legacy Sets
                 if (IsSetItem && m_SetEquipped)
-                    SetHelper.RemoveSetBonus(mob, SetID, this);
+                    SetHelper.RemoveSetBonus(mob, SetId, this);
                 #endregion
             }
         }
@@ -408,7 +408,7 @@ namespace Server.Items
             if (Parent is Mobile && from == Parent)
             {
                 if (IsSetItem && m_SetEquipped)
-                    SetHelper.RemoveSetBonus(from, SetID, this);
+                    SetHelper.RemoveSetBonus(from, SetId, this);
             }
             #endregion
 
@@ -954,12 +954,12 @@ namespace Server.Items
         #endregion
 
         #region Mondain's Legacy Sets
-        public virtual SetItem SetID => SetItem.None;
+        public virtual SetItem SetId => SetItem.None;
         public virtual int Pieces => 0;
 
-        public virtual bool BardMasteryBonus => (SetID == SetItem.Virtuoso);
+        public virtual bool BardMasteryBonus => (SetId == SetItem.Virtuoso);
 
-        public bool IsSetItem => SetID != SetItem.None;
+        public bool IsSetItem => SetId != SetItem.None;
 
         private int m_SetHue;
         private bool m_SetEquipped;

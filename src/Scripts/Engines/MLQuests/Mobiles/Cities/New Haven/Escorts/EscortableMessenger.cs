@@ -2,69 +2,68 @@ using System;
 using Server.Items;
 using Server.Engines.Quests;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class EscortableMessenger : TownEscortable
 {
-    public class EscortableMessenger : TownEscortable
-    {
-        [Constructable]
-        public EscortableMessenger()
-        {
-            Title = "the messenger";
-        }
+	[Constructable]
+	public EscortableMessenger()
+	{
+		Title = "the messenger";
+	}
 
-        public EscortableMessenger(Serial serial)
-            : base(serial)
-        {
-        }
+	public EscortableMessenger(Serial serial)
+		: base(serial)
+	{
+	}
 
-        public override bool ClickTitle => false;
-        public override void InitOutfit()
-        {
-            if (Female)
-                AddItem(new PlainDress());
-            else
-                AddItem(new Shirt(GetRandomHue()));
+	public override bool ClickTitle => false;
+	public override void InitOutfit()
+	{
+		if (Female)
+			AddItem(new PlainDress());
+		else
+			AddItem(new Shirt(GetRandomHue()));
 
-            int lowHue = GetRandomHue();
+		int lowHue = GetRandomHue();
 
-            AddItem(new ShortPants(lowHue));
+		AddItem(new ShortPants(lowHue));
 
-            if (Female)
-                AddItem(new Boots(lowHue));
-            else
-                AddItem(new Shoes(lowHue));
+		if (Female)
+			AddItem(new Boots(lowHue));
+		else
+			AddItem(new Shoes(lowHue));
 
-            switch (Utility.Random(4))
-            {
-                case 0:
-                    AddItem(new ShortHair(Utility.RandomHairHue()));
-                    break;
-                case 1:
-                    AddItem(new TwoPigTails(Utility.RandomHairHue()));
-                    break;
-                case 2:
-                    AddItem(new ReceedingHair(Utility.RandomHairHue()));
-                    break;
-                case 3:
-                    AddItem(new KrisnaHair(Utility.RandomHairHue()));
-                    break;
-            }
+		switch (Utility.Random(4))
+		{
+			case 0:
+				AddItem(new ShortHair(Utility.RandomHairHue()));
+				break;
+			case 1:
+				AddItem(new TwoPigTails(Utility.RandomHairHue()));
+				break;
+			case 2:
+				AddItem(new ReceedingHair(Utility.RandomHairHue()));
+				break;
+			case 3:
+				AddItem(new KrisnaHair(Utility.RandomHairHue()));
+				break;
+		}
 
-            PackItem(Loot.PackGold(200, 250));
-        }
+		PackItem(Loot.PackGold(200, 250));
+	}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-            writer.WriteEncodedInt(0); // version
-        }
+		writer.WriteEncodedInt(0); // version
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-            int version = reader.ReadEncodedInt();
-        }
-    }
+		int version = reader.ReadEncodedInt();
+	}
 }

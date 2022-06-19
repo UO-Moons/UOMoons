@@ -776,7 +776,7 @@ namespace Server.Engines.ConPVP
 					Item item = new Trophy(sb.ToString(), rank);
 
 					if (pl == leader)
-						item.ItemID = 4810;
+						item.ItemId = 4810;
 
 					item.Name = string.Format("{0}, {1} team", item.Name, teams[i].Name.ToLower());
 
@@ -1007,7 +1007,7 @@ namespace Server.Engines.ConPVP
 		[Constructable]
 		public DDWayPoint()
 		{
-			ItemID = 0x519;
+			ItemId = 0x519;
 			Visible = true;
 			Name = "SET MY NAME";
 

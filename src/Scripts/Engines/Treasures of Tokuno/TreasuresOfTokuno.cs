@@ -173,10 +173,10 @@ namespace Server.Mobiles
 		public override bool ClickTitle => true;
 		public override bool CanTeach => false;
 
-		protected List<SBInfo> m_SBInfos = new();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		protected List<SbInfo> m_SBInfos = new();
+		protected override List<SbInfo> SbInfos => m_SBInfos;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
 		}
 
@@ -278,7 +278,7 @@ namespace Server.Gumps
 	{
 		public Item Item { get; set; }
 
-		public ItemTileButtonInfo(Item i) : base(i.ItemID, i.Hue, ((i.Name == null || i.Name.Length <= 0) ? (TextDefinition)i.LabelNumber : (TextDefinition)i.Name))
+		public ItemTileButtonInfo(Item i) : base(i.ItemId, i.Hue, ((i.Name == null || i.Name.Length <= 0) ? (TextDefinition)i.LabelNumber : (TextDefinition)i.Name))
 		{
 			Item = i;
 		}

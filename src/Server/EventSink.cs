@@ -77,13 +77,13 @@ namespace Server
 		public SkillNameValue[] Skills { get; }
 		public int ShirtHue { get; }
 		public int PantsHue { get; }
-		public int HairID { get; }
+		public int HairId { get; }
 		public int HairHue { get; }
-		public int BeardID { get; }
+		public int BeardId { get; }
 		public int BeardHue { get; }
 		public int Profession { get; set; }
 		public Race Race { get; }
-		public int FaceID { get; }
+		public int FaceId { get; }
 		public int FaceHue { get; }
 
 		public CharacterCreatedEventArgs(
@@ -99,13 +99,13 @@ namespace Server
 			SkillNameValue[] skills,
 			int shirtHue,
 			int pantsHue,
-			int hairID,
+			int hairId,
 			int hairHue,
-			int beardID,
+			int beardId,
 			int beardHue,
 			int profession,
 			Race race)
-			: this(state, a, name, female, hue, str, dex, intel, city, skills, shirtHue, pantsHue, hairID, hairHue, beardID, beardHue, profession, race, 0, 0)
+			: this(state, a, name, female, hue, str, dex, intel, city, skills, shirtHue, pantsHue, hairId, hairHue, beardId, beardHue, profession, race, 0, 0)
 		{
 		}
 
@@ -122,13 +122,13 @@ namespace Server
 			SkillNameValue[] skills,
 			int shirtHue,
 			int pantsHue,
-			int hairID,
+			int hairId,
 			int hairHue,
-			int beardID,
+			int beardId,
 			int beardHue,
 			int profession,
 			Race race,
-			int faceID,
+			int faceId,
 			int faceHue)
 		{
 			State = state;
@@ -143,13 +143,13 @@ namespace Server
 			Skills = skills;
 			ShirtHue = shirtHue;
 			PantsHue = pantsHue;
-			HairID = hairID;
+			HairId = hairId;
 			HairHue = hairHue;
-			BeardID = beardID;
+			BeardId = beardId;
 			BeardHue = beardHue;
 			Profession = profession;
 			Race = race;
-			FaceID = faceID;
+			FaceId = faceId;
 			FaceHue = faceHue;
 		}
 	}
@@ -240,15 +240,15 @@ namespace Server
 		public Direction Direction { get; private set; }
 		public bool Blocked { get; set; }
 
-		private static readonly Queue<MovementEventArgs> m_Pool = new();
+		private static readonly Queue<MovementEventArgs> MPool = new();
 
 		public static MovementEventArgs Create(Mobile mobile, Direction dir)
 		{
 			MovementEventArgs args;
 
-			if (m_Pool.Count > 0)
+			if (MPool.Count > 0)
 			{
-				args = m_Pool.Dequeue();
+				args = MPool.Dequeue();
 
 				args.Mobile = mobile;
 				args.Direction = dir;
@@ -270,7 +270,7 @@ namespace Server
 
 		public void Free()
 		{
-			m_Pool.Enqueue(this);
+			MPool.Enqueue(this);
 		}
 	}
 
@@ -329,9 +329,9 @@ namespace Server
 
 	public class PlayerDeathEventArgs : EventArgs
 	{
-		public Mobile Mobile { get; private set; }
-		public Mobile Killer { get; private set; }
-		public Container Corpse { get; private set; }
+		public Mobile Mobile { get; }
+		public Mobile Killer { get; }
+		public Container Corpse { get; }
 
 		public PlayerDeathEventArgs(Mobile mobile)
 			: this(mobile, mobile.LastKiller, mobile.Corpse)
@@ -347,9 +347,9 @@ namespace Server
 
 	public class CreatureDeathEventArgs : EventArgs
 	{
-		public Mobile Creature { get; private set; }
-		public Mobile Killer { get; private set; }
-		public Container Corpse { get; private set; }
+		public Mobile Creature { get; }
+		public Mobile Killer { get; }
+		public Container Corpse { get; }
 
 		public List<Item> ForcedLoot { get; private set; }
 
@@ -657,9 +657,9 @@ namespace Server
 		}
 
 		public static event Action<Mobile, int, Item> OnCastSpellRequest;
-		public static void InvokeCastSpellRequest(Mobile m, int spellID, Item book)
+		public static void InvokeCastSpellRequest(Mobile m, int spellId, Item book)
 		{
-			OnCastSpellRequest?.Invoke(m, spellID, book);
+			OnCastSpellRequest?.Invoke(m, spellId, book);
 		}
 
 		//Guild
@@ -779,15 +779,15 @@ namespace Server
 		}
 
 		public static event Action<Mobile, Mobile, int> OnVirtueItemRequest;
-		public static void InvokeVirtueItemRequest(Mobile beholder, Mobile beheld, int gumpID)
+		public static void InvokeVirtueItemRequest(Mobile beholder, Mobile beheld, int gumpId)
 		{
-			OnVirtueItemRequest?.Invoke(beholder, beheld, gumpID);
+			OnVirtueItemRequest?.Invoke(beholder, beheld, gumpId);
 		}
 
 		public static event Action<Mobile, int> OnVirtueMacroRequest;
-		public static void InvokeVirtueMacroRequest(Mobile mobile, int virtueID)
+		public static void InvokeVirtueMacroRequest(Mobile mobile, int virtueId)
 		{
-			OnVirtueMacroRequest?.Invoke(mobile, virtueID);
+			OnVirtueMacroRequest?.Invoke(mobile, virtueId);
 		}
 
 		public static event Action<PlayerDeathEventArgs> OnPlayerDeath;

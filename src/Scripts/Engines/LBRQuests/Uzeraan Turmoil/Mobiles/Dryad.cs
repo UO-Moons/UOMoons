@@ -53,9 +53,9 @@ namespace Server.Engines.Quests.Haven
 			AddItem(bow);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBDryad());
+			SbInfos.Add(new SBDryad());
 		}
 
 		public override int GetAutoTalkRange(PlayerMobile pm)
@@ -157,7 +157,7 @@ namespace Server.Engines.Quests.Haven
 		}
 	}
 
-	public class SBDryad : SBInfo
+	public class SBDryad : SbInfo
 	{
 		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
 		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();

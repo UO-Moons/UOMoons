@@ -51,10 +51,10 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Active
 		{
-			get => ItemID == 0x1ECD;
+			get => ItemId == 0x1ECD;
 			set
 			{
-				ItemID = value ? 0x1ECD : 0x1ED0;
+				ItemId = value ? 0x1ECD : 0x1ED0;
 				InvalidateProperties();
 			}
 		}
@@ -298,10 +298,10 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Active
 		{
-			get => ItemID == 0x1ED1;
+			get => ItemId == 0x1ED1;
 			set
 			{
-				ItemID = value ? 0x1ED1 : 0x1ED0;
+				ItemId = value ? 0x1ED1 : 0x1ED0;
 				InvalidateProperties();
 			}
 		}

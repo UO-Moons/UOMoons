@@ -24,7 +24,7 @@ namespace Server.Items
 				if (Utility.RandomBool())
 				{
 					from.Location = Location;
-					c.ItemID = 0x124A;
+					c.ItemId = 0x124A;
 
 					Timer.DelayCall(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5), 3, new TimerStateCallback(Activate), new object[] { c, from });
 				}
@@ -59,9 +59,9 @@ namespace Server.Items
 
 		public virtual void Activate(AddonComponent c, Mobile from)
 		{
-			c.ItemID += 1;
+			c.ItemId += 1;
 
-			if (c.ItemID >= 0x124D)
+			if (c.ItemId >= 0x124D)
 			{
 				// blood
 				int amount = Utility.RandomMinMax(3, 7);
@@ -99,7 +99,7 @@ namespace Server.Items
 		private void Deactivate(object obj)
 		{
 			if (obj is AddonComponent)
-				((AddonComponent)obj).ItemID = 0x1249;
+				((AddonComponent)obj).ItemId = 0x1249;
 		}
 	}
 

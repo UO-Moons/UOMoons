@@ -1,6 +1,6 @@
 namespace Server.Items
 {
-	public class ParrotWafer : Item
+	public sealed class ParrotWafer : Item
 	{
 		[Constructable]
 		public ParrotWafer()
@@ -19,8 +19,7 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)

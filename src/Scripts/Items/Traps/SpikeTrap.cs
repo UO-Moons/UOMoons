@@ -18,7 +18,7 @@ namespace Server.Items
 		{
 			get
 			{
-				switch (ItemID)
+				switch (ItemId)
 				{
 					case 4360: case 4361: case 4366: return SpikeTrapType.WestWall;
 					case 4379: case 4380: case 4385: return SpikeTrapType.NorthWall;
@@ -32,19 +32,19 @@ namespace Server.Items
 			{
 				bool extended = Extended;
 
-				ItemID = (extended ? GetExtendedID(value) : GetBaseID(value));
+				ItemId = (extended ? GetExtendedID(value) : GetBaseID(value));
 			}
 		}
 
 		public bool Extended
 		{
-			get => (ItemID == GetExtendedID(Type));
+			get => (ItemId == GetExtendedID(Type));
 			set
 			{
 				if (value)
-					ItemID = GetExtendedID(Type);
+					ItemId = GetExtendedID(Type);
 				else
-					ItemID = GetBaseID(Type);
+					ItemId = GetBaseID(Type);
 			}
 		}
 

@@ -204,7 +204,7 @@ namespace Server.Items
 				{
 					m_Open = value;
 
-					ItemID = m_Open ? OpenedID : ClosedID;
+					ItemId = m_Open ? OpenedID : ClosedID;
 
 					if (m_Open)
 						Location = new Point3D(X + m_Offset.X, Y + m_Offset.Y, Z + m_Offset.Z);
@@ -253,7 +253,7 @@ namespace Server.Items
 			{
 				Item item = items[i];
 
-				if (!(item is BaseMulti) && item.ItemID <= TileData.MaxItemValue && item.AtWorldPoint(x, y) && !(item is BaseDoor))
+				if (!(item is BaseMulti) && item.ItemId <= TileData.MaxItemValue && item.AtWorldPoint(x, y) && !(item is BaseDoor))
 				{
 					ItemData id = item.ItemData;
 					bool surface = id.Surface;

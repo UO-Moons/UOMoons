@@ -1,7 +1,10 @@
 using Server.Engines.Champions;
 using Server.Mobiles;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using Server.Accounting;
 
 namespace Server.Misc
 {
@@ -12,52 +15,66 @@ namespace Server.Misc
 
 		public static void AwardFame(Mobile m, int offset, bool message)
 		{
-			if (offset > 0)
+			switch (offset)
 			{
-				if (m.Fame >= MaxFame)
+				case > 0 when m.Fame >= MaxFame:
 					return;
+				case > 0:
+				{
+					offset -= m.Fame / 100;
 
-				offset -= m.Fame / 100;
+					if (offset < 0)
+						offset = 0;
+					break;
+				}
+				case < 0 when m.Fame <= MinFame:
+					return;
+				case < 0:
+				{
+					offset -= m.Fame / 100;
 
-				if (offset < 0)
-					offset = 0;
+					if (offset > 0)
+						offset = 0;
+					break;
+				}
 			}
-			else if (offset < 0)
+
+			offset = (m.Fame + offset) switch
 			{
-				if (m.Fame <= MinFame)
-					return;
-
-				offset -= m.Fame / 100;
-
-				if (offset > 0)
-					offset = 0;
-			}
-
-			if ((m.Fame + offset) > MaxFame)
-				offset = MaxFame - m.Fame;
-			else if ((m.Fame + offset) < MinFame)
-				offset = MinFame - m.Fame;
+				> MaxFame => MaxFame - m.Fame,
+				< MinFame => MinFame - m.Fame,
+				_ => offset
+			};
 
 			m.Fame += offset;
 
-			if (message)
+			if (!message) return;
+			switch (offset)
 			{
-				if (offset > 40)
+				case > 40:
 					m.SendLocalizedMessage(1019054); // You have gained a lot of fame.
-				else if (offset > 20)
+					break;
+				case > 20:
 					m.SendLocalizedMessage(1019053); // You have gained a good amount of fame.
-				else if (offset > 10)
+					break;
+				case > 10:
 					m.SendLocalizedMessage(1019052); // You have gained some fame.
-				else if (offset > 0)
+					break;
+				case > 0:
 					m.SendLocalizedMessage(1019051); // You have gained a little fame.
-				else if (offset < -40)
+					break;
+				case < -40:
 					m.SendLocalizedMessage(1019058); // You have lost a lot of fame.
-				else if (offset < -20)
+					break;
+				case < -20:
 					m.SendLocalizedMessage(1019057); // You have lost a good amount of fame.
-				else if (offset < -10)
+					break;
+				case < -10:
 					m.SendLocalizedMessage(1019056); // You have lost some fame.
-				else if (offset < 0)
+					break;
+				case < 0:
 					m.SendLocalizedMessage(1019055); // You have lost a little fame.
+					break;
 			}
 		}
 
@@ -126,7 +143,63 @@ namespace Server.Misc
 			}
 		}
 
-		public static readonly string[] HarrowerTitles = new string[] { "Spite", "Opponent", "Hunter", "Venom", "Executioner", "Annihilator", "Champion", "Assailant", "Purifier", "Nullifier" };
+		public static List<string> GetFameKarmaEntries(Mobile m)
+		{
+			List<string> list = new();
+			int fame = m.Fame;
+			int karma = m.Karma;
+
+			for (var i = 0; i < MFameEntries.Length; ++i)
+			{
+				FameEntry fe = MFameEntries[i];
+
+				if (fame < fe.Fame) continue;
+				KarmaEntry[] karmaEntries = fe.Karma;
+
+				for (var j = 0; j < karmaEntries.Length; ++j)
+				{
+					KarmaEntry ke = karmaEntries[j];
+					StringBuilder title = new StringBuilder();
+
+					if ((karma >= 0 && ke.Karma >= 0 && karma >= ke.Karma) || (karma < 0 && ke.Karma < 0 && karma < ke.Karma))
+					{
+						list.Add(title.AppendFormat(ke.Title, m.Name, m.Female ? "Lady" : "Lord").ToString());
+					}
+				}
+			}
+
+			return list;
+		}
+		public static readonly string[] HarrowerTitles = { "Spite", "Opponent", "Hunter", "Venom", "Executioner", "Annihilator", "Champion", "Assailant", "Purifier", "Nullifier" };
+
+		public static string ComputeFameTitle(Mobile beheld)
+		{
+			int fame = beheld.Fame;
+			int karma = beheld.Karma;
+
+			for (int i = 0; i < MFameEntries.Length; ++i)
+			{
+				FameEntry fe = MFameEntries[i];
+
+				if (fame <= fe.Fame || i == (MFameEntries.Length - 1))
+				{
+					KarmaEntry[] karmaEntries = fe.Karma;
+
+					for (int j = 0; j < karmaEntries.Length; ++j)
+					{
+						KarmaEntry ke = karmaEntries[j];
+
+						if (karma <= ke.Karma || j == (karmaEntries.Length - 1))
+						{
+							return string.Format(ke.Title, beheld.Name, beheld.Female ? "Lady" : "Lord");
+						}
+					}
+
+					return string.Empty;
+				}
+			}
+			return string.Empty;
+		}
 
 		public static string ComputeTitle(Mobile beholder, Mobile beheld)
 		{
@@ -135,72 +208,61 @@ namespace Server.Misc
 			int fame = beheld.Fame;
 			int karma = beheld.Karma;
 
-			bool showSkillTitle = beheld.ShowFameTitle && ((beholder == beheld) || (fame >= 5000));
+			bool showSkillTitle = beheld.ShowFameTitle && (beholder == beheld || fame >= 5000);
 
 			/*if ( beheld.Murderer )
 			{
 				title.AppendFormat( beheld.Fame >= 10000 ? "The Murderer {1} {0}" : "The Murderer {0}", beheld.Name, beheld.Female ? "Lady" : "Lord" );
 			}
 			else*/
-			if (beheld.ShowFameTitle || (beholder == beheld))
+			var pm = beheld as PlayerMobile;
+			if (Core.SA && beheld.ShowFameTitle && pm is {FameKarmaTitle: { }})
 			{
-				for (int i = 0; i < m_FameEntries.Length; ++i)
-				{
-					FameEntry fe = m_FameEntries[i];
-
-					if (fame <= fe.Fame || i == (m_FameEntries.Length - 1))
-					{
-						KarmaEntry[] karmaEntries = fe.Karma;
-
-						for (int j = 0; j < karmaEntries.Length; ++j)
-						{
-							KarmaEntry ke = karmaEntries[j];
-
-							if (karma <= ke.Karma || j == (karmaEntries.Length - 1))
-							{
-								title.AppendFormat(ke.Title, beheld.Name, beheld.Female ? "Lady" : "Lord");
-								break;
-							}
-						}
-
-						break;
-					}
-				}
+				title.AppendFormat(pm.FameKarmaTitle, beheld.Name, beheld.Female ? "Lady" : "Lord");
+			}
+			else if(beheld.ShowFameTitle || beholder == beheld)
+			{
+				title.Append(ComputeFameTitle(beheld));
 			}
 			else
 			{
 				title.Append(beheld.Name);
 			}
 
-			if (beheld is PlayerMobile player && player.DisplayChampionTitle)
-			{
-				ChampionTitleInfo info = player.ChampionTitles;
 
-				if (info.Harrower > 0)
-					title.AppendFormat(": {0} of Evil", HarrowerTitles[Math.Min(HarrowerTitles.Length, info.Harrower) - 1]);
+			if (pm is {DisplayChampionTitle: true})
+			{
+				ChampionTitleInfo info = pm.ChampionTitles;
+
+				if (Core.SA)
+				{
+					if (pm.CurrentChampTitle != null)
+						title.AppendFormat(pm.CurrentChampTitle);
+				}
+				else if (info.Harrower > 0)
+					title.Append($": {HarrowerTitles[Math.Min(HarrowerTitles.Length, info.Harrower) - 1]} of Evil");
 				else
 				{
 					int highestValue = 0, highestType = 0;
-					for (int i = 0; i < ChampionSpawnInfo.Table.Length; i++)
+					for (var i = 0; i < ChampionSpawnInfo.Table.Length; i++)
 					{
 						int v = info.GetValue(i);
 
-						if (v > highestValue)
-						{
-							highestValue = v;
-							highestType = i;
-						}
+						if (v <= highestValue) continue;
+						highestValue = v;
+						highestType = i;
 					}
 
-					int offset = 0;
-					if (highestValue > 800)
-						offset = 3;
-					else if (highestValue > 300)
-						offset = highestValue / 300;
+					int offset = highestValue switch
+					{
+						> 800 => 3,
+						> 300 => highestValue / 300,
+						_ => 0
+					};
 
 					if (offset > 0)
 					{
-						ChampionSpawnInfo champInfo = ChampionSpawnInfo.GetInfo((ChampionSpawnType)highestType);
+						var champInfo = ChampionSpawnInfo.GetInfo((ChampionSpawnType)highestType);
 						title.AppendFormat(": {0} of the {1}", champInfo.LevelNames[Math.Min(offset, champInfo.LevelNames.Length) - 1], champInfo.Name);
 					}
 				}
@@ -208,9 +270,16 @@ namespace Server.Misc
 
 			string customTitle = beheld.Title;
 
-			if (customTitle != null && (customTitle = customTitle.Trim()).Length > 0)
+			if (Core.SA)
 			{
-				title.AppendFormat(" {0}", customTitle);
+				if (pm is {PaperdollSkillTitle: { }})
+					title.Append(", ").Append(pm.PaperdollSkillTitle);
+				else if (beheld is BaseVendor)
+					title.Append($" {customTitle}");
+			}
+			else if (customTitle != null && (customTitle = customTitle.Trim()).Length > 0)
+			{
+				title.Append($" {customTitle}");
 			}
 			else if (showSkillTitle && beheld.Player)
 			{
@@ -229,18 +298,28 @@ namespace Server.Misc
 		{
 			Skill highest = GetHighestSkill(mob);// beheld.Skills.Highest;
 
-			if (highest != null && highest.BaseFixedPoint >= 300)
-			{
-				string skillLevel = GetSkillLevel(highest);
-				string skillTitle = highest.Info.Title;
+			if (highest == null || highest.BaseFixedPoint < 300) return null;
+			string skillLevel = GetSkillLevel(highest);
+			string skillTitle = highest.Info.Title;
 
-				if (mob.Female && skillTitle.EndsWith("man"))
-					skillTitle = skillTitle[..^3] + "woman";
+			if (mob.Female && skillTitle.EndsWith("man"))
+				skillTitle = skillTitle[..^3] + "woman";
 
-				return string.Concat(skillLevel, " ", skillTitle);
-			}
+			return string.Concat(skillLevel, " ", skillTitle);
 
-			return null;
+		}
+
+		public static string GetSkillTitle(Mobile mob, Skill skill)
+		{
+			if (skill == null || skill.BaseFixedPoint < 300) return null;
+			string skillLevel = GetSkillLevel(skill);
+			string skillTitle = skill.Info.Title;
+
+			if (mob.Female && skillTitle.EndsWith("man"))
+				skillTitle = skillTitle[..^3] + "woman";
+
+			return string.Concat(skillLevel, " ", skillTitle);
+
 		}
 
 		private static Skill GetHighestSkill(Mobile m)
@@ -252,21 +331,20 @@ namespace Server.Misc
 
 			Skill highest = null;
 
-			for (int i = 0; i < m.Skills.Length; ++i)
+			for (var i = 0; i < m.Skills.Length; ++i)
 			{
 				Skill check = m.Skills[i];
 
 				if (highest == null || check.BaseFixedPoint > highest.BaseFixedPoint)
 					highest = check;
-				else if (highest != null && highest.Lock != SkillLock.Up && check.Lock == SkillLock.Up && check.BaseFixedPoint == highest.BaseFixedPoint)
+				else if (highest.Lock != SkillLock.Up && check.Lock == SkillLock.Up && check.BaseFixedPoint == highest.BaseFixedPoint)
 					highest = check;
 			}
 
 			return highest;
 		}
 
-		private static readonly string[,] m_Levels = new string[,]
-			{
+		private static readonly string[,] MLevels = {
 				{ "Neophyte",       "Neophyte",     "Neophyte"      },
 				{ "Novice",         "Novice",       "Novice"        },
 				{ "Apprentice",     "Apprentice",   "Apprentice"    },
@@ -281,7 +359,7 @@ namespace Server.Misc
 
 		private static string GetSkillLevel(Skill skill)
 		{
-			return m_Levels[GetTableIndex(skill), GetTableType(skill)];
+			return MLevels[GetTableIndex(skill), GetTableType(skill)];
 		}
 
 		private static int GetTableType(Skill skill)
@@ -301,9 +379,8 @@ namespace Server.Misc
 			return (fp - 300) / 100;
 		}
 
-		private static readonly FameEntry[] m_FameEntries = new FameEntry[]
-			{
-				new FameEntry( 1249, new KarmaEntry[]
+		private static readonly FameEntry[] MFameEntries = {
+				new( 1249, new[]
 				{
 					new KarmaEntry( -10000, "The Outcast {0}" ),
 					new KarmaEntry( -5000, "The Despicable {0}" ),
@@ -317,7 +394,7 @@ namespace Server.Misc
 					new KarmaEntry( 9999, "The Honest {0}" ),
 					new KarmaEntry( 10000, "The Trustworthy {0}" )
 				} ),
-				new FameEntry( 2499, new KarmaEntry[]
+				new( 2499, new[]
 				{
 					new KarmaEntry( -10000, "The Wretched {0}" ),
 					new KarmaEntry( -5000, "The Dastardly {0}" ),
@@ -331,7 +408,7 @@ namespace Server.Misc
 					new KarmaEntry( 9999, "The Commendable {0}" ),
 					new KarmaEntry( 10000, "The Estimable {0}" )
 				} ),
-				new FameEntry( 4999, new KarmaEntry[]
+				new( 4999, new[]
 				{
 					new KarmaEntry( -10000, "The Nefarious {0}" ),
 					new KarmaEntry( -5000, "The Wicked {0}" ),
@@ -345,7 +422,7 @@ namespace Server.Misc
 					new KarmaEntry( 9999, "The Famed {0}" ),
 					new KarmaEntry( 10000, "The Great {0}" )
 				} ),
-				new FameEntry( 9999, new KarmaEntry[]
+				new( 9999, new[]
 				{
 					new KarmaEntry( -10000, "The Dread {0}" ),
 					new KarmaEntry( -5000, "The Evil {0}" ),
@@ -359,7 +436,7 @@ namespace Server.Misc
 					new KarmaEntry( 9999, "The Illustrious {0}" ),
 					new KarmaEntry( 10000, "The Glorious {0}" )
 				} ),
-				new FameEntry( 10000, new KarmaEntry[]
+				new( 10000, new[]
 				{
 					new KarmaEntry( -10000, "The Dread {1} {0}" ),
 					new KarmaEntry( -5000, "The Evil {1} {0}" ),
@@ -374,6 +451,29 @@ namespace Server.Misc
 					new KarmaEntry( 10000, "The Glorious {1} {0}" )
 				} )
 			};
+
+		public static VeteranTitle[] VeteranTitles { get; set; }
+
+		public static void Initialize()
+		{
+			VeteranTitles = new VeteranTitle[9];
+
+			for (var i = 0; i < 9; i++)
+			{
+				VeteranTitles[i] = new VeteranTitle(1154341 + i, 2 * (i + 1));
+			}
+		}
+
+		public static List<VeteranTitle> GetVeteranTitles(Mobile m)
+		{
+			if (m.Account is not Account a)
+				return null;
+
+			int years = (int)(DateTime.UtcNow - a.Created).TotalDays;
+			years /= 365;
+
+			return years < 2 ? null : VeteranTitles.Where(title => years >= title.Years).ToList();
+		}
 	}
 
 	public class FameEntry
@@ -397,6 +497,18 @@ namespace Server.Misc
 		{
 			Karma = karma;
 			Title = title;
+		}
+	}
+
+	public class VeteranTitle
+	{
+		public int Title { get; set; }
+		public int Years { get; set; }
+
+		public VeteranTitle(int title, int years)
+		{
+			Title = title;
+			Years = years;
 		}
 	}
 }

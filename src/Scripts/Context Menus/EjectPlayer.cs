@@ -1,29 +1,28 @@
 using Server.Multis;
 
-namespace Server.ContextMenus
+namespace Server.ContextMenus;
+
+public class EjectPlayerEntry : ContextMenuEntry
 {
-	public class EjectPlayerEntry : ContextMenuEntry
+	private readonly Mobile _mFrom;
+	private readonly Mobile _mTarget;
+	private readonly BaseHouse _mTargetHouse;
+
+	public EjectPlayerEntry(Mobile from, Mobile target) : base(6206, 12)
 	{
-		private readonly Mobile m_From;
-		private readonly Mobile m_Target;
-		private readonly BaseHouse m_TargetHouse;
+		_mFrom = from;
+		_mTarget = target;
+		_mTargetHouse = BaseHouse.FindHouseAt(_mTarget);
+	}
 
-		public EjectPlayerEntry(Mobile from, Mobile target) : base(6206, 12)
+	public override void OnClick()
+	{
+		if (!_mFrom.Alive || _mTargetHouse.Deleted || !_mTargetHouse.IsFriend(_mFrom))
+			return;
+
+		if (_mTarget != null)
 		{
-			m_From = from;
-			m_Target = target;
-			m_TargetHouse = BaseHouse.FindHouseAt(m_Target);
-		}
-
-		public override void OnClick()
-		{
-			if (!m_From.Alive || m_TargetHouse.Deleted || !m_TargetHouse.IsFriend(m_From))
-				return;
-
-			if (m_Target is Mobile)
-			{
-				m_TargetHouse.Kick(m_From, m_Target);
-			}
+			_mTargetHouse.Kick(_mFrom, _mTarget);
 		}
 	}
 }

@@ -7,7 +7,7 @@ public enum ArmorProtectionLevel
 	Guarding,
 	Hardening,
 	Fortification,
-	Invulnerability,
+	Invulnerability
 }
 
 public enum ArmorBodyType

@@ -427,8 +427,8 @@ namespace Server.Items
 
 				if (m_Quantity == 0)
 					Delete();
-				else if (m_Quantity < 20 && (ItemID == 0x1039 || ItemID == 0x1045))
-					++ItemID;
+				else if (m_Quantity < 20 && (ItemId == 0x1039 || ItemId == 0x1045))
+					++ItemId;
 			}
 		}
 
@@ -473,8 +473,8 @@ namespace Server.Items
 			if (!Movable)
 				return;
 
-			if ((ItemID == 0x1039 || ItemID == 0x1045))
-				++ItemID;
+			if ((ItemId == 0x1039 || ItemId == 0x1045))
+				++ItemId;
 
 #if false
 			this.Delete();

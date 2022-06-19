@@ -365,12 +365,12 @@ namespace Server.Items
 				t.Start();
 				m_Table[c] = t;
 
-				switch (c.ItemID)
+				switch (c.ItemId)
 				{
-					case 0xA4D: c.ItemID = 0xA4C; break;
-					case 0xA4F: c.ItemID = 0xA4E; break;
-					case 0xA51: c.ItemID = 0xA50; break;
-					case 0xA53: c.ItemID = 0xA52; break;
+					case 0xA4D: c.ItemId = 0xA4C; break;
+					case 0xA4F: c.ItemId = 0xA4E; break;
+					case 0xA51: c.ItemId = 0xA50; break;
+					case 0xA53: c.ItemId = 0xA52; break;
 				}
 			}
 
@@ -390,12 +390,12 @@ namespace Server.Items
 
 			if (c is Armoire || c is FancyArmoire)
 			{
-				switch (c.ItemID)
+				switch (c.ItemId)
 				{
-					case 0xA4C: c.ItemID = 0xA4D; break;
-					case 0xA4E: c.ItemID = 0xA4F; break;
-					case 0xA50: c.ItemID = 0xA51; break;
-					case 0xA52: c.ItemID = 0xA53; break;
+					case 0xA4C: c.ItemId = 0xA4D; break;
+					case 0xA4E: c.ItemId = 0xA4F; break;
+					case 0xA50: c.ItemId = 0xA51; break;
+					case 0xA52: c.ItemId = 0xA53; break;
 				}
 			}
 		}

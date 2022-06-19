@@ -140,7 +140,7 @@ namespace Server.Multis
 
         public virtual void AutoAddFixtures()
         {
-            var components = MultiData.GetComponents(ItemID);
+            var components = MultiData.GetComponents(ItemId);
 
             var teleporters = new Dictionary<int, List<MultiTileEntry>>();
 

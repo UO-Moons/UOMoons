@@ -87,8 +87,8 @@ namespace Server.Items
 					}
 			}
 
-			if (Guild.NewGuildSystem && ItemID == 0xED4)
-				ItemID = 0xED6;
+			if (Guild.NewGuildSystem && ItemId == 0xED4)
+				ItemId = 0xED6;
 
 			if (version <= 2)
 				m_BeforeChangeover = true;
@@ -197,7 +197,7 @@ namespace Server.Items
 			}
 			else if (from.AccessLevel < AccessLevel.GameMaster && !Guild.IsMember(from))
 			{
-				from.Send(new MessageLocalized(Serial, ItemID, MessageType.Regular, 0x3B2, 3, 501158, "", "")); // You are not a member ...
+				from.Send(new MessageLocalized(Serial, ItemId, MessageType.Regular, 0x3B2, 3, 501158, "", "")); // You are not a member ...
 			}
 			else
 			{

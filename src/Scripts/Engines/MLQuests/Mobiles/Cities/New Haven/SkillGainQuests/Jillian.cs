@@ -2,70 +2,69 @@ using System;
 using Server.Items;
 using Server.Engines.Quests;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Jillian : MondainQuester
 {
-    public class Jillian : MondainQuester
-    {
-        public override Type[] Quests => new Type[]
-                {
-                    typeof(ScribingArcaneKnowledgeQuest)
-                };
+	public override Type[] Quests => new Type[]
+	{
+		typeof(ScribingArcaneKnowledgeQuest)
+	};
 
-        [Constructable]
-        public Jillian()
-            : base("Jillian", "the Inscription Instructor")
-        {
-            SetSkill(SkillName.EvalInt, 120.0, 120.0);
-            SetSkill(SkillName.Inscribe, 120.0, 120.0);
-            SetSkill(SkillName.Magery, 120.0, 120.0);
-            SetSkill(SkillName.MagicResist, 120.0, 120.0);
-            SetSkill(SkillName.Wrestling, 120.0, 120.0);
-            SetSkill(SkillName.Meditation, 120.0, 120.0);
-        }
+	[Constructable]
+	public Jillian()
+		: base("Jillian", "the Inscription Instructor")
+	{
+		SetSkill(SkillName.EvalInt, 120.0, 120.0);
+		SetSkill(SkillName.Inscribe, 120.0, 120.0);
+		SetSkill(SkillName.Magery, 120.0, 120.0);
+		SetSkill(SkillName.MagicResist, 120.0, 120.0);
+		SetSkill(SkillName.Wrestling, 120.0, 120.0);
+		SetSkill(SkillName.Meditation, 120.0, 120.0);
+	}
 
-        public Jillian(Serial serial)
-            : base(serial)
-        {
-        }
+	public Jillian(Serial serial)
+		: base(serial)
+	{
+	}
 
-        public override void Advertise()
-        {
-            Say(1078129); // I can teach you how to scribe magic scrolls.
-        }
+	public override void Advertise()
+	{
+		Say(1078129); // I can teach you how to scribe magic scrolls.
+	}
 
-        public override void OnOfferFailed()
-        {
-            Say(1077772); // I cannot teach you, for you know all I can teach!
-        }
+	public override void OnOfferFailed()
+	{
+		Say(1077772); // I cannot teach you, for you know all I can teach!
+	}
 
-        public override void InitBody()
-        {
-            Female = true;
-            CantWalk = true;
-            Race = Race.Human;
+	public override void InitBody()
+	{
+		Female = true;
+		CantWalk = true;
+		Race = Race.Human;
 
-            base.InitBody();
-        }
+		base.InitBody();
+	}
 
-        public override void InitOutfit()
-        {
-            AddItem(new Backpack());
-            AddItem(new Robe(0x479));
-            AddItem(new Sandals());
-        }
+	public override void InitOutfit()
+	{
+		AddItem(new Backpack());
+		AddItem(new Robe(0x479));
+		AddItem(new Sandals());
+	}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-            writer.Write(0); // version
-        }
+		writer.Write(0); // version
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-            int version = reader.ReadInt();
-        }
-    }
+		int version = reader.ReadInt();
+	}
 }

@@ -31,7 +31,7 @@ namespace Server.Items
 			{
 				if (!Utility.InRange(old, Location, 2) && Utility.InRange(m.Location, Location, 2))
 				{
-					if (ItemID == 0x2A69 || ItemID == 0x2A6D)
+					if (ItemId == 0x2A69 || ItemId == 0x2A6D)
 					{
 						Up();
 						Timer.DelayCall(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5), 2, new TimerCallback(Up));
@@ -39,7 +39,7 @@ namespace Server.Items
 				}
 				else if (Utility.InRange(old, Location, 2) && !Utility.InRange(m.Location, Location, 2))
 				{
-					if (ItemID == 0x2A6C || ItemID == 0x2A70)
+					if (ItemId == 0x2A6C || ItemId == 0x2A70)
 					{
 						Down();
 						Timer.DelayCall(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5), 2, new TimerCallback(Down));
@@ -50,12 +50,12 @@ namespace Server.Items
 
 		private void Up()
 		{
-			ItemID += 1;
+			ItemId += 1;
 		}
 
 		private void Down()
 		{
-			ItemID -= 1;
+			ItemId -= 1;
 		}
 
 		public override void Serialize(GenericWriter writer)

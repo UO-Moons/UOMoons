@@ -28,7 +28,7 @@ namespace Server.Items
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
-		public int CurrentRange => ItemID == InactiveItemID ? InRange : OutRange;
+		public int CurrentRange => ItemId == InactiveItemID ? InRange : OutRange;
 
 		[Constructable]
 		public MorphItem(int inactiveItemID, int activeItemID, int range) : this(inactiveItemID, activeItemID, range, range)
@@ -84,11 +84,11 @@ namespace Server.Items
 			}
 
 			if (found)
-				ItemID = ActiveItemID;
+				ItemId = ActiveItemID;
 			else
-				ItemID = InactiveItemID;
+				ItemId = InactiveItemID;
 
-			Visible = (ItemID != 0x1);
+			Visible = (ItemId != 0x1);
 		}
 
 		public override void Serialize(GenericWriter writer)

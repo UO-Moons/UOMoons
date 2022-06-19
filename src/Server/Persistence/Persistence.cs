@@ -14,7 +14,7 @@ namespace Server
 		{
 			file.Refresh();
 
-			if (file.Directory != null && !file.Directory.Exists)
+			if (file.Directory is {Exists: false})
 			{
 				file.Directory.Create();
 			}

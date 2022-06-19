@@ -143,7 +143,7 @@ namespace Server.Engines.XmlSpawner2
 			else
 				if (AttachedTo is Item)
 			{
-				((Item)AttachedTo).ItemID = m_OriginalID;
+				((Item)AttachedTo).ItemId = m_OriginalID;
 			}
 		}
 
@@ -236,7 +236,7 @@ namespace Server.Engines.XmlSpawner2
 				if (m_Attachment != null && !m_Attachment.Deleted && m_Attachment.AttachedTo is Item && !((Item)m_Attachment.AttachedTo).Deleted)
 				{
 					Item i = m_Attachment.AttachedTo as Item;
-					i.ItemID = m_Attachment.m_OriginalID;
+					i.ItemId = m_Attachment.m_OriginalID;
 					m_Attachment.m_OriginalID = -1;
 				}
 			}
@@ -251,8 +251,8 @@ namespace Server.Engines.XmlSpawner2
 			if (AttachedTo is Item && m_OriginalID == -1)
 			{
 				Item i = AttachedTo as Item;
-				m_OriginalID = i.ItemID;
-				i.ItemID = m_MorphID;
+				m_OriginalID = i.ItemId;
+				i.ItemId = m_MorphID;
 
 				// start the timer to reset the ID
 				DoTimer(m_Duration);

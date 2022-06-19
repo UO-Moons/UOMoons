@@ -5,21 +5,21 @@ namespace Server
 {
 	public sealed class SequentialFileWriter : Stream
 	{
-		private FileStream fileStream;
-		private FileQueue fileQueue;
+		private FileStream _fileStream;
+		private FileQueue _fileQueue;
 
-		private AsyncCallback writeCallback;
+		private AsyncCallback _writeCallback;
 
 		public SequentialFileWriter(string path)
 		{
 			if (path == null)
 			{
-				throw new ArgumentNullException("path");
+				throw new ArgumentNullException(nameof(path));
 			}
 
-			fileStream = FileOperations.OpenSequentialStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+			_fileStream = FileOperations.OpenSequentialStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
 
-			fileQueue = new FileQueue(
+			_fileQueue = new FileQueue(
 				Math.Max(1, FileOperations.Concurrency),
 				FileCallback
 			);
@@ -27,7 +27,7 @@ namespace Server
 
 		public override long Position
 		{
-			get => fileQueue.Position;
+			get => _fileQueue.Position;
 			set => throw new InvalidOperationException();
 		}
 
@@ -35,18 +35,15 @@ namespace Server
 		{
 			if (FileOperations.AreSynchronous)
 			{
-				fileStream.Write(chunk.Buffer, FileQueue.Chunk.Offset, chunk.Size);
+				_fileStream.Write(chunk.Buffer, FileQueue.Chunk.Offset, chunk.Size);
 
 				chunk.Commit();
 			}
 			else
 			{
-				if (writeCallback == null)
-				{
-					writeCallback = OnWrite;
-				}
+				_writeCallback ??= OnWrite;
 
-				fileStream.BeginWrite(chunk.Buffer, FileQueue.Chunk.Offset, chunk.Size, writeCallback, chunk);
+				_fileStream.BeginWrite(chunk.Buffer, FileQueue.Chunk.Offset, chunk.Size, _writeCallback, chunk);
 			}
 		}
 
@@ -54,33 +51,33 @@ namespace Server
 		{
 			FileQueue.Chunk chunk = asyncResult.AsyncState as FileQueue.Chunk;
 
-			fileStream.EndWrite(asyncResult);
+			_fileStream.EndWrite(asyncResult);
 
-			chunk.Commit();
+			chunk?.Commit();
 		}
 
 		public override void Write(byte[] buffer, int offset, int size)
 		{
-			fileQueue.Enqueue(buffer, offset, size);
+			_fileQueue.Enqueue(buffer, offset, size);
 		}
 
 		public override void Flush()
 		{
-			fileQueue.Flush();
-			fileStream.Flush();
+			_fileQueue.Flush();
+			_fileStream.Flush();
 		}
 
 		protected override void Dispose(bool disposing)
 		{
-			if (fileStream != null)
+			if (_fileStream != null)
 			{
 				Flush();
 
-				fileQueue.Dispose();
-				fileQueue = null;
+				_fileQueue.Dispose();
+				_fileQueue = null;
 
-				fileStream.Close();
-				fileStream = null;
+				_fileStream.Close();
+				_fileStream = null;
 			}
 
 			base.Dispose(disposing);
@@ -106,7 +103,7 @@ namespace Server
 
 		public override void SetLength(long value)
 		{
-			fileStream.SetLength(value);
+			_fileStream.SetLength(value);
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Server.Items
 		[Constructable]
 		public NightsKiss()
 		{
-			ItemID = 0xF51;
+			ItemId = 0xF51;
 			Hue = 0x455;
 			WeaponAttributes.HitLeechHits = 40;
 			Slayer = SlayerName.Repond;

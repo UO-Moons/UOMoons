@@ -95,7 +95,7 @@ namespace Server.Items
 				int index = 0;
 				for (int i = 0; i < ItemIDs.Length; i++)
 				{
-					if (item.ItemID == ItemIDs[i])
+					if (item.ItemId == ItemIDs[i])
 					{
 						index = i + 1;
 						break;
@@ -105,7 +105,7 @@ namespace Server.Items
 				if (index > ItemIDs.Length - 1)
 					index = 0;
 
-				item.ItemID = ItemIDs[index];
+				item.ItemId = ItemIDs[index];
 			}
 		}
 	}

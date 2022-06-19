@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(TreasureBag), 1072583));
 		}
 
-		public override QuestChain ChainID => QuestChain.Marauders;
+		public override QuestChain ChainId => QuestChain.Marauders;
 		public override Type NextQuest => typeof(TheBrainsOfTheOperationQuest);
 		/* Marauders */
 		public override object Title => 1072374;
@@ -57,7 +57,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
 		}
 
-		public override QuestChain ChainID => QuestChain.Marauders;
+		public override QuestChain ChainId => QuestChain.Marauders;
 		public override Type NextQuest => typeof(TheBrawnQuest);
 		/* The Brains of the Operation */
 		public override object Title => 1072692;
@@ -99,7 +99,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
 		}
 
-		public override QuestChain ChainID => QuestChain.Marauders;
+		public override QuestChain ChainId => QuestChain.Marauders;
 		public override Type NextQuest => typeof(TheBiggerTheyAreQuest);
 		/* The Brawn */
 		public override object Title => 1072693;
@@ -140,7 +140,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
 		}
 
-		public override QuestChain ChainID => QuestChain.Marauders;
+		public override QuestChain ChainId => QuestChain.Marauders;
 		/* The Bigger They Are ... */
 		public override object Title => 1072694;
 		/* The ogre insurgency has taken a turn for the worse! I've just been advised that the titans have concluded 

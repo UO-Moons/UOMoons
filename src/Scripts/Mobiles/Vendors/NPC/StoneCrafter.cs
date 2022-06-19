@@ -1,50 +1,44 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+[TypeAlias("Server.Mobiles.GargoyleStonecrafter")]
+public class StoneCrafter : BaseVendor
 {
-	[TypeAlias("Server.Mobiles.GargoyleStonecrafter")]
-	public class StoneCrafter : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	public override NpcGuild NpcGuild => NpcGuild.TinkersGuild;
+
+	[Constructable]
+	public StoneCrafter() : base("the stone crafter")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.sculptor;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Carpentry, 85.0, 100.0);
+	}
 
-		public override NpcGuild NpcGuild => NpcGuild.TinkersGuild;
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbStoneCrafter());
+		_mSbInfos.Add(new SbStavesWeapon());
+		_mSbInfos.Add(new SbCarpenter());
+		_mSbInfos.Add(new SbWoodenShields());
+	}
 
-		[Constructable]
-		public StoneCrafter() : base("the stone crafter")
-		{
-			Job = JobFragment.sculptor;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Carpentry, 85.0, 100.0);
-		}
+	public StoneCrafter(Serial serial) : base(serial)
+	{
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBStoneCrafter());
-			m_SBInfos.Add(new SBStavesWeapon());
-			m_SBInfos.Add(new SBCarpenter());
-			m_SBInfos.Add(new SBWoodenShields());
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public StoneCrafter(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Title == "the stonecrafter")
-				Title = "the stone crafter";
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

@@ -44,7 +44,7 @@ namespace Server.Items
 
 			if (weapon != null && (weapon.PrimaryAbility == this || weapon.PrimaryAbility == Bladeweave))
 				return 70.0;
-			else if (weapon != null && (weapon.SecondaryAbility == this || weapon.SecondaryAbility == Bladeweave))
+			if (weapon != null && (weapon.SecondaryAbility == this || weapon.SecondaryAbility == Bladeweave))
 				return 90.0;
 
 			return 200.0;
@@ -293,7 +293,7 @@ namespace Server.Items
 			//new ColdWind()
 		};
 
-		public static Hashtable Table { get; } = new Hashtable();
+		public static Hashtable Table { get; } = new();
 
 		public static readonly WeaponAbility ArmorIgnore = Abilities[1];
 		public static readonly WeaponAbility BleedAttack = Abilities[2];

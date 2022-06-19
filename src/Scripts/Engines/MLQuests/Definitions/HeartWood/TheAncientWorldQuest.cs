@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.AncientWorld;
+		public override QuestChain ChainId => QuestChain.AncientWorld;
 		public override Type NextQuest => typeof(TheGoldenHornQuest);
 		/* The Ancient World */
 		public override object Title => 1074534;
@@ -69,7 +69,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.AncientWorld;
+		public override QuestChain ChainId => QuestChain.AncientWorld;
 		public override Type NextQuest => typeof(BullishQuest);
 		/* The Golden Horn */
 		public override object Title => 1074543;
@@ -115,7 +115,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.AncientWorld;
+		public override QuestChain ChainId => QuestChain.AncientWorld;
 		public override Type NextQuest => typeof(LostCivilizationQuest);
 		/* Bullish */
 		public override object Title => 1074550;
@@ -162,7 +162,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(RewardBox), 1072584)); // A strongbox.
 		}
 
-		public override QuestChain ChainID => QuestChain.AncientWorld;
+		public override QuestChain ChainId => QuestChain.AncientWorld;
 		/* Lost Civilization */
 		public override object Title => 1074823;
 		/* *whew*  It is done!  The fierce essence of the bull has been 

@@ -64,7 +64,7 @@ namespace Server.Items
 
 					Full = false;
 
-					from.BAC = 60;
+					from.Bac = 60;
 					BaseBeverage.CheckHeaveTimer(from);
 				}
 				else

@@ -10,9 +10,9 @@ namespace Server.Engines.Quests.Doom
 		public override bool IsActiveVendor => true;
 		public override bool DisallowAllMoves => false;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBMage());
+			SbInfos.Add(new SbMage());
 		}
 
 		[Constructable]

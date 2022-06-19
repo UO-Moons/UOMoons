@@ -66,7 +66,7 @@ namespace Server.Items
 			{
 				SackFlour flour = new SackFlour
 				{
-					ItemID = (Utility.RandomBool() ? 4153 : 4165)
+					ItemId = (Utility.RandomBool() ? 4153 : 4165)
 				};
 
 				if (from.PlaceInBackpack(flour))
@@ -129,10 +129,10 @@ namespace Server.Items
 				if (component == null)
 					continue;
 
-				int[] itemTable = FindItemTable(component.ItemID);
+				int[] itemTable = FindItemTable(component.ItemId);
 
 				if (itemTable != null)
-					component.ItemID = itemTable[(int)stage];
+					component.ItemId = itemTable[(int)stage];
 			}
 		}
 

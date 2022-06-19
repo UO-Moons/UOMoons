@@ -342,7 +342,7 @@ namespace Server.Items
 				List<Item> items = Items;
 
 				for (int i = 0; i < items.Count; ++i)
-					to.Send(items[i].OPLPacket);
+					to.Send(items[i].OplPacket);
 			}
 			// move the reward item out of container to protect it from use
 			HideRewards();

@@ -1,44 +1,37 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class Pacify : Pike
 {
-	public class Pacify : Pike
+	public override int LabelNumber => 1094929;  // Pacify [Replica]
+	public override int InitMinHits => 150;
+	public override int InitMaxHits => 150;
+	public override bool CanFortify => false;
+
+	[Constructable]
+	public Pacify()
 	{
-		public override int LabelNumber => 1094929;  // Pacify [Replica]
+		Hue = 0x835;
+		Attributes.SpellChanneling = 1;
+		Attributes.AttackChance = 10;
+		Attributes.WeaponSpeed = 20;
+		Attributes.WeaponDamage = 50;
+		WeaponAttributes.HitLeechMana = 100;
+		WeaponAttributes.UseBestSkill = 1;
+	}
 
-		public override int InitMinHits => 150;
-		public override int InitMaxHits => 150;
+	public Pacify(Serial serial) : base(serial)
+	{
+	}
 
-		public override bool CanFortify => false;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		[Constructable]
-		public Pacify()
-		{
-			Hue = 0x835;
-
-			Attributes.SpellChanneling = 1;
-			Attributes.AttackChance = 10;
-			Attributes.WeaponSpeed = 20;
-			Attributes.WeaponDamage = 50;
-
-			WeaponAttributes.HitLeechMana = 100;
-			WeaponAttributes.UseBestSkill = 1;
-		}
-
-		public Pacify(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

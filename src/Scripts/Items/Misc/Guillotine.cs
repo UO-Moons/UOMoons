@@ -20,7 +20,7 @@ namespace Server.Items
 			{
 				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that
 			}
-			else if (Visible && (ItemID == 4656 || ItemID == 4702) && DateTime.UtcNow >= m_NextUse)
+			else if (Visible && (ItemId == 4656 || ItemId == 4702) && DateTime.UtcNow >= m_NextUse)
 			{
 				Point3D p = GetWorldLocation();
 
@@ -44,12 +44,12 @@ namespace Server.Items
 
 		private void Down1()
 		{
-			ItemID = (ItemID == 4656 ? 4678 : 4712);
+			ItemId = (ItemId == 4656 ? 4678 : 4712);
 		}
 
 		private void Down2()
 		{
-			ItemID = (ItemID == 4678 ? 4679 : 4713);
+			ItemId = (ItemId == 4678 ? 4679 : 4713);
 
 			Point3D p = GetWorldLocation();
 			Map f = Map;
@@ -79,10 +79,10 @@ namespace Server.Items
 
 		private void BackUp()
 		{
-			if (ItemID == 4678 || ItemID == 4679)
-				ItemID = 4656;
-			else if (ItemID == 4712 || ItemID == 4713)
-				ItemID = 4702;
+			if (ItemId == 4678 || ItemId == 4679)
+				ItemId = 4656;
+			else if (ItemId == 4712 || ItemId == 4713)
+				ItemId = 4702;
 		}
 
 		public Guillotine(Serial serial)
@@ -103,10 +103,10 @@ namespace Server.Items
 
 			int version = reader.ReadByte();
 
-			if (ItemID == 4678 || ItemID == 4679)
-				ItemID = 4656;
-			else if (ItemID == 4712 || ItemID == 4713)
-				ItemID = 4702;
+			if (ItemId == 4678 || ItemId == 4679)
+				ItemId = 4656;
+			else if (ItemId == 4712 || ItemId == 4713)
+				ItemId = 4702;
 		}
 	}
 }

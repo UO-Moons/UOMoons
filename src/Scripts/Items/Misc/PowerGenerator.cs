@@ -432,7 +432,7 @@ namespace Server.Items
 
 		public void DoDamage(Mobile to)
 		{
-			to.Send(new UnicodeMessage(Serial, ItemID, MessageType.Regular, 0x3B2, 3, "", "", "The generator shoots an arc of electricity at you!"));
+			to.Send(new UnicodeMessage(Serial, ItemId, MessageType.Regular, 0x3B2, 3, "", "", "The generator shoots an arc of electricity at you!"));
 			to.BoltEffect(0);
 			to.LocalOverheadMessage(MessageType.Regular, 0xC9, true, "* Your body convulses from electric shock *");
 			to.NonlocalOverheadMessage(MessageType.Regular, 0xC9, true, string.Format("* {0} spasms from electric shock *", to.Name));

@@ -42,10 +42,10 @@ namespace Server.Factions
 				m_Town.UnregisterVendor(this);
 		}
 
-		private readonly List<SBInfo> m_SBInfos = new();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		private readonly List<SbInfo> m_SBInfos = new();
+		protected override List<SbInfo> SbInfos => m_SBInfos;
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
 		}
 

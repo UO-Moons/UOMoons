@@ -27,7 +27,7 @@ namespace Server.Items
 				m_ActiveItemID = value;
 
 				if (!IsEmpty)
-					ItemID = m_ActiveItemID;
+					ItemId = m_ActiveItemID;
 			}
 		}
 
@@ -40,7 +40,7 @@ namespace Server.Items
 				m_InactiveItemID = value;
 
 				if (IsEmpty)
-					ItemID = m_InactiveItemID;
+					ItemId = m_InactiveItemID;
 			}
 		}
 
@@ -76,9 +76,9 @@ namespace Server.Items
 				m_SkillValue = value;
 
 				if (!IsEmpty)
-					ItemID = m_ActiveItemID;
+					ItemId = m_ActiveItemID;
 				else
-					ItemID = m_InactiveItemID;
+					ItemId = m_InactiveItemID;
 
 				InvalidateProperties();
 			}
@@ -891,12 +891,12 @@ namespace Server.Items
 
 		public void Flip()
 		{
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x2ADC: ItemID = 0x2AEC; break;
-				case 0x2ADD: ItemID = 0x2AED; break;
-				case 0x2AEC: ItemID = 0x2ADC; break;
-				case 0x2AED: ItemID = 0x2ADD; break;
+				case 0x2ADC: ItemId = 0x2AEC; break;
+				case 0x2ADD: ItemId = 0x2AED; break;
+				case 0x2AEC: ItemId = 0x2ADC; break;
+				case 0x2AED: ItemId = 0x2ADD; break;
 			}
 		}
 

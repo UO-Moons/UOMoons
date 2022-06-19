@@ -15,7 +15,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074874)); // The opportunity to prove yourself worthy of learning to Summon Fey. (Sufficient spellweaving skill is required to cast the spell)
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFey;
+		public override QuestChain ChainId => QuestChain.SummonFey;
 		public override Type NextQuest => typeof(TokenOfFriendshipQuest);
 		/* Friend of the Fey */
 		public override object Title => 1074284;
@@ -59,7 +59,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074874)); // The opportunity to prove yourself worthy of learning to Summon Fey. (Sufficient spellweaving skill is required to cast the spell)
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFey;
+		public override QuestChain ChainId => QuestChain.SummonFey;
 		public override Type NextQuest => typeof(AllianceQuest);
 		/* Token of Friendship */
 		public override object Title => 1074293;
@@ -102,7 +102,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(SummonFeyScroll), 1071032)); // Summon Fey
 		}
 
-		public override QuestChain ChainID => QuestChain.SummonFey;
+		public override QuestChain ChainId => QuestChain.SummonFey;
 		/* Alliance */
 		public override object Title => 1074294;
 		/* *giggle* Mean reapers make pixies unhappy. *light-hearted giggle*  You 

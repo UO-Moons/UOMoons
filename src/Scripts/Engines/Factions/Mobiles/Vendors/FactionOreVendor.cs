@@ -13,9 +13,9 @@ namespace Server.Factions
 			SetSkill(SkillName.Lumberjacking, 60.0, 83.0);
 		}
 
-		public override void InitSBInfo()
+		public override void InitSbInfo()
 		{
-			SBInfos.Add(new SBFactionOre());
+			SbInfos.Add(new SBFactionOre());
 		}
 
 		public override void InitOutfit()
@@ -43,7 +43,7 @@ namespace Server.Factions
 		}
 	}
 
-	public class SBFactionOre : SBInfo
+	public class SBFactionOre : SbInfo
 	{
 		private static readonly object[] m_FixedSizeArgs = { true };
 

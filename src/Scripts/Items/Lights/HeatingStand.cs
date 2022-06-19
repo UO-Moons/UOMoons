@@ -24,9 +24,9 @@ namespace Server.Items
 		{
 			base.Ignite();
 
-			if (ItemID == LitItemID)
+			if (ItemId == LitItemID)
 				Light = LightType.Circle150;
-			else if (ItemID == UnlitItemID)
+			else if (ItemId == UnlitItemID)
 				Light = LightType.Empty;
 		}
 
@@ -34,9 +34,9 @@ namespace Server.Items
 		{
 			base.Douse();
 
-			if (ItemID == LitItemID)
+			if (ItemId == LitItemID)
 				Light = LightType.Circle150;
-			else if (ItemID == UnlitItemID)
+			else if (ItemId == UnlitItemID)
 				Light = LightType.Empty;
 		}
 

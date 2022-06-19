@@ -2,54 +2,53 @@ using Server.Engines.Quests;
 using Server.Items;
 using System;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Sledge : MondainQuester
 {
-	public class Sledge : MondainQuester
+	[Constructable]
+	public Sledge()
+		: base("Sledge", "the Versatile")
 	{
-		[Constructable]
-		public Sledge()
-			: base("Sledge", "the Versatile")
-		{
-		}
+	}
 
-		public Sledge(Serial serial)
-			: base(serial)
-		{
-		}
+	public Sledge(Serial serial)
+		: base(serial)
+	{
+	}
 
-		public override Type[] Quests => new Type[]
-				{
-					typeof(IngenuityQuest),
-					typeof(PointyEarsQuest)
-				};
-		public override void InitBody()
-		{
-			Female = false;
-			Race = Race.Human;
+	public override Type[] Quests => new Type[]
+	{
+		typeof(IngenuityQuest),
+		typeof(PointyEarsQuest)
+	};
+	public override void InitBody()
+	{
+		Female = false;
+		Race = Race.Human;
 
-			base.InitBody();
-		}
+		base.InitBody();
+	}
 
-		public override void InitOutfit()
-		{
-			AddItem(new Backpack());
-			AddItem(new ElvenBoots(0x736));
-			AddItem(new LongPants(0x521));
-			AddItem(new Tunic(0x71E));
-			AddItem(new Cloak(0x59));
-		}
+	public override void InitOutfit()
+	{
+		AddItem(new Backpack());
+		AddItem(new ElvenBoots(0x736));
+		AddItem(new LongPants(0x521));
+		AddItem(new Tunic(0x71E));
+		AddItem(new Cloak(0x59));
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0); // version
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

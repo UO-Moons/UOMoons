@@ -4,7 +4,7 @@ using System.Net;
 
 namespace Server.Mysql.Save
 {
-	public class MySQLRead
+	public class MySqlRead
 	{
 		public static void Initialize()
 		{
@@ -14,13 +14,13 @@ namespace Server.Mysql.Save
 
 		[Usage("readmy [description]")]
 		[Description("Attempts to save to mysql.")]
-		public string ReadString(MySqlConnection con, Serial serial, string return_if_no_data, int Identifier)
+		public string ReadString(MySqlConnection con, Serial serial, string returnIfNoData, int identifier)
 		{
-			string type = "string", sql, stringg = return_if_no_data;
+			string type = "string", sql, stringg = returnIfNoData;
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -30,15 +30,12 @@ namespace Server.Mysql.Save
 					int id = (int)dataReader["id"];
 					dataReader.Close();
 				}
-				if (stringg.Length < 1)
-					return return_if_no_data;
-
-				return stringg;
+				return stringg.Length < 1 ? returnIfNoData : stringg;
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine("Error: " + ex);
-				return return_if_no_data;
+				return returnIfNoData;
 			}
 		}
 
@@ -49,15 +46,13 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
-				if (dataReader.Read())
-				{
-					stringg = new DateTime((long)dataReader["dateTime"]);
-					dataReader.Close();
-				}
+				if (!dataReader.Read()) return stringg;
+				stringg = new DateTime((long)dataReader["dateTime"]);
+				dataReader.Close();
 				return stringg;
 			}
 			catch (Exception ex)
@@ -74,7 +69,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -99,7 +94,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -124,7 +119,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -149,7 +144,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -174,7 +169,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -199,7 +194,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -227,7 +222,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -253,7 +248,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 
@@ -279,7 +274,7 @@ namespace Server.Mysql.Save
 
 			try
 			{
-				sql = "SELECT * FROM `" + MySQLConData.database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
+				sql = "SELECT * FROM `" + MySqlConData.Database + "`.`" + type + "` WHERE Iden='" + Identifier + "' AND serial='" + serial.Value + "'";
 				MySqlCommand cmd = new(sql, con);
 				MySqlDataReader dataReader = cmd.ExecuteReader();
 

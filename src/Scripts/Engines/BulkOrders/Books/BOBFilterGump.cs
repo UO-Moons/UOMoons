@@ -93,7 +93,7 @@ public class BOBFilterGump : Gump
 
 	public override void OnResponse(Server.Network.NetState sender, RelayInfo info)
 	{
-		BOBFilter f = (m_From.UseOwnFilter ? m_From.BOBFilter : m_Book.Filter);
+		BOBFilter f = (m_From.UseOwnFilter ? m_From.BobFilter : m_Book.Filter);
 
 		int index = info.ButtonID;
 
@@ -167,7 +167,7 @@ public class BOBFilterGump : Gump
 		m_From = from;
 		m_Book = book;
 
-		BOBFilter f = (from.UseOwnFilter ? from.BOBFilter : book.Filter);
+		BOBFilter f = (from.UseOwnFilter ? from.BobFilter : book.Filter);
 
 		AddPage(0);
 

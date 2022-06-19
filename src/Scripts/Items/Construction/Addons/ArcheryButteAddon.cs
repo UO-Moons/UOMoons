@@ -19,8 +19,8 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool FacingEast
 		{
-			get => (ItemID == 0x100A);
-			set => ItemID = value ? 0x100A : 0x100B;
+			get => (ItemId == 0x100A);
+			set => ItemId = value ? 0x100A : 0x100B;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]

@@ -4,7 +4,7 @@ namespace Server.Items;
 public class SacrificeSollerets : BaseClothing
 {
 	public override int LabelNumber => 1075194;// Sollerets of Sacrifice (Virtue Armor Set)
-	public override SetItem SetID => SetItem.Virtue;
+	public override SetItem SetId => SetItem.Virtue;
 	public override int Pieces => 8;
 	public override int InitMinHits => 0;
 	public override int InitMaxHits => 0;

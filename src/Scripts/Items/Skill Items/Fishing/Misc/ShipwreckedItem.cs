@@ -51,7 +51,7 @@ namespace Server.Items
 			if (Deleted)
 				return false;
 
-			if (ItemID >= 0x13A4 && ItemID <= 0x13AE)
+			if (ItemId >= 0x13A4 && ItemId <= 0x13AE)
 			{
 				Hue = sender.DyedHue;
 				return true;

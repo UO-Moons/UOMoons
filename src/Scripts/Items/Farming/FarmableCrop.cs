@@ -31,7 +31,7 @@ namespace Server.Items
 
 		public virtual void OnPicked(Mobile from, Point3D loc, Map map)
 		{
-			ItemID = GetPickedID();
+			ItemId = GetPickedID();
 
 			Item spawn = GetCropObject();
 

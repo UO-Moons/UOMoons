@@ -70,13 +70,13 @@ namespace Server.Items
 
 		public void Flip()
 		{
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x9AB: ItemID = 0xE7C; break;
-				case 0xE7C: ItemID = 0x9AB; break;
+				case 0x9AB: ItemId = 0xE7C; break;
+				case 0xE7C: ItemId = 0x9AB; break;
 
-				case 0xE40: ItemID = 0xE41; break;
-				case 0xE41: ItemID = 0xE40; break;
+				case 0xE40: ItemId = 0xE41; break;
+				case 0xE41: ItemId = 0xE40; break;
 			}
 		}
 

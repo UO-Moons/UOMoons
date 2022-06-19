@@ -3,7 +3,7 @@ namespace Server.Items;
 public class NovoBleue : GoldBracelet
 {
 	public override int LabelNumber => 1080239;  // Novo Bleue
-	public override SetItem SetID => SetItem.Luck;
+	public override SetItem SetId => SetItem.Luck;
 	public override int Pieces => 2;
 	public override bool IsArtifact => true;
 

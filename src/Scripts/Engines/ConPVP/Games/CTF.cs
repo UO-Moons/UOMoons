@@ -258,7 +258,7 @@ namespace Server.Engines.ConPVP
 				{
 					if (Location == m_TeamInfo.Origin && Map == m_TeamInfo.Game.Facet)
 					{
-						from.Send(new UnicodeMessage(Serial, ItemID, MessageType.Regular, 0x3B2, 3, "ENU", Name, "Touch me not for I am chaste."));
+						from.Send(new UnicodeMessage(Serial, ItemId, MessageType.Regular, 0x3B2, 3, "ENU", Name, "Touch me not for I am chaste."));
 					}
 					else
 					{
@@ -1130,7 +1130,7 @@ namespace Server.Engines.ConPVP
 					Item item = new Trophy(sb.ToString(), rank);
 
 					if (pl == leader)
-						item.ItemID = 4810;
+						item.ItemId = 4810;
 
 					item.Name = string.Format("{0}, {1} team", item.Name, teams[i].Name.ToLower());
 

@@ -153,11 +153,11 @@ namespace Server.Items
 		{
 			if (IsArcane)
 			{
-				ItemID = 0x26AF;
+				ItemId = 0x26AF;
 			}
-			else if (ItemID == 0x26AF)
+			else if (ItemId == 0x26AF)
 			{
-				ItemID = 0x1711;
+				ItemId = 0x1711;
 			}
 
 			if (IsArcane && CurArcaneCharges == 0)
@@ -179,13 +179,13 @@ namespace Server.Items
 
 		public void Flip()
 		{
-			if (ItemID == 0x1711)
+			if (ItemId == 0x1711)
 			{
-				ItemID = 0x1712;
+				ItemId = 0x1712;
 			}
-			else if (ItemID == 0x1712)
+			else if (ItemId == 0x1712)
 			{
-				ItemID = 0x1711;
+				ItemId = 0x1711;
 			}
 		}
 

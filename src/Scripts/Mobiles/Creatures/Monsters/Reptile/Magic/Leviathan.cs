@@ -61,13 +61,13 @@ namespace Server.Mobiles
 
 			Rope rope = new Rope
 			{
-				ItemID = 0x14F8
+				ItemId = 0x14F8
 			};
 			PackItem(rope);
 
 			rope = new Rope
 			{
-				ItemID = 0x14FA
+				ItemId = 0x14FA
 			};
 			PackItem(rope);
 		}

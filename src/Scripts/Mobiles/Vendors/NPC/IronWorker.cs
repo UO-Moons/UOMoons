@@ -1,121 +1,118 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class IronWorker : BaseVendor
 {
-	public class IronWorker : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public IronWorker() : base("the iron worker")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.blacksmith;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.ArmsLore, 36.0, 68.0);
+		SetSkill(SkillName.Blacksmith, 65.0, 88.0);
+		SetSkill(SkillName.Fencing, 60.0, 83.0);
+		SetSkill(SkillName.Macing, 61.0, 93.0);
+		SetSkill(SkillName.Swords, 60.0, 83.0);
+		SetSkill(SkillName.Tactics, 60.0, 83.0);
+		SetSkill(SkillName.Parry, 61.0, 93.0);
+	}
 
-		[Constructable]
-		public IronWorker() : base("the iron worker")
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbAxeWeapon());
+		_mSbInfos.Add(new SbKnifeWeapon());
+		_mSbInfos.Add(new SbMaceWeapon());
+		_mSbInfos.Add(new SbSmithTools());
+		_mSbInfos.Add(new SbPoleArmWeapon());
+		_mSbInfos.Add(new SbSpearForkWeapon());
+		_mSbInfos.Add(new SbSwordWeapon());
+
+		_mSbInfos.Add(new SbMetalShields());
+
+		_mSbInfos.Add(new SbHelmetArmor());
+		_mSbInfos.Add(new SbPlateArmor());
+		_mSbInfos.Add(new SbChainmailArmor());
+		_mSbInfos.Add(new SbRingmailArmor());
+		_mSbInfos.Add(new SbStuddedArmor());
+		_mSbInfos.Add(new SbLeatherArmor());
+	}
+
+	public override VendorShoeType ShoeType => VendorShoeType.None;
+
+	public override void InitOutfit()
+	{
+		base.InitOutfit();
+
+		Item item = Utility.RandomBool() ? null : new RingmailChest();
+
+		if (item != null && !EquipItem(item))
 		{
-			Job = JobFragment.blacksmith;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.ArmsLore, 36.0, 68.0);
-			SetSkill(SkillName.Blacksmith, 65.0, 88.0);
-			SetSkill(SkillName.Fencing, 60.0, 83.0);
-			SetSkill(SkillName.Macing, 61.0, 93.0);
-			SetSkill(SkillName.Swords, 60.0, 83.0);
-			SetSkill(SkillName.Tactics, 60.0, 83.0);
-			SetSkill(SkillName.Parry, 61.0, 93.0);
+			item.Delete();
+			item = null;
 		}
 
-		public override void InitSBInfo()
+		switch (Utility.Random(3))
 		{
-			m_SBInfos.Add(new SBAxeWeapon());
-			m_SBInfos.Add(new SBKnifeWeapon());
-			m_SBInfos.Add(new SBMaceWeapon());
-			m_SBInfos.Add(new SBSmithTools());
-			m_SBInfos.Add(new SBPoleArmWeapon());
-			m_SBInfos.Add(new SBSpearForkWeapon());
-			m_SBInfos.Add(new SBSwordWeapon());
-
-			m_SBInfos.Add(new SBMetalShields());
-
-			m_SBInfos.Add(new SBHelmetArmor());
-			m_SBInfos.Add(new SBPlateArmor());
-			m_SBInfos.Add(new SBChainmailArmor());
-			m_SBInfos.Add(new SBRingmailArmor());
-			m_SBInfos.Add(new SBStuddedArmor());
-			m_SBInfos.Add(new SBLeatherArmor());
+			case 0:
+			case 1: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
+			case 2: AddItem(new Bandana(Utility.RandomBrightHue())); break;
 		}
 
-		public override VendorShoeType ShoeType => VendorShoeType.None;
+		if (item == null)
+			AddItem(new FullApron(Utility.RandomBrightHue()));
 
-		public override void InitOutfit()
-		{
-			base.InitOutfit();
+		AddItem(new Bascinet());
+		AddItem(new SmithHammer());
 
-			Item item = (Utility.RandomBool() ? null : new Server.Items.RingmailChest());
+		item = FindItemOnLayer(Layer.Pants);
 
-			if (item != null && !EquipItem(item))
-			{
-				item.Delete();
-				item = null;
-			}
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			switch (Utility.Random(3))
-			{
-				case 0:
-				case 1: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
-				case 2: AddItem(new Bandana(Utility.RandomBrightHue())); break;
-			}
+		item = FindItemOnLayer(Layer.OuterLegs);
 
-			if (item == null)
-				AddItem(new FullApron(Utility.RandomBrightHue()));
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			AddItem(new Bascinet());
-			AddItem(new SmithHammer());
+		item = FindItemOnLayer(Layer.InnerLegs);
 
-			item = FindItemOnLayer(Layer.Pants);
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		item = FindItemOnLayer(Layer.OuterTorso);
 
-			item = FindItemOnLayer(Layer.OuterLegs);
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		item = FindItemOnLayer(Layer.InnerTorso);
 
-			item = FindItemOnLayer(Layer.InnerLegs);
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+		item = FindItemOnLayer(Layer.Shirt);
 
-			item = FindItemOnLayer(Layer.OuterTorso);
+		if (item != null)
+			item.Hue = Utility.RandomBrightHue();
+	}
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
+	public IronWorker(Serial serial) : base(serial)
+	{
+	}
 
-			item = FindItemOnLayer(Layer.InnerTorso);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
-
-			item = FindItemOnLayer(Layer.Shirt);
-
-			if (item != null)
-				item.Hue = Utility.RandomBrightHue();
-		}
-
-		public IronWorker(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

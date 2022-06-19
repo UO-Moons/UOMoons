@@ -1,33 +1,23 @@
 using Server.Items;
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class SbMonk : SbInfo
 {
-	public class SBMonk : SBInfo
+	public override IShopSellInfo SellInfo { get; } = new InternalSellInfo();
+
+	public override List<GenericBuyInfo> BuyInfo { get; } = new InternalBuyInfo();
+
+	public class InternalBuyInfo : List<GenericBuyInfo>
 	{
-		private readonly List<GenericBuyInfo> m_BuyInfo = new InternalBuyInfo();
-		private readonly IShopSellInfo m_SellInfo = new InternalSellInfo();
-
-		public SBMonk()
+		public InternalBuyInfo()
 		{
+			if (Core.AOS) Add(new GenericBuyInfo(typeof(MonkRobe), 136, 20, 0x2687, 0x21E));
 		}
+	}
 
-		public override IShopSellInfo SellInfo => m_SellInfo;
-		public override List<GenericBuyInfo> BuyInfo => m_BuyInfo;
-
-		public class InternalBuyInfo : List<GenericBuyInfo>
-		{
-			public InternalBuyInfo()
-			{
-				if (Core.AOS) Add(new GenericBuyInfo(typeof(MonkRobe), 136, 20, 0x2687, 0x21E));
-			}
-		}
-
-		public class InternalSellInfo : GenericSellInfo
-		{
-			public InternalSellInfo()
-			{
-			}
-		}
+	public class InternalSellInfo : GenericSellInfo
+	{
 	}
 }

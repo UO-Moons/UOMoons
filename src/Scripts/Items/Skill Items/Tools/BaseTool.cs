@@ -229,11 +229,11 @@ namespace Server.Items
 			{
 				if (Name != null)
 				{
-					from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, 0, 3, "", Name));
+					from.Send(new AsciiMessage(Serial, ItemId, MessageType.Label, 0, 3, "", Name));
 				}
 				else if (this is SmithHammer)
 				{
-					from.Send(new AsciiMessage(Serial, ItemID, MessageType.Label, 0, 3, "", "a smith's hammer"));
+					from.Send(new AsciiMessage(Serial, ItemId, MessageType.Label, 0, 3, "", "a smith's hammer"));
 				}
 			}
 

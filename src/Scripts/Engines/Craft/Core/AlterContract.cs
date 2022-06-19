@@ -1,132 +1,127 @@
 using Server.Engines.Craft;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class AlterContract : BaseItem
 {
-	public class AlterContract : BaseItem
+	private RepairSkillType _mType;
+	private string _mCrafterName;
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public RepairSkillType Type
 	{
-		private RepairSkillType m_Type;
-		private string m_CrafterName;
+		get => _mType;
 
-		[CommandProperty(AccessLevel.GameMaster)]
-		public RepairSkillType Type
+		set
 		{
-			get { return m_Type; }
-
-			set
-			{
-				m_Type = value;
-				InvalidateProperties();
-			}
+			_mType = value;
+			InvalidateProperties();
 		}
+	}
 
-		[CommandProperty(AccessLevel.GameMaster)]
-		public string CrafterName
+	[CommandProperty(AccessLevel.GameMaster)]
+	public string CrafterName
+	{
+		get => _mCrafterName;
+
+		set
 		{
-			get { return m_CrafterName; }
-
-			set
-			{
-				m_CrafterName = value;
-				InvalidateProperties();
-			}
+			_mCrafterName = value;
+			InvalidateProperties();
 		}
+	}
 
-		[Constructable]
-		public AlterContract(RepairSkillType type, Mobile crafter)
-			: base(0x14F0)
+	[Constructable]
+	public AlterContract(RepairSkillType type, Mobile crafter)
+		: base(0x14F0)
+	{
+		_mCrafterName = crafter.Name;
+		Type = type;
+
+		Hue = 0x1BC;
+		Weight = 1.0;
+	}
+
+	public AlterContract(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public string GetTitle()
+	{
+		return _mType switch
 		{
-			m_CrafterName = crafter.Name;
-			Type = type;
+			RepairSkillType.Smithing => "Blacksmithing",
+			RepairSkillType.Carpentry => "Carpentry",
+			RepairSkillType.Tailoring => "Tailoring",
+			RepairSkillType.Tinkering => "Tinkering",
+			_ => null
+		};
+	}
 
-			Hue = 0x1BC;
-			Weight = 1.0;
-		}
-
-		public AlterContract(Serial serial)
-			: base(serial)
+	public CraftSystem GetCraftSystem()
+	{
+		return _mType switch
 		{
-		}
+			RepairSkillType.Smithing => DefBlacksmithy.CraftSystem,
+			RepairSkillType.Carpentry => DefCarpentry.CraftSystem,
+			RepairSkillType.Tailoring => DefTailoring.CraftSystem,
+			RepairSkillType.Tinkering => DefTinkering.CraftSystem,
+			_ => null
+		};
+	}
 
-		public string GetTitle()
+	public override void OnSingleClick(Mobile from)
+	{
+		base.OnSingleClick(from);
+
+		LabelTo(from, 1094795, GetTitle()); // An alter service contract (~1_SKILL_NAME~)
+	}
+
+	public override void GetProperties(ObjectPropertyList list)
+	{
+		base.GetProperties(list);
+
+		list.Add(1050043, _mCrafterName); // crafted by ~1_NAME~
+		list.Add(1060636); // exceptional
+	}
+
+	public override void AddNameProperty(ObjectPropertyList list)
+	{
+		list.Add(1094795, GetTitle());
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		if (!IsChildOf(from.Backpack))
 		{
-			if (m_Type == RepairSkillType.Smithing)
-				return "Blacksmithing";
-			else if (m_Type == RepairSkillType.Carpentry)
-				return "Carpentry";
-			else if (m_Type == RepairSkillType.Tailoring)
-				return "Tailoring";
-			else if (m_Type == RepairSkillType.Tinkering)
-				return "Tinkering";
-			else
-				return null;
+			// The contract must be in your backpack to use it.
+			from.SendLocalizedMessage(1047012);
 		}
-
-		public CraftSystem GetCraftSystem()
+		else
 		{
-			if (m_Type == RepairSkillType.Smithing)
-				return DefBlacksmithy.CraftSystem;
-			else if (m_Type == RepairSkillType.Carpentry)
-				return DefCarpentry.CraftSystem;
-			else if (m_Type == RepairSkillType.Tailoring)
-				return DefTailoring.CraftSystem;
-			else if (m_Type == RepairSkillType.Tinkering)
-				return DefTinkering.CraftSystem;
-			else
-				return null;
+			CraftSystem cs = GetCraftSystem();
+
+			AlterItem.BeginTarget(from, cs, this);
 		}
+	}
 
-		public override void OnSingleClick(Mobile from)
-		{
-			base.OnSingleClick(from);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			LabelTo(from, 1094795, GetTitle()); // An alter service contract (~1_SKILL_NAME~)
-		}
+		writer.Write(0);
 
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
+		writer.Write((int)_mType);
+		writer.Write(_mCrafterName);
+	}
 
-			list.Add(1050043, m_CrafterName); // crafted by ~1_NAME~
-			list.Add(1060636); // exceptional
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 
-		public override void AddNameProperty(ObjectPropertyList list)
-		{
-			list.Add(1094795, GetTitle());
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (!IsChildOf(from.Backpack))
-			{
-				// The contract must be in your backpack to use it.
-				from.SendLocalizedMessage(1047012);
-			}
-			else
-			{
-				CraftSystem cs = GetCraftSystem();
-
-				AlterItem.BeginTarget(from, cs, this);
-			}
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version 
-
-			writer.Write((int)m_Type);
-			writer.Write(m_CrafterName);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-
-			m_Type = (RepairSkillType)reader.ReadInt();
-			m_CrafterName = reader.ReadString();
-		}
+		_mType = (RepairSkillType)reader.ReadInt();
+		_mCrafterName = reader.ReadString();
 	}
 }

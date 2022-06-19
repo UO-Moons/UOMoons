@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1075357)); // The joy of contributing to a noble artistic effort, however paltry the end product.
 		}
 
-		public override QuestChain ChainID => QuestChain.UnfadingMemories;
+		public override QuestChain ChainId => QuestChain.UnfadingMemories;
 		public override Type NextQuest => typeof(UnfadingMemoriesTwoQuest);
 		public override bool DoneOnce => true;
 		/* Unfading Memories */
@@ -54,7 +54,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1075369)); // The Artist’s gratitude.
 		}
 
-		public override QuestChain ChainID => QuestChain.UnfadingMemories;
+		public override QuestChain ChainId => QuestChain.UnfadingMemories;
 		public override Type NextQuest => typeof(UnfadingMemoriesThreeQuest);
 		public override bool DoneOnce => true;
 		/* Unfading Memories */
@@ -98,7 +98,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(Bleach), 1075375)); // Bleach
 		}
 
-		public override QuestChain ChainID => QuestChain.UnfadingMemories;
+		public override QuestChain ChainId => QuestChain.UnfadingMemories;
 		public override bool DoneOnce => true;
 		/* Unfading Memories */
 		public override object Title => 1075373;

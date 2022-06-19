@@ -1,20 +1,19 @@
 using System;
 
-namespace Server.Engines.Champions
-{
-	public class SliceTimer : Timer
-	{
-		private readonly ChampionSpawn m_Spawn;
-		public SliceTimer(ChampionSpawn spawn)
-			: base(TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(1.0))
-		{
-			m_Spawn = spawn;
-			Priority = TimerPriority.OneSecond;
-		}
+namespace Server.Engines.Champions;
 
-		protected override void OnTick()
-		{
-			m_Spawn.OnSlice();
-		}
+public class SliceTimer : Timer
+{
+	private readonly ChampionSpawn _mSpawn;
+	public SliceTimer(ChampionSpawn spawn)
+		: base(TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(1.0))
+	{
+		_mSpawn = spawn;
+		Priority = TimerPriority.OneSecond;
+	}
+
+	protected override void OnTick()
+	{
+		_mSpawn.OnSlice();
 	}
 }

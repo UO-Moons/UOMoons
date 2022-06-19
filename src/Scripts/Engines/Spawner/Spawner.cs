@@ -741,8 +741,7 @@ namespace Server.Mobiles
 
 			RemoveSpawned();
 
-			if (m_Timer != null)
-				m_Timer.Stop();
+			m_Timer?.Stop();
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -1108,7 +1107,7 @@ namespace Server.Mobiles
 
 			protected override void OnTick()
 			{
-				if (m_Spawner != null && !m_Spawner.Deleted)
+				if (m_Spawner is {Deleted: false})
 					m_Spawner.OnTick();
 			}
 		}

@@ -2,55 +2,54 @@ using Server.Engines.Quests;
 using Server.Items;
 using System;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class Aernya : MondainQuester
 {
-	public class Aernya : MondainQuester
+	[Constructable]
+	public Aernya()
+		: base("Aernya", "the Mistress of Admissions")
 	{
-		[Constructable]
-		public Aernya()
-			: base("Aernya", "the Mistress of Admissions")
-		{
-			SetSkill(SkillName.Focus, 60.0, 83.0);
-		}
+		SetSkill(SkillName.Focus, 60.0, 83.0);
+	}
 
-		public Aernya(Serial serial)
-			: base(serial)
-		{
-		}
+	public Aernya(Serial serial)
+		: base(serial)
+	{
+	}
 
-		public override Type[] Quests => new Type[] { typeof(MistakenIdentityQuest) };
+	public override Type[] Quests => new Type[] { typeof(MistakenIdentityQuest) };
 
-		public override void InitBody()
-		{
-			InitStats(100, 100, 25);
+	public override void InitBody()
+	{
+		InitStats(100, 100, 25);
 
-			Female = true;
-			Race = Race.Human;
+		Female = true;
+		Race = Race.Human;
 
-			Hue = 0x8404;
-			HairItemID = 0x2047;
-			HairHue = 0x465;
-		}
+		Hue = 0x8404;
+		HairItemID = 0x2047;
+		HairHue = 0x465;
+	}
 
-		public override void InitOutfit()
-		{
-			AddItem(new Backpack());
-			AddItem(new Sandals(0x743));
-			AddItem(new FancyShirt(0x3B3));
-			AddItem(new Cloak(0x3));
-			AddItem(new Skirt());
-		}
+	public override void InitOutfit()
+	{
+		AddItem(new Backpack());
+		AddItem(new Sandals(0x743));
+		AddItem(new FancyShirt(0x3B3));
+		AddItem(new Cloak(0x3));
+		AddItem(new Skirt());
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

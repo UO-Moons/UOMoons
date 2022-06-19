@@ -1,56 +1,55 @@
 using Server.Items;
 using Server.Targeting;
 
-namespace Server.ContextMenus
+namespace Server.ContextMenus;
+
+public class AddToSpellbookEntry : ContextMenuEntry
 {
-	public class AddToSpellbookEntry : ContextMenuEntry
+	public AddToSpellbookEntry() : base(6144, 3)
 	{
-		public AddToSpellbookEntry() : base(6144, 3)
+	}
+
+	public override void OnClick()
+	{
+		if (Owner.From.CheckAlive() && Owner.Target is SpellScroll scroll)
+			Owner.From.Target = new InternalTarget(scroll);
+	}
+
+	private class InternalTarget : Target
+	{
+		private readonly SpellScroll _mScroll;
+
+		public InternalTarget(SpellScroll scroll) : base(3, false, TargetFlags.None)
 		{
+			_mScroll = scroll;
 		}
 
-		public override void OnClick()
+		protected override void OnTarget(Mobile from, object targeted)
 		{
-			if (Owner.From.CheckAlive() && Owner.Target is SpellScroll scroll)
-				Owner.From.Target = new InternalTarget(scroll);
-		}
-
-		private class InternalTarget : Target
-		{
-			private readonly SpellScroll m_Scroll;
-
-			public InternalTarget(SpellScroll scroll) : base(3, false, TargetFlags.None)
+			if (targeted is Spellbook spellbook)
 			{
-				m_Scroll = scroll;
-			}
-
-			protected override void OnTarget(Mobile from, object targeted)
-			{
-				if (targeted is Spellbook spellbook)
+				if (from.CheckAlive() && !_mScroll.Deleted && _mScroll.Movable && _mScroll.Amount >= 1 && _mScroll.CheckItemUse(from))
 				{
-					if (from.CheckAlive() && !m_Scroll.Deleted && m_Scroll.Movable && m_Scroll.Amount >= 1 && m_Scroll.CheckItemUse(from))
+					SpellbookType type = Spellbook.GetTypeForSpell(_mScroll.SpellID);
+
+					if (type != spellbook.SpellbookType)
 					{
-						SpellbookType type = Spellbook.GetTypeForSpell(m_Scroll.SpellID);
+					}
+					else if (spellbook.HasSpell(_mScroll.SpellID))
+					{
+						from.SendLocalizedMessage(500179); // That spell is already present in that spellbook.
+					}
+					else
+					{
+						int val = _mScroll.SpellID - spellbook.BookOffset;
 
-						if (type != spellbook.SpellbookType)
+						if (val >= 0 && val < spellbook.BookCount)
 						{
-						}
-						else if (spellbook.HasSpell(m_Scroll.SpellID))
-						{
-							from.SendLocalizedMessage(500179); // That spell is already present in that spellbook.
-						}
-						else
-						{
-							int val = m_Scroll.SpellID - spellbook.BookOffset;
+							spellbook.Content |= (ulong)1 << val;
 
-							if (val >= 0 && val < spellbook.BookCount)
-							{
-								spellbook.Content |= (ulong)1 << val;
+							_mScroll.Consume();
 
-								m_Scroll.Consume();
-
-								from.Send(new Network.PlaySound(0x249, spellbook.GetWorldLocation()));
-							}
+							from.Send(new Network.PlaySound(0x249, spellbook.GetWorldLocation()));
 						}
 					}
 				}

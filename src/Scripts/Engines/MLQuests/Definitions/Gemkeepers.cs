@@ -14,7 +14,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.GemkeeperWarriors;
+		public override QuestChain ChainId => QuestChain.GemkeeperWarriors;
 		public override Type NextQuest => typeof(CloseEnoughQuest);
 		/* Warriors of the Gemkeeper */
 		public override object Title => 1074536;
@@ -65,7 +65,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.GemkeeperWarriors;
+		public override QuestChain ChainId => QuestChain.GemkeeperWarriors;
 		public override Type NextQuest => typeof(TakingTheBullByTheHornsQuest);
 		/* Close Enough */
 		public override object Title => 1074544;
@@ -109,7 +109,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(1074876)); // Knowledge of the legendary minotaur.
 		}
 
-		public override QuestChain ChainID => QuestChain.GemkeeperWarriors;
+		public override QuestChain ChainId => QuestChain.GemkeeperWarriors;
 		public override Type NextQuest => typeof(EmissaryToTheMinotaurQuest);
 		/* Taking the Bull by the Horns */
 		public override object Title => 1074551;
@@ -154,7 +154,7 @@ namespace Server.Engines.Quests
 			AddReward(new BaseReward(typeof(RewardBox), 1072584)); // A strongbox.
 		}
 
-		public override QuestChain ChainID => QuestChain.GemkeeperWarriors;
+		public override QuestChain ChainId => QuestChain.GemkeeperWarriors;
 		/* Emissary to the Minotaur */
 		public override object Title => 1074824;
 		/* *whew*  It is done!  The fierce essence of the bull has been infused into your aura.  You are able 

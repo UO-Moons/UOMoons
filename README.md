@@ -1,4 +1,4 @@
-# UO Moons Version 3.0.0.
+# UO Moons Version 4.0.0.
 
 [![GitHub build](https://img.shields.io/github/workflow/status/UO-Moons/UOMoons/Build?logo=github)](https://github.com/UO-Moons/UOMoons/actions)
 [![GitHub issues](https://img.shields.io/github/issues/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/issues)
@@ -29,7 +29,7 @@ For change Era configuration and some basic server configuration you can use the
 Future Expansions will come later after we have all older ones 100% implanted.
 
 ## .Net 6 Support
-Change the core to work with .Net 6.
+Change the core to work with .Net 6.0.6
 
 Requires C# 11 Lang Version as well.
 

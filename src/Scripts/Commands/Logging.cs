@@ -7,12 +7,12 @@ namespace Server.Commands
 {
 	public class CommandLogging
 	{
-		public static bool Enabled { get; set; } = true;
+		public static bool Enabled { get; set; } = Settings.Configuration.Get<bool>("Misc", "CommandLogging");
 		public static StreamWriter Output { get; private set; }
 
 		public static void Initialize()
 		{
-			EventSink.OnCommand += new CommandEventHandler(EventSink_Command);
+			EventSink.OnCommand += EventSink_Command;
 
 			if (!Directory.Exists("Logs"))
 				Directory.CreateDirectory("Logs");
@@ -24,7 +24,7 @@ namespace Server.Commands
 
 			try
 			{
-				Output = new StreamWriter(Path.Combine(directory, string.Format("{0}.log", DateTime.UtcNow.ToLongDateString())), true)
+				Output = new StreamWriter(Path.Combine(directory, $"{DateTime.UtcNow.ToLongDateString()}.log"), true)
 				{
 					AutoFlush = true
 				};
@@ -35,24 +35,18 @@ namespace Server.Commands
 			}
 			catch
 			{
+				// ignored
 			}
 		}
 
 		public static object Format(object o)
 		{
-			if (o is Mobile m)
+			return o switch
 			{
-				if (m.Account == null)
-					return string.Format("{0} (no account)", m);
-				else
-					return string.Format("{0} ('{1}')", m, m.Account.Username);
-			}
-			else if (o is Item item)
-			{
-				return string.Format("0x{0:X} ({1})", item.Serial.Value, item.GetType().Name);
-			}
-
-			return o;
+				Mobile m => m.Account == null ? $"{m} (no account)" : $"{m} ('{m.Account.Username}')",
+				Item item => $"0x{item.Serial.Value:X} ({item.GetType().Name})",
+				_ => o
+			};
 		}
 
 		public static void WriteLine(Mobile from, string format, params object[] args)
@@ -79,17 +73,18 @@ namespace Server.Commands
 				AppendPath(ref path, "Logs");
 				AppendPath(ref path, "Commands");
 				AppendPath(ref path, from.AccessLevel.ToString());
-				path = Path.Combine(path, string.Format("{0}.log", name));
+				path = Path.Combine(path, $"{name}.log");
 
 				using StreamWriter sw = new(path, true);
 				sw.WriteLine("{0}: {1}: {2}", DateTime.UtcNow, from.NetState, text);
 			}
 			catch
 			{
+				// ignored
 			}
 		}
 
-		private static readonly char[] m_NotSafe = new char[] { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
+		private static readonly char[] MNotSafe = { '\\', '/', ':', '*', '?', '"', '<', '>', '|' };
 
 		public static void AppendPath(ref string path, string toAppend)
 		{
@@ -111,16 +106,16 @@ namespace Server.Commands
 
 			bool isSafe = true;
 
-			for (int i = 0; isSafe && i < m_NotSafe.Length; ++i)
-				isSafe = (!ip.Contains(m_NotSafe[i]));
+			for (int i = 0; isSafe && i < MNotSafe.Length; ++i)
+				isSafe = (!ip.Contains(MNotSafe[i]));
 
 			if (isSafe)
 				return ip;
 
 			StringBuilder sb = new(ip);
 
-			for (int i = 0; i < m_NotSafe.Length; ++i)
-				sb.Replace(m_NotSafe[i], '_');
+			for (int i = 0; i < MNotSafe.Length; ++i)
+				sb.Replace(MNotSafe[i], '_');
 
 			return sb.ToString();
 		}

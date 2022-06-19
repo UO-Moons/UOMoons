@@ -237,7 +237,7 @@ namespace Server.Items
 			if (!map.CanFit(p.X, p.Y, p.Z, ItemData.Height))
 				return false;
 
-			if (ItemID == NorthID)
+			if (ItemId == NorthID)
 				return BaseAddon.IsWall(p.X, p.Y - 1, p.Z, map); // North wall
 			else
 				return BaseAddon.IsWall(p.X - 1, p.Y, p.Z, map); // West wall

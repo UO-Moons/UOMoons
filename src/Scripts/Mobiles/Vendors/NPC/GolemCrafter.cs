@@ -1,44 +1,41 @@
 using System.Collections.Generic;
 
-namespace Server.Mobiles
+namespace Server.Mobiles;
+
+public class GolemCrafter : BaseVendor
 {
-	public class GolemCrafter : BaseVendor
+	private readonly List<SbInfo> _mSbInfos = new();
+	protected override List<SbInfo> SbInfos => _mSbInfos;
+
+	[Constructable]
+	public GolemCrafter() : base("the golem crafter")
 	{
-		private readonly List<SBInfo> m_SBInfos = new List<SBInfo>();
-		protected override List<SBInfo> SBInfos => m_SBInfos;
+		Job = JobFragment.tinker;
+		Karma = Utility.RandomMinMax(13, -45);
+		SetSkill(SkillName.Lockpicking, 60.0, 83.0);
+		SetSkill(SkillName.RemoveTrap, 75.0, 98.0);
+		SetSkill(SkillName.Tinkering, 64.0, 100.0);
+	}
 
-		[Constructable]
-		public GolemCrafter() : base("the golem crafter")
-		{
-			Job = JobFragment.tinker;
-			Karma = Utility.RandomMinMax(13, -45);
-			SetSkill(SkillName.Lockpicking, 60.0, 83.0);
-			SetSkill(SkillName.RemoveTrap, 75.0, 98.0);
-			SetSkill(SkillName.Tinkering, 64.0, 100.0);
-		}
+	public override void InitSbInfo()
+	{
+		_mSbInfos.Add(new SbTinker(this));
+		_mSbInfos.Add(new SbVagabond());
+	}
 
-		public override void InitSBInfo()
-		{
-			m_SBInfos.Add(new SBTinker(this));
-			m_SBInfos.Add(new SBVagabond());
-		}
+	public GolemCrafter(Serial serial) : base(serial)
+	{
+	}
 
-		public GolemCrafter(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

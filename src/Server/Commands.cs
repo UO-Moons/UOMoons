@@ -84,7 +84,7 @@ namespace Server.Commands
 			else if (other == null)
 				return 1;
 
-			return Command.CompareTo(other.Command);
+			return string.Compare(Command, other.Command, StringComparison.Ordinal);
 		}
 	}
 
@@ -144,7 +144,7 @@ namespace Server.Commands
 			return list.ToArray();
 		}
 
-		public static Dictionary<string, CommandEntry> Entries { get; private set; }
+		public static Dictionary<string, CommandEntry> Entries { get; }
 
 		static CommandSystem()
 		{
@@ -156,10 +156,10 @@ namespace Server.Commands
 			Register(command, access, handler, false);
 		}
 
-		public static void Register(string command, AccessLevel access, CommandEventHandler handler, bool playerscanuseonTC)
+		public static void Register(string command, AccessLevel access, CommandEventHandler handler, bool playerscanuseonTc)
 		{
 
-			Entries[command] = new CommandEntry(command, handler, playerscanuseonTC ? AccessLevel.Player : access);
+			Entries[command] = new CommandEntry(command, handler, playerscanuseonTc ? AccessLevel.Player : access);
 		}
 
 		public static AccessLevel BadCommandIgnoreLevel { get; set; } = AccessLevel.Player;

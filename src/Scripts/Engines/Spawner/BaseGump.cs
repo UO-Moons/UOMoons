@@ -134,7 +134,7 @@ namespace Server.Gumps
 
 			if (close)
 			{
-				User.NetState.Send(new CloseGump(TypeID, 0));
+				User.NetState.Send(new CloseGump(TypeId, 0));
 				User.NetState.RemoveGump(this);
 			}
 			else
@@ -219,7 +219,7 @@ namespace Server.Gumps
 
 			OnServerClose(User.NetState);
 
-			User.Send(new CloseGump(TypeID, 0));
+			User.Send(new CloseGump(TypeId, 0));
 			User.NetState.RemoveGump(this);
 		}
 

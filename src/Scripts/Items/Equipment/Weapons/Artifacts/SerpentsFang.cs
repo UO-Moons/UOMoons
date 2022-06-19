@@ -11,7 +11,7 @@ namespace Server.Items
 		[Constructable]
 		public SerpentsFang()
 		{
-			ItemID = 0x1400;
+			ItemId = 0x1400;
 			Hue = 0x488;
 			WeaponAttributes.HitPoisonArea = 100;
 			WeaponAttributes.ResistPoisonBonus = 20;
@@ -43,8 +43,8 @@ namespace Server.Items
 
 			int version = reader.ReadInt();
 
-			if (ItemID == 0x1401)
-				ItemID = 0x1400;
+			if (ItemId == 0x1401)
+				ItemId = 0x1400;
 		}
 	}
 }

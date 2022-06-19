@@ -1,37 +1,35 @@
 using System;
 using System.Collections;
 
-namespace Server.Engines.PartySystem
+namespace Server.Engines.PartySystem;
+
+public class DeclineTimer : Timer
 {
-	public class DeclineTimer : Timer
+	private readonly Mobile _mMobile, _mLeader;
+
+	private static readonly Hashtable MTable = new();
+
+	public static void Start(Mobile m, Mobile leader)
 	{
-		private readonly Mobile m_Mobile, m_Leader;
+		DeclineTimer t = (DeclineTimer)MTable[m];
 
-		private static readonly Hashtable m_Table = new();
+		t?.Stop();
 
-		public static void Start(Mobile m, Mobile leader)
-		{
-			DeclineTimer t = (DeclineTimer)m_Table[m];
+		MTable[m] = t = new DeclineTimer(m, leader);
+		t.Start();
+	}
 
-			if (t != null)
-				t.Stop();
+	private DeclineTimer(Mobile m, Mobile leader) : base(TimeSpan.FromSeconds(30.0))
+	{
+		_mMobile = m;
+		_mLeader = leader;
+	}
 
-			m_Table[m] = t = new DeclineTimer(m, leader);
-			t.Start();
-		}
+	protected override void OnTick()
+	{
+		MTable.Remove(_mMobile);
 
-		private DeclineTimer(Mobile m, Mobile leader) : base(TimeSpan.FromSeconds(30.0))
-		{
-			m_Mobile = m;
-			m_Leader = leader;
-		}
-
-		protected override void OnTick()
-		{
-			m_Table.Remove(m_Mobile);
-
-			if (m_Mobile.Party == m_Leader && PartyCommands.Handler != null)
-				PartyCommands.Handler.OnDecline(m_Mobile, m_Leader);
-		}
+		if (_mMobile.Party == _mLeader && PartyCommands.Handler != null)
+			PartyCommands.Handler.OnDecline(_mMobile, _mLeader);
 	}
 }

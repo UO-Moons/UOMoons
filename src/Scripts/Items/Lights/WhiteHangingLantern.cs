@@ -9,7 +9,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x24C6)
+				if (ItemId == 0x24C6)
 					return 0x24C5;
 				else
 					return 0x24C7;
@@ -20,7 +20,7 @@ namespace Server.Items
 		{
 			get
 			{
-				if (ItemID == 0x24C5)
+				if (ItemId == 0x24C5)
 					return 0x24C6;
 				else
 					return 0x24C8;
@@ -45,13 +45,13 @@ namespace Server.Items
 		{
 			Light = LightType.Circle300;
 
-			switch (ItemID)
+			switch (ItemId)
 			{
-				case 0x24C6: ItemID = 0x24C8; break;
-				case 0x24C5: ItemID = 0x24C7; break;
+				case 0x24C6: ItemId = 0x24C8; break;
+				case 0x24C5: ItemId = 0x24C7; break;
 
-				case 0x24C8: ItemID = 0x24C6; break;
-				case 0x24C7: ItemID = 0x24C5; break;
+				case 0x24C8: ItemId = 0x24C6; break;
+				case 0x24C7: ItemId = 0x24C5; break;
 			}
 		}
 

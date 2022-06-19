@@ -4,7 +4,7 @@ namespace Server.Items;
 public class CompassionArms : BaseArmor
 {
 	public override int LabelNumber => 1075191;// Arms of Compassion (Virtue Armor Set)
-	public override SetItem SetID => SetItem.Virtue;
+	public override SetItem SetId => SetItem.Virtue;
 	public override int Pieces => 8;
 	public override int BasePhysicalResistance => 8;
 	public override int BaseFireResistance => 11;

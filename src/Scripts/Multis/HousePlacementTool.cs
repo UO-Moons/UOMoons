@@ -584,13 +584,13 @@ namespace Server.Items
                 {
                     HousePlacementEntry e = (HousePlacementEntry)list[i];
 
-                    if (e.MultiID == house.ItemID)
+                    if (e.MultiID == house.ItemId)
                         return e;
                 }
             }
             else if (obj is Hashtable table)
             {
-                obj = table[house.ItemID];
+                obj = table[house.ItemId];
 
                 if (obj is HousePlacementEntry)
                     return (HousePlacementEntry)obj;

@@ -268,7 +268,7 @@ namespace Server.Mobiles
 		private class ClonedItem : BaseItem
 		{
 			public ClonedItem(Item item)
-				: base(item.ItemID)
+				: base(item.ItemId)
 			{
 				Name = item.Name;
 				Weight = item.Weight;

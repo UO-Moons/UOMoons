@@ -3,7 +3,7 @@ namespace Server.Items;
 public class Evocaricus : VikingSword
 {
 	public override int LabelNumber => 1074309;// Evocaricus (Juggernaut Set)
-	public override SetItem SetID => SetItem.Juggernaut;
+	public override SetItem SetId => SetItem.Juggernaut;
 	public override int Pieces => 2;
 	public override bool IsArtifact => true;
 

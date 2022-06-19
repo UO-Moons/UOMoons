@@ -11,9 +11,9 @@ namespace Server.Commands
 		{
 			EventSink.OnLogin += OnLogin;
 
-			CommandSystem.Register("Vis", AccessLevel.Counselor, new CommandEventHandler(Vis_OnCommand));
-			CommandSystem.Register("VisList", AccessLevel.Counselor, new CommandEventHandler(VisList_OnCommand));
-			CommandSystem.Register("VisClear", AccessLevel.Counselor, new CommandEventHandler(VisClear_OnCommand));
+			CommandSystem.Register("Vis", AccessLevel.Counselor, Vis_OnCommand);
+			CommandSystem.Register("VisList", AccessLevel.Counselor, VisList_OnCommand);
+			CommandSystem.Register("VisClear", AccessLevel.Counselor, VisClear_OnCommand);
 		}
 
 		public static void OnLogin(Mobile m)
@@ -120,10 +120,10 @@ namespace Server.Commands
 
 									if (ObjectPropertyList.Enabled)
 									{
-										ns.Send(from.OPLPacket);
+										ns.Send(from.OplPacket);
 
 										foreach (Item item in from.Items)
-											ns.Send(item.OPLPacket);
+											ns.Send(item.OplPacket);
 									}
 								}
 								else

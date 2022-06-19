@@ -6,9 +6,9 @@ namespace Server
 {
     public sealed class FileIndex
     {
-        public Entry3D[] Index { get; private set; }
+        public Entry3D[] Index { get; }
         public Stream Stream { get; private set; }
-        public long IdxLength { get; private set; }
+        public long IdxLength { get; }
         private readonly string MulPath;
 
         public Stream Seek(int index, out int length, out int extra, out bool patched)
@@ -90,97 +90,95 @@ namespace Server
 			 */
             if (MulPath != null && MulPath.EndsWith(".uop"))
             {
-                using (FileStream index = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
-                {
-                    Stream = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+	            using FileStream index = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+	            Stream = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-                    FileInfo fi = new FileInfo(MulPath);
-                    string uopPattern = fi.Name.Replace(fi.Extension, "").ToLowerInvariant();
+	            FileInfo fi = new FileInfo(MulPath);
+	            string uopPattern = fi.Name.Replace(fi.Extension, "").ToLowerInvariant();
 
-                    using (BinaryReader br = new BinaryReader(Stream))
-                    {
-                        br.BaseStream.Seek(0, SeekOrigin.Begin);
+	            using (BinaryReader br = new BinaryReader(Stream))
+	            {
+		            br.BaseStream.Seek(0, SeekOrigin.Begin);
 
-                        if (br.ReadInt32() != 0x50594D)
-                            return;
+		            if (br.ReadInt32() != 0x50594D)
+			            return;
 
-                        br.ReadInt64(); // version + signature
-                        long nextBlock = br.ReadInt64();
-                        br.ReadInt32(); // block capacity
-                        int count = br.ReadInt32();
+		            br.ReadInt64(); // version + signature
+		            long nextBlock = br.ReadInt64();
+		            br.ReadInt32(); // block capacity
+		            int count = br.ReadInt32();
 
-                        if (idxLength > 0)
-                        {
-                            IdxLength = idxLength * 12;
-                        }
+		            if (idxLength > 0)
+		            {
+			            IdxLength = idxLength * 12;
+		            }
 
-                        Dictionary<ulong, int> hashes = new Dictionary<ulong, int>();
+		            Dictionary<ulong, int> hashes = new Dictionary<ulong, int>();
 
-                        for (int i = 0; i < length; i++)
-                        {
-                            string entryName = string.Format("build/{0}/{1:D8}{2}", uopPattern, i, uopEntryExtension);
-                            ulong hash = UOPHash.HashLittle2(entryName);
+		            for (int i = 0; i < length; i++)
+		            {
+			            string entryName = $"build/{uopPattern}/{i:D8}{uopEntryExtension}";
+			            ulong hash = UOPHash.HashLittle2(entryName);
 
-                            if (!hashes.ContainsKey(hash))
-                            {
-                                hashes.Add(hash, i);
-                            }
-                        }
+			            if (!hashes.ContainsKey(hash))
+			            {
+				            hashes.Add(hash, i);
+			            }
+		            }
 
-                        br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
+		            br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
 
-                        do
-                        {
-                            int filesCount = br.ReadInt32();
-                            nextBlock = br.ReadInt64();
+		            do
+		            {
+			            int filesCount = br.ReadInt32();
+			            nextBlock = br.ReadInt64();
 
-                            for (int i = 0; i < filesCount; i++)
-                            {
-                                long offset = br.ReadInt64();
-                                int headerLength = br.ReadInt32();
-                                int compressedLength = br.ReadInt32();
-                                int decompressedLength = br.ReadInt32();
-                                ulong hash = br.ReadUInt64();
-                                br.ReadUInt32(); // Adler32
-                                short flag = br.ReadInt16();
+			            for (int i = 0; i < filesCount; i++)
+			            {
+				            long offset = br.ReadInt64();
+				            int headerLength = br.ReadInt32();
+				            int compressedLength = br.ReadInt32();
+				            int decompressedLength = br.ReadInt32();
+				            ulong hash = br.ReadUInt64();
+				            br.ReadUInt32(); // Adler32
+				            short flag = br.ReadInt16();
 
-                                int entryLength = flag == 1 ? compressedLength : decompressedLength;
+				            int entryLength = flag == 1 ? compressedLength : decompressedLength;
 
-                                if (offset == 0)
-                                {
-                                    continue;
-                                }
+				            if (offset == 0)
+				            {
+					            continue;
+				            }
 
-                                if (hashes.TryGetValue(hash, out int idx))
-                                {
-                                    if (idx < 0 || idx > Index.Length)
-                                        return;
+				            if (hashes.TryGetValue(hash, out int idx))
+				            {
+					            if (idx < 0 || idx > Index.Length)
+						            return;
 
-                                    Index[idx].lookup = (int)(offset + headerLength);
-                                    Index[idx].length = entryLength;
+					            Index[idx].lookup = (int)(offset + headerLength);
+					            Index[idx].length = entryLength;
 
-                                    if (hasExtra)
-                                    {
-                                        long curPos = br.BaseStream.Position;
+					            if (hasExtra)
+					            {
+						            long curPos = br.BaseStream.Position;
 
-                                        br.BaseStream.Seek(offset + headerLength, SeekOrigin.Begin);
+						            br.BaseStream.Seek(offset + headerLength, SeekOrigin.Begin);
 
-                                        byte[] extra = br.ReadBytes(8);
+						            byte[] extra = br.ReadBytes(8);
 
-                                        ushort extra1 = (ushort)((extra[3] << 24) | (extra[2] << 16) | (extra[1] << 8) | extra[0]);
-                                        ushort extra2 = (ushort)((extra[7] << 24) | (extra[6] << 16) | (extra[5] << 8) | extra[4]);
+						            ushort extra1 = (ushort)((extra[3] << 24) | (extra[2] << 16) | (extra[1] << 8) | extra[0]);
+						            ushort extra2 = (ushort)((extra[7] << 24) | (extra[6] << 16) | (extra[5] << 8) | extra[4]);
 
-                                        Index[idx].lookup += 8;
-                                        Index[idx].extra = extra1 << 16 | extra2;
+						            Index[idx].lookup += 8;
+						            Index[idx].extra = extra1 << 16 | extra2;
 
-                                        br.BaseStream.Seek(curPos, SeekOrigin.Begin);
-                                    }
-                                }
-                            }
-                        }
-                        while (br.BaseStream.Seek(nextBlock, SeekOrigin.Begin) != 0);
-                    }
-                }
+						            br.BaseStream.Seek(curPos, SeekOrigin.Begin);
+					            }
+				            }
+			            }
+		            }
+		            while (br.BaseStream.Seek(nextBlock, SeekOrigin.Begin) != 0);
+	            }
             }
         }
     }

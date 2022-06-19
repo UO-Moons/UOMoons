@@ -26,7 +26,7 @@ namespace Server.Items
 
 					Movable = (!IsLockedDown) ? IsEmpty : false;
 
-					ItemID = (IsEmpty) ? VoidItem_ID : FullItem_ID;
+					ItemId = (IsEmpty) ? VoidItem_ID : FullItem_ID;
 
 					if (!IsEmpty)
 					{

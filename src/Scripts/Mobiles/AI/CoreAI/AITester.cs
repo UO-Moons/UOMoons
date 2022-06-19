@@ -84,7 +84,7 @@ namespace Server.Mobiles
             GiveItem(this, hue, new DragonGloves());
 
             Longsword sword = new Longsword();
-            sword.ItemID = 9934;
+            sword.ItemId = 9934;
             GiveItem(this, hue, sword);
         }
 

@@ -549,7 +549,7 @@ namespace Server.Engines.TownHouses
 		public void ShowSignPreview()
 		{
 			ClearPreview();
-			bool northSouth = (ItemID == (int)SignIDs.TownHouseSignNS);
+			bool northSouth = (ItemId == (int)SignIDs.TownHouseSignNS);
 
 			//Item sign = new(0xBD2) { Name = "Sign Preview", Movable = false, Location = SignLoc, Map = Map };
 			int signId = (int)(northSouth ? SignIDs.HouseSignNS : SignIDs.HouseSignWE);
@@ -706,7 +706,7 @@ namespace Server.Engines.TownHouses
 					}
 				}
 
-				bool northSouth = ItemID == (int)SignIDs.TownHouseSignNS;
+				bool northSouth = ItemId == (int)SignIDs.TownHouseSignNS;
 
 				House = new TownHouse(m, this, m_CLocks, m_CSecures);
 				int signId = (int)(northSouth ? SignIDs.HouseSignNS : SignIDs.HouseSignWE);
@@ -772,7 +772,7 @@ namespace Server.Engines.TownHouses
 				if (item is HouseSign)
 					continue;
 
-				if (item != null && (item.ItemID is 0xB95 or 0xB96 or 0xC43 or 0xC44 || (item.ItemID > 0xBA3 && item.ItemID < 0xC0E)))
+				if (item != null && (item.ItemId is 0xB95 or 0xB96 or 0xC43 or 0xC44 || (item.ItemId > 0xBA3 && item.ItemId < 0xC0E)))
 				{
 					item.Visible = false;
 				}
@@ -800,7 +800,7 @@ namespace Server.Engines.TownHouses
 				}
 				else if (!m_CLeaveItems)
 				{
-					m_CDecoreItemInfos.Add(new DecoreItemInfo(item.GetType().ToString(), item.Name, item.ItemID, item.Hue,
+					m_CDecoreItemInfos.Add(new DecoreItemInfo(item.GetType().ToString(), item.Name, item.ItemId, item.Hue,
 						item.Location, item.Map));
 
 					if (!m_CKeepItems || !keep)
@@ -870,7 +870,7 @@ namespace Server.Engines.TownHouses
 
 				BaseDoor newdoor = new StrongWoodDoor((DoorFacing)0)
 				{
-					ItemID = door.ItemID,
+					ItemId = door.ItemId,
 					ClosedID = door.ClosedID,
 					OpenedID = door.OpenedID,
 					OpenedSound = door.OpenedSound,
@@ -918,7 +918,7 @@ namespace Server.Engines.TownHouses
 					continue;
 				}
 
-				item.ItemID = info.ItemId;
+				item.ItemId = info.ItemId;
 				item.Name = info.Name;
 				item.Hue = info.Hue;
 				item.Location = info.Location;

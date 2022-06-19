@@ -30,9 +30,9 @@ namespace Server.Items
 
 		public void UpdateItemID()
 		{
-			int baseItemID = (ItemID / 2) * 2;
+			int baseItemID = (ItemId / 2) * 2;
 
-			ItemID = baseItemID + (Swinging ? 1 : 0);
+			ItemId = baseItemID + (Swinging ? 1 : 0);
 		}
 
 		public void BeginSwing()

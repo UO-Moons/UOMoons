@@ -3,7 +3,7 @@ namespace Server.Items;
 public class Feathernock : BaseQuiver
 {
 	public override int LabelNumber => 1074324;// Feathernock (Marksman Set)
-	public override SetItem SetID => SetItem.Marksman;
+	public override SetItem SetId => SetItem.Marksman;
 	public override int Pieces => 2;
 	public override bool IsArtifact => true;
 

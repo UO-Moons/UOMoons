@@ -7,8 +7,8 @@ namespace Server
 {
 	public static class FileOperations
 	{
-		public const int KB = 1024;
-		public const int MB = 1024 * KB;
+		public const int Kb = 1024;
+		public const int Mb = 1024 * Kb;
 
 		private const FileOptions NoBuffering = (FileOptions)0x20000000;
 
@@ -18,7 +18,7 @@ namespace Server
 			internal static extern SafeFileHandle CreateFile(string lpFileName, int dwDesiredAccess, FileShare dwShareMode, IntPtr securityAttrs, FileMode dwCreationDisposition, int dwFlagsAndAttributes, IntPtr hTemplateFile);
 		}
 
-		public static int BufferSize { get; set; } = 1 * MB;
+		public static int BufferSize { get; set; } = 1 * Mb;
 
 		public static int Concurrency { get; set; } = 1;
 
@@ -58,12 +58,12 @@ namespace Server
 
 		private class UnbufferedFileStream : FileStream
 		{
-			private readonly SafeFileHandle fileHandle;
+			private readonly SafeFileHandle _fileHandle;
 
 			public UnbufferedFileStream(SafeFileHandle fileHandle, FileAccess access, int bufferSize, bool isAsync)
 			 : base(fileHandle, access, bufferSize, isAsync)
 			{
-				this.fileHandle = fileHandle;
+				this._fileHandle = fileHandle;
 			}
 
 			public override void Write(byte[] array, int offset, int count)
@@ -78,9 +78,9 @@ namespace Server
 
 			protected override void Dispose(bool disposing)
 			{
-				if (!fileHandle.IsClosed)
+				if (!_fileHandle.IsClosed)
 				{
-					fileHandle.Close();
+					_fileHandle.Close();
 				}
 
 				base.Dispose(disposing);
