@@ -30,10 +30,10 @@ public class Thief : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Shirt(Utility.RandomNeutralHue()));
-		AddItem(new LongPants(Utility.RandomNeutralHue()));
-		AddItem(new Dagger());
-		AddItem(new ThighBoots(Utility.RandomNeutralHue()));
+		SetWearable(new Shirt(Utility.RandomNeutralHue()));
+		SetWearable(new LongPants(Utility.RandomNeutralHue()));
+		SetWearable(new Dagger());
+		SetWearable(new ThighBoots(Utility.RandomNeutralHue()));
 	}
 
 	public Thief(Serial serial) : base(serial)

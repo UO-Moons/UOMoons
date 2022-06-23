@@ -42,7 +42,7 @@ public class Weaponsmith : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
+		SetWearable(new HalfApron());
 	}
 
 	#region Bulk Orders

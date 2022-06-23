@@ -1,5 +1,6 @@
 using Server.Network;
 using System;
+using HWT;
 
 namespace Server.Items
 {
@@ -12,7 +13,7 @@ namespace Server.Items
 			Movable = false;
 		}
 
-		private DateTime m_NextUse;
+		private DateTime _mNextUse;
 
 		public override void OnDoubleClick(Mobile from)
 		{
@@ -20,7 +21,7 @@ namespace Server.Items
 			{
 				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 1019045); // I can't reach that
 			}
-			else if (Visible && (ItemId == 4656 || ItemId == 4702) && DateTime.UtcNow >= m_NextUse)
+			else if (Visible && (ItemId == 4656 || ItemId == 4702) && DateTime.UtcNow >= _mNextUse)
 			{
 				Point3D p = GetWorldLocation();
 
@@ -33,23 +34,24 @@ namespace Server.Items
 
 				Effects.PlaySound(GetWorldLocation(), Map, 0x387);
 
-				Timer.DelayCall(TimeSpan.FromSeconds(0.25), new TimerCallback(Down1));
-				Timer.DelayCall(TimeSpan.FromSeconds(0.50), new TimerCallback(Down2));
+				Timer.DelayCall(TimeSpan.FromSeconds(0.25), Down1);
+				Timer.DelayCall(TimeSpan.FromSeconds(0.50), Down2);
 
-				Timer.DelayCall(TimeSpan.FromSeconds(5.00), new TimerCallback(BackUp));
+				Timer.DelayCall(TimeSpan.FromSeconds(5.00), BackUp);
 
-				m_NextUse = DateTime.UtcNow + TimeSpan.FromSeconds(10.0);
+				_mNextUse = DateTime.UtcNow + TimeSpan.FromSeconds(10.0);
+
 			}
 		}
 
-		private void Down1()
+		public void Down1()
 		{
-			ItemId = (ItemId == 4656 ? 4678 : 4712);
+			ItemId = ItemId == 4656 ? 4678 : 4712;
 		}
 
 		private void Down2()
 		{
-			ItemId = (ItemId == 4678 ? 4679 : 4713);
+			ItemId = ItemId == 4678 ? 4679 : 4713;
 
 			Point3D p = GetWorldLocation();
 			Map f = Map;
@@ -79,10 +81,12 @@ namespace Server.Items
 
 		private void BackUp()
 		{
-			if (ItemId == 4678 || ItemId == 4679)
-				ItemId = 4656;
-			else if (ItemId == 4712 || ItemId == 4713)
-				ItemId = 4702;
+			ItemId = ItemId switch
+			{
+				4678 or 4679 => 4656,
+				4712 or 4713 => 4702,
+				_ => ItemId
+			};
 		}
 
 		public Guillotine(Serial serial)
@@ -103,10 +107,12 @@ namespace Server.Items
 
 			int version = reader.ReadByte();
 
-			if (ItemId == 4678 || ItemId == 4679)
-				ItemId = 4656;
-			else if (ItemId == 4712 || ItemId == 4713)
-				ItemId = 4702;
+			ItemId = ItemId switch
+			{
+				4678 or 4679 => 4656,
+				4712 or 4713 => 4702,
+				_ => ItemId
+			};
 		}
 	}
 }

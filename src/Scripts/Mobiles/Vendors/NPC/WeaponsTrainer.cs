@@ -41,28 +41,28 @@ public class WeaponsTrainer : BaseVendor
 			Utility.AssignRandomHair(this);
 			Utility.AssignRandomFacialHair(this);
 			item = new StuddedChest();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedLegs();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedArms();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedGloves();
-			AddItem( item );
+			SetWearable( item );
 			item = Utility.RandomBool() ? new Boots() : new ThighBoots();
-			AddItem( item );
+			SetWearable( item );
 			PackGold( 15, 100 );
 		} else {
 			Utility.AssignRandomHair(this);
 			item = new StuddedChest();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedLegs();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedArms();
-			AddItem( item );
+			SetWearable( item );
 			item = new StuddedGloves();
-			AddItem( item );
+			SetWearable( item );
 			item = Utility.RandomBool() ? new Boots() : new ThighBoots();
-			AddItem( item );
+			SetWearable( item );
 			PackGold( 15, 100 );
 		}
 	}

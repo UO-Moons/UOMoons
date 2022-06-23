@@ -42,7 +42,7 @@ namespace Server.Mobiles
 			AddLoot(LootPack.FilthyRich, 2);
 		}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int Hides => 28;
 		public override int Meat => 4;
 

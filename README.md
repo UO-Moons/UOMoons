@@ -48,8 +48,24 @@ apt-get install zlib1g-dev
 ```shell
 dotnet run bin/UOMoons.dll
 ```
+### Features
+Name Verif.
+Mysql Save System optional.
+Hashed Wheel Timer.
+History System.
+Seasons System.
+Cleaner and More Orginazed code.
+Newest c#11 code.
+Settings.ini System to get you going right away.
+Smarter AI.
+Better Pathfinding AI.
+system peformance increases.
+travel restrictions settings.
+Faster EventSinks no more delagtes.
+and much more.
 
 ### Misc
+Implanted Hashed Wheel Timer as another timer method that can be used in UO Moons.
+Check out the Github and Author for more information.
 
-UOMoons supports Intel's hardware random number generator (Secure Key, Bull Mountain, rdrand, etc).
-If rdrand32.dll/rdrand64.dll are present in the base directory and the hardware supports that functionality, it will be used automatically. You can find those libraries here: https://github.com/msturgill/rdrand/releases/latest
+https://github.com/wangjia184/HashedWheelTimer

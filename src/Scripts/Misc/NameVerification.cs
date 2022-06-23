@@ -9,6 +9,11 @@ namespace Server.Misc
 				' ', '-', '.', '\''
 			};
 
+		public static readonly char[] SpaceOnly = new char[]
+		{
+				' '
+		};
+
 		public static readonly char[] Empty = System.Array.Empty<char>();
 
 		public static void Initialize()
@@ -196,7 +201,14 @@ namespace Server.Misc
 				"squelched",
 				"invulnerable",
 				"osi",
-				"origin"
+				"origin",
+				"generic player",
+				"mega",
+				"trump",
+				"biden",
+				"president",
+				"god",
+				"jesus"
 			};
 	}
 }

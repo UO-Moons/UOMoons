@@ -110,7 +110,7 @@ namespace Server.Mobiles
 		}
 		*/
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 
 		public SirPatrick(Serial serial)
 			: base(serial)

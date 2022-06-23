@@ -34,7 +34,7 @@ public class Farmer : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new WideBrimHat(Utility.RandomNeutralHue()));
+		SetWearable(new WideBrimHat(Utility.RandomNeutralHue()));
 	}
 
 	public Farmer(Serial serial) : base(serial)

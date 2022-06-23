@@ -18,7 +18,7 @@ namespace Server.Commands.Generic
 		{
 			AccessLevel = AccessLevel.GameMaster;
 			Supports = CommandSupport.Single | CommandSupport.Area;
-			Commands = new string[] { "DesignInsert" };
+			Commands = new[] { "DesignInsert" };
 			ObjectTypes = ObjectTypes.Items;
 			Usage = "DesignInsert [allItems=false]";
 			Description = "Inserts multiple targeted items into a customizable house's design.";
@@ -33,42 +33,41 @@ namespace Server.Commands.Generic
 
 		private class DesignInsertTarget : Target
 		{
-			private readonly List<HouseFoundation> m_Foundations;
-			private readonly bool m_StaticsOnly;
+			private readonly List<HouseFoundation> _mFoundations;
+			private readonly bool _mStaticsOnly;
 
 			public DesignInsertTarget(List<HouseFoundation> foundations, bool staticsOnly)
 				: base(-1, false, TargetFlags.None)
 			{
-				m_Foundations = foundations;
-				m_StaticsOnly = staticsOnly;
+				_mFoundations = foundations;
+				_mStaticsOnly = staticsOnly;
 			}
 
 			protected override void OnTargetCancel(Mobile from, TargetCancelType cancelType)
 			{
-				if (m_Foundations.Count != 0)
+				if (_mFoundations.Count != 0)
 				{
 					from.SendMessage("Your changes have been committed. Updating...");
 
-					foreach (HouseFoundation house in m_Foundations)
+					foreach (HouseFoundation house in _mFoundations)
 						house.Delta(ItemDelta.Update);
 				}
 			}
 
 			protected override void OnTarget(Mobile from, object obj)
 			{
-				DesignInsertResult result = ProcessInsert(obj as Item, m_StaticsOnly, out HouseFoundation house);
+				DesignInsertResult result = ProcessInsert(obj as Item, _mStaticsOnly, out HouseFoundation house);
 
 				switch (result)
 				{
 					case DesignInsertResult.Valid:
 						{
-							if (m_Foundations.Count == 0)
-								from.SendMessage("The item has been inserted into the house design. Press ESC when you are finished.");
-							else
-								from.SendMessage("The item has been inserted into the house design.");
+							from.SendMessage(_mFoundations.Count == 0
+								? "The item has been inserted into the house design. Press ESC when you are finished."
+								: "The item has been inserted into the house design.");
 
-							if (!m_Foundations.Contains(house))
-								m_Foundations.Add(house);
+							if (!_mFoundations.Contains(house))
+								_mFoundations.Add(house);
 
 							break;
 						}
@@ -85,7 +84,7 @@ namespace Server.Commands.Generic
 						}
 				}
 
-				from.Target = new DesignInsertTarget(m_Foundations, m_StaticsOnly);
+				from.Target = new DesignInsertTarget(_mFoundations, _mStaticsOnly);
 			}
 		}
 		#endregion
@@ -93,7 +92,8 @@ namespace Server.Commands.Generic
 		#region Area targeting mode
 		public override void ExecuteList(CommandEventArgs e, ArrayList list)
 		{
-			e.Mobile.SendGump(new WarningGump(1060637, 30720, string.Format("You are about to insert {0} objects. This cannot be undone without a full server revert.<br><br>Continue?", list.Count), 0xFFC000, 420, 280, OnConfirmCallback, new object[] { e, list, (e.Length < 1 || !e.GetBoolean(0)) }));
+			e.Mobile.SendGump(new WarningGump(1060637, 30720,
+				$"You are about to insert {list.Count} objects. This cannot be undone without a full server revert.<br><br>Continue?", 0xFFC000, 420, 280, OnConfirmCallback, new object[] { e, list, (e.Length < 1 || !e.GetBoolean(0)) }));
 			AddResponse("Awaiting confirmation...");
 		}
 
@@ -109,7 +109,7 @@ namespace Server.Commands.Generic
 			if (okay)
 			{
 				List<HouseFoundation> foundations = new();
-				flushToLog = (list.Count > 20);
+				flushToLog = list.Count > 20;
 
 				for (int i = 0; i < list.Count; ++i)
 				{
@@ -185,14 +185,14 @@ namespace Server.Commands.Generic
 			return DesignInsertResult.Valid;
 		}
 
-		private static bool TryInsertIntoState(DesignState state, int itemID, int x, int y, int z)
+		private static bool TryInsertIntoState(DesignState state, int itemId, int x, int y, int z)
 		{
 			MultiComponentList mcl = state.Components;
 
 			if (x < mcl.Min.X || y < mcl.Min.Y || x > mcl.Max.X || y > mcl.Max.Y)
 				return false;
 
-			mcl.Add(itemID, x, y, z);
+			mcl.Add(itemId, x, y, z);
 			state.OnRevised();
 
 			return true;

@@ -1,6 +1,5 @@
-using Server.Commands;
 using Server.Network;
-using System;
+using Server.Gumps;
 
 namespace Server.Misc
 {
@@ -24,6 +23,14 @@ namespace Server.Misc
 				userCount, userCount == 1 ? "" : "s",
 				itemCount, itemCount == 1 ? "" : "s",
 				mobileCount, mobileCount == 1 ? "" : "s");
+
+			#region CheckName
+			if (m.Name == CharacterCreation.GENERIC_NAME || !CharacterCreation.CheckDupe(m, m.Name))
+			{
+				m.CantWalk = true;
+				m.SendGump(new NameChangeGump(m));
+			}
+			#endregion
 		}
 	}
 }

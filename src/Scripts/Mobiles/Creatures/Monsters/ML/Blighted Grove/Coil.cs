@@ -78,7 +78,7 @@ namespace Server.Mobiles
 
 		public override Poison HitPoison => Poison.Lethal;
 		public override Poison PoisonImmune => Poison.Lethal;
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int Hides => 48;
 		public override int Meat => 1;
 

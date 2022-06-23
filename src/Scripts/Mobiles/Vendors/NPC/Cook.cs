@@ -31,7 +31,7 @@ public class Cook : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
+		SetWearable(new HalfApron());
 	}
 
 	public Cook(Serial serial) : base(serial)

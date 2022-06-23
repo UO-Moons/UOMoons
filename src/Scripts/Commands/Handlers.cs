@@ -7,8 +7,8 @@ using Server.Network;
 using Server.Spells;
 using Server.Targeting;
 using Server.Targets;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Server.Commands
@@ -119,12 +119,12 @@ namespace Server.Commands
 				{
 					StringBuilder builder = new();
 
-					builder.Append(reg.ToString());
+					builder.Append(reg);
 					reg = reg.Parent;
 
 					while (reg != null)
 					{
-						builder.Append(" <- " + reg.ToString());
+						builder.Append(" <- " + reg);
 						reg = reg.Parent;
 					}
 
@@ -143,7 +143,7 @@ namespace Server.Commands
 
 		public static void DropHolding_OnTarget(Mobile from, object obj)
 		{
-			if (obj is Mobile targ && targ.Player)
+			if (obj is Mobile {Player: true} targ)
 			{
 				Item held = targ.Holding;
 
@@ -159,19 +159,17 @@ namespace Server.Commands
 
 						if (pe == null || pe.Handler != from)
 						{
-							if (pe == null)
-								from.SendMessage("You may only use this command on someone who has paged you.");
-							else
-								from.SendMessage("You may only use this command if you are handling their help page.");
+							from.SendMessage(pe == null
+								? "You may only use this command on someone who has paged you."
+								: "You may only use this command if you are handling their help page.");
 
 							return;
 						}
 					}
 
-					if (targ.AddToBackpack(held))
-						from.SendMessage("The item they were holding has been placed into their backpack.");
-					else
-						from.SendMessage("The item they were holding has been placed at their feet.");
+					from.SendMessage(targ.AddToBackpack(held)
+						? "The item they were holding has been placed into their backpack."
+						: "The item they were holding has been placed at their feet.");
 
 					held.ClearBounce();
 
@@ -220,15 +218,8 @@ namespace Server.Commands
 				return;
 			}
 
-			List<IEntity> list = new();
-
-			foreach (Item item in World.Items.Values)
-				if (item.Map == map && item.Parent == null)
-					list.Add(item);
-
-			foreach (Mobile m in World.Mobiles.Values)
-				if (m.Map == map && !m.Player)
-					list.Add(m);
+			List<IEntity> list = World.Items.Values.Where(item => item.Map == map && item.Parent == null).Cast<IEntity>().ToList();
+			list.AddRange(World.Mobiles.Values.Where(m => m.Map == map && !m.Player));
 
 			if (list.Count > 0)
 			{
@@ -281,9 +272,10 @@ namespace Server.Commands
 					from.SendMessage("There were no pets found for that player.");
 				}
 			}
-			else if (obj is Mobile mobile && mobile.Player)
+			else if (obj is Mobile {Player: true} mobile)
 			{
-				ArrayList pets = new();
+				//ArrayList pets = new();
+				List<Mobile> pets = new();
 
 				foreach (Mobile m in World.Mobiles.Values)
 				{
@@ -302,7 +294,8 @@ namespace Server.Commands
 
 					for (int i = 0; i < pets.Count; ++i)
 					{
-						Mobile pet = (Mobile)pets[i];
+						var pet = pets[i];
+						//Mobile pet = (Mobile)pets[i];
 
 						if (pet is IMount mount)
 							mount.Rider = null; // make sure it's dismounted
@@ -324,11 +317,7 @@ namespace Server.Commands
 
 		public static void ReplaceBankers_OnCommand(CommandEventArgs e)
 		{
-			List<Mobile> list = new();
-
-			foreach (Mobile m in World.Mobiles.Values)
-				if ((m is Banker) && !(m is BaseCreature))
-					list.Add(m);
+			List<Mobile> list = World.Mobiles.Values.Where(_ => false).ToList();
 
 			foreach (Mobile m in list)
 			{
@@ -386,7 +375,7 @@ namespace Server.Commands
 				{
 					Item item = m.Items[i];
 
-					entries[i] = new ItemListEntry(string.Format("{0}: {1}", item.Layer, item.GetType().Name), item.ItemId, item.Hue);
+					entries[i] = new ItemListEntry($"{item.Layer}: {item.GetType().Name}", item.ItemId, item.Hue);
 				}
 
 				return entries;
@@ -394,57 +383,57 @@ namespace Server.Commands
 
 			private class EquipMenu : ItemListMenu
 			{
-				private readonly Mobile m_Mobile;
+				private readonly Mobile _mMobile;
 
 				public EquipMenu(Mobile from, Mobile m, ItemListEntry[] entries) : base("Equipment", entries)
 				{
-					m_Mobile = m;
+					_mMobile = m;
 
 					CommandLogging.WriteLine(from, "{0} {1} viewing equipment of {2}", from.AccessLevel, CommandLogging.Format(from), CommandLogging.Format(m));
 				}
 
 				public override void OnResponse(NetState state, int index)
 				{
-					if (index >= 0 && index < m_Mobile.Items.Count)
+					if (index >= 0 && index < _mMobile.Items.Count)
 					{
-						Item item = m_Mobile.Items[index];
+						Item item = _mMobile.Items[index];
 
-						state.Mobile.SendMenu(new EquipDetailsMenu(m_Mobile, item));
+						state.Mobile.SendMenu(new EquipDetailsMenu(_mMobile, item));
 					}
 				}
 
 				private class EquipDetailsMenu : QuestionMenu
 				{
-					private readonly Mobile m_Mobile;
-					private readonly Item m_Item;
+					private readonly Mobile _mMobile;
+					private readonly Item _mItem;
 
-					public EquipDetailsMenu(Mobile m, Item item) : base(string.Format("{0}: {1}", item.Layer, item.GetType().Name), new string[] { "Move", "Delete", "Props" })
+					public EquipDetailsMenu(Mobile m, Item item) : base($"{item.Layer}: {item.GetType().Name}", new[] { "Move", "Delete", "Props" })
 					{
-						m_Mobile = m;
-						m_Item = item;
+						_mMobile = m;
+						_mItem = item;
 					}
 
 					public override void OnCancel(NetState state)
 					{
-						state.Mobile.SendMenu(new EquipMenu(state.Mobile, m_Mobile, ViewEqTarget.GetEquip(m_Mobile)));
+						state.Mobile.SendMenu(new EquipMenu(state.Mobile, _mMobile, GetEquip(_mMobile)));
 					}
 
 					public override void OnResponse(NetState state, int index)
 					{
 						if (index == 0)
 						{
-							CommandLogging.WriteLine(state.Mobile, "{0} {1} moving equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(m_Item), CommandLogging.Format(m_Mobile));
-							state.Mobile.Target = new MoveTarget(m_Item);
+							CommandLogging.WriteLine(state.Mobile, "{0} {1} moving equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(_mItem), CommandLogging.Format(_mMobile));
+							state.Mobile.Target = new MoveTarget(_mItem);
 						}
 						else if (index == 1)
 						{
-							CommandLogging.WriteLine(state.Mobile, "{0} {1} deleting equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(m_Item), CommandLogging.Format(m_Mobile));
-							m_Item.Delete();
+							CommandLogging.WriteLine(state.Mobile, "{0} {1} deleting equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(_mItem), CommandLogging.Format(_mMobile));
+							_mItem.Delete();
 						}
 						else if (index == 2)
 						{
-							CommandLogging.WriteLine(state.Mobile, "{0} {1} opening properties for equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(m_Item), CommandLogging.Format(m_Mobile));
-							state.Mobile.SendGump(new PropertiesGump(state.Mobile, m_Item));
+							CommandLogging.WriteLine(state.Mobile, "{0} {1} opening properties for equipment item {2} of {3}", state.Mobile.AccessLevel, CommandLogging.Format(state.Mobile), CommandLogging.Format(_mItem), CommandLogging.Format(_mMobile));
+							state.Mobile.SendGump(new PropertiesGump(state.Mobile, _mItem));
 						}
 					}
 				}
@@ -492,6 +481,22 @@ namespace Server.Commands
 			p.Release();
 		}
 
+		[Usage("Echo <text>")]
+		[Description("Relays (text) as a system message.")]
+		public static void Echo_OnCommand(CommandEventArgs e)
+		{
+			string toEcho = e.ArgString.Trim();
+
+			e.Mobile.SendMessage(toEcho.Length > 0 ? toEcho : "Format: Echo \"<text>\"");
+		}
+
+		[Usage("Bank")]
+		[Description("Opens the bank box of a given target.")]
+		public static void Bank_OnCommand(CommandEventArgs e)
+		{
+			e.Mobile.Target = new BankTarget();
+		}
+
 		private class BankTarget : Target
 		{
 			public BankTarget() : base(-1, false, TargetFlags.None)
@@ -502,7 +507,7 @@ namespace Server.Commands
 			{
 				if (targeted is Mobile m)
 				{
-					BankBox box = (m.Player ? m.BankBox : m.FindBankNoCreate());
+					BankBox box = m.Player ? m.BankBox : m.FindBankNoCreate();
 
 					if (box != null)
 					{
@@ -521,26 +526,8 @@ namespace Server.Commands
 			}
 		}
 
-		[Usage("Echo <text>")]
-		[Description("Relays (text) as a system message.")]
-		public static void Echo_OnCommand(CommandEventArgs e)
-		{
-			string toEcho = e.ArgString.Trim();
-
-			if (toEcho.Length > 0)
-				e.Mobile.SendMessage(toEcho);
-			else
-				e.Mobile.SendMessage("Format: Echo \"<text>\"");
-		}
-
-		[Usage("Bank")]
-		[Description("Opens the bank box of a given target.")]
-		public static void Bank_OnCommand(CommandEventArgs e)
-		{
-			e.Mobile.Target = new BankTarget();
-		}
-
-		private class DismountTarget : Target
+		//readd later
+		/*private class DismountTarget : Target
 		{
 			public DismountTarget() : base(-1, false, TargetFlags.None)
 			{
@@ -580,7 +567,7 @@ namespace Server.Commands
 					}
 				}
 			}
-		}
+		}*/
 
 		private class ClientTarget : Target
 		{
@@ -634,7 +621,7 @@ namespace Server.Commands
 		{
 			if (map == null || map == Map.Internal)
 			{
-				return (item.RootParent is Mobile m && FixMap(ref map, ref loc, m));
+				return item.RootParent is Mobile m && FixMap(ref map, ref loc, m);
 			}
 
 			return true;
@@ -657,180 +644,186 @@ namespace Server.Commands
 		{
 			Mobile from = e.Mobile;
 
-			if (e.Length == 0)
+			switch (e.Length)
 			{
-				GoGump.DisplayTo(from);
-				return;
-			}
-
-			if (e.Length == 1)
-			{
-				try
-				{
-					int ser = e.GetInt32(0);
-
-					IEntity ent = World.FindEntity(ser);
-
-					if (ent is Item item)
+				case 0:
+					GoGump.DisplayTo(from);
+					return;
+				case 1:
+					try
 					{
-						Map map = item.Map;
-						Point3D loc = item.GetWorldLocation();
+						int ser = e.GetInt32(0);
 
-						Mobile owner = item.RootParent as Mobile;
+						IEntity ent = World.FindEntity(ser);
 
-						if (owner != null && (owner.Map != null && owner.Map != Map.Internal) && !BaseCommand.IsAccessible(from, owner) /* !from.CanSee( owner )*/ )
+						if (ent is Item item)
 						{
-							from.SendMessage("You can not go to what you can not see.");
-							return;
-						}
-						else if (owner != null && (owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= from.AccessLevel)
-						{
-							from.SendMessage("You can not go to what you can not see.");
-							return;
-						}
-						else if (!FixMap(ref map, ref loc, item))
-						{
-							from.SendMessage("That is an internal item and you cannot go to it.");
-							return;
-						}
+							Map map = item.Map;
+							Point3D loc = item.GetWorldLocation();
 
-						from.MoveToWorld(loc, map);
+							Mobile owner = item.RootParent as Mobile;
 
-						return;
-					}
-					else if (ent is Mobile)
-					{
-						Mobile m = (Mobile)ent;
-
-						Map map = m.Map;
-						Point3D loc = m.Location;
-
-						Mobile owner = m;
-
-						if (owner != null && (owner.Map != null && owner.Map != Map.Internal) && !BaseCommand.IsAccessible(from, owner) /* !from.CanSee( owner )*/ )
-						{
-							from.SendMessage("You can not go to what you can not see.");
-							return;
-						}
-						else if (owner != null && (owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= from.AccessLevel)
-						{
-							from.SendMessage("You can not go to what you can not see.");
-							return;
-						}
-						else if (!FixMap(ref map, ref loc, m))
-						{
-							from.SendMessage("That is an internal mobile and you cannot go to it.");
-							return;
-						}
-
-						from.MoveToWorld(loc, map);
-
-						return;
-					}
-					else
-					{
-						string name = e.GetString(0);
-						Map map;
-
-						for (int i = 0; i < Map.AllMaps.Count; ++i)
-						{
-							map = Map.AllMaps[i];
-
-							if (map.MapIndex == 0x7F || map.MapIndex == 0xFF)
-								continue;
-
-							if (Insensitive.Equals(name, map.Name))
+							if (owner != null && (owner.Map != null && owner.Map != Map.Internal) && !BaseCommand.IsAccessible(from, owner) /* !from.CanSee( owner )*/ )
 							{
-								from.Map = map;
+								from.SendMessage("You can not go to what you can not see.");
 								return;
 							}
-						}
 
-						Dictionary<string, Region> list = from.Map.Regions;
-
-						foreach (KeyValuePair<string, Region> kvp in list)
-						{
-							Region r = kvp.Value;
-
-							if (Insensitive.Equals(r.Name, name))
+							if (owner != null && (owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= from.AccessLevel)
 							{
-								from.Location = new Point3D(r.GoLocation);
+								from.SendMessage("You can not go to what you can not see.");
 								return;
 							}
+
+							if (!FixMap(ref map, ref loc, item))
+							{
+								from.SendMessage("That is an internal item and you cannot go to it.");
+								return;
+							}
+
+							from.MoveToWorld(loc, map);
+
+							return;
 						}
 
-						for (int i = 0; i < Map.AllMaps.Count; ++i)
+						if (ent is Mobile mobile)
 						{
-							Map m = Map.AllMaps[i];
+							Map map = mobile.Map;
+							Point3D loc = mobile.Location;
 
-							if (m.MapIndex == 0x7F || m.MapIndex == 0xFF || from.Map == m)
-								continue;
+							Mobile owner = mobile;
 
-							foreach (Region r in m.Regions.Values)
+							if (owner is {Map: { }} && owner.Map != Map.Internal && !BaseCommand.IsAccessible(from, owner) /* !from.CanSee( owner )*/ )
 							{
-								if (Insensitive.Equals(r.Name, name))
+								from.SendMessage("You can not go to what you can not see.");
+								return;
+							}
+
+							if ((owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= from.AccessLevel)
+							{
+								from.SendMessage("You can not go to what you can not see.");
+								return;
+							}
+
+							if (!FixMap(ref map, ref loc, mobile))
+							{
+								from.SendMessage("That is an internal mobile and you cannot go to it.");
+								return;
+							}
+
+							from.MoveToWorld(loc, map);
+
+							return;
+						}
+						else
+						{
+							string name = e.GetString(0);
+							Map map;
+
+							for (int i = 0; i < Map.AllMaps.Count; ++i)
+							{
+								map = Map.AllMaps[i];
+
+								if (map.MapIndex == 0x7F || map.MapIndex == 0xFF)
+									continue;
+
+								if (Insensitive.Equals(name, map.Name))
 								{
-									from.MoveToWorld(r.GoLocation, m);
+									from.Map = map;
 									return;
 								}
 							}
+
+							Dictionary<string, Region> list = from.Map.Regions;
+
+							foreach (KeyValuePair<string, Region> kvp in list)
+							{
+								Region r = kvp.Value;
+
+								if (Insensitive.Equals(r.Name, name))
+								{
+									from.Location = new Point3D(r.GoLocation);
+									return;
+								}
+							}
+
+							for (int i = 0; i < Map.AllMaps.Count; ++i)
+							{
+								Map m = Map.AllMaps[i];
+
+								if (m.MapIndex == 0x7F || m.MapIndex == 0xFF || from.Map == m)
+									continue;
+
+								foreach (Region r in m.Regions.Values)
+								{
+									if (Insensitive.Equals(r.Name, name))
+									{
+										from.MoveToWorld(r.GoLocation, m);
+										return;
+									}
+								}
+							}
+
+							from.SendMessage(ser != 0
+								? "No object with that serial was found."
+								: "No region with that name was found.");
+
+							return;
 						}
-
-						if (ser != 0)
-							from.SendMessage("No object with that serial was found.");
-						else
-							from.SendMessage("No region with that name was found.");
-
-						return;
-					}
-				}
-				catch
-				{
-				}
-
-				from.SendMessage("Region name not found");
-			}
-			else if (e.Length == 2 || e.Length == 3)
-			{
-				Map map = from.Map;
-
-				if (map != null)
-				{
-					try
-					{
-						/*
-						 * This to avoid being teleported to (0,0) if trying to teleport
-						 * to a region with spaces in its name.
-						 */
-						int x = int.Parse(e.GetString(0));
-						int y = int.Parse(e.GetString(1));
-						int z = (e.Length == 3) ? int.Parse(e.GetString(2)) : map.GetAverageZ(x, y);
-
-						from.Location = new Point3D(x, y, z);
 					}
 					catch
 					{
-						from.SendMessage("Region name not found.");
+						// ignored
 					}
-				}
-			}
-			else if (e.Length == 6)
-			{
-				Map map = from.Map;
 
-				if (map != null)
+					from.SendMessage("Region name not found");
+					break;
+				case 2:
+				case 3:
 				{
-					Point3D p = Sextant.ReverseLookup(map, e.GetInt32(3), e.GetInt32(0), e.GetInt32(4), e.GetInt32(1), Insensitive.Equals(e.GetString(5), "E"), Insensitive.Equals(e.GetString(2), "S"));
+					Map map = from.Map;
 
-					if (p != Point3D.Zero)
-						from.Location = p;
-					else
-						from.SendMessage("Sextant reverse lookup failed.");
+					if (map != null)
+					{
+						try
+						{
+							/*
+						 * This to avoid being teleported to (0,0) if trying to teleport
+						 * to a region with spaces in its name.
+						 */
+							int x = int.Parse(e.GetString(0));
+							int y = int.Parse(e.GetString(1));
+							int z = (e.Length == 3) ? int.Parse(e.GetString(2)) : map.GetAverageZ(x, y);
+
+							from.Location = new Point3D(x, y, z);
+						}
+						catch
+						{
+							from.SendMessage("Region name not found.");
+						}
+					}
+
+					break;
 				}
-			}
-			else
-			{
-				from.SendMessage("Format: Go [name | serial | (x y [z]) | (deg min (N | S) deg min (E | W)]");
+				case 6:
+				{
+					Map map = from.Map;
+
+					if (map != null)
+					{
+						Point3D p = Sextant.ReverseLookup(map, e.GetInt32(3), e.GetInt32(0), e.GetInt32(4), e.GetInt32(1), Insensitive.Equals(e.GetString(5), "E"), Insensitive.Equals(e.GetString(2), "S"));
+
+						if (p != Point3D.Zero)
+							from.Location = p;
+						else
+							from.SendMessage("Sextant reverse lookup failed.");
+					}
+
+					break;
+				}
+				default:
+					from.SendMessage("Format: Go [name | serial | (x y [z]) | (deg min (N | S) deg min (E | W)]");
+					break;
 			}
 		}
 
@@ -986,7 +979,7 @@ namespace Server.Commands
 		[Description("View some stats about the server.")]
 		public static void Stats_OnCommand(CommandEventArgs e)
 		{
-			e.Mobile.SendMessage("Open Connections: {0}", Network.NetState.Instances.Count);
+			e.Mobile.SendMessage("Open Connections: {0}", NetState.Instances.Count);
 			e.Mobile.SendMessage("Mobiles: {0}", World.Mobiles.Count);
 			e.Mobile.SendMessage("Items: {0}", World.Items.Count);
 		}

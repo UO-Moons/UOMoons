@@ -1,19 +1,19 @@
 using System;
+using System.Globalization;
 
-namespace Server.Commands
+namespace Server.Commands;
+
+public class ShardTime
 {
-	public class ShardTime
+	public static void Initialize()
 	{
-		public static void Initialize()
-		{
-			CommandSystem.Register("Time", AccessLevel.Player, Time_OnCommand);
-		}
+		CommandSystem.Register("Time", AccessLevel.Player, Time_OnCommand);
+	}
 
-		[Usage("Time")]
-		[Description("Returns the server's local time.")]
-		private static void Time_OnCommand(CommandEventArgs e)
-		{
-			e.Mobile.SendMessage(DateTime.UtcNow.ToString());
-		}
+	[Usage("Time")]
+	[Description("Returns the server's local time.")]
+	private static void Time_OnCommand(CommandEventArgs e)
+	{
+		e.Mobile.SendMessage(DateTime.UtcNow.ToString(CultureInfo.InvariantCulture));
 	}
 }

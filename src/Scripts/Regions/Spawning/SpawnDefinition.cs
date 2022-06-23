@@ -6,388 +6,386 @@ using System.Collections.Generic;
 using System.IO;
 using System.Xml;
 
-namespace Server.Regions
+namespace Server.Regions;
+
+public abstract class SpawnDefinition
 {
-	public abstract class SpawnDefinition
+	public abstract ISpawnable Spawn(SpawnEntry entry);
+
+	public abstract bool CanSpawn(params Type[] types);
+
+	public static SpawnDefinition GetSpawnDefinition(XmlElement xml)
 	{
-		protected SpawnDefinition()
+		switch (xml.Name)
 		{
-		}
-
-		public abstract ISpawnable Spawn(SpawnEntry entry);
-
-		public abstract bool CanSpawn(params Type[] types);
-
-		public static SpawnDefinition GetSpawnDefinition(XmlElement xml)
-		{
-			switch (xml.Name)
+			case "object":
 			{
-				case "object":
-					{
-						Type type = null;
-						if (!Region.ReadType(xml, "type", ref type))
-							return null;
+				Type type = null;
+				if (!Region.ReadType(xml, "type", ref type))
+					return null;
 
-						if (typeof(Mobile).IsAssignableFrom(type))
-						{
-							return SpawnMobile.Get(type);
-						}
-						else if (typeof(Item).IsAssignableFrom(type))
-						{
-							return SpawnItem.Get(type);
-						}
-						else
-						{
-							Console.WriteLine("Invalid type '{0}' in a SpawnDefinition", type.FullName);
-							return null;
-						}
-					}
-				case "group":
-					{
-						string group = null;
-						if (!Region.ReadString(xml, "name", ref group))
-							return null;
+				if (typeof(Mobile).IsAssignableFrom(type))
+				{
+					return SpawnMobile.Get(type);
+				}
 
-						SpawnDefinition def = (SpawnDefinition)SpawnGroup.Table[group];
+				if (typeof(Item).IsAssignableFrom(type))
+				{
+					return SpawnItem.Get(type);
+				}
 
-						if (def == null)
-						{
-							Console.WriteLine("Could not find group '{0}' in a SpawnDefinition", group);
-							return null;
-						}
-						else
-						{
-							return def;
-						}
-					}
-				case "treasureChest":
-					{
-						int itemID = 0xE43;
-						Region.ReadInt32(xml, "itemID", ref itemID, false);
-
-						BaseTreasureChest.TreasureLevel level = BaseTreasureChest.TreasureLevel.Level2;
-
-						Region.ReadEnum(xml, "level", ref level, false);
-
-						return new SpawnTreasureChest(itemID, level);
-					}
-				default:
-					{
-						return null;
-					}
-			}
-		}
-	}
-
-	public abstract class SpawnType : SpawnDefinition
-	{
-		private bool m_Init;
-
-		public Type Type { get; }
-
-		public abstract int Height { get; }
-		public abstract bool Land { get; }
-		public abstract bool Water { get; }
-
-		protected SpawnType(Type type)
-		{
-			Type = type;
-			m_Init = false;
-		}
-
-		protected void EnsureInit()
-		{
-			if (m_Init)
-				return;
-
-			Init();
-			m_Init = true;
-		}
-
-		protected virtual void Init()
-		{
-		}
-
-		public override ISpawnable Spawn(SpawnEntry entry)
-		{
-			BaseRegion region = entry.Region;
-			Map map = region.Map;
-
-			Point3D loc = entry.RandomSpawnLocation(Height, Land, Water);
-
-			if (loc == Point3D.Zero)
+				Console.WriteLine("Invalid type '{0}' in a SpawnDefinition", type.FullName);
 				return null;
-
-			return Construct(entry, loc, map);
-		}
-
-		protected abstract ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map);
-
-		public override bool CanSpawn(params Type[] types)
-		{
-			for (int i = 0; i < types.Length; i++)
-			{
-				if (types[i] == Type)
-					return true;
 			}
+			case "group":
+			{
+				string group = null;
+				if (!Region.ReadString(xml, "name", ref group))
+					return null;
 
-			return false;
+				SpawnDefinition def = (SpawnDefinition)SpawnGroup.Table[group];
+
+				if (def == null)
+				{
+					Console.WriteLine("Could not find group '{0}' in a SpawnDefinition", group);
+					return null;
+				}
+
+				return def;
+			}
+			case "treasureChest":
+			{
+				int itemId = 0xE43;
+				Region.ReadInt32(xml, "itemID", ref itemId, false);
+
+				BaseTreasureChest.TreasureLevel level = BaseTreasureChest.TreasureLevel.Level2;
+
+				Region.ReadEnum(xml, "level", ref level, false);
+
+				return new SpawnTreasureChest(itemId, level);
+			}
+			default:
+			{
+				return null;
+			}
 		}
 	}
+}
 
-	public class SpawnMobile : SpawnType
+public abstract class SpawnType : SpawnDefinition
+{
+	private bool _mInit;
+
+	public Type Type { get; }
+
+	public abstract int Height { get; }
+	public abstract bool Land { get; }
+	public abstract bool Water { get; }
+
+	protected SpawnType(Type type)
 	{
-		private static readonly Hashtable m_Table = new();
+		Type = type;
+		_mInit = false;
+	}
 
-		public static SpawnMobile Get(Type type)
+	protected void EnsureInit()
+	{
+		if (_mInit)
+			return;
+
+		Init();
+		_mInit = true;
+	}
+
+	protected virtual void Init()
+	{
+	}
+
+	public override ISpawnable Spawn(SpawnEntry entry)
+	{
+		BaseRegion region = entry.Region;
+		Map map = region.Map;
+
+		Point3D loc = entry.RandomSpawnLocation(Height, Land, Water);
+
+		if (loc == Point3D.Zero)
+			return null;
+
+		return Construct(entry, loc, map);
+	}
+
+	protected abstract ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map);
+
+	public override bool CanSpawn(params Type[] types)
+	{
+		for (int i = 0; i < types.Length; i++)
 		{
-			SpawnMobile sm = (SpawnMobile)m_Table[type];
-
-			if (sm == null)
-			{
-				sm = new SpawnMobile(type);
-				m_Table[type] = sm;
-			}
-
-			return sm;
+			if (types[i] == Type)
+				return true;
 		}
 
-		protected bool m_Land;
-		protected bool m_Water;
+		return false;
+	}
+}
 
-		public override int Height => 16;
-		public override bool Land { get { EnsureInit(); return m_Land; } }
-		public override bool Water { get { EnsureInit(); return m_Water; } }
+public class SpawnMobile : SpawnType
+{
+	private static readonly Hashtable m_Table = new();
 
-		protected SpawnMobile(Type type) : base(type)
+	public static SpawnMobile Get(Type type)
+	{
+		SpawnMobile sm = (SpawnMobile)m_Table[type];
+
+		if (sm == null)
 		{
+			sm = new SpawnMobile(type);
+			m_Table[type] = sm;
 		}
 
-		protected override void Init()
-		{
-			Mobile mob = (Mobile)Activator.CreateInstance(Type);
+		return sm;
+	}
 
-			m_Land = !mob.CantWalk;
-			m_Water = mob.CanSwim;
+	protected bool MLand;
+	protected bool MWater;
+
+	public override int Height => 16;
+	public override bool Land { get { EnsureInit(); return MLand; } }
+	public override bool Water { get { EnsureInit(); return MWater; } }
+
+	protected SpawnMobile(Type type) : base(type)
+	{
+	}
+
+	protected override void Init()
+	{
+		Mobile mob = (Mobile)Activator.CreateInstance(Type);
+
+		if (mob != null)
+		{
+			MLand = !mob.CantWalk;
+			MWater = mob.CanSwim;
 
 			mob.Delete();
 		}
-
-		protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
-		{
-			Mobile mobile = CreateMobile();
-
-			if (mobile is BaseCreature creature)
-			{
-				creature.Home = entry.HomeLocation;
-				creature.RangeHome = entry.HomeRange;
-			}
-
-			if (entry.Direction != SpawnEntry.InvalidDirection)
-				mobile.Direction = entry.Direction;
-
-			mobile.OnBeforeSpawn(loc, map);
-			mobile.MoveToWorld(loc, map);
-			mobile.OnAfterSpawn();
-
-			return mobile;
-		}
-
-		protected virtual Mobile CreateMobile()
-		{
-			return (Mobile)Activator.CreateInstance(Type);
-		}
 	}
 
-	public class SpawnItem : SpawnType
+	protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
 	{
-		private static readonly Hashtable m_Table = new();
+		Mobile mobile = CreateMobile();
 
-		public static SpawnItem Get(Type type)
+		if (mobile is BaseCreature creature)
 		{
-			SpawnItem si = (SpawnItem)m_Table[type];
-
-			if (si == null)
-			{
-				si = new SpawnItem(type);
-				m_Table[type] = si;
-			}
-
-			return si;
+			creature.Home = entry.HomeLocation;
+			creature.RangeHome = entry.HomeRange;
 		}
 
-		protected int m_Height;
+		if (entry.Direction != SpawnEntry.InvalidDirection)
+			mobile.Direction = entry.Direction;
 
-		public override int Height { get { EnsureInit(); return m_Height; } }
-		public override bool Land => true;
-		public override bool Water => false;
+		mobile.OnBeforeSpawn(loc, map);
+		mobile.MoveToWorld(loc, map);
+		mobile.OnAfterSpawn();
 
-		protected SpawnItem(Type type) : base(type)
+		return mobile;
+	}
+
+	protected virtual Mobile CreateMobile()
+	{
+		return (Mobile)Activator.CreateInstance(Type);
+	}
+}
+
+public class SpawnItem : SpawnType
+{
+	private static readonly Hashtable m_Table = new();
+
+	public static SpawnItem Get(Type type)
+	{
+		SpawnItem si = (SpawnItem)m_Table[type];
+
+		if (si == null)
 		{
+			si = new SpawnItem(type);
+			m_Table[type] = si;
 		}
 
-		protected override void Init()
-		{
-			Item item = (Item)Activator.CreateInstance(Type);
+		return si;
+	}
 
-			m_Height = item.ItemData.Height;
+	protected int MHeight;
+
+	public override int Height { get { EnsureInit(); return MHeight; } }
+	public override bool Land => true;
+	public override bool Water => false;
+
+	protected SpawnItem(Type type) : base(type)
+	{
+	}
+
+	protected override void Init()
+	{
+		Item item = (Item)Activator.CreateInstance(Type);
+
+		if (item != null)
+		{
+			MHeight = item.ItemData.Height;
 
 			item.Delete();
 		}
-
-		protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
-		{
-			Item item = CreateItem();
-
-			item.OnBeforeSpawn(loc, map);
-			item.MoveToWorld(loc, map);
-			item.OnAfterSpawn();
-
-			return item;
-		}
-
-		protected virtual Item CreateItem()
-		{
-			return (Item)Activator.CreateInstance(Type);
-		}
 	}
 
-	public class SpawnTreasureChest : SpawnItem
+	protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
 	{
-		public int ItemID { get; }
-		public BaseTreasureChest.TreasureLevel Level { get; }
+		Item item = CreateItem();
 
-		public SpawnTreasureChest(int itemID, BaseTreasureChest.TreasureLevel level) : base(typeof(BaseTreasureChest))
-		{
-			ItemID = itemID;
-			Level = level;
-		}
+		item.OnBeforeSpawn(loc, map);
+		item.MoveToWorld(loc, map);
+		item.OnAfterSpawn();
 
-		protected override void Init()
-		{
-			m_Height = TileData.ItemTable[ItemID & TileData.MaxItemValue].Height;
-		}
-
-		protected override Item CreateItem()
-		{
-			return new BaseTreasureChest(ItemID, Level);
-		}
+		return item;
 	}
 
-	public class SpawnGroupElement
+	protected virtual Item CreateItem()
 	{
-		public SpawnDefinition SpawnDefinition { get; }
-		public int Weight { get; }
+		return (Item)Activator.CreateInstance(Type);
+	}
+}
 
-		public SpawnGroupElement(SpawnDefinition spawnDefinition, int weight)
-		{
-			SpawnDefinition = spawnDefinition;
-			Weight = weight;
-		}
+public class SpawnTreasureChest : SpawnItem
+{
+	public int ItemId { get; }
+	public BaseTreasureChest.TreasureLevel Level { get; }
+
+	public SpawnTreasureChest(int itemId, BaseTreasureChest.TreasureLevel level) : base(typeof(BaseTreasureChest))
+	{
+		ItemId = itemId;
+		Level = level;
 	}
 
-	public class SpawnGroup : SpawnDefinition
+	protected override void Init()
 	{
-		public static Hashtable Table { get; } = new Hashtable();
+		MHeight = TileData.ItemTable[ItemId & TileData.MaxItemValue].Height;
+	}
 
-		public static void Register(SpawnGroup group)
-		{
-			if (Table.Contains(group.Name))
-				Console.WriteLine("Warning: Double SpawnGroup name '{0}'", group.Name);
-			else
-				Table[group.Name] = group;
-		}
+	protected override Item CreateItem()
+	{
+		return new BaseTreasureChest(ItemId, Level);
+	}
+}
 
-		static SpawnGroup()
+public class SpawnGroupElement
+{
+	public SpawnDefinition SpawnDefinition { get; }
+	public int Weight { get; }
+
+	public SpawnGroupElement(SpawnDefinition spawnDefinition, int weight)
+	{
+		SpawnDefinition = spawnDefinition;
+		Weight = weight;
+	}
+}
+
+public class SpawnGroup : SpawnDefinition
+{
+	public static Hashtable Table { get; } = new Hashtable();
+
+	public static void Register(SpawnGroup group)
+	{
+		if (Table.Contains(group.Name))
+			Console.WriteLine("Warning: Double SpawnGroup name '{0}'", group.Name);
+		else
+			Table[group.Name] = group;
+	}
+
+	static SpawnGroup()
+	{
+		string path = Path.Combine(Core.BaseDirectory, "Data/SpawnDefinitions.xml");
+		if (!File.Exists(path))
+			return;
+
+		try
 		{
-			string path = Path.Combine(Core.BaseDirectory, "Data/SpawnDefinitions.xml");
-			if (!File.Exists(path))
+			XmlDocument doc = new();
+			doc.Load(path);
+
+			XmlElement root = doc["spawnDefinitions"];
+			if (root == null)
 				return;
 
-			try
+			foreach (XmlElement xmlDef in root.SelectNodes("spawnGroup"))
 			{
-				XmlDocument doc = new();
-				doc.Load(path);
+				string name = null;
+				if (!Region.ReadString(xmlDef, "name", ref name))
+					continue;
 
-				XmlElement root = doc["spawnDefinitions"];
-				if (root == null)
-					return;
-
-				foreach (XmlElement xmlDef in root.SelectNodes("spawnGroup"))
+				List<SpawnGroupElement> list = new();
+				foreach (XmlNode node in xmlDef.ChildNodes)
 				{
-					string name = null;
-					if (!Region.ReadString(xmlDef, "name", ref name))
-						continue;
-
-					List<SpawnGroupElement> list = new();
-					foreach (XmlNode node in xmlDef.ChildNodes)
+					if (node is XmlElement el)
 					{
-						if (node is XmlElement el)
-						{
-							SpawnDefinition def = GetSpawnDefinition(el);
-							if (def == null)
-								continue;
+						SpawnDefinition def = GetSpawnDefinition(el);
+						if (def == null)
+							continue;
 
-							int weight = 1;
-							Region.ReadInt32(el, "weight", ref weight, false);
+						int weight = 1;
+						Region.ReadInt32(el, "weight", ref weight, false);
 
-							SpawnGroupElement groupElement = new(def, weight);
-							list.Add(groupElement);
-						}
+						SpawnGroupElement groupElement = new(def, weight);
+						list.Add(groupElement);
 					}
-
-					SpawnGroupElement[] elements = list.ToArray();
-					SpawnGroup group = new(name, elements);
-					Register(group);
 				}
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine("Could not load SpawnDefinitions.xml: " + ex.Message);
+
+				SpawnGroupElement[] elements = list.ToArray();
+				SpawnGroup group = new(name, elements);
+				Register(group);
 			}
 		}
-
-		private readonly int m_TotalWeight;
-
-		public string Name { get; }
-		public SpawnGroupElement[] Elements { get; }
-
-		public SpawnGroup(string name, SpawnGroupElement[] elements)
+		catch (Exception ex)
 		{
-			Name = name;
-			Elements = elements;
-
-			m_TotalWeight = 0;
-			for (int i = 0; i < elements.Length; i++)
-				m_TotalWeight += elements[i].Weight;
+			Console.WriteLine("Could not load SpawnDefinitions.xml: " + ex.Message);
 		}
+	}
 
-		public override ISpawnable Spawn(SpawnEntry entry)
+	private readonly int _mTotalWeight;
+
+	public string Name { get; }
+	public SpawnGroupElement[] Elements { get; }
+
+	public SpawnGroup(string name, SpawnGroupElement[] elements)
+	{
+		Name = name;
+		Elements = elements;
+
+		_mTotalWeight = 0;
+		for (int i = 0; i < elements.Length; i++)
+			_mTotalWeight += elements[i].Weight;
+	}
+
+	public override ISpawnable Spawn(SpawnEntry entry)
+	{
+		int index = Utility.Random(_mTotalWeight);
+
+		for (int i = 0; i < Elements.Length; i++)
 		{
-			int index = Utility.Random(m_TotalWeight);
+			SpawnGroupElement element = Elements[i];
 
-			for (int i = 0; i < Elements.Length; i++)
-			{
-				SpawnGroupElement element = Elements[i];
+			if (index < element.Weight)
+				return element.SpawnDefinition.Spawn(entry);
 
-				if (index < element.Weight)
-					return element.SpawnDefinition.Spawn(entry);
-
-				index -= element.Weight;
-			}
-
-			return null;
+			index -= element.Weight;
 		}
 
-		public override bool CanSpawn(params Type[] types)
+		return null;
+	}
+
+	public override bool CanSpawn(params Type[] types)
+	{
+		for (int i = 0; i < Elements.Length; i++)
 		{
-			for (int i = 0; i < Elements.Length; i++)
-			{
-				if (Elements[i].SpawnDefinition.CanSpawn(types))
-					return true;
-			}
-
-			return false;
+			if (Elements[i].SpawnDefinition.CanSpawn(types))
+				return true;
 		}
+
+		return false;
 	}
 }

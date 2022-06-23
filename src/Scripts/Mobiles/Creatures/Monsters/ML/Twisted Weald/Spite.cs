@@ -47,7 +47,7 @@ namespace Server.Mobiles
 			AddLoot(LootPack.UltraRich, 2);
 		}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 
 		public Spite(Serial serial)
 			: base(serial)

@@ -34,22 +34,22 @@ namespace Server.Mobiles
 		public override void InitOutfit()
 		{
 			if (Female)
-				AddItem(new PlainDress());
+				SetWearable(new PlainDress());
 			else
-				AddItem(new Shirt(GetRandomHue()));
+				SetWearable(new Shirt(GetRandomHue()));
 
 			int lowHue = GetRandomHue();
 
-			AddItem(new ThighBoots());
+			SetWearable(new ThighBoots());
 
 			if (Female)
-				AddItem(new FancyDress(lowHue));
+				SetWearable(new FancyDress(lowHue));
 			else
-				AddItem(new FancyShirt(lowHue));
-			AddItem(new LongPants(lowHue));
+				SetWearable(new FancyShirt(lowHue));
+			SetWearable(new LongPants(lowHue));
 
 			if (!Female)
-				AddItem(new BodySash(lowHue));
+				SetWearable(new BodySash(lowHue));
 
 
 

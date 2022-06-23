@@ -1,38 +1,39 @@
 using Server.Gumps;
 using Server.Targeting;
 
-namespace Server.Commands
+namespace Server.Commands;
+
+public class Skills
 {
-	public class Skills
+	public static void Initialize()
 	{
-		public static void Initialize()
+		Register();
+	}
+
+	public static void Register()
+	{
+		CommandSystem.Register("Skills", AccessLevel.Counselor, Skills_OnCommand);
+		CommandSystem.Register("ShowSkills", AccessLevel.Counselor, Skills_OnCommand);
+		CommandSystem.Register("SkillsMenu", AccessLevel.Counselor, Skills_OnCommand);
+	}
+
+	private class SkillsTarget : Target
+	{
+		public SkillsTarget() : base(-1, true, TargetFlags.None)
 		{
-			Register();
 		}
 
-		public static void Register()
+		protected override void OnTarget(Mobile from, object o)
 		{
-			CommandSystem.Register("Skills", AccessLevel.Counselor, Skills_OnCommand);
+			if (o is Mobile mobile)
+				from.SendGump(new SkillsGump(from, mobile));
 		}
+	}
 
-		private class SkillsTarget : Target
-		{
-			public SkillsTarget() : base(-1, true, TargetFlags.None)
-			{
-			}
-
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile)
-					from.SendGump(new SkillsGump(from, (Mobile)o));
-			}
-		}
-
-		[Usage("Skills")]
-		[Description("Opens a menu where you can view or edit skills of a targeted mobile.")]
-		private static void Skills_OnCommand(CommandEventArgs e)
-		{
-			e.Mobile.Target = new SkillsTarget();
-		}
+	[Usage("Skills")]
+	[Description("Opens a menu where you can view or edit skills of a targeted mobile.")]
+	private static void Skills_OnCommand(CommandEventArgs e)
+	{
+		e.Mobile.Target = new SkillsTarget();
 	}
 }

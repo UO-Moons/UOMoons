@@ -69,7 +69,7 @@ namespace Server.Mobiles
 		}
 		*/
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int TreasureMapLevel => 5;
 
 		public MasterJonath(Serial serial)

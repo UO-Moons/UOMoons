@@ -1,77 +1,76 @@
 using System;
 using System.Collections;
 
-namespace Server.Commands.Generic
+namespace Server.Commands.Generic;
+
+public class AreaCommandImplementor : BaseCommandImplementor
 {
-	public class AreaCommandImplementor : BaseCommandImplementor
+	public static AreaCommandImplementor Instance { get; private set; }
+
+	public AreaCommandImplementor()
 	{
-		public static AreaCommandImplementor Instance { get; private set; }
+		Accessors = new[] { "Area", "Group" };
+		SupportRequirement = CommandSupport.Area;
+		SupportsConditionals = true;
+		AccessLevel = AccessLevel.GameMaster;
+		Usage = "Area <command> [condition]";
+		Description = "Invokes the command on all appropriate objects in a targeted area. Optional condition arguments can further restrict the set of objects.";
 
-		public AreaCommandImplementor()
+		Instance = this;
+	}
+
+	public override void Process(Mobile from, BaseCommand command, string[] args)
+	{
+		BoundingBoxPicker.Begin(from, OnTarget, new object[] { command, args });
+	}
+
+	public void OnTarget(Mobile from, Map map, Point3D start, Point3D end, object state)
+	{
+		try
 		{
-			Accessors = new string[] { "Area", "Group" };
-			SupportRequirement = CommandSupport.Area;
-			SupportsConditionals = true;
-			AccessLevel = AccessLevel.GameMaster;
-			Usage = "Area <command> [condition]";
-			Description = "Invokes the command on all appropriate objects in a targeted area. Optional condition arguments can further restrict the set of objects.";
+			object[] states = (object[])state;
+			BaseCommand command = (BaseCommand)states[0];
+			string[] args = (string[])states[1];
 
-			Instance = this;
-		}
+			Rectangle2D rect = new Rectangle2D(start.X, start.Y, end.X - start.X + 1, end.Y - start.Y + 1);
 
-		public override void Process(Mobile from, BaseCommand command, string[] args)
-		{
-			BoundingBoxPicker.Begin(from, OnTarget, new object[] { command, args });
-		}
+			Extensions ext = Extensions.Parse(from, ref args);
 
-		public void OnTarget(Mobile from, Map map, Point3D start, Point3D end, object state)
-		{
-			try
+
+			if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
+				return;
+
+			IPooledEnumerable eable;
+
+			if (items && mobiles)
+				eable = map.GetObjectsInBounds(rect);
+			else if (items)
+				eable = map.GetItemsInBounds(rect);
+			else if (mobiles)
+				eable = map.GetMobilesInBounds(rect);
+			else
+				return;
+
+			ArrayList objs = new ArrayList();
+
+			foreach (object obj in eable)
 			{
-				object[] states = (object[])state;
-				BaseCommand command = (BaseCommand)states[0];
-				string[] args = (string[])states[1];
+				if (mobiles && obj is Mobile && !BaseCommand.IsAccessible(from, obj))
+					continue;
 
-				Rectangle2D rect = new Rectangle2D(start.X, start.Y, end.X - start.X + 1, end.Y - start.Y + 1);
-
-				Extensions ext = Extensions.Parse(from, ref args);
-
-
-				if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
-					return;
-
-				IPooledEnumerable eable;
-
-				if (items && mobiles)
-					eable = map.GetObjectsInBounds(rect);
-				else if (items)
-					eable = map.GetItemsInBounds(rect);
-				else if (mobiles)
-					eable = map.GetMobilesInBounds(rect);
-				else
-					return;
-
-				ArrayList objs = new ArrayList();
-
-				foreach (object obj in eable)
-				{
-					if (mobiles && obj is Mobile && !BaseCommand.IsAccessible(from, obj))
-						continue;
-
-					if (ext.IsValid(obj))
-						objs.Add(obj);
-				}
-
-				eable.Free();
-
-				ext.Filter(objs);
-
-				RunCommand(from, objs, command, args);
+				if (ext.IsValid(obj))
+					objs.Add(obj);
 			}
-			catch (Exception ex)
-			{
-				from.SendMessage(ex.Message);
-			}
+
+			eable.Free();
+
+			ext.Filter(objs);
+
+			RunCommand(from, objs, command, args);
+		}
+		catch (Exception ex)
+		{
+			from.SendMessage(ex.Message);
 		}
 	}
 }

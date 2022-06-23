@@ -68,7 +68,7 @@ namespace Server.Mobiles
 		}
 		*/
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 
 		public LadyLissith(Serial serial)
 			: base(serial)

@@ -49,7 +49,7 @@ namespace Server.Mobiles
         {
         }
 
-        public override bool GivesMLMinorArtifact => true;
+        public override bool GivesMlMinorArtifact => true;
         public override Poison PoisonImmune => Poison.Lethal;
 
         public override int GetDeathSound() { return 0x56F; }

@@ -36,7 +36,7 @@ public class AnimalTrainer : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(Utility.RandomBool() ? new QuarterStaff() : new ShepherdsCrook());
+		SetWearable(Utility.RandomBool() ? new QuarterStaff() : new ShepherdsCrook());
 	}
 
 	private class StableEntry : ContextMenuEntry
@@ -185,7 +185,7 @@ public class AnimalTrainer : BaseVendor
 		if (Deleted || !from.CheckAlive())
 			return;
 
-		List<BaseCreature> list = new List<BaseCreature>();
+		List<BaseCreature> list = new();
 
 		for (var i = 0; i < from.Stabled.Count; ++i)
 		{
@@ -283,12 +283,10 @@ public class AnimalTrainer : BaseVendor
 		{
 			SayTo(from, 502673); // I can not stable summoned creatures.
 		}
-		/*
-                    else if ( pet.Allured )
-                    {
-                        SayTo( from, 1048053 ); // You can't stable that!
-                    }
-        */
+		else if (pet.Allured)
+		{
+			SayTo(from, 1048053); // You can't stable that!
+		}
 		else if ((pet is PackLlama || pet is PackHorse || pet is Beetle) && (pet.Backpack != null && pet.Backpack.Items.Count > 0))
 		{
 			SayTo(from, 1042563); // You need to unload your pet.
@@ -318,7 +316,7 @@ public class AnimalTrainer : BaseVendor
 				pet.StabledBy = from;
 
 				if (Core.SE)
-					pet.Loyalty = BaseCreature.MaxLoyalty; // Wonderfully happy
+					pet.Loyalty = MaxLoyalty; // Wonderfully happy
 
 				from.Stabled.Add(pet);
 

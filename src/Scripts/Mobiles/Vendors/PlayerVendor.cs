@@ -254,19 +254,17 @@ namespace Server.Mobiles
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
-	public class PlayerVendor : Mobile
+	public class PlayerVendor : BaseMobile
 	{
 		private Dictionary<Item, VendorItem> m_SellItems;
 		private BaseHouse m_House;
@@ -454,11 +452,11 @@ namespace Server.Mobiles
 			{
 				Layer = Layer.InnerTorso
 			};
-			AddItem(item);
-			AddItem(new LongPants(Utility.RandomNeutralHue()));
-			AddItem(new BodySash(Utility.RandomNeutralHue()));
-			AddItem(new Boots(Utility.RandomNeutralHue()));
-			AddItem(new Cloak(Utility.RandomNeutralHue()));
+			SetWearable(item);
+			SetWearable(new LongPants(Utility.RandomNeutralHue()));
+			SetWearable(new BodySash(Utility.RandomNeutralHue()));
+			SetWearable(new Boots(Utility.RandomNeutralHue()));
+			SetWearable(new Cloak(Utility.RandomNeutralHue()));
 
 			Utility.AssignRandomHair(this);
 
@@ -466,7 +464,7 @@ namespace Server.Mobiles
 			{
 				Movable = false
 			};
-			AddItem(pack);
+			SetWearable(pack);
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]

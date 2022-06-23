@@ -27,7 +27,7 @@ public class Fisherman : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new FishingPole());
+		SetWearable(new FishingPole());
 	}
 
 	public Fisherman(Serial serial) : base(serial)

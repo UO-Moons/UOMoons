@@ -64,7 +64,7 @@ namespace Server.Mobiles
 		public override HideType HideType => HideType.Regular;
 		public override int Meat => 5;
 		public override MeatType MeatType => MeatType.Ribs;
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override bool Unprovokable => true;
 		public override Poison PoisonImmune => Poison.Deadly;
 		public override Poison HitPoison => Poison.Lethal;

@@ -34,7 +34,7 @@ public class Mage : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Robe(Utility.RandomBlueHue()));
+		SetWearable(new Robe(Utility.RandomBlueHue()));
 	}
 
 	public Mage(Serial serial) : base(serial)

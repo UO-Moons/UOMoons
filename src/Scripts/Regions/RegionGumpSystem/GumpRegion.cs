@@ -7,8 +7,8 @@ namespace Server.Scripts.Commands
 	{
 		public static void Initialize()
 		{
-			CommandSystem.Register("GumpRegion", AccessLevel.Player, new CommandEventHandler(GumpRegion_OnCommand));
-			CommandSystem.Register("GR", AccessLevel.Player, new CommandEventHandler(GumpRegion_OnCommand));
+			CommandSystem.Register("GumpRegion", AccessLevel.Player, GumpRegion_OnCommand);
+			CommandSystem.Register("GR", AccessLevel.Player, GumpRegion_OnCommand);
 		}
 
 		[Usage("GumpRegion || GR")]

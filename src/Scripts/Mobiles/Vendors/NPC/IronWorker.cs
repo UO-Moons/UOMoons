@@ -59,15 +59,15 @@ public class IronWorker : BaseVendor
 		switch (Utility.Random(3))
 		{
 			case 0:
-			case 1: AddItem(new JesterHat(Utility.RandomBrightHue())); break;
-			case 2: AddItem(new Bandana(Utility.RandomBrightHue())); break;
+			case 1: SetWearable(new JesterHat(Utility.RandomBrightHue())); break;
+			case 2: SetWearable(new Bandana(Utility.RandomBrightHue())); break;
 		}
 
 		if (item == null)
-			AddItem(new FullApron(Utility.RandomBrightHue()));
+			SetWearable(new FullApron(Utility.RandomBrightHue()));
 
-		AddItem(new Bascinet());
-		AddItem(new SmithHammer());
+		SetWearable(new Bascinet());
+		SetWearable(new SmithHammer());
 
 		item = FindItemOnLayer(Layer.Pants);
 

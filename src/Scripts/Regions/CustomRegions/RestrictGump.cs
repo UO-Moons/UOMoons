@@ -13,13 +13,13 @@ namespace Server.Gumps
 
 	public abstract class RestrictGump : Gump
 	{
-		readonly BitArray m_Restricted;
-		readonly RestrictType m_type;
+		private readonly BitArray _mRestricted;
+		private readonly RestrictType _mType;
 
 		public RestrictGump(BitArray ba, RestrictType t) : base(50, 50)
 		{
-			m_Restricted = ba;
-			m_type = t;
+			_mRestricted = ba;
+			_mType = t;
 
 			Closable = true;
 			Dragable = true;
@@ -37,7 +37,7 @@ namespace Server.Gumps
 			int itemsThisPage = 0;
 			int nextPageNumber = 1;
 
-			Object[] ary;// = (t == RestrictType.Skills) ? SkillInfo.Table : SpellRegistry.Types;
+			object[] ary;
 
 			if (t == RestrictType.Skills)
 			{
@@ -85,9 +85,9 @@ namespace Server.Gumps
 		{
 			if (info.ButtonID == 1)
 			{
-				for (int i = 0; i < m_Restricted.Length; i++)
+				for (int i = 0; i < _mRestricted.Length; i++)
 				{
-					m_Restricted[i] = info.IsSwitched(i + ((m_type == RestrictType.Spells) ? 100 : 500));
+					_mRestricted[i] = info.IsSwitched(i + (_mType == RestrictType.Spells ? 100 : 500));
 					//This way is faster after looking at decompiled BitArray.SetAll( bool )
 				}
 			}

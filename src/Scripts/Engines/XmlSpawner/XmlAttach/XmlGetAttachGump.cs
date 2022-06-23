@@ -14,34 +14,23 @@ namespace Server.Mobiles
 	{
 		private const int MaxEntries = 18;
 		private const int MaxEntriesPerPage = 18;
-
-		private readonly object m_TargetObject;
-
-		private readonly bool m_Dosearchtype;
-		private readonly bool m_Dosearchname;
-
-		private readonly bool m_Dosearchage;
-
-		private readonly bool m_Searchagedirection;
-		private double m_Searchage;
-
-		private readonly string m_Searchtype;
-		private readonly string m_Searchname;
-
-		private bool m_Sorttype;
-
-		private bool m_Sortname;
-
-		private readonly Mobile m_From;
-
-		private bool m_Descendingsort;
-		private int m_Selected;
-		private int m_DisplayFrom;
-		private readonly bool[] m_SelectionList;
-
-		private bool m_SelectAll;
-
-		private readonly List<XmlAttachment> m_SearchList;
+		private readonly object _mTargetObject;
+		private readonly bool _mDosearchtype;
+		private readonly bool _mDosearchname;
+		private readonly bool _mDosearchage;
+		private readonly bool _mSearchagedirection;
+		private double _mSearchage;
+		private readonly string _mSearchtype;
+		private readonly string _mSearchname;
+		private bool _mSorttype;
+		private bool _mSortname;
+		private readonly Mobile _mFrom;
+		private bool _mDescendingsort;
+		private int _mSelected;
+		private int _mDisplayFrom;
+		private readonly bool[] _mSelectionList;
+		private bool _mSelectAll;
+		private readonly List<XmlAttachment> _mSearchList;
 
 		public static void Initialize()
 		{
@@ -71,19 +60,20 @@ namespace Server.Mobiles
 			return false;
 		}
 		*/
-
+		/*
+		Removed string statusStr from code. Backup just incase i broke something
 		private List<XmlAttachment> Search(object target, out string statusStr)
 		{
 			statusStr = null;
 			List<XmlAttachment> newarray = new();
 			Type targetType = null;
 			// if the type is specified then get the search type
-			if (m_Dosearchtype && m_Searchtype != null)
+			if (_mDosearchtype && _mSearchtype != null)
 			{
-				targetType = SpawnerType.GetType(m_Searchtype);
+				targetType = SpawnerType.GetType(_mSearchtype);
 				if (targetType == null)
 				{
-					statusStr = "Invalid type: " + m_Searchtype;
+					statusStr = "Invalid type: " + _mSearchtype;
 					return newarray;
 				}
 			}
@@ -104,19 +94,72 @@ namespace Server.Mobiles
 
 
 				// check for type
-				if (targetType != null && m_Dosearchtype && (i.GetType().IsSubclassOf(targetType) || i.GetType() == targetType))
+				if (targetType != null && _mDosearchtype && (i.GetType().IsSubclassOf(targetType) || i.GetType() == targetType))
 				{
 					hastype = true;
 				}
-				if (m_Dosearchtype && !hastype)
+				if (_mDosearchtype && !hastype)
 					continue;
 
 				// check for name
-				if (m_Dosearchname && i.Name != null && m_Searchname != null && (i.Name.ToLower().Contains(m_Searchname.ToLower(), StringComparison.CurrentCulture)))
+				if (_mDosearchname && i.Name != null && _mSearchname != null && (i.Name.ToLower().Contains(_mSearchname.ToLower(), StringComparison.CurrentCulture)))
 				{
 					hasname = true;
 				}
-				if (m_Dosearchname && !hasname)
+				if (_mDosearchname && !hasname)
+					continue;
+
+
+				// satisfied all conditions so add it
+				newarray.Add(i);
+			}
+
+			return newarray;
+		}
+		 */
+		private List<XmlAttachment> Search(object target)
+		{
+			List<XmlAttachment> newarray = new();
+			Type targetType = null;
+			// if the type is specified then get the search type
+			if (_mDosearchtype && _mSearchtype != null)
+			{
+				targetType = SpawnerType.GetType(_mSearchtype);
+				if (targetType == null)
+				{
+					return newarray;
+				}
+			}
+
+			List<XmlAttachment> attachments = XmlAttach.FindAttachments(target);
+
+			// do the search through attachments
+			if (attachments == null)
+				return newarray;
+
+			foreach (var i in attachments)
+			{
+				var hastype = false;
+				var hasname = false;
+
+				if (i == null || i.Deleted)
+					continue;
+
+
+				// check for type
+				if (targetType != null && _mDosearchtype && (i.GetType().IsSubclassOf(targetType) || i.GetType() == targetType))
+				{
+					hastype = true;
+				}
+				if (_mDosearchtype && !hastype)
+					continue;
+
+				// check for name
+				if (_mDosearchname && i.Name != null && _mSearchname != null && i.Name.ToLower().Contains(_mSearchname.ToLower(), StringComparison.CurrentCulture))
+				{
+					hasname = true;
+				}
+				if (_mDosearchname && !hasname)
 					continue;
 
 
@@ -129,11 +172,11 @@ namespace Server.Mobiles
 
 		private class GetAttachTarget : Target
 		{
-			private readonly CommandEventArgs m_E;
+			private readonly CommandEventArgs _mE;
 
 			public GetAttachTarget(CommandEventArgs e) : base(30, false, TargetFlags.None)
 			{
-				m_E = e;
+				_mE = e;
 
 			}
 			protected override void OnTarget(Mobile from, object targeted)
@@ -170,32 +213,32 @@ namespace Server.Mobiles
 			bool selectall, bool[] selectionlist, int x, int y) : base(x, y)
 		{
 
-			m_TargetObject = targeted;
-			m_From = from;
-			m_SelectionList = selectionlist ?? new bool[MaxEntries];
-			m_SelectAll = selectall;
-			m_Sorttype = sorttype;
-			m_Sortname = sortname;
+			_mTargetObject = targeted;
+			_mFrom = from;
+			_mSelectionList = selectionlist ?? new bool[MaxEntries];
+			_mSelectAll = selectall;
+			_mSorttype = sorttype;
+			_mSortname = sortname;
 
-			m_DisplayFrom = displayfrom;
-			m_Selected = selected;
+			_mDisplayFrom = displayfrom;
+			_mSelected = selected;
 
-			m_Descendingsort = descend;
-			m_Dosearchtype = dosearchtype;
-			m_Dosearchname = dosearchname;
-			m_Dosearchage = dosearchage;
+			_mDescendingsort = descend;
+			_mDosearchtype = dosearchtype;
+			_mDosearchname = dosearchname;
+			_mDosearchage = dosearchage;
 
-			m_Searchagedirection = searchagedirection;
+			_mSearchagedirection = searchagedirection;
 
-			m_Searchage = searchage;
-			m_Searchtype = searchtype;
-			m_Searchname = searchname;
+			_mSearchage = searchage;
+			_mSearchtype = searchtype;
+			_mSearchname = searchname;
 
-			m_SearchList = searchlist;
+			_mSearchList = searchlist;
 
 			if (firststart)
 			{
-				m_SearchList = Search(m_TargetObject, out _);
+				_mSearchList = Search(_mTargetObject);
 			}
 
 			// prepare the page
@@ -218,7 +261,7 @@ namespace Server.Mobiles
 			AddLabel(38, 450, 0x384, "Sort");
 
 			// add the sort direction button
-			if (m_Descendingsort)
+			if (_mDescendingsort)
 			{
 				AddButton(75, 453, 0x15E2, 0x15E6, 701, GumpButtonType.Reply, 0);
 				AddLabel(100, 450, 0x384, "descend");
@@ -230,11 +273,11 @@ namespace Server.Mobiles
 			}
 
 			// add the Sort on type toggle
-			AddRadio(155, 450, 0xD2, 0xD3, m_Sorttype, 0);
+			AddRadio(155, 450, 0xD2, 0xD3, _mSorttype, 0);
 			AddLabel(155, 425, 0x384, "type");
 
 			// add the Sort on name toggle
-			AddRadio(200, 450, 0xD2, 0xD3, m_Sortname, 1);
+			AddRadio(200, 450, 0xD2, 0xD3, _mSortname, 1);
 			AddLabel(200, 425, 0x384, "name");
 
 
@@ -263,27 +306,27 @@ namespace Server.Mobiles
 			// add the displayfrom entry
 			AddLabel(460, 450, 0x384, "Display");
 			AddImageTiled(500, 450, 60, 21, 0xBBC);
-			AddTextEntry(501, 450, 60, 21, 0, 400, m_DisplayFrom.ToString());
+			AddTextEntry(501, 450, 60, 21, 0, 400, _mDisplayFrom.ToString());
 			AddButton(560, 450, 0xFAB, 0xFAD, 9998, GumpButtonType.Reply, 0);
 
 			// display the item list
-			if (m_SearchList != null)
+			if (_mSearchList != null)
 			{
-				AddLabel(320, 425, 68, $"Found {m_SearchList.Count} attachments");
+				AddLabel(320, 425, 68, $"Found {_mSearchList.Count} attachments");
 				AddLabel(500, 425, 68,
-					$"Displaying {m_DisplayFrom}-{(m_DisplayFrom + MaxEntries < m_SearchList.Count ? m_DisplayFrom + MaxEntries : m_SearchList.Count)}");
+					$"Displaying {_mDisplayFrom}-{(_mDisplayFrom + MaxEntries < _mSearchList.Count ? _mDisplayFrom + MaxEntries : _mSearchList.Count)}");
 			}
 
 			// display the select-all-displayed toggle
 			AddButton(620, 5, 0xD2, 0xD3, 3999, GumpButtonType.Reply, 0);
 
 			// display the select-all toggle
-			AddButton(600, 5, (m_SelectAll ? 0xD3 : 0xD2), (m_SelectAll ? 0xD2 : 0xD3), 3998, GumpButtonType.Reply, 0);
+			AddButton(600, 5, (_mSelectAll ? 0xD3 : 0xD2), (_mSelectAll ? 0xD2 : 0xD3), 3998, GumpButtonType.Reply, 0);
 
 			for (var i = 0; i < MaxEntries; i++)
 			{
-				var index = i + m_DisplayFrom;
-				if (m_SearchList == null || index >= m_SearchList.Count) break;
+				var index = i + _mDisplayFrom;
+				if (_mSearchList == null || index >= _mSearchList.Count) break;
 				var page = i / MaxEntriesPerPage;
 				if (i % MaxEntriesPerPage == 0)
 				{
@@ -306,11 +349,11 @@ namespace Server.Mobiles
 
 				var texthue = 0;
 
-				object o = m_SearchList[index];
+				object o = _mSearchList[index];
 
 				if (o is XmlAttachment)
 				{
-					var a = m_SearchList[index];
+					var a = _mSearchList[index];
 
 					namestr = a.Name;
 					typestr = a.GetType().Name;
@@ -321,13 +364,13 @@ namespace Server.Mobiles
 				}
 
 				bool sel = false;
-				if (m_SelectionList != null && i < m_SelectionList.Length)
+				if (_mSelectionList != null && i < _mSelectionList.Length)
 				{
-					sel = m_SelectionList[i];
+					sel = _mSelectionList[i];
 				}
 				if (sel) texthue = 33;
 
-				if (i == m_Selected) texthue = 68;
+				if (i == _mSelected) texthue = 68;
 
 				// display the name
 				AddImageTiled(36, 22 * (i % MaxEntriesPerPage) + 31, 102, 21, 0xBBC);
@@ -360,38 +403,38 @@ namespace Server.Mobiles
 
 		private void DoShowProps(int index)
 		{
-			if (m_From == null || m_From.Deleted) return;
+			if (_mFrom == null || _mFrom.Deleted) return;
 
-			if (index >= m_SearchList.Count)
+			if (index >= _mSearchList.Count)
 				return;
 
-			var x = m_SearchList[index];
+			var x = _mSearchList[index];
 			if (x == null || x.Deleted) return;
 
-			m_From.SendGump(new PropertiesGump(m_From, x));
+			_mFrom.SendGump(new PropertiesGump(_mFrom, x));
 		}
 
 		private void SortFindList()
 		{
-			if (m_SearchList is not {Count: > 0})
+			if (_mSearchList is not {Count: > 0})
 				return;
 
-			if (m_Sorttype)
+			if (_mSorttype)
 			{
-				m_SearchList.Sort(new ListTypeSorter(m_Descendingsort));
+				_mSearchList.Sort(new ListTypeSorter(_mDescendingsort));
 			}
-			else if (m_Sortname)
+			else if (_mSortname)
 			{
-				m_SearchList.Sort(new ListNameSorter(m_Descendingsort));
+				_mSearchList.Sort(new ListNameSorter(_mDescendingsort));
 			}
 		}
 
 		private class ListTypeSorter : IComparer<XmlAttachment>
 		{
-			private readonly bool m_Dsort;
+			private readonly bool _mDsort;
 			public ListTypeSorter(bool descend)
 			{
-				m_Dsort = descend;
+				_mDsort = descend;
 			}
 			public int Compare(XmlAttachment x, XmlAttachment y)
 			{
@@ -412,34 +455,34 @@ namespace Server.Mobiles
 					ystr = arglist[^1];
 				}
 
-				return m_Dsort ? string.Compare(ystr, xstr, StringComparison.OrdinalIgnoreCase) : string.Compare(xstr, ystr, StringComparison.OrdinalIgnoreCase);
+				return _mDsort ? string.Compare(ystr, xstr, StringComparison.OrdinalIgnoreCase) : string.Compare(xstr, ystr, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
 		private class ListNameSorter : IComparer<XmlAttachment>
 		{
-			private readonly bool m_Dsort;
+			private readonly bool _mDsort;
 
 			public ListNameSorter(bool descend)
 			{
-				m_Dsort = descend;
+				_mDsort = descend;
 			}
 			public int Compare(XmlAttachment x, XmlAttachment y)
 			{
 				var xstr = x?.Name;
 				var ystr = y?.Name;
-				return m_Dsort ? string.Compare(ystr, xstr, StringComparison.OrdinalIgnoreCase) : string.Compare(xstr, ystr, StringComparison.OrdinalIgnoreCase);
+				return _mDsort ? string.Compare(ystr, xstr, StringComparison.OrdinalIgnoreCase) : string.Compare(xstr, ystr, StringComparison.OrdinalIgnoreCase);
 			}
 		}
 
 		private void Refresh(NetState state)
 		{
-			state.Mobile.SendGump(new XmlGetAttGump(m_From, m_TargetObject, false, m_Descendingsort,
-				m_Dosearchtype, m_Dosearchname, m_Dosearchage,
-				m_Searchtype, m_Searchname, m_Searchagedirection, m_Searchage,
-				m_SearchList, m_Selected, m_DisplayFrom,
-				m_Sorttype, m_Sortname,
-				m_SelectAll, m_SelectionList, X, Y));
+			state.Mobile.SendGump(new XmlGetAttGump(_mFrom, _mTargetObject, false, _mDescendingsort,
+				_mDosearchtype, _mDosearchname, _mDosearchage,
+				_mSearchtype, _mSearchname, _mSearchagedirection, _mSearchage,
+				_mSearchList, _mSelected, _mDisplayFrom,
+				_mSorttype, _mSortname,
+				_mSelectAll, _mSelectionList, X, Y));
 		}
 
 
@@ -455,12 +498,12 @@ namespace Server.Mobiles
 
 			// read the text entries for the search criteria
 
-			m_Searchage = 0;
+			_mSearchage = 0;
 
 			var tr = info.GetTextEntry(400);        // displayfrom info
 			try
 			{
-				m_DisplayFrom = int.Parse(tr.Text);
+				_mDisplayFrom = int.Parse(tr.Text);
 			}
 			catch
 			{
@@ -479,65 +522,65 @@ namespace Server.Mobiles
 					{
 						Refresh(state);
 						int allcount = 0;
-						if (m_SearchList != null)
-							allcount = m_SearchList.Count;
-						state.Mobile.SendGump(new XmlConfirmDeleteGump(state.Mobile, m_TargetObject, m_SearchList, m_SelectionList, m_DisplayFrom, m_SelectAll, allcount));
+						if (_mSearchList != null)
+							allcount = _mSearchList.Count;
+						state.Mobile.SendGump(new XmlConfirmDeleteGump(state.Mobile, _mTargetObject, _mSearchList, _mSelectionList, _mDisplayFrom, _mSelectAll, allcount));
 						return;
 					}
 
 				case 201: // forward block
 					{
 						// clear the selections
-						if (m_SelectionList != null && !m_SelectAll) Array.Clear(m_SelectionList, 0, m_SelectionList.Length);
-						if (m_SearchList != null && m_DisplayFrom + MaxEntries < m_SearchList.Count)
+						if (_mSelectionList != null && !_mSelectAll) Array.Clear(_mSelectionList, 0, _mSelectionList.Length);
+						if (_mSearchList != null && _mDisplayFrom + MaxEntries < _mSearchList.Count)
 						{
-							m_DisplayFrom += MaxEntries;
+							_mDisplayFrom += MaxEntries;
 							// clear any selection
-							m_Selected = -1;
+							_mSelected = -1;
 						}
 						break;
 					}
 				case 202: // backward block
 					{
 						// clear the selections
-						if (m_SelectionList != null && !m_SelectAll) Array.Clear(m_SelectionList, 0, m_SelectionList.Length);
-						m_DisplayFrom -= MaxEntries;
-						if (m_DisplayFrom < 0) m_DisplayFrom = 0;
+						if (_mSelectionList != null && !_mSelectAll) Array.Clear(_mSelectionList, 0, _mSelectionList.Length);
+						_mDisplayFrom -= MaxEntries;
+						if (_mDisplayFrom < 0) _mDisplayFrom = 0;
 						// clear any selection
-						m_Selected = -1;
+						_mSelected = -1;
 						break;
 					}
 
 				case 700: // Sort
 					{
 						// clear any selection
-						m_Selected = -1;
+						_mSelected = -1;
 						// clear the selections
-						if (m_SelectionList != null && !m_SelectAll) Array.Clear(m_SelectionList, 0, m_SelectionList.Length);
-						m_Sorttype = false;
-						m_Sortname = false;
+						if (_mSelectionList != null && !_mSelectAll) Array.Clear(_mSelectionList, 0, _mSelectionList.Length);
+						_mSorttype = false;
+						_mSortname = false;
 
 						// read the toggle switches that determine the sort
 						if (radiostate == 0) // sort by type
 						{
-							m_Sorttype = true;
+							_mSorttype = true;
 						}
 						if (radiostate == 1) // sort by name
 						{
-							m_Sortname = true;
+							_mSortname = true;
 						}
 						SortFindList();
 						break;
 					}
 				case 701: // descending sort
 					{
-						m_Descendingsort = !m_Descendingsort;
+						_mDescendingsort = !_mDescendingsort;
 						break;
 					}
 				case 9998:  // refresh the gump
 					{
 						// clear any selection
-						m_Selected = -1;
+						_mSelected = -1;
 						break;
 					}
 				default:
@@ -545,25 +588,25 @@ namespace Server.Mobiles
 						switch (info.ButtonID)
 						{
 							case >= 3000 and < 3000 + MaxEntries:
-								m_Selected = info.ButtonID - 3000;
+								_mSelected = info.ButtonID - 3000;
 								// Show the props window
 								Refresh(state);
 
-								DoShowProps(info.ButtonID - 3000 + m_DisplayFrom);
+								DoShowProps(info.ButtonID - 3000 + _mDisplayFrom);
 								return;
 							case 3998:
 							{
-								m_SelectAll = !m_SelectAll;
+								_mSelectAll = !_mSelectAll;
 
 								// dont allow individual selection with the selectall button selected
-								if (m_SelectionList != null)
+								if (_mSelectionList != null)
 								{
 									for (var i = 0; i < MaxEntries; i++)
 									{
-										if (i < m_SelectionList.Length)
+										if (i < _mSelectionList.Length)
 										{
 											// only toggle the selection list entries for things that actually have entries
-											m_SelectionList[i] = m_SelectAll;
+											_mSelectionList[i] = _mSelectAll;
 										}
 										else
 										{
@@ -577,16 +620,16 @@ namespace Server.Mobiles
 							case 3999:
 							{
 								// dont allow individual selection with the selectall button selected
-								if (m_SelectionList != null && m_SearchList != null && !m_SelectAll)
+								if (_mSelectionList != null && _mSearchList != null && !_mSelectAll)
 								{
 									for (var i = 0; i < MaxEntries; i++)
 									{
-										if (i < m_SelectionList.Length)
+										if (i < _mSelectionList.Length)
 										{
 											// only toggle the selection list entries for things that actually have entries
-											if ((m_SearchList.Count - m_DisplayFrom > i))
+											if ((_mSearchList.Count - _mDisplayFrom > i))
 											{
-												m_SelectionList[i] = !m_SelectionList[i];
+												_mSelectionList[i] = !_mSelectionList[i];
 											}
 										}
 										else
@@ -602,12 +645,12 @@ namespace Server.Mobiles
 							{
 								var i = info.ButtonID - 4000;
 								// dont allow individual selection with the selectall button selected
-								if (m_SelectionList != null && i >= 0 && i < m_SelectionList.Length && !m_SelectAll)
+								if (_mSelectionList != null && i >= 0 && i < _mSelectionList.Length && !_mSelectAll)
 								{
 									// only toggle the selection list entries for things that actually have entries
-									if (m_SearchList != null && m_SearchList.Count - m_DisplayFrom > i)
+									if (_mSearchList != null && _mSearchList.Count - _mDisplayFrom > i)
 									{
-										m_SelectionList[i] = !m_SelectionList[i];
+										_mSelectionList[i] = !_mSelectionList[i];
 									}
 								}
 
@@ -617,12 +660,12 @@ namespace Server.Mobiles
 							{
 								var i = info.ButtonID - 5000;
 								// dont allow individual selection with the selectall button selected
-								if (m_SelectionList != null && i >= 0 && i < m_SelectionList.Length && !m_SelectAll)
+								if (_mSelectionList != null && i >= 0 && i < _mSelectionList.Length && !_mSelectAll)
 								{
 									// only toggle the selection list entries for things that actually have entries
-									if (m_SearchList != null && m_SearchList.Count - m_DisplayFrom > i)
+									if (_mSearchList != null && _mSearchList.Count - _mDisplayFrom > i)
 									{
-										XmlAttachment a = m_SearchList[i + m_DisplayFrom];
+										XmlAttachment a = _mSearchList[i + _mDisplayFrom];
 										if (a != null)
 										{
 											state.Mobile.SendMessage(a.OnIdentify(state.Mobile));
@@ -645,21 +688,21 @@ namespace Server.Mobiles
 
 		public class XmlConfirmDeleteGump : Gump
 		{
-			private readonly List<XmlAttachment> m_SearchList;
-			private readonly bool[] m_SelectedList;
-			private readonly Mobile m_From;
-			private readonly int m_DisplayFrom;
-			private readonly bool m_SelectAll;
-			private readonly object m_Target;
+			private readonly List<XmlAttachment> _mSearchList;
+			private readonly bool[] _mSelectedList;
+			private readonly Mobile _mFrom;
+			private readonly int _mDisplayFrom;
+			private readonly bool _mSelectAll;
+			private readonly object _mTarget;
 
 			public XmlConfirmDeleteGump(Mobile from, object target, List<XmlAttachment> searchlist, bool[] selectedlist, int displayfrom, bool selectall, int allcount) : base(0, 0)
 			{
-				m_SearchList = searchlist;
-				m_SelectedList = selectedlist;
-				m_DisplayFrom = displayfrom;
-				m_SelectAll = selectall;
-				m_Target = target;
-				m_From = from;
+				_mSearchList = searchlist;
+				_mSelectedList = selectedlist;
+				_mDisplayFrom = displayfrom;
+				_mSelectAll = selectall;
+				_mTarget = target;
+				_mFrom = from;
 				Closable = false;
 				Dragable = true;
 				AddPage(0);
@@ -671,7 +714,7 @@ namespace Server.Mobiles
 				}
 				else
 				{
-					count += m_SelectedList.Count(t => t);
+					count += _mSelectedList.Count(t => t);
 				}
 
 				AddLabel(20, 225, 33, $"Delete {count} attachments?");
@@ -697,14 +740,14 @@ namespace Server.Mobiles
 
 					default:
 						{
-							if (radiostate == 1 && m_SearchList != null && m_SelectedList != null)
+							if (radiostate == 1 && _mSearchList != null && _mSelectedList != null)
 							{    // accept
-								for (var i = 0; i < m_SearchList.Count; i++)
+								for (var i = 0; i < _mSearchList.Count; i++)
 								{
-									var index = i - m_DisplayFrom;
-									if ((index < 0 || index >= m_SelectedList.Length || !m_SelectedList[index]) &&
-									    !m_SelectAll) continue;
-									var o = m_SearchList[i];
+									var index = i - _mDisplayFrom;
+									if ((index < 0 || index >= _mSelectedList.Length || !_mSelectedList[index]) &&
+									    !_mSelectAll) continue;
+									var o = _mSearchList[i];
 									// some objects may not delete gracefully (null map items are particularly error prone) so trap them
 									try
 									{
@@ -717,7 +760,7 @@ namespace Server.Mobiles
 								}
 								// refresh the gump
 								state.Mobile.CloseGump(typeof(XmlGetAttGump));
-								state.Mobile.SendGump(new XmlGetAttGump(state.Mobile, m_Target, 0, 0));
+								state.Mobile.SendGump(new XmlGetAttGump(state.Mobile, _mTarget, 0, 0));
 							}
 							break;
 						}

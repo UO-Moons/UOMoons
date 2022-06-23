@@ -51,7 +51,7 @@ namespace Server.Mobiles
 			return WeaponAbility.CrushingBlow;
 		}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int TreasureMapLevel => 4;
 
 		public Lurg(Serial serial)

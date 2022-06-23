@@ -30,7 +30,7 @@ public class Alchemist : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Robe(Utility.RandomPinkHue()));
+		SetWearable(new Robe(), Utility.RandomPinkHue());
 	}
 
 	public Alchemist(Serial serial) : base(serial)

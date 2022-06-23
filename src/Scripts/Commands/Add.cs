@@ -153,7 +153,7 @@ public class Add
 				}
 				else
 				{
-					CPA attr = Properties.GetCPA(thisProp);
+					CPA attr = Properties.GetCpa(thisProp);
 
 					if (attr == null)
 						from.SendMessage("Property ({0}) not found.", propName);

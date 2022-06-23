@@ -64,33 +64,42 @@ namespace Server.Commands.Generic
 			}
 			else
 			{
-				if (Value is int)
-					method.Load((int)Value);
-				else if (Value is long)
-					method.Load((long)Value);
-				else if (Value is float)
-					method.Load((float)Value);
-				else if (Value is double)
-					method.Load((double)Value);
-				else if (Value is char)
-					method.Load((char)Value);
-				else if (Value is bool)
-					method.Load((bool)Value);
-				else if (Value is string)
-					method.Load((string)Value);
-				else if (Value is Enum)
-					method.Load((Enum)Value);
-				else
-					throw new InvalidOperationException("Unrecognized comparison value.");
+				switch (Value)
+				{
+					case int value:
+						method.Load(value);
+						break;
+					case long l:
+						method.Load(l);
+						break;
+					case float f:
+						method.Load(f);
+						break;
+					case double d:
+						method.Load(d);
+						break;
+					case char c:
+						method.Load(c);
+						break;
+					case bool b:
+						method.Load(b);
+						break;
+					case string s:
+						method.Load(s);
+						break;
+					case Enum @enum:
+						method.Load(@enum);
+						break;
+					default:
+						throw new InvalidOperationException("Unrecognized comparison value.");
+				}
 			}
 		}
 
 		public void Acquire(TypeBuilder typeBuilder, ILGenerator il, string fieldName)
 		{
-			if (Value is string)
+			if (Value is string toParse)
 			{
-				string toParse = (string)Value;
-
 				if (!Type.IsValueType && toParse == "null")
 				{
 					Value = null;
@@ -108,14 +117,14 @@ namespace Server.Commands.Generic
 				}
 				else
 				{
-					MethodInfo parseMethod = null;
-					object[] parseArgs = null;
+					MethodInfo parseMethod;
+					object[] parseArgs;
 
 					MethodInfo parseNumber = Type.GetMethod(
 						"Parse",
 						BindingFlags.Public | BindingFlags.Static,
 						null,
-						new Type[] { typeof(string), typeof(NumberStyles) },
+						new[] { typeof(string), typeof(NumberStyles) },
 						null
 					);
 
@@ -126,7 +135,7 @@ namespace Server.Commands.Generic
 						if (Insensitive.StartsWith(toParse, "0x"))
 						{
 							style = NumberStyles.HexNumber;
-							toParse = toParse.Substring(2);
+							toParse = toParse[2..];
 						}
 
 						parseMethod = parseNumber;
@@ -138,12 +147,12 @@ namespace Server.Commands.Generic
 							"Parse",
 							BindingFlags.Public | BindingFlags.Static,
 							null,
-							new Type[] { typeof(string) },
+							new[] { typeof(string) },
 							null
 						);
 
 						parseMethod = parseGeneral;
-						parseArgs = new object[] { toParse };
+						parseArgs = new object[] {toParse};
 					}
 
 					if (parseMethod != null)
@@ -172,11 +181,7 @@ namespace Server.Commands.Generic
 					else
 					{
 						throw new InvalidOperationException(
-							string.Format(
-								"Unable to convert string \"{0}\" into type '{1}'.",
-								Value,
-								Type
-							)
+							$"Unable to convert string \"{Value}\" into type '{Type}'."
 						);
 					}
 				}
@@ -186,13 +191,13 @@ namespace Server.Commands.Generic
 
 	public abstract class PropertyCondition : ICondition
 	{
-		protected Property m_Property;
-		protected bool m_Not;
+		protected Property MProperty;
+		protected bool MNot;
 
 		public PropertyCondition(Property property, bool not)
 		{
-			m_Property = property;
-			m_Not = not;
+			MProperty = property;
+			MNot = not;
 		}
 
 		public abstract void Construct(TypeBuilder typeBuilder, ILGenerator il, int index);
@@ -213,23 +218,23 @@ namespace Server.Commands.Generic
 
 	public sealed class StringCondition : PropertyCondition
 	{
-		private readonly StringOperator m_Operator;
-		private readonly PropertyValue m_Value;
+		private readonly StringOperator _mOperator;
+		private readonly PropertyValue _mValue;
 
-		private readonly bool m_IgnoreCase;
+		private readonly bool _mIgnoreCase;
 
 		public StringCondition(Property property, bool not, StringOperator op, object value, bool ignoreCase)
 			: base(property, not)
 		{
-			m_Operator = op;
-			m_Value = new PropertyValue(property.Type, value);
+			_mOperator = op;
+			_mValue = new PropertyValue(property.Type, value);
 
-			m_IgnoreCase = ignoreCase;
+			_mIgnoreCase = ignoreCase;
 		}
 
 		public override void Construct(TypeBuilder typeBuilder, ILGenerator il, int index)
 		{
-			m_Value.Acquire(typeBuilder, il, "v" + index);
+			_mValue.Acquire(typeBuilder, il, "v" + index);
 		}
 
 		public override void Compile(MethodEmitter emitter)
@@ -238,7 +243,7 @@ namespace Server.Commands.Generic
 
 			string methodName;
 
-			switch (m_Operator)
+			switch (_mOperator)
 			{
 				case StringOperator.Equal:
 					methodName = "Equals";
@@ -265,16 +270,16 @@ namespace Server.Commands.Generic
 					throw new InvalidOperationException("Invalid string comparison operator.");
 			}
 
-			if (m_IgnoreCase || methodName == "Equals")
+			if (_mIgnoreCase || methodName == "Equals")
 			{
-				Type type = (m_IgnoreCase ? typeof(Insensitive) : typeof(string));
+				Type type = (_mIgnoreCase ? typeof(Insensitive) : typeof(string));
 
 				emitter.BeginCall(
 					type.GetMethod(
 						methodName,
 						BindingFlags.Public | BindingFlags.Static,
 						null,
-						new Type[]
+						new[]
 						{
 							typeof( string ),
 							typeof( string )
@@ -283,8 +288,8 @@ namespace Server.Commands.Generic
 					)
 				);
 
-				emitter.Chain(m_Property);
-				m_Value.Load(emitter);
+				emitter.Chain(MProperty);
+				_mValue.Load(emitter);
 
 				emitter.FinishCall();
 			}
@@ -293,9 +298,9 @@ namespace Server.Commands.Generic
 				Label notNull = emitter.CreateLabel();
 				Label moveOn = emitter.CreateLabel();
 
-				LocalBuilder temp = emitter.AcquireTemp(m_Property.Type);
+				LocalBuilder temp = emitter.AcquireTemp(MProperty.Type);
 
-				emitter.Chain(m_Property);
+				emitter.Chain(MProperty);
 
 				emitter.StoreLocal(temp);
 				emitter.LoadLocal(temp);
@@ -314,7 +319,7 @@ namespace Server.Commands.Generic
 						methodName,
 						BindingFlags.Public | BindingFlags.Instance,
 						null,
-						new Type[]
+						new[]
 						{
 							typeof( string )
 						},
@@ -322,14 +327,14 @@ namespace Server.Commands.Generic
 					)
 				);
 
-				m_Value.Load(emitter);
+				_mValue.Load(emitter);
 
 				emitter.FinishCall();
 
 				emitter.MarkLabel(moveOn);
 			}
 
-			if (m_Not != inverse)
+			if (MNot != inverse)
 				emitter.LogicalNot();
 		}
 	}
@@ -346,38 +351,38 @@ namespace Server.Commands.Generic
 
 	public sealed class ComparisonCondition : PropertyCondition
 	{
-		private readonly ComparisonOperator m_Operator;
-		private readonly PropertyValue m_Value;
+		private readonly ComparisonOperator _mOperator;
+		private readonly PropertyValue _mValue;
 
 		public ComparisonCondition(Property property, bool not, ComparisonOperator op, object value)
 			: base(property, not)
 		{
-			m_Operator = op;
-			m_Value = new PropertyValue(property.Type, value);
+			_mOperator = op;
+			_mValue = new PropertyValue(property.Type, value);
 		}
 
 		public override void Construct(TypeBuilder typeBuilder, ILGenerator il, int index)
 		{
-			m_Value.Acquire(typeBuilder, il, "v" + index);
+			_mValue.Acquire(typeBuilder, il, "v" + index);
 		}
 
 		public override void Compile(MethodEmitter emitter)
 		{
-			emitter.Chain(m_Property);
+			emitter.Chain(MProperty);
 
 			bool inverse = false;
 
 			bool couldCompare =
 			emitter.CompareTo(1, delegate ()
 		   {
-			   m_Value.Load(emitter);
+			   _mValue.Load(emitter);
 		   });
 
 			if (couldCompare)
 			{
 				emitter.Load(0);
 
-				switch (m_Operator)
+				switch (_mOperator)
 				{
 					case ComparisonOperator.Equal:
 						emitter.Compare(OpCodes.Ceq);
@@ -415,9 +420,9 @@ namespace Server.Commands.Generic
 				// This type is -not- comparable
 				// We can only support == and != operations
 
-				m_Value.Load(emitter);
+				_mValue.Load(emitter);
 
-				switch (m_Operator)
+				switch (_mOperator)
 				{
 					case ComparisonOperator.Equal:
 						emitter.Compare(OpCodes.Ceq);
@@ -439,7 +444,7 @@ namespace Server.Commands.Generic
 				}
 			}
 
-			if (m_Not != inverse)
+			if (MNot != inverse)
 				emitter.LogicalNot();
 		}
 	}
@@ -466,7 +471,7 @@ namespace Server.Commands.Generic
 
 				// : base()
 				il.Emit(OpCodes.Ldarg_0);
-				il.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes));
+				il.Emit(OpCodes.Call, typeof(object).GetConstructor(Type.EmptyTypes)!);
 
 				for (int i = 0; i < conditions.Length; ++i)
 					conditions[i].Construct(typeBuilder, il, i);
@@ -478,8 +483,6 @@ namespace Server.Commands.Generic
 
 			#region IComparer
 			typeBuilder.AddInterfaceImplementation(typeof(IConditional));
-
-			MethodBuilder compareMethod;
 
 			#region Compare
 			{
@@ -526,14 +529,12 @@ namespace Server.Commands.Generic
 						emitter.Method,
 						typeof(IConditional).GetMethod(
 							"Verify",
-							new Type[]
+							new[]
 								{
 									typeof( object )
 								}
 						)
 					);
-
-				compareMethod = emitter.Method;
 			}
 			#endregion
 			#endregion

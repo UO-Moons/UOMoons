@@ -55,7 +55,7 @@ namespace Server.Mobiles
 		//	c.DropItem(new GrobusFur());
 		//}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 
 		public Grobu(Serial serial)
 			: base(serial)

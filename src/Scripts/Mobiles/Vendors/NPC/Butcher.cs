@@ -25,8 +25,8 @@ public class Butcher : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
-		AddItem(new Cleaver());
+		SetWearable(new HalfApron());
+		SetWearable(new Cleaver());
 	}
 
 	public Butcher(Serial serial) : base(serial)

@@ -8,6 +8,7 @@ using CPA = Server.CommandPropertyAttribute;
 
 namespace Server.Commands
 {
+	[Flags]
 	public enum PropertyAccess
 	{
 		Read = 0x01,
@@ -58,16 +59,16 @@ namespace Server.Commands
 			}
 		}
 
-		private static bool CIEqual(string l, string r)
+		private static bool CiEqual(string l, string r)
 		{
 			return Insensitive.Equals(l, r);
 		}
 
-		private static readonly Type typeofCPA = typeof(CPA);
+		private static readonly Type TypeofCpa = typeof(CPA);
 
-		public static CPA GetCPA(PropertyInfo p)
+		public static CPA GetCpa(PropertyInfo p)
 		{
-			object[] attrs = p.GetCustomAttributes(typeofCPA, false);
+			object[] attrs = p.GetCustomAttributes(TypeofCpa, false);
 
 			if (attrs.Length == 0)
 				return null;
@@ -88,12 +89,12 @@ namespace Server.Commands
 			{
 				string propertyName = split[i];
 
-				if (CIEqual(propertyName, "current"))
+				if (CiEqual(propertyName, "current"))
 					continue;
 
 				PropertyInfo[] props = type.GetProperties(BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public);
 
-				bool isFinal = (i == (info.Length - 1));
+				bool isFinal = i == info.Length - 1;
 
 				PropertyAccess access = endAccess;
 
@@ -104,37 +105,41 @@ namespace Server.Commands
 				{
 					PropertyInfo p = props[j];
 
-					if (CIEqual(p.Name, propertyName))
+					if (CiEqual(p.Name, propertyName))
 					{
-						CPA attr = GetCPA(p);
+						CPA attr = GetCpa(p);
 
 						if (attr == null)
 						{
-							failReason = string.Format("Property '{0}' not found.", propertyName);
+							failReason = $"Property '{propertyName}' not found.";
 							return null;
 						}
-						else if ((access & PropertyAccess.Read) != 0 && from.AccessLevel < attr.ReadLevel)
+
+						if ((access & PropertyAccess.Read) != 0 && from.AccessLevel < attr.ReadLevel)
 						{
-							failReason = string.Format("You must be at least {0} to get the property '{1}'.",
-								Mobile.GetAccessLevelName(attr.ReadLevel), propertyName);
+							failReason =
+								$"You must be at least {Mobile.GetAccessLevelName(attr.ReadLevel)} to get the property '{propertyName}'.";
 
 							return null;
 						}
-						else if ((access & PropertyAccess.Write) != 0 && from.AccessLevel < attr.WriteLevel)
+
+						if ((access & PropertyAccess.Write) != 0 && from.AccessLevel < attr.WriteLevel)
 						{
-							failReason = string.Format("You must be at least {0} to set the property '{1}'.",
-								Mobile.GetAccessLevelName(attr.WriteLevel), propertyName);
+							failReason =
+								$"You must be at least {Mobile.GetAccessLevelName(attr.WriteLevel)} to set the property '{propertyName}'.";
 
 							return null;
 						}
-						else if ((access & PropertyAccess.Read) != 0 && !p.CanRead)
+
+						if ((access & PropertyAccess.Read) != 0 && !p.CanRead)
 						{
-							failReason = string.Format("Property '{0}' is write only.", propertyName);
+							failReason = $"Property '{propertyName}' is write only.";
 							return null;
 						}
-						else if ((access & PropertyAccess.Write) != 0 && (!p.CanWrite || attr.ReadOnly) && isFinal)
+
+						if ((access & PropertyAccess.Write) != 0 && (!p.CanWrite || attr.ReadOnly) && isFinal)
 						{
-							failReason = string.Format("Property '{0}' is read only.", propertyName);
+							failReason = $"Property '{propertyName}' is read only.";
 							return null;
 						}
 
@@ -146,7 +151,7 @@ namespace Server.Commands
 
 				if (info[i] == null)
 				{
-					failReason = string.Format("Property '{0}' not found.", propertyName);
+					failReason = $"Property '{propertyName}' not found.";
 					return null;
 				}
 			}
@@ -158,10 +163,7 @@ namespace Server.Commands
 		{
 			PropertyInfo[] chain = GetPropertyInfoChain(from, obj.GetType(), propertyName, access, ref failReason);
 
-			if (chain == null)
-				return null;
-
-			return GetPropertyInfo(ref obj, chain, ref failReason);
+			return chain == null ? null : GetPropertyInfo(ref obj, chain, ref failReason);
 		}
 
 		public static PropertyInfo GetPropertyInfo(ref object obj, PropertyInfo[] chain, ref string failReason)
@@ -181,12 +183,12 @@ namespace Server.Commands
 
 				if (obj == null)
 				{
-					failReason = string.Format("Property '{0}' is null.", chain[i]);
+					failReason = $"Property '{chain[i]}' is null.";
 					return null;
 				}
 			}
 
-			return chain[chain.Length - 1];
+			return chain[^1];
 		}
 
 		public static string GetValue(Mobile from, object o, string name)
@@ -200,10 +202,7 @@ namespace Server.Commands
 
 			PropertyInfo p = GetPropertyInfo(ref o, chain, ref failReason);
 
-			if (p == null)
-				return failReason;
-
-			return InternalGetValue(o, p, chain);
+			return p == null ? failReason : InternalGetValue(o, p, chain);
 		}
 
 		public static string IncreaseValue(Mobile from, object o, string[] args)
@@ -238,12 +237,17 @@ namespace Server.Commands
 					return "Offset value could not be parsed.";
 				}
 
-				if (realValues[i] > 0)
-					positive = true;
-				else if (realValues[i] < 0)
-					negative = true;
-				else
-					return "Zero is not a valid value to offset.";
+				switch (realValues[i])
+				{
+					case > 0:
+						positive = true;
+						break;
+					case < 0:
+						negative = true;
+						break;
+					default:
+						return "Zero is not a valid value to offset.";
+				}
 
 				string failReason = null;
 				realObjs[i] = o;
@@ -279,27 +283,18 @@ namespace Server.Commands
 
 			if (realProps.Length == 1)
 			{
-				if (positive)
-					return "The property has been increased.";
-
-				return "The property has been decreased.";
+				return positive ? "The property has been increased." : "The property has been decreased.";
 			}
 
-			if (positive && negative)
-				return "The properties have been changed.";
-
-			if (positive)
-				return "The properties have been increased.";
-
-			return "The properties have been decreased.";
+			return positive switch
+			{
+				true when negative => "The properties have been changed.",
+				true => "The properties have been increased.",
+				_ => "The properties have been decreased."
+			};
 		}
 
-		private static string InternalGetValue(object o, PropertyInfo p)
-		{
-			return InternalGetValue(o, p, null);
-		}
-
-		private static string InternalGetValue(object o, PropertyInfo p, PropertyInfo[] chain)
+		private static string InternalGetValue(object o, PropertyInfo p, PropertyInfo[] chain = null)
 		{
 			Type type = p.PropertyType;
 
@@ -313,14 +308,14 @@ namespace Server.Commands
 			else if (IsChar(type))
 				toString = string.Format("'{0}' ({1} [0x{1:X}])", value, (int)value);
 			else if (IsString(type))
-				toString = ((string)value == "null" ? @"@""null""" : string.Format("\"{0}\"", value));
+				toString = (string)value == "null" ? @"@""null""" : $"\"{value}\"";
 			else if (IsText(type))
 				toString = ((TextDefinition)value).Format(false);
 			else
 				toString = value.ToString();
 
 			if (chain == null)
-				return string.Format("{0} = {1}", p.Name, toString);
+				return $"{p.Name} = {toString}";
 
 			string[] concat = new string[chain.Length * 2 + 1];
 
@@ -330,7 +325,7 @@ namespace Server.Commands
 				concat[(i * 2) + 1] = (i < (chain.Length - 1)) ? "." : " = ";
 			}
 
-			concat[concat.Length - 1] = toString;
+			concat[^1] = toString;
 
 			return string.Concat(concat);
 		}
@@ -348,39 +343,39 @@ namespace Server.Commands
 			return InternalSetValue(from, logObject, o, p, name, value, true);
 		}
 
-		private static readonly Type typeofSerial = typeof(Serial);
+		private static readonly Type TypeofSerial = typeof(Serial);
 
 		private static bool IsSerial(Type t)
 		{
-			return (t == typeofSerial);
+			return t == TypeofSerial;
 		}
 
-		private static readonly Type typeofType = typeof(Type);
+		private static readonly Type TypeofType = typeof(Type);
 
 		private static bool IsType(Type t)
 		{
-			return (t == typeofType);
+			return t == TypeofType;
 		}
 
-		private static readonly Type typeofChar = typeof(char);
+		private static readonly Type TypeofChar = typeof(char);
 
 		private static bool IsChar(Type t)
 		{
-			return (t == typeofChar);
+			return t == TypeofChar;
 		}
 
-		private static readonly Type typeofString = typeof(string);
+		private static readonly Type TypeofString = typeof(string);
 
 		private static bool IsString(Type t)
 		{
-			return (t == typeofString);
+			return t == TypeofString;
 		}
 
-		private static readonly Type typeofText = typeof(TextDefinition);
+		private static readonly Type TypeofText = typeof(TextDefinition);
 
 		private static bool IsText(Type t)
 		{
-			return (t == typeofText);
+			return t == TypeofText;
 		}
 
 		private static bool IsEnum(Type t)
@@ -388,28 +383,27 @@ namespace Server.Commands
 			return t.IsEnum;
 		}
 
-		private static readonly Type typeofTimeSpan = typeof(TimeSpan);
-		private static readonly Type typeofParsable = typeof(ParsableAttribute);
+		private static readonly Type TypeofTimeSpan = typeof(TimeSpan);
+		private static readonly Type TypeofParsable = typeof(ParsableAttribute);
 
 		private static bool IsParsable(Type t)
 		{
-			return (t == typeofTimeSpan || t.IsDefined(typeofParsable, false));
+			return (t == TypeofTimeSpan || t.IsDefined(TypeofParsable, false));
 		}
 
-		private static readonly Type[] m_ParseTypes = new Type[] { typeof(string) };
-		private static readonly object[] m_ParseParams = new object[1];
+		private static readonly Type[] MParseTypes = { typeof(string) };
+		private static readonly object[] MParseParams = new object[1];
 
 		private static object Parse(object o, Type t, string value)
 		{
-			MethodInfo method = t.GetMethod("Parse", m_ParseTypes);
+			MethodInfo method = t.GetMethod("Parse", MParseTypes);
 
-			m_ParseParams[0] = value;
+			MParseParams[0] = value;
 
-			return method.Invoke(o, m_ParseParams);
+			return method.Invoke(o, MParseParams);
 		}
 
-		private static readonly Type[] m_NumericTypes = new Type[]
-			{
+		private static readonly Type[] MNumericTypes = {
 				typeof( byte ), typeof( sbyte ),
 				typeof( short ), typeof( ushort ),
 				typeof( int ), typeof( uint ),
@@ -418,7 +412,7 @@ namespace Server.Commands
 
 		private static bool IsNumeric(Type t)
 		{
-			return (Array.IndexOf(m_NumericTypes, t) >= 0);
+			return (Array.IndexOf(MNumericTypes, t) >= 0);
 		}
 
 		public static string ConstructFromString(Type type, object obj, string value, ref object constructed)
@@ -427,7 +421,7 @@ namespace Server.Commands
 			bool isSerial = IsSerial(type);
 
 			if (isSerial) // mutate into int32
-				type = m_NumericTypes[4];
+				type = MNumericTypes[4];
 
 			if (value == "(-null-)" && !type.IsValueType)
 				value = null;
@@ -496,7 +490,8 @@ namespace Server.Commands
 			}
 
 			if (isSerial) // mutate back
-				toSet = (Serial)((int)toSet);
+				if (toSet != null)
+					toSet = (Serial) (int) toSet;
 
 			constructed = toSet;
 			return null;
@@ -506,15 +501,14 @@ namespace Server.Commands
 		{
 			try
 			{
-				if (toSet is AccessLevel)
+				if (toSet is AccessLevel newLevel)
 				{
-					AccessLevel newLevel = (AccessLevel)toSet;
-					AccessLevel reqLevel = AccessLevel.Administrator;
-
-					if (newLevel == AccessLevel.Administrator)
-						reqLevel = AccessLevel.Developer;
-					else if (newLevel >= AccessLevel.Developer)
-						reqLevel = AccessLevel.Owner;
+					AccessLevel reqLevel = newLevel switch
+					{
+						AccessLevel.Administrator => AccessLevel.Developer,
+						>= AccessLevel.Developer => AccessLevel.Owner,
+						_ => AccessLevel.Administrator
+					};
 
 					if (from.AccessLevel < reqLevel)
 						return "You do not have access to that level.";
@@ -586,14 +580,14 @@ namespace Server
 {
 	public abstract class PropertyException : ApplicationException
 	{
-		protected Property m_Property;
+		protected Property MProperty;
 
-		public Property Property => m_Property;
+		public Property Property => MProperty;
 
 		public PropertyException(Property property, string message)
 			: base(message)
 		{
-			m_Property = property;
+			MProperty = property;
 		}
 	}
 
@@ -608,7 +602,7 @@ namespace Server
 	public sealed class NotYetBoundException : BindingException
 	{
 		public NotYetBoundException(Property property)
-			: base(property, string.Format("Property has not yet been bound."))
+			: base(property, "Property has not yet been bound.")
 		{
 		}
 	}
@@ -616,7 +610,7 @@ namespace Server
 	public sealed class AlreadyBoundException : BindingException
 	{
 		public AlreadyBoundException(Property property)
-			: base(property, string.Format("Property has already been bound."))
+			: base(property, "Property has already been bound.")
 		{
 		}
 	}
@@ -624,7 +618,7 @@ namespace Server
 	public sealed class UnknownPropertyException : BindingException
 	{
 		public UnknownPropertyException(Property property, string current)
-			: base(property, string.Format("Property '{0}' not found.", current))
+			: base(property, $"Property '{current}' not found.")
 		{
 		}
 	}
@@ -663,19 +657,16 @@ namespace Server
 
 	public abstract class ClearanceException : AccessException
 	{
-		protected AccessLevel m_PlayerAccess;
-		protected AccessLevel m_NeededAccess;
+		protected AccessLevel MPlayerAccess;
+		protected AccessLevel MNeededAccess;
 
-		public AccessLevel PlayerAccess => m_PlayerAccess;
+		public AccessLevel PlayerAccess => MPlayerAccess;
 
-		public AccessLevel NeededAccess => m_NeededAccess;
+		public AccessLevel NeededAccess => MNeededAccess;
 
 		public ClearanceException(Property property, AccessLevel playerAccess, AccessLevel neededAccess, string accessType)
-			: base(property, string.Format(
-				"You must be at least {0} to {1} this property.",
-				Mobile.GetAccessLevelName(neededAccess),
-				accessType
-			))
+			: base(property,
+				$"You must be at least {Mobile.GetAccessLevelName(neededAccess)} to {accessType} this property.")
 		{
 		}
 	}
@@ -698,10 +689,10 @@ namespace Server
 
 	public sealed class Property
 	{
-		private PropertyInfo[] m_Chain;
+		private PropertyInfo[] _mChain;
 
 		public string Binding { get; }
-		public bool IsBound => (m_Chain != null);
+		public bool IsBound => (_mChain != null);
 		public PropertyAccess Access { get; private set; }
 
 		public PropertyInfo[] Chain
@@ -711,7 +702,7 @@ namespace Server
 				if (!IsBound)
 					throw new NotYetBoundException(this);
 
-				return m_Chain;
+				return _mChain;
 			}
 		}
 
@@ -722,7 +713,7 @@ namespace Server
 				if (!IsBound)
 					throw new NotYetBoundException(this);
 
-				return m_Chain[m_Chain.Length - 1].PropertyType;
+				return _mChain[^1].PropertyType;
 			}
 		}
 
@@ -731,18 +722,18 @@ namespace Server
 			if (!IsBound)
 				throw new NotYetBoundException(this);
 
-			for (int i = 0; i < m_Chain.Length; ++i)
+			for (int i = 0; i < _mChain.Length; ++i)
 			{
-				PropertyInfo prop = m_Chain[i];
+				PropertyInfo prop = _mChain[i];
 
-				bool isFinal = (i == (m_Chain.Length - 1));
+				bool isFinal = i == _mChain.Length - 1;
 
 				PropertyAccess access = Access;
 
 				if (!isFinal)
 					access |= PropertyAccess.Read;
 
-				CPA security = Properties.GetCPA(prop);
+				CPA security = Properties.GetCpa(prop);
 
 				if (security == null)
 					throw new InternalAccessException(this);
@@ -790,7 +781,7 @@ namespace Server
 			}
 
 			Access = desiredAccess;
-			m_Chain = chain;
+			_mChain = chain;
 		}
 
 		public Property(string binding)
@@ -800,7 +791,7 @@ namespace Server
 
 		public Property(PropertyInfo[] chain)
 		{
-			m_Chain = chain;
+			_mChain = chain;
 		}
 
 		public override string ToString()
@@ -808,10 +799,10 @@ namespace Server
 			if (!IsBound)
 				return Binding;
 
-			string[] toJoin = new string[m_Chain.Length];
+			string[] toJoin = new string[_mChain.Length];
 
 			for (int i = 0; i < toJoin.Length; ++i)
-				toJoin[i] = m_Chain[i].Name;
+				toJoin[i] = _mChain[i].Name;
 
 			return string.Join(".", toJoin);
 		}

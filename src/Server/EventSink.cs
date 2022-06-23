@@ -384,6 +384,18 @@ namespace Server
 		}
 	}
 
+	public class CreatureKilledByEventArgs : EventArgs
+	{
+		public Mobile CreatureKilled;
+		public Mobile Player;
+
+		public CreatureKilledByEventArgs(Mobile creatureKilled, Mobile player)
+		{
+			CreatureKilled = creatureKilled;
+			Player = player;
+		}
+	}
+
 	public static partial class EventSink
 	{
 		//Server
@@ -800,6 +812,12 @@ namespace Server
 		public static void InvokeCreatureDeath(CreatureDeathEventArgs e)
 		{
 			OnCreatureDeath?.Invoke(e);
+		}
+
+		public static event Action<CreatureKilledByEventArgs> OnCreatureKilled;
+		public static void InvokeCreatureKilled(CreatureKilledByEventArgs e)
+		{
+			OnCreatureKilled?.Invoke(e);
 		}
 
 		public static event Action<Mobile, Mobile> OnPaperdollRequest;

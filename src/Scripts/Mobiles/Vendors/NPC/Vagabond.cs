@@ -24,17 +24,17 @@ public class Vagabond : BaseVendor
 
 	public override void InitOutfit()
 	{
-		AddItem(new FancyShirt(Utility.RandomBrightHue()));
-		AddItem(new Shoes(GetShoeHue()));
-		AddItem(new LongPants(GetRandomHue()));
+		SetWearable(new FancyShirt(Utility.RandomBrightHue()));
+		SetWearable(new Shoes(GetShoeHue()));
+		SetWearable(new LongPants(GetRandomHue()));
 
 		if (Utility.RandomBool())
-			AddItem(new Cloak(Utility.RandomBrightHue()));
+			SetWearable(new Cloak(Utility.RandomBrightHue()));
 
 		switch (Utility.Random(2))
 		{
-			case 0: AddItem(new SkullCap(Utility.RandomNeutralHue())); break;
-			case 1: AddItem(new Bandana(Utility.RandomNeutralHue())); break;
+			case 0: SetWearable(new SkullCap(Utility.RandomNeutralHue())); break;
+			case 1: SetWearable(new Bandana(Utility.RandomNeutralHue())); break;
 		}
 
 		Utility.AssignRandomHair(this);

@@ -1,34 +1,29 @@
-using System;
-using Server;
-using Server.Gumps;
+namespace Server.Gumps;
 
-namespace Server.Gumps
+public class WispDungeonRegion : Gump
 {
-	public class WispDungeonRegion : Gump
+	public WispDungeonRegion()
+		: base( 0, 0 )
 	{
-		public WispDungeonRegion()
-			: base( 0, 0 )
-		{
-			this.Closable=true;
-			this.Disposable=false;
-			this.Dragable=false;
-			this.Resizable=false;
-			this.AddPage(0);
-			this.AddImage(215, 35, 9007);
-			this.AddBackground(337, 117, 213, 38, 9270);
-			this.AddImage(531, 110, 4502);
-			this.AddImage(337, 144, 2091);
-			this.AddImage(337, 116, 2091);
-			this.AddImage(290, 105, 5608);
-			this.AddImage(536, 95, 94);
-			this.AddImage(543, 121, 94);
-			this.AddImage(502, 82, 4500);
-			this.AddImage(502, 137, 4504);
-			this.AddImage(504, 106, 2529);
-			this.AddLabel(352, 126, 47, @"Wisp Dungeon");
-
-		}
-		
+		Closable=true;
+		Disposable=false;
+		Dragable=false;
+		Resizable=false;
+		AddPage(0);
+		AddImage(215, 35, 9007);
+		AddBackground(337, 117, 213, 38, 9270);
+		AddImage(531, 110, 4502);
+		AddImage(337, 144, 2091);
+		AddImage(337, 116, 2091);
+		AddImage(290, 105, 5608);
+		AddImage(536, 95, 94);
+		AddImage(543, 121, 94);
+		AddImage(502, 82, 4500);
+		AddImage(502, 137, 4504);
+		AddImage(504, 106, 2529);
+		AddLabel(352, 126, 47, @"Wisp Dungeon");
 
 	}
+		
+
 }

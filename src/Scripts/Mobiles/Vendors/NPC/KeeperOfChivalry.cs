@@ -26,40 +26,40 @@ public class KeeperOfChivalry : BaseVendor
 
 	public override void InitOutfit()
 	{
-		AddItem(new PlateArms());
-		AddItem(new PlateChest());
-		AddItem(new PlateGloves());
-		AddItem(new StuddedGorget());
-		AddItem(new PlateLegs());
+		SetWearable(new PlateArms());
+		SetWearable(new PlateChest());
+		SetWearable(new PlateGloves());
+		SetWearable(new StuddedGorget());
+		SetWearable(new PlateLegs());
 
 		switch (Utility.Random(4))
 		{
-			case 0: AddItem(new PlateHelm()); break;
-			case 1: AddItem(new NorseHelm()); break;
-			case 2: AddItem(new CloseHelm()); break;
-			case 3: AddItem(new Helmet()); break;
+			case 0: SetWearable(new PlateHelm()); break;
+			case 1: SetWearable(new NorseHelm()); break;
+			case 2: SetWearable(new CloseHelm()); break;
+			case 3: SetWearable(new Helmet()); break;
 		}
 
 		switch (Utility.Random(3))
 		{
-			case 0: AddItem(new BodySash(0x482)); break;
-			case 1: AddItem(new Doublet(0x482)); break;
-			case 2: AddItem(new Tunic(0x482)); break;
+			case 0: SetWearable(new BodySash(0x482)); break;
+			case 1: SetWearable(new Doublet(0x482)); break;
+			case 2: SetWearable(new Tunic(0x482)); break;
 		}
 
-		AddItem(new Broadsword());
+		SetWearable(new Broadsword());
 
 		Item shield = new MetalKiteShield
 		{
 			Hue = Utility.RandomNondyedHue()
 		};
 
-		AddItem(shield);
+		SetWearable(shield);
 
 		switch (Utility.Random(2))
 		{
-			case 0: AddItem(new Boots()); break;
-			case 1: AddItem(new ThighBoots()); break;
+			case 0: SetWearable(new Boots()); break;
+			case 1: SetWearable(new ThighBoots()); break;
 		}
 
 		PackGold(100, 200);

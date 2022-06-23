@@ -33,7 +33,7 @@ public class Carpenter : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
+		SetWearable(new HalfApron());
 	}
 
 	public Carpenter(Serial serial) : base(serial)

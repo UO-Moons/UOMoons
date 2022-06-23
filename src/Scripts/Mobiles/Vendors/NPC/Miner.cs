@@ -24,10 +24,10 @@ public class Miner : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Server.Items.FancyShirt(0x3E4));
-		AddItem(new Server.Items.LongPants(0x192));
-		AddItem(new Server.Items.Pickaxe());
-		AddItem(new Server.Items.ThighBoots(0x283));
+		SetWearable(new Server.Items.FancyShirt(0x3E4));
+		SetWearable(new Server.Items.LongPants(0x192));
+		SetWearable(new Server.Items.Pickaxe());
+		SetWearable(new Server.Items.ThighBoots(0x283));
 	}
 
 	public Miner(Serial serial) : base(serial)

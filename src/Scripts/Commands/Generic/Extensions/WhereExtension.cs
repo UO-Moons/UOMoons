@@ -4,7 +4,7 @@ namespace Server.Commands.Generic
 {
 	public sealed class WhereExtension : BaseExtension
 	{
-		public static ExtensionInfo ExtInfo = new(20, "Where", -1, delegate () { return new WhereExtension(); });
+		public static ExtensionInfo ExtInfo = new(20, "Where", -1, () => new WhereExtension());
 
 		public static void Initialize()
 		{
@@ -14,10 +14,6 @@ namespace Server.Commands.Generic
 		public override ExtensionInfo Info => ExtInfo;
 
 		public ObjectConditional Conditional { get; private set; }
-
-		public WhereExtension()
-		{
-		}
 
 		public override void Optimize(Mobile from, Type baseType, ref AssemblyEmitter assembly)
 		{

@@ -35,7 +35,7 @@ public class BasePeerless : BaseCreature
 	{
 		base.OnDeath(c);
 
-		if (GivesMLMinorArtifact && 0.5 > Utility.RandomDouble())
+		if (GivesMlMinorArtifact && 0.5 > Utility.RandomDouble())
 		{
 			MondainsLegacy.DropPeerlessMinor(c);
 		}

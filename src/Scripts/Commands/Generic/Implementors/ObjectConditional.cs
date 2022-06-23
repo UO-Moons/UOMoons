@@ -1,247 +1,246 @@
 using System;
 using System.Collections.Generic;
 
-namespace Server.Commands.Generic
+namespace Server.Commands.Generic;
+
+public sealed class ObjectConditional
 {
-	public sealed class ObjectConditional
+	private static readonly Type TypeofItem = typeof(Item);
+	private static readonly Type TypeofMobile = typeof(Mobile);
+	private readonly ICondition[][] _mConditions;
+
+	private IConditional[] _mConditionals;
+
+	public Type Type { get; }
+
+	public bool IsItem => (Type == null || Type == TypeofItem || Type.IsSubclassOf(TypeofItem));
+
+	public bool IsMobile => (Type == null || Type == TypeofMobile || Type.IsSubclassOf(TypeofMobile));
+
+	public static readonly ObjectConditional Empty = new(null, null);
+
+	public bool HasCompiled => _mConditionals != null;
+
+	public void Compile(ref AssemblyEmitter emitter)
 	{
-		private static readonly Type typeofItem = typeof(Item);
-		private static readonly Type typeofMobile = typeof(Mobile);
-		private readonly ICondition[][] m_Conditions;
+		if (emitter == null)
+			emitter = new AssemblyEmitter("__dynamic", false);
 
-		private IConditional[] m_Conditionals;
+		_mConditionals = new IConditional[_mConditions.Length];
 
-		public Type Type { get; }
+		for (int i = 0; i < _mConditionals.Length; ++i)
+			_mConditionals[i] = ConditionalCompiler.Compile(emitter, Type, _mConditions[i], i);
+	}
 
-		public bool IsItem => (Type == null || Type == typeofItem || Type.IsSubclassOf(typeofItem));
+	public bool CheckCondition(object obj)
+	{
+		if (Type == null)
+			return true; // null type means no condition
 
-		public bool IsMobile => (Type == null || Type == typeofMobile || Type.IsSubclassOf(typeofMobile));
-
-		public static readonly ObjectConditional Empty = new ObjectConditional(null, null);
-
-		public bool HasCompiled => (m_Conditionals != null);
-
-		public void Compile(ref AssemblyEmitter emitter)
+		if (!HasCompiled)
 		{
-			if (emitter == null)
-				emitter = new AssemblyEmitter("__dynamic", false);
+			AssemblyEmitter emitter = null;
 
-			m_Conditionals = new IConditional[m_Conditions.Length];
-
-			for (int i = 0; i < m_Conditionals.Length; ++i)
-				m_Conditionals[i] = ConditionalCompiler.Compile(emitter, Type, m_Conditions[i], i);
+			Compile(ref emitter);
 		}
 
-		public bool CheckCondition(object obj)
+		for (int i = 0; i < _mConditionals.Length; ++i)
 		{
-			if (Type == null)
-				return true; // null type means no condition
-
-			if (!HasCompiled)
-			{
-				AssemblyEmitter emitter = null;
-
-				Compile(ref emitter);
-			}
-
-			for (int i = 0; i < m_Conditionals.Length; ++i)
-			{
-				if (m_Conditionals[i].Verify(obj))
-					return true;
-			}
-
-			return false; // all conditions false
+			if (_mConditionals[i].Verify(obj))
+				return true;
 		}
 
-		public static ObjectConditional Parse(Mobile from, ref string[] args)
-		{
-			string[] conditionArgs = null;
+		return false; // all conditions false
+	}
 
-			for (int i = 0; i < args.Length; ++i)
+	public static ObjectConditional Parse(Mobile from, ref string[] args)
+	{
+		string[] conditionArgs = null;
+
+		for (int i = 0; i < args.Length; ++i)
+		{
+			if (Insensitive.Equals(args[i], "where"))
 			{
-				if (Insensitive.Equals(args[i], "where"))
+				string[] origArgs = args;
+
+				args = new string[i];
+
+				for (int j = 0; j < args.Length; ++j)
+					args[j] = origArgs[j];
+
+				conditionArgs = new string[origArgs.Length - i - 1];
+
+				for (int j = 0; j < conditionArgs.Length; ++j)
+					conditionArgs[j] = origArgs[i + j + 1];
+
+				break;
+			}
+		}
+
+		return ParseDirect(from, conditionArgs, 0, conditionArgs.Length);
+	}
+
+	public static ObjectConditional ParseDirect(Mobile from, string[] args, int offset, int size)
+	{
+		if (args == null || size == 0)
+			return Empty;
+
+		int index = 0;
+
+		Type objectType = Assembler.FindTypeByName(args[offset + index], true);
+
+		if (objectType == null)
+			throw new Exception($"No type with that name ({args[offset + index]}) was found.");
+
+		++index;
+
+		List<ICondition[]> conditions = new();
+		List<ICondition> current = new()
+		{
+			TypeCondition.Default
+		};
+
+		while (index < size)
+		{
+			string cur = args[offset + index];
+
+			bool inverse = false;
+
+			if (Insensitive.Equals(cur, "not") || cur == "!")
+			{
+				inverse = true;
+				++index;
+
+				if (index >= size)
+					throw new Exception("Improperly formatted object conditional.");
+			}
+			else if (Insensitive.Equals(cur, "or") || cur == "||")
+			{
+				if (current.Count > 1)
 				{
-					string[] origArgs = args;
+					conditions.Add(current.ToArray());
 
-					args = new string[i];
+					current.Clear();
+					current.Add(TypeCondition.Default);
+				}
 
-					for (int j = 0; j < args.Length; ++j)
-						args[j] = origArgs[j];
+				++index;
 
-					conditionArgs = new string[origArgs.Length - i - 1];
+				continue;
+			}
 
-					for (int j = 0; j < conditionArgs.Length; ++j)
-						conditionArgs[j] = origArgs[i + j + 1];
+			string binding = args[offset + index];
+			index++;
 
+			if (index >= size)
+				throw new Exception("Improperly formatted object conditional.");
+
+			string oper = args[offset + index];
+			index++;
+
+			if (index >= size)
+				throw new Exception("Improperly formatted object conditional.");
+
+			string val = args[offset + index];
+			index++;
+
+			Property prop = new Property(binding);
+
+			prop.BindTo(objectType, PropertyAccess.Read);
+			prop.CheckAccess(from);
+
+			ICondition condition = null;
+
+			switch (oper)
+			{
+				#region Equality
+				case "=":
+				case "==":
+				case "is":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Equal, val);
 					break;
-				}
+
+				case "!=":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.NotEqual, val);
+					break;
+				#endregion
+
+				#region Relational
+				case ">":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Greater, val);
+					break;
+
+				case "<":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Lesser, val);
+					break;
+
+				case ">=":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.GreaterEqual, val);
+					break;
+
+				case "<=":
+					condition = new ComparisonCondition(prop, inverse, ComparisonOperator.LesserEqual, val);
+					break;
+				#endregion
+
+				#region Strings
+				case "==~":
+				case "~==":
+				case "=~":
+				case "~=":
+				case "is~":
+				case "~is":
+					condition = new StringCondition(prop, inverse, StringOperator.Equal, val, true);
+					break;
+
+				case "!=~":
+				case "~!=":
+					condition = new StringCondition(prop, inverse, StringOperator.NotEqual, val, true);
+					break;
+
+				case "starts":
+					condition = new StringCondition(prop, inverse, StringOperator.StartsWith, val, false);
+					break;
+
+				case "starts~":
+				case "~starts":
+					condition = new StringCondition(prop, inverse, StringOperator.StartsWith, val, true);
+					break;
+
+				case "ends":
+					condition = new StringCondition(prop, inverse, StringOperator.EndsWith, val, false);
+					break;
+
+				case "ends~":
+				case "~ends":
+					condition = new StringCondition(prop, inverse, StringOperator.EndsWith, val, true);
+					break;
+
+				case "contains":
+					condition = new StringCondition(prop, inverse, StringOperator.Contains, val, false);
+					break;
+
+				case "contains~":
+				case "~contains":
+					condition = new StringCondition(prop, inverse, StringOperator.Contains, val, true);
+					break;
+				#endregion
 			}
 
-			return ParseDirect(from, conditionArgs, 0, conditionArgs.Length);
+			if (condition == null)
+				throw new InvalidOperationException($"Unrecognized operator (\"{oper}\").");
+
+			current.Add(condition);
 		}
 
-		public static ObjectConditional ParseDirect(Mobile from, string[] args, int offset, int size)
-		{
-			if (args == null || size == 0)
-				return ObjectConditional.Empty;
+		conditions.Add(current.ToArray());
 
-			int index = 0;
+		return new ObjectConditional(objectType, conditions.ToArray());
+	}
 
-			Type objectType = Assembler.FindTypeByName(args[offset + index], true);
-
-			if (objectType == null)
-				throw new Exception(string.Format("No type with that name ({0}) was found.", args[offset + index]));
-
-			++index;
-
-			List<ICondition[]> conditions = new List<ICondition[]>();
-			List<ICondition> current = new List<ICondition>
-			{
-				TypeCondition.Default
-			};
-
-			while (index < size)
-			{
-				string cur = args[offset + index];
-
-				bool inverse = false;
-
-				if (Insensitive.Equals(cur, "not") || cur == "!")
-				{
-					inverse = true;
-					++index;
-
-					if (index >= size)
-						throw new Exception("Improperly formatted object conditional.");
-				}
-				else if (Insensitive.Equals(cur, "or") || cur == "||")
-				{
-					if (current.Count > 1)
-					{
-						conditions.Add(current.ToArray());
-
-						current.Clear();
-						current.Add(TypeCondition.Default);
-					}
-
-					++index;
-
-					continue;
-				}
-
-				string binding = args[offset + index];
-				index++;
-
-				if (index >= size)
-					throw new Exception("Improperly formatted object conditional.");
-
-				string oper = args[offset + index];
-				index++;
-
-				if (index >= size)
-					throw new Exception("Improperly formatted object conditional.");
-
-				string val = args[offset + index];
-				index++;
-
-				Property prop = new Property(binding);
-
-				prop.BindTo(objectType, PropertyAccess.Read);
-				prop.CheckAccess(from);
-
-				ICondition condition = null;
-
-				switch (oper)
-				{
-					#region Equality
-					case "=":
-					case "==":
-					case "is":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Equal, val);
-						break;
-
-					case "!=":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.NotEqual, val);
-						break;
-					#endregion
-
-					#region Relational
-					case ">":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Greater, val);
-						break;
-
-					case "<":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.Lesser, val);
-						break;
-
-					case ">=":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.GreaterEqual, val);
-						break;
-
-					case "<=":
-						condition = new ComparisonCondition(prop, inverse, ComparisonOperator.LesserEqual, val);
-						break;
-					#endregion
-
-					#region Strings
-					case "==~":
-					case "~==":
-					case "=~":
-					case "~=":
-					case "is~":
-					case "~is":
-						condition = new StringCondition(prop, inverse, StringOperator.Equal, val, true);
-						break;
-
-					case "!=~":
-					case "~!=":
-						condition = new StringCondition(prop, inverse, StringOperator.NotEqual, val, true);
-						break;
-
-					case "starts":
-						condition = new StringCondition(prop, inverse, StringOperator.StartsWith, val, false);
-						break;
-
-					case "starts~":
-					case "~starts":
-						condition = new StringCondition(prop, inverse, StringOperator.StartsWith, val, true);
-						break;
-
-					case "ends":
-						condition = new StringCondition(prop, inverse, StringOperator.EndsWith, val, false);
-						break;
-
-					case "ends~":
-					case "~ends":
-						condition = new StringCondition(prop, inverse, StringOperator.EndsWith, val, true);
-						break;
-
-					case "contains":
-						condition = new StringCondition(prop, inverse, StringOperator.Contains, val, false);
-						break;
-
-					case "contains~":
-					case "~contains":
-						condition = new StringCondition(prop, inverse, StringOperator.Contains, val, true);
-						break;
-						#endregion
-				}
-
-				if (condition == null)
-					throw new InvalidOperationException(string.Format("Unrecognized operator (\"{0}\").", oper));
-
-				current.Add(condition);
-			}
-
-			conditions.Add(current.ToArray());
-
-			return new ObjectConditional(objectType, conditions.ToArray());
-		}
-
-		public ObjectConditional(Type objectType, ICondition[][] conditions)
-		{
-			Type = objectType;
-			m_Conditions = conditions;
-		}
+	public ObjectConditional(Type objectType, ICondition[][] conditions)
+	{
+		Type = objectType;
+		_mConditions = conditions;
 	}
 }

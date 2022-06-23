@@ -64,7 +64,7 @@ public class CustomHairstylist : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Robe(Utility.RandomPinkHue()));
+		SetWearable(new Robe(Utility.RandomPinkHue()));
 	}
 
 	public override void InitSbInfo()

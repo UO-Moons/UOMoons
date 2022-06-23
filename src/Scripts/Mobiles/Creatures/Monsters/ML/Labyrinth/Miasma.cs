@@ -46,7 +46,7 @@ namespace Server.Mobiles
 		public override double HitPoisonChance => 0.35;
 		public override Poison HitPoison => (Poison.Lethal);
 		public override bool HasManaOveride => true;
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int TreasureMapLevel => 5;
 
 		public override void GenerateLoot()

@@ -282,7 +282,7 @@ namespace Server.Mobiles
                 return false;
             }
 
-            if (!m_Mobile.IsSupreme && !m_Mobile.IsParagon && (last_healaction + m_Mobile.SuperAI_HealingDelay) > DateTime.UtcNow)
+            if (!m_Mobile.IsSupreme && !m_Mobile.IsParagon && (last_healaction + m_Mobile.SuperAiHealingDelay) > DateTime.UtcNow)
             {
                 return false;
             }
@@ -1998,7 +1998,7 @@ foreach (Mobile m in m_Mobile.Combatant.GetMobilesInRange(BaseInstrument.GetBard
                     didaction = DoReveilAction();
                 }
 
-                int chancetodelay = 100 + m_Mobile.SuperAI_Intensity;
+                int chancetodelay = 100 + m_Mobile.SuperAiIntensity;
                 if (m_Mobile.IsSupreme || m_Mobile.IsParagon)
                 {
                     chancetodelay += 500;
@@ -2009,16 +2009,16 @@ foreach (Mobile m in m_Mobile.Combatant.GetMobilesInRange(BaseInstrument.GetBard
 
                     if (percentmana > 40 || m_Mobile.Mana > 100 || 0.27 > Utility.RandomDouble())
                     {
-                        SetWait(1 + Utility.Random(Utility.Random(m_Mobile.SuperAI_DelayMax) + 1 + (int)(5 - (percentmana / 20))));  //random delay between doing an action, bigger chance if our mana is low
+                        SetWait(1 + Utility.Random(Utility.Random(m_Mobile.SuperAiDelayMax) + 1 + (int)(5 - (percentmana / 20))));  //random delay between doing an action, bigger chance if our mana is low
                     }
                     else if (percentmana < 10)
                     {
                         SetWait(21 + Utility.Random(25));
                     }
                 }
-                else if (m_Mobile.SuperAI_DelayMax > 0 && Utility.RandomBool())
+                else if (m_Mobile.SuperAiDelayMax > 0 && Utility.RandomBool())
                 {
-                    SetWait(1 + Utility.Random(m_Mobile.SuperAI_DelayMax));
+                    SetWait(1 + Utility.Random(m_Mobile.SuperAiDelayMax));
                 }
 
                 CheckRun((Mobile)c);

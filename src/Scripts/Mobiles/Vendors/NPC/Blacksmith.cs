@@ -70,10 +70,10 @@ public class Blacksmith : BaseVendor
 		}
 
 		if (item == null)
-			AddItem(new FullApron());
+			SetWearable(new FullApron());
 
-		AddItem(new Bascinet());
-		AddItem(new SmithHammer());
+		SetWearable(new Bascinet());
+		SetWearable(new SmithHammer());
 	}
 
 	#region Bulk Orders

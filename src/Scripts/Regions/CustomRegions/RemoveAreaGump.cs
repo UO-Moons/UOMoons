@@ -6,11 +6,11 @@ namespace Server.Gumps
 {
 	public class RemoveAreaGump : Gump
 	{
-		readonly RegionControl m_Control;
+		readonly RegionControl _mControl;
 
 		public RemoveAreaGump(RegionControl r) : base(25, 250)
 		{
-			m_Control = r;
+			_mControl = r;
 
 			Closable = true;
 			Dragable = true;
@@ -35,7 +35,7 @@ namespace Server.Gumps
 				{
 					Rectangle3D rect = r.RegionArea[i];
 
-					if (itemsThisPage >= 8 || itemsThisPage == 0)
+					if (itemsThisPage is >= 8 or 0)
 					{
 						itemsThisPage = 0;
 
@@ -58,13 +58,13 @@ namespace Server.Gumps
 					//Button is 100 + i
 
 					//AddLabel(116, 77 + 25*i, 0, "(1234, 5678)");
-					AddLabel(116, 77 + 25 * itemsThisPage, 1152, String.Format("({0}, {1}, {2})", rect.Start.X, rect.Start.Y, rect.Start.Z));
+					AddLabel(116, 77 + 25 * itemsThisPage, 1152, $"({rect.Start.X}, {rect.Start.Y}, {rect.Start.Z})");
 
 
 					AddLabel(232, 78 + 25 * itemsThisPage, 1152, "<-->");
 
 					//AddLabel(294, 77 + 25*i, 0, "(9876, 5432)");
-					AddLabel(294, 77 + 25 * itemsThisPage, 1152, String.Format("({0}, {1}, {2})", rect.End.X, rect.End.Y, rect.End.Z));
+					AddLabel(294, 77 + 25 * itemsThisPage, 1152, $"({rect.End.X}, {rect.End.Y}, {rect.End.Z})");
 
 					itemsThisPage++;
 
@@ -84,11 +84,11 @@ namespace Server.Gumps
 
 			if (info.ButtonID >= 100)
 			{
-				m_Control.RemoveArea(info.ButtonID - 100, from);
+				_mControl.RemoveArea(info.ButtonID - 100, from);
 
 				sender.Mobile.CloseGump(typeof(RemoveAreaGump));
 
-				sender.Mobile.SendGump(new RemoveAreaGump(m_Control));
+				sender.Mobile.SendGump(new RemoveAreaGump(_mControl));
 			}
 		}
 

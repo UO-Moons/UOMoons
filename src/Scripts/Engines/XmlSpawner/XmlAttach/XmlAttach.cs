@@ -20,9 +20,6 @@ namespace Server.Engines.XmlSpawner2
 	[AttributeUsage(AttributeTargets.Constructor)]
 	public class Attachable : Attribute
 	{
-		public Attachable()
-		{
-		}
 	}
 
 	public class ASerial

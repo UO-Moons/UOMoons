@@ -26,8 +26,8 @@ public class Monk : BaseVendor
 	}
 	public override void InitOutfit()
 	{
-		AddItem(new Sandals());
-		AddItem(new MonkRobe());
+		SetWearable(new Sandals());
+		SetWearable(new MonkRobe());
 	}
 
 	public Monk(Serial serial) : base(serial)

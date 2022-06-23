@@ -4422,7 +4422,13 @@ namespace Server
 				MTypeRef = World.m_ItemTypes.Count - 1;
 			}
 
-			_ = Timer.DelayCall(EventSink.InvokeOnItemCreated, this);
+			Timer.DelayCall(() =>
+			{
+				if (!Deleted)
+				{
+					EventSink.InvokeOnItemCreated(this);
+				}
+			});
 		}
 
 		[Constructable]

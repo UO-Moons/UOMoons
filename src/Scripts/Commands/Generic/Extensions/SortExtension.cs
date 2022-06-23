@@ -6,7 +6,7 @@ namespace Server.Commands.Generic
 {
 	public sealed class SortExtension : BaseExtension
 	{
-		public static ExtensionInfo ExtInfo = new(40, "Order", -1, delegate () { return new SortExtension(); });
+		public static ExtensionInfo ExtInfo = new(40, "Order", -1, () => new SortExtension());
 
 		public static void Initialize()
 		{
@@ -15,13 +15,13 @@ namespace Server.Commands.Generic
 
 		public override ExtensionInfo Info => ExtInfo;
 
-		private readonly List<OrderInfo> m_Orders;
+		private readonly List<OrderInfo> _mOrders;
 
-		private IComparer m_Comparer;
+		private IComparer _mComparer;
 
 		public SortExtension()
 		{
-			m_Orders = new List<OrderInfo>();
+			_mOrders = new List<OrderInfo>();
 		}
 
 		public override void Optimize(Mobile from, Type baseType, ref AssemblyEmitter assembly)
@@ -29,7 +29,7 @@ namespace Server.Commands.Generic
 			if (baseType == null)
 				throw new Exception("The ordering extension may only be used in combination with an object conditional.");
 
-			foreach (OrderInfo order in m_Orders)
+			foreach (OrderInfo order in _mOrders)
 			{
 				order.Property.BindTo(baseType, PropertyAccess.Read);
 				order.Property.CheckAccess(from);
@@ -38,7 +38,7 @@ namespace Server.Commands.Generic
 			if (assembly == null)
 				assembly = new AssemblyEmitter("__dynamic", false);
 
-			m_Comparer = SortCompiler.Compile(assembly, baseType, m_Orders.ToArray());
+			_mComparer = SortCompiler.Compile(assembly, baseType, _mOrders.ToArray());
 		}
 
 		public override void Parse(Mobile from, string[] arguments, int offset, int size)
@@ -89,16 +89,16 @@ namespace Server.Commands.Generic
 
 				Property property = new(binding);
 
-				m_Orders.Add(new OrderInfo(property, isAscending));
+				_mOrders.Add(new OrderInfo(property, isAscending));
 			}
 		}
 
 		public override void Filter(ArrayList list)
 		{
-			if (m_Comparer == null)
+			if (_mComparer == null)
 				throw new InvalidOperationException("The extension must first be optimized.");
 
-			list.Sort(m_Comparer);
+			list.Sort(_mComparer);
 		}
 	}
 }

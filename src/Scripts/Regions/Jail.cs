@@ -10,18 +10,18 @@ namespace Server.Regions
 
 		public override bool AllowBeneficial(Mobile from, Mobile target)
 		{
-			if (from.AccessLevel == AccessLevel.Player)
+			if (from.IsPlayer())
 				from.SendMessage("You may not do that in jail.");
 
-			return (from.AccessLevel > AccessLevel.Player);
+			return from.IsStaff();
 		}
 
 		public override bool AllowHarmful(Mobile from, IDamageable target)
 		{
-			if (from.AccessLevel == AccessLevel.Player)
+			if (from.IsPlayer())
 				from.SendMessage("You may not do that in jail.");
 
-			return (from.AccessLevel > AccessLevel.Player);
+			return from.IsStaff();
 		}
 
 		public override bool AllowHousing(Mobile from, Point3D p)
@@ -41,20 +41,20 @@ namespace Server.Regions
 			if (from.AccessLevel == AccessLevel.Player)
 				from.SendLocalizedMessage(502629); // You cannot cast spells here.
 
-			return (from.AccessLevel > AccessLevel.Player);
+			return from.AccessLevel > AccessLevel.Player;
 		}
 
-		public override bool OnSkillUse(Mobile from, int Skill)
+		public override bool OnSkillUse(Mobile from, int skill)
 		{
-			if (from.AccessLevel == AccessLevel.Player)
+			if (from.IsPlayer())
 				from.SendMessage("You may not use skills in jail.");
 
-			return (from.AccessLevel > AccessLevel.Player);
+			return from.IsStaff();
 		}
 
-		public override bool OnCombatantChange(Mobile from, IDamageable Old, IDamageable New)
+		public override bool OnCombatantChange(Mobile from, IDamageable old, IDamageable @new)
 		{
-			return (from.AccessLevel > AccessLevel.Player);
+			return from.IsStaff();
 		}
 	}
 }

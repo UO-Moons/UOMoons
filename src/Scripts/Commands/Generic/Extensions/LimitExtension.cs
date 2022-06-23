@@ -5,7 +5,7 @@ namespace Server.Commands.Generic
 {
 	public sealed class LimitExtension : BaseExtension
 	{
-		public static ExtensionInfo ExtInfo = new(80, "Limit", 1, delegate () { return new LimitExtension(); });
+		public static ExtensionInfo ExtInfo = new(80, "Limit", 1, () => new LimitExtension());
 
 		public static void Initialize()
 		{
@@ -15,10 +15,6 @@ namespace Server.Commands.Generic
 		public override ExtensionInfo Info => ExtInfo;
 
 		public int Limit { get; private set; }
-
-		public LimitExtension()
-		{
-		}
 
 		public override void Parse(Mobile from, string[] arguments, int offset, int size)
 		{

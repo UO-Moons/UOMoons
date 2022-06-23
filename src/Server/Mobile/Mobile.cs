@@ -5245,12 +5245,18 @@ namespace Server
 
 			if (item.Parent == this)
 				return;
-			else if (item.Parent is Mobile mobile)
-				mobile.RemoveItem(item);
-			else if (item.Parent is Item parentItem)
-				parentItem.RemoveItem(item);
-			else
-				item.SendRemovePacket();
+			switch (item.Parent)
+			{
+				case Mobile mobile:
+					mobile.RemoveItem(item);
+					break;
+				case Item parentItem:
+					parentItem.RemoveItem(item);
+					break;
+				default:
+					item.SendRemovePacket();
+					break;
+			}
 
 			item.Parent = this;
 			item.Map = _mMap;
@@ -8153,6 +8159,9 @@ namespace Server
 		{
 		}
 
+		protected virtual void OnCreate()
+		{ }
+
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Poisoned => _mPoison != null;
 
@@ -9499,7 +9508,20 @@ if (!inOldRange && CanSee(m))
 				MTypeRef = World.m_MobileTypes.Count - 1;
 			}
 
-			_ = Timer.DelayCall(EventSink.InvokeOnMobileCreated, this);
+			//_ = Timer.DelayCall(EventSink.InvokeOnMobileCreated, this);
+
+			Timer.DelayCall(() =>
+			{
+				if (!Deleted)
+				{
+					EventSink.InvokeOnMobileCreated(this);
+					if (!Deleted)
+					{
+						//m_InternalCanRegen = true;
+						OnCreate();
+					}
+				}
+			});
 		}
 
 		public void DefaultMobileInit()

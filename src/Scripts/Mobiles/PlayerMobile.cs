@@ -706,7 +706,7 @@ namespace Server.Mobiles
 
 		public bool GetFlag(ExtendedPlayerFlag flag)
 		{
-			return ((ExtendedFlags & flag) != 0);
+			return (ExtendedFlags & flag) != 0;
 		}
 
 		public void SetFlag(ExtendedPlayerFlag flag, bool value)
@@ -734,9 +734,9 @@ namespace Server.Mobiles
 			EventSink.OnDisconnected += EventSink_Disconnected;
 
 			#region Enchanced Client
-			//EventSink.TargetedSkill += Targeted_Skill;
-			//EventSink.EquipMacro += EquipMacro;
-			//EventSink.UnequipMacro += UnequipMacro;
+			//EventSink.OnTargetedSkillUse += Targeted_Skill(Mobile, IEntity, int);
+			//EventSink.OnEquipMacro += EquipMacro(Mobile, List);
+			//EventSink.OnUnequipMacro += UnequipMacro(Mobile,List);
 			#endregion
 
 			if (Core.SE)
@@ -746,40 +746,38 @@ namespace Server.Mobiles
 		}
 
 		#region Enhanced Client
-		/*private static void Targeted_Skill(TargetedSkillEventArgs e)
+		/*
+		private static void Targeted_Skill(Mobile from, , IEntity target, int SkillId)
 		{
-			Mobile from = e.Mobile;
-			int SkillId = e.SkillID;
-			IEntity target = e.Target;
-
 			if (from == null || target == null)
 				return;
 
 			from.TargetLocked = true;
 
-			if (e.SkillID == 35)
+			if (target.SkillID == 35)
 			{
 				AnimalTaming.DisableMessage = true;
-				AnimalTaming.DeferredTarget = false;
+				//AnimalTaming.DeferredTarget = false;
 			}
 
-			if (from.UseSkill(e.SkillID) && from.Target != null)
+			if (from.UseSkill(target.SkillID) && from.Target != null)
 			{
 				from.Target.Invoke(from, target);
 			}
 
-			if (e.SkillID == 35)
+			if (from.SkillID == 35)
 			{
-				AnimalTaming.DeferredTarget = true;
+				//AnimalTaming.DeferredTarget = true;
 				AnimalTaming.DisableMessage = false;
 			}
 
 			from.TargetLocked = false;
+			EventSink.InvokeTargetedSkillUse(from, target , SkillId);
 		}
 
-		public static void EquipMacro(EquipMacroEventArgs e)
+		public static void EquipMacro(Mobile m, List<Layer> layers)
 		{
-			PlayerMobile pm = e.Mobile as PlayerMobile;
+			PlayerMobile pm = m as PlayerMobile;
 
 			if (pm != null && pm.Backpack != null && pm.Alive && e.List != null && e.List.Count > 0)
 			{

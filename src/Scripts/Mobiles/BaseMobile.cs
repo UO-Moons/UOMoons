@@ -63,6 +63,33 @@ namespace Server.Mobiles
 			return false;
 		}
 
+		public virtual void SetWearable(Item item, int hue = -1, double dropChance = 0.0)
+		{
+			if (hue > -1)
+				item.Hue = hue;
+
+			item.Movable = dropChance switch
+			{
+				<= 0 => false,
+				>= 1 => true,
+				_ => dropChance > Utility.RandomDouble()
+			};
+
+			if (!OnEquip(item) || !item.OnEquip(this))
+			{
+				PackItem(item);
+			}
+			else
+			{
+				if (!CheckEquip(item))
+				{
+					FindItemOnLayer(item.Layer)?.Delete();
+				}
+
+				AddItem(item);
+			}
+		}
+
 		public virtual void PackItem(Item item)
 		{
 			Container pack = Backpack;
@@ -96,7 +123,6 @@ namespace Server.Mobiles
 		}
 
 		#region Alter[...]Damage From/To
-
 		public virtual void AlterDamageScalarFrom(Mobile caster, ref double scalar)
 		{
 		}

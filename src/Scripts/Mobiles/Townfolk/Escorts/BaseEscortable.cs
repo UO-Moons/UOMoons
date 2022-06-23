@@ -83,9 +83,9 @@ namespace Server.Mobiles
 
 		public virtual void InitOutfit()
 		{
-			AddItem(new FancyShirt(Utility.RandomNeutralHue()));
-			AddItem(new ShortPants(Utility.RandomNeutralHue()));
-			AddItem(new Boots(Utility.RandomNeutralHue()));
+			SetWearable(new FancyShirt(Utility.RandomNeutralHue()));
+			SetWearable(new ShortPants(Utility.RandomNeutralHue()));
+			SetWearable(new Boots(Utility.RandomNeutralHue()));
 
 			Utility.AssignRandomHair(this);
 

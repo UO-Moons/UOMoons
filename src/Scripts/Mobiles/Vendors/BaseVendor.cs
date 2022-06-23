@@ -396,19 +396,17 @@ namespace Server.Mobiles
 		{
 			switch (Utility.Random(3))
 			{
-				case 0: AddItem(new FancyShirt(GetRandomHue())); break;
-				case 1: AddItem(new Doublet(GetRandomHue())); break;
-				case 2: AddItem(new Shirt(GetRandomHue())); break;
+				case 0: SetWearable(new FancyShirt(), GetRandomHue(), 1);break;
+				case 1: SetWearable(new Doublet(), GetRandomHue(), 1); break;
+				case 2: SetWearable(new Shirt(), GetRandomHue(), 1 ); break;
 			}
 
 			switch (ShoeType)
 			{
-				case VendorShoeType.Shoes: AddItem(new Shoes(GetShoeHue())); break;
-				case VendorShoeType.Boots: AddItem(new Boots(GetShoeHue())); break;
-				case VendorShoeType.Sandals: AddItem(new Sandals(GetShoeHue())); break;
-				case VendorShoeType.ThighBoots: AddItem(new ThighBoots(GetShoeHue())); break;
-				default:
-					throw new ArgumentOutOfRangeException();
+				case VendorShoeType.Shoes: SetWearable(new Shoes(), GetShoeHue(),1); break;
+				case VendorShoeType.Boots: SetWearable(new Boots(), GetShoeHue(), 1); break;
+				case VendorShoeType.Sandals: SetWearable(new Sandals(), GetShoeHue(), 1); break;
+				case VendorShoeType.ThighBoots: SetWearable(new ThighBoots(), GetShoeHue(), 1); break;
 			}
 
 			int hairHue = GetHairHue();
@@ -420,20 +418,20 @@ namespace Server.Mobiles
 			{
 				switch (Utility.Random(6))
 				{
-					case 0: AddItem(new ShortPants(GetRandomHue())); break;
+					case 0: SetWearable(new ShortPants(), GetRandomHue(), 1); break;
 					case 1:
-					case 2: AddItem(new Kilt(GetRandomHue())); break;
+					case 2: SetWearable(new Kilt(), GetRandomHue(), 1); break;
 					case 3:
 					case 4:
-					case 5: AddItem(new Skirt(GetRandomHue())); break;
+					case 5: SetWearable(new Skirt(), GetRandomHue(), 1); break;
 				}
 			}
 			else
 			{
 				switch (Utility.Random(2))
 				{
-					case 0: AddItem(new LongPants(GetRandomHue())); break;
-					case 1: AddItem(new ShortPants(GetRandomHue())); break;
+					case 0: SetWearable(new LongPants(), GetRandomHue(), 1); break;
+					case 1: SetWearable(new ShortPants(), GetRandomHue(), 1); break;
 				}
 			}
 

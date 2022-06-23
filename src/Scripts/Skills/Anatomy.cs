@@ -3,45 +3,45 @@ using Server.Network;
 using Server.Targeting;
 using System;
 
-namespace Server.SkillHandlers
+namespace Server.SkillHandlers;
+
+public class Anatomy
 {
-	public class Anatomy
+	public static void Initialize()
 	{
-		public static void Initialize()
+		SkillInfo.Table[(int)SkillName.Anatomy].Callback = OnUse;
+	}
+
+	public static TimeSpan OnUse(Mobile m)
+	{
+		m.Target = new InternalTarget();
+
+		m.SendLocalizedMessage(500321); // Whom shall I examine?
+
+		return TimeSpan.FromSeconds(1.0);
+	}
+
+	private class InternalTarget : Target
+	{
+		public InternalTarget() : base(8, false, TargetFlags.None)
 		{
-			SkillInfo.Table[(int)SkillName.Anatomy].Callback = new SkillUseCallback(OnUse);
 		}
 
-		public static TimeSpan OnUse(Mobile m)
+		protected override void OnTarget(Mobile from, object targeted)
 		{
-			m.Target = new Anatomy.InternalTarget();
-
-			m.SendLocalizedMessage(500321); // Whom shall I examine?
-
-			return TimeSpan.FromSeconds(1.0);
-		}
-
-		private class InternalTarget : Target
-		{
-			public InternalTarget() : base(8, false, TargetFlags.None)
+			if (from == targeted)
 			{
+				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 500324); // You know yourself quite well enough already.
 			}
-
-			protected override void OnTarget(Mobile from, object targeted)
+			else switch (targeted)
 			{
-				if (from == targeted)
-				{
-					from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 500324); // You know yourself quite well enough already.
-				}
-				else if (targeted is TownCrier townCrier)
-				{
+				case TownCrier townCrier:
 					townCrier.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500322, from.NetState); // This person looks fine to me, though he may have some news...
-				}
-				else if (targeted is BaseVendor vendor && vendor.IsInvulnerable)
-				{
+					break;
+				case BaseVendor {IsInvulnerable: true} vendor:
 					vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500326, from.NetState); // That can not be inspected.
-				}
-				else if (targeted is Mobile targ)
+					break;
+				case Mobile targ:
 				{
 					int marginOfError = Math.Max(0, 25 - (int)(from.Skills[SkillName.Anatomy].Value / 4));
 
@@ -53,14 +53,26 @@ namespace Server.SkillHandlers
 					int dexMod = dex / 10;
 					int stmMod = stm / 10;
 
-					if (strMod < 0) strMod = 0;
-					else if (strMod > 10) strMod = 10;
+					strMod = strMod switch
+					{
+						< 0 => 0,
+						> 10 => 10,
+						_ => strMod
+					};
 
-					if (dexMod < 0) dexMod = 0;
-					else if (dexMod > 10) dexMod = 10;
+					dexMod = dexMod switch
+					{
+						< 0 => 0,
+						> 10 => 10,
+						_ => dexMod
+					};
 
-					if (stmMod > 10) stmMod = 10;
-					else if (stmMod < 0) stmMod = 0;
+					stmMod = stmMod switch
+					{
+						> 10 => 10,
+						< 0 => 0,
+						_ => stmMod
+					};
 
 					if (from.CheckTargetSkill(SkillName.Anatomy, targ, 0, 100))
 					{
@@ -73,11 +85,12 @@ namespace Server.SkillHandlers
 					{
 						targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042666, from.NetState); // You can not quite get a sense of their physical characteristics.
 					}
+
+					break;
 				}
-				else if (targeted is Item item)
-				{
+				case Item item:
 					item.SendLocalizedMessageTo(from, 500323); // Only living things have anatomies!
-				}
+					break;
 			}
 		}
 	}

@@ -34,18 +34,18 @@ namespace Server.Mobiles
 		public override void InitOutfit()
 		{
 			if (Female)
-				AddItem(new FancyDress());
+				SetWearable(new FancyDress());
 			else
-				AddItem(new FancyShirt());
+				SetWearable(new FancyShirt());
 
 			int lowHue = GetRandomHue();
 
-			AddItem(new LongPants(lowHue));
+			SetWearable(new LongPants(lowHue));
 
 			if (Female)
-				AddItem(new Shoes(lowHue));
+				SetWearable(new Shoes(lowHue));
 			else
-				AddItem(new Boots(lowHue));
+				SetWearable(new Boots(lowHue));
 
 			if (Utility.RandomBool())
 				HairItemID = 0x203B;

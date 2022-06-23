@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 
 namespace Server.Commands.Generic
 {
@@ -7,7 +8,7 @@ namespace Server.Commands.Generic
 	{
 		public RegionCommandImplementor()
 		{
-			Accessors = new string[] { "Region" };
+			Accessors = new[] { "Region" };
 			SupportRequirement = CommandSupport.Region;
 			SupportsConditionals = true;
 			AccessLevel = AccessLevel.GameMaster;
@@ -27,17 +28,13 @@ namespace Server.Commands.Generic
 
 				Region reg = from.Region;
 
-				ArrayList list = new ArrayList();
+				ArrayList list = new();
 
 				if (mobiles)
 				{
-					foreach (Mobile mob in reg.GetMobiles())
+					foreach (var mob in reg.GetMobiles().Where(mob => BaseCommand.IsAccessible(from, mob)).Where(mob => ext.IsValid(mob)))
 					{
-						if (!BaseCommand.IsAccessible(from, mob))
-							continue;
-
-						if (ext.IsValid(mob))
-							list.Add(mob);
+						list.Add(mob);
 					}
 				}
 				else

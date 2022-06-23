@@ -34,7 +34,7 @@ public class Scribe : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Robe(Utility.RandomNeutralHue()));
+		SetWearable(new Robe(Utility.RandomNeutralHue()));
 	}
 
 	public override bool HandlesOnSpeech(Mobile from)

@@ -3,45 +3,45 @@ using Server.Network;
 using Server.Targeting;
 using System;
 
-namespace Server.SkillHandlers
+namespace Server.SkillHandlers;
+
+public class EvalInt
 {
-	public class EvalInt
+	public static void Initialize()
 	{
-		public static void Initialize()
+		SkillInfo.Table[16].Callback = OnUse;
+	}
+
+	public static TimeSpan OnUse(Mobile m)
+	{
+		m.Target = new InternalTarget();
+
+		m.SendLocalizedMessage(500906); // What do you wish to evaluate?
+
+		return TimeSpan.FromSeconds(1.0);
+	}
+
+	private class InternalTarget : Target
+	{
+		public InternalTarget() : base(8, false, TargetFlags.None)
 		{
-			SkillInfo.Table[16].Callback = new SkillUseCallback(OnUse);
 		}
 
-		public static TimeSpan OnUse(Mobile m)
+		protected override void OnTarget(Mobile from, object targeted)
 		{
-			m.Target = new EvalInt.InternalTarget();
-
-			m.SendLocalizedMessage(500906); // What do you wish to evaluate?
-
-			return TimeSpan.FromSeconds(1.0);
-		}
-
-		private class InternalTarget : Target
-		{
-			public InternalTarget() : base(8, false, TargetFlags.None)
+			if (from == targeted)
 			{
+				from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 500910); // Hmm, that person looks really silly.
 			}
-
-			protected override void OnTarget(Mobile from, object targeted)
+			else switch (targeted)
 			{
-				if (from == targeted)
-				{
-					from.LocalOverheadMessage(MessageType.Regular, 0x3B2, 500910); // Hmm, that person looks really silly.
-				}
-				else if (targeted is TownCrier crier)
-				{
+				case TownCrier crier:
 					crier.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500907, from.NetState); // He looks smart enough to remember the news.  Ask him about it.
-				}
-				else if (targeted is BaseVendor vendor && vendor.IsInvulnerable)
-				{
+					break;
+				case BaseVendor {IsInvulnerable: true} vendor:
 					vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500909, from.NetState); // That person could probably calculate the cost of what you buy from them.
-				}
-				else if (targeted is Mobile targ)
+					break;
+				case Mobile targ:
 				{
 					int marginOfError = Math.Max(0, 20 - (int)(from.Skills[SkillName.EvalInt].Value / 5));
 
@@ -51,11 +51,19 @@ namespace Server.SkillHandlers
 					int intMod = intel / 10;
 					int mnMod = mana / 10;
 
-					if (intMod > 10) intMod = 10;
-					else if (intMod < 0) intMod = 0;
+					intMod = intMod switch
+					{
+						> 10 => 10,
+						< 0 => 0,
+						_ => intMod
+					};
 
-					if (mnMod > 10) mnMod = 10;
-					else if (mnMod < 0) mnMod = 0;
+					mnMod = mnMod switch
+					{
+						> 10 => 10,
+						< 0 => 0,
+						_ => mnMod
+					};
 
 					int body;
 
@@ -73,13 +81,14 @@ namespace Server.SkillHandlers
 					}
 					else
 					{
-						targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1038166 + (body / 11), from.NetState); // You cannot judge his/her/its mental abilities.
+						targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1038166 + body / 11, from.NetState); // You cannot judge his/her/its mental abilities.
 					}
+
+					break;
 				}
-				else if (targeted is Item item)
-				{
+				case Item item:
 					item.SendLocalizedMessageTo(from, 500908); // It looks smarter than a rock, but dumber than a piece of wood.
-				}
+					break;
 			}
 		}
 	}

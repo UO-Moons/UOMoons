@@ -24,7 +24,7 @@ public class TavernKeeper : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
+		SetWearable(new HalfApron());
 	}
 
 	public TavernKeeper(Serial serial) : base(serial)

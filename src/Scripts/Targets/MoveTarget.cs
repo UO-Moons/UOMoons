@@ -2,42 +2,43 @@ using Server.Commands;
 using Server.Commands.Generic;
 using Server.Targeting;
 
-namespace Server.Targets
+namespace Server.Targets;
+
+public class MoveTarget : Target
 {
-	public class MoveTarget : Target
+	private readonly object _mObject;
+
+	public MoveTarget(object o) : base(-1, true, TargetFlags.None)
 	{
-		private readonly object m_Object;
+		_mObject = o;
+	}
 
-		public MoveTarget(object o) : base(-1, true, TargetFlags.None)
+	protected override void OnTarget(Mobile from, object o)
+	{
+		if (o is IPoint3D p)
 		{
-			m_Object = o;
-		}
-
-		protected override void OnTarget(Mobile from, object o)
-		{
-			if (o is IPoint3D p)
+			if (!BaseCommand.IsAccessible(from, _mObject))
 			{
-				if (!BaseCommand.IsAccessible(from, m_Object))
-				{
-					from.SendMessage("That is not accessible.");
-					return;
-				}
+				from.SendMessage("That is not accessible.");
+				return;
+			}
 
-				if (p is Item item)
-					p = item.GetWorldTop();
+			if (p is Item item)
+				p = item.GetWorldTop();
 
-				CommandLogging.WriteLine(from, "{0} {1} moving {2} to {3}", from.AccessLevel, CommandLogging.Format(from), CommandLogging.Format(m_Object), new Point3D(p));
+			CommandLogging.WriteLine(from, "{0} {1} moving {2} to {3}", from.AccessLevel, CommandLogging.Format(from), CommandLogging.Format(_mObject), new Point3D(p));
 
-				if (m_Object is Item objectItem)
+			switch (_mObject)
+			{
+				case Item objectItem:
 				{
 					if (!objectItem.Deleted)
 						objectItem.MoveToWorld(new Point3D(p), from.Map);
+					break;
 				}
-				else if (m_Object is Mobile m)
-				{
-					if (!m.Deleted)
-						m.MoveToWorld(new Point3D(p), from.Map);
-				}
+				case Mobile {Deleted: false} m:
+					m.MoveToWorld(new Point3D(p), from.Map);
+					break;
 			}
 		}
 	}

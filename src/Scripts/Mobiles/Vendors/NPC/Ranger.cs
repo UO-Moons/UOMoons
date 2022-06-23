@@ -30,10 +30,10 @@ public class Ranger : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Shirt(Utility.RandomNeutralHue()));
-		AddItem(new LongPants(Utility.RandomNeutralHue()));
-		AddItem(new Bow());
-		AddItem(new ThighBoots(Utility.RandomNeutralHue()));
+		SetWearable(new Shirt(Utility.RandomNeutralHue()));
+		SetWearable(new LongPants(Utility.RandomNeutralHue()));
+		SetWearable(new Bow());
+		SetWearable(new ThighBoots(Utility.RandomNeutralHue()));
 	}
 
 	public Ranger(Serial serial) : base(serial)

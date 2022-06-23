@@ -66,7 +66,7 @@ namespace Server.Mobiles
 		//	c.DropItem(new ResolvesBridle());
 		//}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override bool AlwaysMurderer => true;
 		public override bool HasBreath => true;
 		public override int BreathChaosDamage => 100;

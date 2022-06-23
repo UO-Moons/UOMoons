@@ -34,10 +34,6 @@ namespace Server.Commands.Generic
 
 	public sealed class Extensions : List<BaseExtension>
 	{
-		public Extensions()
-		{
-		}
-
 		public bool IsValid(object obj)
 		{
 			for (int i = 0; i < Count; ++i)
@@ -69,25 +65,22 @@ namespace Server.Commands.Generic
 				if (!ExtensionInfo.Table.TryGetValue(args[i], out ExtensionInfo extInfo))
 					continue;
 
-				if (extInfo.IsFixedSize && i != (size - extInfo.Size - 1))
+				if (extInfo.IsFixedSize && i != size - extInfo.Size - 1)
 					throw new Exception("Invalid extended argument count.");
 
 				BaseExtension ext = extInfo.Constructor();
 
 				ext.Parse(from, args, i + 1, size - i - 1);
 
-				if (ext is WhereExtension)
-					baseType = (ext as WhereExtension).Conditional.Type;
+				if (ext is WhereExtension extension)
+					baseType = extension.Conditional.Type;
 
 				parsed.Add(ext);
 
 				size = i;
 			}
 
-			parsed.Sort(delegate (BaseExtension a, BaseExtension b)
-		   {
-			   return (a.Order - b.Order);
-		   });
+			parsed.Sort((a, b) => a.Order - b.Order);
 
 			AssemblyEmitter emitter = null;
 

@@ -5,62 +5,58 @@ using Server.Items;
 using Server.Mobiles;
 using Server.Targeting;
 
-namespace Server.Targets
+namespace Server.Targets;
+
+public class BladedItemTarget : Target
 {
-	public class BladedItemTarget : Target
+	private readonly Item _mItem;
+
+	public BladedItemTarget(Item item) : base(2, false, TargetFlags.None)
 	{
-		private readonly Item m_Item;
+		_mItem = item;
+	}
 
-		public BladedItemTarget(Item item) : base(2, false, TargetFlags.None)
+	protected override void OnTargetOutOfRange(Mobile from, object targeted)
+	{
+		if (targeted is UnholyBone bone && from.InRange(bone, 12))
+			bone.Carve(from, _mItem);
+		else
+			base.OnTargetOutOfRange(from, targeted);
+	}
+
+	protected override void OnTarget(Mobile from, object targeted)
+	{
+		if (_mItem.Deleted)
+			return;
+
+		switch (targeted)
 		{
-			m_Item = item;
-		}
-
-		protected override void OnTargetOutOfRange(Mobile from, object targeted)
-		{
-			if (targeted is UnholyBone && from.InRange(((UnholyBone)targeted), 12))
-				((UnholyBone)targeted).Carve(from, m_Item);
-			else
-				base.OnTargetOutOfRange(from, targeted);
-		}
-
-		protected override void OnTarget(Mobile from, object targeted)
-		{
-			if (m_Item.Deleted)
-				return;
-
-			if (targeted is ICarvable)
+			case ICarvable carvable:
+				carvable.Carve(from, _mItem);
+				break;
+			case SwampDragon dragon when dragon.HasBarding:
 			{
-				((ICarvable)targeted).Carve(from, m_Item);
-			}
-			else if (targeted is SwampDragon && ((SwampDragon)targeted).HasBarding)
-			{
-				SwampDragon pet = (SwampDragon)targeted;
-
-				if (!pet.Controlled || pet.ControlMaster != from)
+				if (!dragon.Controlled || dragon.ControlMaster != from)
 					from.SendLocalizedMessage(1053022); // You cannot remove barding from a swamp dragon you do not own.
 				else
-					pet.HasBarding = false;
+					dragon.HasBarding = false;
+				break;
 			}
-			else
+			default:
 			{
-				if (targeted is StaticTarget)
+				if (targeted is StaticTarget target)
 				{
-					int itemID = ((StaticTarget)targeted).ItemID;
+					int itemId = target.ItemID;
 
-					if (itemID == 0xD15 || itemID == 0xD16) // red mushroom
+					if (itemId is 0xD15 or 0xD16) // red mushroom
 					{
-						PlayerMobile player = from as PlayerMobile;
-
-						if (player != null)
+						if (from is PlayerMobile player)
 						{
 							QuestSystem qs = player.Quest;
 
 							if (qs is WitchApprenticeQuest)
 							{
-								FindIngredientObjective obj = qs.FindObjective(typeof(FindIngredientObjective)) as FindIngredientObjective;
-
-								if (obj != null && !obj.Completed && obj.Ingredient == Ingredient.RedMushrooms)
+								if (qs.FindObjective(typeof(FindIngredientObjective)) is FindIngredientObjective {Completed: false, Ingredient: Ingredient.RedMushrooms} obj)
 								{
 									player.SendLocalizedMessage(1055036); // You slice a red cap mushroom from its stem.
 									obj.Complete();
@@ -74,12 +70,11 @@ namespace Server.Targets
 				HarvestSystem system = Lumberjacking.System;
 				HarvestDefinition def = Lumberjacking.System.Definition;
 
-
-				if (!system.GetHarvestDetails(from, m_Item, targeted, out int tileID, out Map map, out Point3D loc))
+				if (!system.GetHarvestDetails(from, _mItem, targeted, out int tileId, out Map map, out Point3D loc))
 				{
 					from.SendLocalizedMessage(500494); // You can't use a bladed item on that!
 				}
-				else if (!def.Validate(tileID))
+				else if (!def.Validate(tileId))
 				{
 					from.SendLocalizedMessage(500494); // You can't use a bladed item on that!
 				}
@@ -113,6 +108,8 @@ namespace Server.Targets
 						}
 					}
 				}
+
+				break;
 			}
 		}
 	}

@@ -25,7 +25,7 @@ public class Waiter : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron());
+		SetWearable(new HalfApron());
 	}
 
 	public Waiter(Serial serial) : base(serial)

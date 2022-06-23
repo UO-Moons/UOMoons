@@ -1022,7 +1022,7 @@ namespace Server.Mobiles
 
 					if (thisProp != null)
 					{
-						CPA attr = Properties.GetCPA(thisProp);
+						CPA attr = Properties.GetCpa(thisProp);
 
 						if (attr != null && AccessLevel.Spawner >= attr.WriteLevel && thisProp.CanWrite && !attr.ReadOnly)
 							realProps[i] = thisProp;

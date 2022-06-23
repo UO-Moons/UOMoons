@@ -69,8 +69,8 @@ public class Armorer : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new HalfApron(Utility.RandomYellowHue()));
-		AddItem(new Bascinet());
+		SetWearable(new HalfApron(), Utility.RandomYellowHue());
+		SetWearable(new Bascinet());
 	}
 
 	public Armorer(Serial serial) : base(serial)

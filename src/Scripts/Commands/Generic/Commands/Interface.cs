@@ -5,563 +5,565 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Server.Commands.Generic
+namespace Server.Commands.Generic;
+
+public class InterfaceCommand : BaseCommand
 {
-	public class InterfaceCommand : BaseCommand
+	public InterfaceCommand()
 	{
-		public InterfaceCommand()
-		{
-			AccessLevel = AccessLevel.GameMaster;
-			Supports = CommandSupport.Complex | CommandSupport.Simple;
-			Commands = new string[] { "Interface" };
-			ObjectTypes = ObjectTypes.Both;
-			Usage = "Interface [view <properties ...>]";
-			Description = "Opens an interface to interact with matched objects. Generally used with condition arguments.";
-			ListOptimized = true;
-		}
-
-		public override void ExecuteList(CommandEventArgs e, ArrayList list)
-		{
-			if (list.Count > 0)
-			{
-				List<string> columns = new()
-				{
-					"Object"
-				};
-
-				if (e.Length > 0)
-				{
-					int offset = 0;
-
-					if (Insensitive.Equals(e.GetString(0), "view"))
-						++offset;
-
-					while (offset < e.Length)
-						columns.Add(e.GetString(offset++));
-				}
-
-				e.Mobile.SendGump(new InterfaceGump(e.Mobile, columns.ToArray(), list, 0, null));
-			}
-			else
-			{
-				AddResponse("No matching objects found.");
-			}
-		}
+		AccessLevel = AccessLevel.GameMaster;
+		Supports = CommandSupport.Complex | CommandSupport.Simple;
+		Commands = new[] { "Interface" };
+		ObjectTypes = ObjectTypes.Both;
+		Usage = "Interface [view <properties ...>]";
+		Description = "Opens an interface to interact with matched objects. Generally used with condition arguments.";
+		ListOptimized = true;
 	}
 
-	public class InterfaceGump : BaseGridGump
+	public override void ExecuteList(CommandEventArgs e, ArrayList list)
 	{
-		private readonly Mobile m_From;
-
-		private readonly string[] m_Columns;
-
-		private readonly ArrayList m_List;
-		private readonly int m_Page;
-
-		private readonly object m_Select;
-
-		private const int EntriesPerPage = 15;
-
-		public InterfaceGump(Mobile from, string[] columns, ArrayList list, int page, object select) : base(30, 30)
+		if (list.Count > 0)
 		{
-			m_From = from;
-
-			m_Columns = columns;
-
-			m_List = list;
-			m_Page = page;
-
-			m_Select = select;
-
-			Render();
-		}
-
-		public void Render()
-		{
-			AddNewPage();
-
-			if (m_Page > 0)
-				AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
-			else
-				AddEntryHeader(20);
-
-			AddEntryHtml(40 + (m_Columns.Length * 130) - 20 + ((m_Columns.Length - 2) * OffsetSize), Center(string.Format("Page {0} of {1}", m_Page + 1, (m_List.Count + EntriesPerPage - 1) / EntriesPerPage)));
-
-			if ((m_Page + 1) * EntriesPerPage < m_List.Count)
-				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
-			else
-				AddEntryHeader(20);
-
-			if (m_Columns.Length > 1)
+			List<string> columns = new()
 			{
-				AddNewLine();
+				"Object"
+			};
 
-				for (int i = 0; i < m_Columns.Length; ++i)
+			if (e.Length > 0)
+			{
+				int offset = 0;
+
+				if (Insensitive.Equals(e.GetString(0), "view"))
+					++offset;
+
+				while (offset < e.Length)
+					columns.Add(e.GetString(offset++));
+			}
+
+			e.Mobile.SendGump(new InterfaceGump(e.Mobile, columns.ToArray(), list, 0, null));
+		}
+		else
+		{
+			AddResponse("No matching objects found.");
+		}
+	}
+}
+
+public class InterfaceGump : BaseGridGump
+{
+	private readonly Mobile _mFrom;
+
+	private readonly string[] _mColumns;
+
+	private readonly ArrayList _mList;
+	private readonly int _mPage;
+
+	private readonly object _mSelect;
+
+	private const int EntriesPerPage = 15;
+
+	public InterfaceGump(Mobile from, string[] columns, ArrayList list, int page, object select) : base(30, 30)
+	{
+		_mFrom = from;
+
+		_mColumns = columns;
+
+		_mList = list;
+		_mPage = page;
+
+		_mSelect = select;
+
+		Render();
+	}
+
+	public void Render()
+	{
+		AddNewPage();
+
+		if (_mPage > 0)
+			AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
+		else
+			AddEntryHeader(20);
+
+		AddEntryHtml(40 + (_mColumns.Length * 130) - 20 + ((_mColumns.Length - 2) * OffsetSize), Center(string.Format("Page {0} of {1}", _mPage + 1, (_mList.Count + EntriesPerPage - 1) / EntriesPerPage)));
+
+		if ((_mPage + 1) * EntriesPerPage < _mList.Count)
+			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
+		else
+			AddEntryHeader(20);
+
+		if (_mColumns.Length > 1)
+		{
+			AddNewLine();
+
+			for (int i = 0; i < _mColumns.Length; ++i)
+			{
+				if (i > 0 && _mList.Count > 0)
 				{
-					if (i > 0 && m_List.Count > 0)
+					object obj = _mList[0];
+
+					if (obj != null)
 					{
-						object obj = m_List[0];
+						string failReason = null;
+						PropertyInfo[] chain = Properties.GetPropertyInfoChain(_mFrom, obj.GetType(), _mColumns[i], PropertyAccess.Read, ref failReason);
 
-						if (obj != null)
+						if (chain != null && chain.Length > 0)
 						{
-							string failReason = null;
-							PropertyInfo[] chain = Properties.GetPropertyInfoChain(m_From, obj.GetType(), m_Columns[i], PropertyAccess.Read, ref failReason);
+							_mColumns[i] = "";
 
-							if (chain != null && chain.Length > 0)
+							for (int j = 0; j < chain.Length; ++j)
 							{
-								m_Columns[i] = "";
+								if (j > 0)
+									_mColumns[i] += '.';
 
-								for (int j = 0; j < chain.Length; ++j)
-								{
-									if (j > 0)
-										m_Columns[i] += '.';
-
-									m_Columns[i] += chain[j].Name;
-								}
+								_mColumns[i] += chain[j].Name;
 							}
 						}
 					}
-
-					AddEntryHtml(130 + (i == 0 ? 40 : 0), m_Columns[i]);
 				}
+
+				AddEntryHtml(130 + (i == 0 ? 40 : 0), _mColumns[i]);
+			}
+
+			AddEntryHeader(20);
+		}
+
+		for (int i = _mPage * EntriesPerPage, line = 0; line < EntriesPerPage && i < _mList.Count; ++i, ++line)
+		{
+			AddNewLine();
+
+			object obj = _mList[i];
+			bool isDeleted = false;
+
+			if (obj is Item)
+			{
+				Item item = (Item)obj;
+
+				if (!(isDeleted = item.Deleted))
+					AddEntryHtml(40 + 130, item.GetType().Name);
+			}
+			else if (obj is Mobile)
+			{
+				Mobile mob = (Mobile)obj;
+
+				if (!(isDeleted = mob.Deleted))
+					AddEntryHtml(40 + 130, mob.Name);
+			}
+
+			if (isDeleted)
+			{
+				AddEntryHtml(40 + 130, "(deleted)");
+
+				for (int j = 1; j < _mColumns.Length; ++j)
+					AddEntryHtml(130, "---");
 
 				AddEntryHeader(20);
 			}
-
-			for (int i = m_Page * EntriesPerPage, line = 0; line < EntriesPerPage && i < m_List.Count; ++i, ++line)
+			else
 			{
-				AddNewLine();
-
-				object obj = m_List[i];
-				bool isDeleted = false;
-
-				if (obj is Item)
+				for (int j = 1; j < _mColumns.Length; ++j)
 				{
-					Item item = (Item)obj;
+					object src = obj;
 
-					if (!(isDeleted = item.Deleted))
-						AddEntryHtml(40 + 130, item.GetType().Name);
+					string value;
+					string failReason = "";
+
+					PropertyInfo[] chain = Properties.GetPropertyInfoChain(_mFrom, src.GetType(), _mColumns[j], PropertyAccess.Read, ref failReason);
+
+					if (chain == null || chain.Length == 0)
+					{
+						value = "---";
+					}
+					else
+					{
+						PropertyInfo p = Properties.GetPropertyInfo(ref src, chain, ref failReason);
+
+						value = p == null ? "---" : PropertiesGump.ValueToString(src, p);
+					}
+
+					AddEntryHtml(130, value);
 				}
-				else if (obj is Mobile)
-				{
-					Mobile mob = (Mobile)obj;
 
-					if (!(isDeleted = mob.Deleted))
-						AddEntryHtml(40 + 130, mob.Name);
+				bool isSelected = (_mSelect != null && obj == _mSelect);
+
+				AddEntryButton(20, (isSelected ? 9762 : ArrowRightID1), (isSelected ? 9763 : ArrowRightID2), 3 + i, ArrowRightWidth, ArrowRightHeight);
+			}
+		}
+
+		FinishPage();
+	}
+
+	public override void OnResponse(NetState sender, RelayInfo info)
+	{
+		switch (info.ButtonID)
+		{
+			case 1:
+			{
+				if (_mPage > 0)
+					_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage - 1, _mSelect));
+
+				break;
+			}
+			case 2:
+			{
+				if ((_mPage + 1) * EntriesPerPage < _mList.Count)
+					_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage + 1, _mSelect));
+
+				break;
+			}
+			default:
+			{
+				int v = info.ButtonID - 3;
+
+				if (v >= 0 && v < _mList.Count)
+				{
+					object obj = _mList[v];
+
+					if (!BaseCommand.IsAccessible(_mFrom, obj))
+					{
+						_mFrom.SendMessage("That is not accessible.");
+						_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mSelect));
+						break;
+					}
+
+					switch (obj)
+					{
+						case Item {Deleted: false} item:
+							_mFrom.SendGump(new InterfaceItemGump(_mFrom, _mColumns, _mList, _mPage, item));
+							break;
+						case Mobile {Deleted: false} mobile:
+							_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, mobile));
+							break;
+						default:
+							_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mSelect));
+							break;
+					}
 				}
 
-				if (isDeleted)
+				break;
+			}
+		}
+	}
+}
+
+public class InterfaceItemGump : BaseGridGump
+{
+	private readonly Mobile _mFrom;
+
+	private readonly string[] _mColumns;
+
+	private readonly ArrayList _mList;
+	private readonly int _mPage;
+
+	private readonly Item _mItem;
+
+	public InterfaceItemGump(Mobile from, string[] columns, ArrayList list, int page, Item item) : base(30, 30)
+	{
+		_mFrom = from;
+
+		_mColumns = columns;
+
+		_mList = list;
+		_mPage = page;
+
+		_mItem = item;
+
+		Render();
+	}
+
+	public void Render()
+	{
+		AddNewPage();
+
+		AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
+		AddEntryHtml(160, _mItem.GetType().Name);
+		AddEntryHeader(20);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Properties");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Delete");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 3, ArrowRightWidth, ArrowRightHeight);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Go there");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 4, ArrowRightWidth, ArrowRightHeight);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Move to target");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 5, ArrowRightWidth, ArrowRightHeight);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Bring to pack");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 6, ArrowRightWidth, ArrowRightHeight);
+
+		FinishPage();
+	}
+
+	private void InvokeCommand(string ip)
+	{
+		CommandSystem.Handle(_mFrom, $"{CommandSystem.Prefix}{ip}");
+	}
+
+	public override void OnResponse(NetState sender, RelayInfo info)
+	{
+		if (_mItem.Deleted)
+		{
+			_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+			return;
+		}
+		else if (!BaseCommand.IsAccessible(_mFrom, _mItem))
+		{
+			_mFrom.SendMessage("That is no longer accessible.");
+			_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+			return;
+		}
+
+		switch (info.ButtonID)
+		{
+			case 0:
+			case 1:
+			{
+				_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+				break;
+			}
+			case 2: // Properties
+			{
+				_mFrom.SendGump(new InterfaceItemGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+				_mFrom.SendGump(new PropertiesGump(_mFrom, _mItem));
+				break;
+			}
+			case 3: // Delete
+			{
+				CommandLogging.WriteLine(_mFrom, "{0} {1} deleting {2}", _mFrom.AccessLevel, CommandLogging.Format(_mFrom), CommandLogging.Format(_mItem));
+				_mItem.Delete();
+				_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+				break;
+			}
+			case 4: // Go there
+			{
+				_mFrom.SendGump(new InterfaceItemGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+				InvokeCommand($"Go {_mItem.Serial.Value}");
+				break;
+			}
+			case 5: // Move to target
+			{
+				_mFrom.SendGump(new InterfaceItemGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+				_mFrom.Target = new MoveTarget(_mItem);
+				break;
+			}
+			case 6: // Bring to pack
+			{
+				Mobile owner = _mItem.RootParent as Mobile;
+
+				if (owner != null && (owner.Map != null && owner.Map != Map.Internal) && !BaseCommand.IsAccessible(_mFrom, owner) /* !m_From.CanSee( owner )*/ )
 				{
-					AddEntryHtml(40 + 130, "(deleted)");
-
-					for (int j = 1; j < m_Columns.Length; ++j)
-						AddEntryHtml(130, "---");
-
-					AddEntryHeader(20);
+					_mFrom.SendMessage("You can not get what you can not see.");
+				}
+				else if (owner != null && (owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= _mFrom.AccessLevel)
+				{
+					_mFrom.SendMessage("You can not get what you can not see.");
 				}
 				else
 				{
-					for (int j = 1; j < m_Columns.Length; ++j)
-					{
-						object src = obj;
-
-						string value;
-						string failReason = "";
-
-						PropertyInfo[] chain = Properties.GetPropertyInfoChain(m_From, src.GetType(), m_Columns[j], PropertyAccess.Read, ref failReason);
-
-						if (chain == null || chain.Length == 0)
-						{
-							value = "---";
-						}
-						else
-						{
-							PropertyInfo p = Properties.GetPropertyInfo(ref src, chain, ref failReason);
-
-							if (p == null)
-								value = "---";
-							else
-								value = PropertiesGump.ValueToString(src, p);
-						}
-
-						AddEntryHtml(130, value);
-					}
-
-					bool isSelected = (m_Select != null && obj == m_Select);
-
-					AddEntryButton(20, (isSelected ? 9762 : ArrowRightID1), (isSelected ? 9763 : ArrowRightID2), 3 + i, ArrowRightWidth, ArrowRightHeight);
+					_mFrom.SendGump(new InterfaceItemGump(_mFrom, _mColumns, _mList, _mPage, _mItem));
+					_mFrom.AddToBackpack(_mItem);
 				}
-			}
 
-			FinishPage();
-		}
-
-		public override void OnResponse(NetState sender, RelayInfo info)
-		{
-			switch (info.ButtonID)
-			{
-				case 1:
-					{
-						if (m_Page > 0)
-							m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page - 1, m_Select));
-
-						break;
-					}
-				case 2:
-					{
-						if ((m_Page + 1) * EntriesPerPage < m_List.Count)
-							m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page + 1, m_Select));
-
-						break;
-					}
-				default:
-					{
-						int v = info.ButtonID - 3;
-
-						if (v >= 0 && v < m_List.Count)
-						{
-							object obj = m_List[v];
-
-							if (!BaseCommand.IsAccessible(m_From, obj))
-							{
-								m_From.SendMessage("That is not accessible.");
-								m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Select));
-								break;
-							}
-
-							if (obj is Item && !((Item)obj).Deleted)
-								m_From.SendGump(new InterfaceItemGump(m_From, m_Columns, m_List, m_Page, (Item)obj));
-							else if (obj is Mobile && !((Mobile)obj).Deleted)
-								m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, (Mobile)obj));
-							else
-								m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Select));
-						}
-
-						break;
-					}
+				break;
 			}
 		}
 	}
+}
 
-	public class InterfaceItemGump : BaseGridGump
+public class InterfaceMobileGump : BaseGridGump
+{
+	private readonly Mobile _mFrom;
+
+	private readonly string[] _mColumns;
+
+	private readonly ArrayList _mList;
+	private readonly int _mPage;
+
+	private readonly Mobile _mMobile;
+
+	public InterfaceMobileGump(Mobile from, string[] columns, ArrayList list, int page, Mobile mob)
+		: base(30, 30)
 	{
-		private readonly Mobile m_From;
+		_mFrom = from;
 
-		private readonly string[] m_Columns;
+		_mColumns = columns;
 
-		private readonly ArrayList m_List;
-		private readonly int m_Page;
+		_mList = list;
+		_mPage = page;
 
-		private readonly Item m_Item;
+		_mMobile = mob;
 
-		public InterfaceItemGump(Mobile from, string[] columns, ArrayList list, int page, Item item) : base(30, 30)
+		Render();
+	}
+
+	public void Render()
+	{
+		AddNewPage();
+
+		AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
+		AddEntryHtml(160, _mMobile.Name);
+		AddEntryHeader(20);
+
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Properties");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
+
+		if (!_mMobile.Player)
 		{
-			m_From = from;
-
-			m_Columns = columns;
-
-			m_List = list;
-			m_Page = page;
-
-			m_Item = item;
-
-			Render();
-		}
-
-		public void Render()
-		{
-			AddNewPage();
-
-			AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
-			AddEntryHtml(160, m_Item.GetType().Name);
-			AddEntryHeader(20);
-
-			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Properties");
-			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
-
 			AddNewLine();
 			AddEntryHtml(20 + OffsetSize + 160, "Delete");
 			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 3, ArrowRightWidth, ArrowRightHeight);
+		}
 
+		if (_mMobile != _mFrom)
+		{
 			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Go there");
+			AddEntryHtml(20 + OffsetSize + 160, "Go to there");
 			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 4, ArrowRightWidth, ArrowRightHeight);
 
 			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Move to target");
+			AddEntryHtml(20 + OffsetSize + 160, "Bring them here");
 			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 5, ArrowRightWidth, ArrowRightHeight);
+		}
 
+		AddNewLine();
+		AddEntryHtml(20 + OffsetSize + 160, "Move to target");
+		AddEntryButton(20, ArrowRightID1, ArrowRightID2, 6, ArrowRightWidth, ArrowRightHeight);
+
+		if (_mFrom == _mMobile || _mFrom.AccessLevel > _mMobile.AccessLevel)
+		{
 			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Bring to pack");
-			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 6, ArrowRightWidth, ArrowRightHeight);
-
-			FinishPage();
+			if (_mMobile.Alive)
+			{
+				AddEntryHtml(20 + OffsetSize + 160, "Kill");
+				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 7, ArrowRightWidth, ArrowRightHeight);
+			}
+			else
+			{
+				AddEntryHtml(20 + OffsetSize + 160, "Resurrect");
+				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 8, ArrowRightWidth, ArrowRightHeight);
+			}
 		}
 
-		private void InvokeCommand(string ip)
+		if (_mMobile.NetState != null)
 		{
-			CommandSystem.Handle(m_From, string.Format("{0}{1}", CommandSystem.Prefix, ip));
+			AddNewLine();
+			AddEntryHtml(20 + OffsetSize + 160, "Client");
+			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 9, ArrowRightWidth, ArrowRightHeight);
 		}
 
-		public override void OnResponse(NetState sender, RelayInfo info)
-		{
-			if (m_Item.Deleted)
-			{
-				m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Item));
-				return;
-			}
-			else if (!BaseCommand.IsAccessible(m_From, m_Item))
-			{
-				m_From.SendMessage("That is no longer accessible.");
-				m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Item));
-				return;
-			}
-
-			switch (info.ButtonID)
-			{
-				case 0:
-				case 1:
-					{
-						m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Item));
-						break;
-					}
-				case 2: // Properties
-					{
-						m_From.SendGump(new InterfaceItemGump(m_From, m_Columns, m_List, m_Page, m_Item));
-						m_From.SendGump(new PropertiesGump(m_From, m_Item));
-						break;
-					}
-				case 3: // Delete
-					{
-						CommandLogging.WriteLine(m_From, "{0} {1} deleting {2}", m_From.AccessLevel, CommandLogging.Format(m_From), CommandLogging.Format(m_Item));
-						m_Item.Delete();
-						m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Item));
-						break;
-					}
-				case 4: // Go there
-					{
-						m_From.SendGump(new InterfaceItemGump(m_From, m_Columns, m_List, m_Page, m_Item));
-						InvokeCommand(string.Format("Go {0}", m_Item.Serial.Value));
-						break;
-					}
-				case 5: // Move to target
-					{
-						m_From.SendGump(new InterfaceItemGump(m_From, m_Columns, m_List, m_Page, m_Item));
-						m_From.Target = new MoveTarget(m_Item);
-						break;
-					}
-				case 6: // Bring to pack
-					{
-						Mobile owner = m_Item.RootParent as Mobile;
-
-						if (owner != null && (owner.Map != null && owner.Map != Map.Internal) && !BaseCommand.IsAccessible(m_From, owner) /* !m_From.CanSee( owner )*/ )
-						{
-							m_From.SendMessage("You can not get what you can not see.");
-						}
-						else if (owner != null && (owner.Map == null || owner.Map == Map.Internal) && owner.Hidden && owner.AccessLevel >= m_From.AccessLevel)
-						{
-							m_From.SendMessage("You can not get what you can not see.");
-						}
-						else
-						{
-							m_From.SendGump(new InterfaceItemGump(m_From, m_Columns, m_List, m_Page, m_Item));
-							m_From.AddToBackpack(m_Item);
-						}
-
-						break;
-					}
-			}
-		}
+		FinishPage();
 	}
 
-	public class InterfaceMobileGump : BaseGridGump
+	private void InvokeCommand(string ip)
 	{
-		private readonly Mobile m_From;
+		CommandSystem.Handle(_mFrom, $"{CommandSystem.Prefix}{ip}");
+	}
 
-		private readonly string[] m_Columns;
-
-		private readonly ArrayList m_List;
-		private readonly int m_Page;
-
-		private readonly Mobile m_Mobile;
-
-		public InterfaceMobileGump(Mobile from, string[] columns, ArrayList list, int page, Mobile mob)
-			: base(30, 30)
+	public override void OnResponse(NetState sender, RelayInfo info)
+	{
+		if (_mMobile.Deleted)
 		{
-			m_From = from;
-
-			m_Columns = columns;
-
-			m_List = list;
-			m_Page = page;
-
-			m_Mobile = mob;
-
-			Render();
+			_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+			return;
+		}
+		else if (!BaseCommand.IsAccessible(_mFrom, _mMobile))
+		{
+			_mFrom.SendMessage("That is no longer accessible.");
+			_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+			return;
 		}
 
-		public void Render()
+		switch (info.ButtonID)
 		{
-			AddNewPage();
-
-			AddEntryButton(20, ArrowLeftID1, ArrowLeftID2, 1, ArrowLeftWidth, ArrowLeftHeight);
-			AddEntryHtml(160, m_Mobile.Name);
-			AddEntryHeader(20);
-
-			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Properties");
-			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 2, ArrowRightWidth, ArrowRightHeight);
-
-			if (!m_Mobile.Player)
+			case 0:
+			case 1:
 			{
-				AddNewLine();
-				AddEntryHtml(20 + OffsetSize + 160, "Delete");
-				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 3, ArrowRightWidth, ArrowRightHeight);
+				_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+				break;
 			}
-
-			if (m_Mobile != m_From)
+			case 2: // Properties
 			{
-				AddNewLine();
-				AddEntryHtml(20 + OffsetSize + 160, "Go to there");
-				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 4, ArrowRightWidth, ArrowRightHeight);
-
-				AddNewLine();
-				AddEntryHtml(20 + OffsetSize + 160, "Bring them here");
-				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 5, ArrowRightWidth, ArrowRightHeight);
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+				_mFrom.SendGump(new PropertiesGump(_mFrom, _mMobile));
+				break;
 			}
-
-			AddNewLine();
-			AddEntryHtml(20 + OffsetSize + 160, "Move to target");
-			AddEntryButton(20, ArrowRightID1, ArrowRightID2, 6, ArrowRightWidth, ArrowRightHeight);
-
-			if (m_From == m_Mobile || m_From.AccessLevel > m_Mobile.AccessLevel)
+			case 3: // Delete
 			{
-				AddNewLine();
-				if (m_Mobile.Alive)
+				if (!_mMobile.Player)
 				{
-					AddEntryHtml(20 + OffsetSize + 160, "Kill");
-					AddEntryButton(20, ArrowRightID1, ArrowRightID2, 7, ArrowRightWidth, ArrowRightHeight);
+					CommandLogging.WriteLine(_mFrom, "{0} {1} deleting {2}", _mFrom.AccessLevel, CommandLogging.Format(_mFrom), CommandLogging.Format(_mMobile));
+					_mMobile.Delete();
+					_mFrom.SendGump(new InterfaceGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+				}
+
+				break;
+			}
+			case 4: // Go there
+			{
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+				InvokeCommand($"Go {_mMobile.Serial.Value}");
+				break;
+			}
+			case 5: // Bring them here
+			{
+				if (_mFrom.Map == null || _mFrom.Map == Map.Internal)
+				{
+					_mFrom.SendMessage("You cannot bring that person here.");
 				}
 				else
 				{
-					AddEntryHtml(20 + OffsetSize + 160, "Resurrect");
-					AddEntryButton(20, ArrowRightID1, ArrowRightID2, 8, ArrowRightWidth, ArrowRightHeight);
+					_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+					_mMobile.MoveToWorld(_mFrom.Location, _mFrom.Map);
 				}
+
+				break;
 			}
-
-			if (m_Mobile.NetState != null)
+			case 6: // Move to target
 			{
-				AddNewLine();
-				AddEntryHtml(20 + OffsetSize + 160, "Client");
-				AddEntryButton(20, ArrowRightID1, ArrowRightID2, 9, ArrowRightWidth, ArrowRightHeight);
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+				_mFrom.Target = new MoveTarget(_mMobile);
+				break;
 			}
-
-			FinishPage();
-		}
-
-		private void InvokeCommand(string ip)
-		{
-			CommandSystem.Handle(m_From, string.Format("{0}{1}", CommandSystem.Prefix, ip));
-		}
-
-		public override void OnResponse(NetState sender, RelayInfo info)
-		{
-			if (m_Mobile.Deleted)
+			case 7: // Kill
 			{
-				m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-				return;
+				if (_mFrom == _mMobile || _mFrom.AccessLevel > _mMobile.AccessLevel)
+					_mMobile.Kill();
+
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+
+				break;
 			}
-			else if (!BaseCommand.IsAccessible(m_From, m_Mobile))
+			case 8: // Res
 			{
-				m_From.SendMessage("That is no longer accessible.");
-				m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-				return;
+				if (_mFrom == _mMobile || _mFrom.AccessLevel > _mMobile.AccessLevel)
+				{
+					_mMobile.PlaySound(0x214);
+					_mMobile.FixedEffect(0x376A, 10, 16);
+
+					_mMobile.Resurrect();
+				}
+
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
+
+				break;
 			}
-
-			switch (info.ButtonID)
+			case 9: // Client
 			{
-				case 0:
-				case 1:
-					{
-						m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-						break;
-					}
-				case 2: // Properties
-					{
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-						m_From.SendGump(new PropertiesGump(m_From, m_Mobile));
-						break;
-					}
-				case 3: // Delete
-					{
-						if (!m_Mobile.Player)
-						{
-							CommandLogging.WriteLine(m_From, "{0} {1} deleting {2}", m_From.AccessLevel, CommandLogging.Format(m_From), CommandLogging.Format(m_Mobile));
-							m_Mobile.Delete();
-							m_From.SendGump(new InterfaceGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-						}
+				_mFrom.SendGump(new InterfaceMobileGump(_mFrom, _mColumns, _mList, _mPage, _mMobile));
 
-						break;
-					}
-				case 4: // Go there
-					{
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-						InvokeCommand(string.Format("Go {0}", m_Mobile.Serial.Value));
-						break;
-					}
-				case 5: // Bring them here
-					{
-						if (m_From.Map == null || m_From.Map == Map.Internal)
-						{
-							m_From.SendMessage("You cannot bring that person here.");
-						}
-						else
-						{
-							m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-							m_Mobile.MoveToWorld(m_From.Location, m_From.Map);
-						}
+				if (_mMobile.NetState != null)
+					_mFrom.SendGump(new ClientGump(_mFrom, _mMobile.NetState));
 
-						break;
-					}
-				case 6: // Move to target
-					{
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-						m_From.Target = new MoveTarget(m_Mobile);
-						break;
-					}
-				case 7: // Kill
-					{
-						if (m_From == m_Mobile || m_From.AccessLevel > m_Mobile.AccessLevel)
-							m_Mobile.Kill();
-
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-
-						break;
-					}
-				case 8: // Res
-					{
-						if (m_From == m_Mobile || m_From.AccessLevel > m_Mobile.AccessLevel)
-						{
-							m_Mobile.PlaySound(0x214);
-							m_Mobile.FixedEffect(0x376A, 10, 16);
-
-							m_Mobile.Resurrect();
-						}
-
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-
-						break;
-					}
-				case 9: // Client
-					{
-						m_From.SendGump(new InterfaceMobileGump(m_From, m_Columns, m_List, m_Page, m_Mobile));
-
-						if (m_Mobile.NetState != null)
-							m_From.SendGump(new ClientGump(m_From, m_Mobile.NetState));
-
-						break;
-					}
+				break;
 			}
 		}
 	}

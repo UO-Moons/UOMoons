@@ -27,7 +27,7 @@ public class Shipwright : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new SmithHammer());
+		SetWearable(new SmithHammer());
 	}
 
 	public Shipwright(Serial serial) : base(serial)

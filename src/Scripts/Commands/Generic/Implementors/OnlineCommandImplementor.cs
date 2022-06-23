@@ -3,63 +3,62 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Server.Commands.Generic
+namespace Server.Commands.Generic;
+
+public class OnlineCommandImplementor : BaseCommandImplementor
 {
-	public class OnlineCommandImplementor : BaseCommandImplementor
+	public OnlineCommandImplementor()
 	{
-		public OnlineCommandImplementor()
+		Accessors = new string[] { "Online" };
+		SupportRequirement = CommandSupport.Online;
+		SupportsConditionals = true;
+		AccessLevel = AccessLevel.GameMaster;
+		Usage = "Online <command> [condition]";
+		Description = "Invokes the command on all mobiles that are currently logged in. Optional condition arguments can further restrict the set of objects.";
+	}
+
+	public override void Compile(Mobile from, BaseCommand command, ref string[] args, ref object obj)
+	{
+		try
 		{
-			Accessors = new string[] { "Online" };
-			SupportRequirement = CommandSupport.Online;
-			SupportsConditionals = true;
-			AccessLevel = AccessLevel.GameMaster;
-			Usage = "Online <command> [condition]";
-			Description = "Invokes the command on all mobiles that are currently logged in. Optional condition arguments can further restrict the set of objects.";
+			Extensions ext = Extensions.Parse(from, ref args);
+
+
+			if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
+				return;
+
+			if (!mobiles) // sanity check
+			{
+				command.LogFailure("This command does not support items.");
+				return;
+			}
+
+			ArrayList list = new();
+
+			List<NetState> states = NetState.Instances;
+
+			for (int i = 0; i < states.Count; ++i)
+			{
+				NetState ns = states[i];
+				Mobile mob = ns.Mobile;
+
+				if (mob == null)
+					continue;
+
+				if (!BaseCommand.IsAccessible(from, mob))
+					continue;
+
+				if (ext.IsValid(mob))
+					list.Add(mob);
+			}
+
+			ext.Filter(list);
+
+			obj = list;
 		}
-
-		public override void Compile(Mobile from, BaseCommand command, ref string[] args, ref object obj)
+		catch (Exception ex)
 		{
-			try
-			{
-				Extensions ext = Extensions.Parse(from, ref args);
-
-
-				if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
-					return;
-
-				if (!mobiles) // sanity check
-				{
-					command.LogFailure("This command does not support items.");
-					return;
-				}
-
-				ArrayList list = new ArrayList();
-
-				List<NetState> states = NetState.Instances;
-
-				for (int i = 0; i < states.Count; ++i)
-				{
-					NetState ns = states[i];
-					Mobile mob = ns.Mobile;
-
-					if (mob == null)
-						continue;
-
-					if (!BaseCommand.IsAccessible(from, mob))
-						continue;
-
-					if (ext.IsValid(mob))
-						list.Add(mob);
-				}
-
-				ext.Filter(list);
-
-				obj = list;
-			}
-			catch (Exception ex)
-			{
-				from.SendMessage(ex.Message);
-			}
+			from.SendMessage(ex.Message);
 		}
 	}
 }

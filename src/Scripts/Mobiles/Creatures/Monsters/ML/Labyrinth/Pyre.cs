@@ -56,7 +56,7 @@ namespace Server.Mobiles
 				return WeaponAbility.BleedAttack;
 		}
 
-		public override bool GivesMLMinorArtifact => true;
+		public override bool GivesMlMinorArtifact => true;
 		public override int TreasureMapLevel => 5;
 		public override bool HasAura => true;
 

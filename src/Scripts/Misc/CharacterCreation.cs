@@ -8,6 +8,8 @@ namespace Server.Misc
 {
 	public class CharacterCreation
 	{
+		public const string GENERIC_NAME = "UOMoons Player";
+		public static bool UniqueNaming = true;
 		public static void Initialize()
 		{
 			// Register our event handler
@@ -553,7 +555,7 @@ namespace Server.Misc
 			for (int i = 0; i < a.Length; ++i)
 			{
 				if (a[i] == null)
-					return (a[i] = new PlayerMobile());
+					return a[i] = new PlayerMobile();
 			}
 
 			return null;
@@ -871,11 +873,51 @@ namespace Server.Misc
 		private static void SetName(IEntity m, string name)
 		{
 			name = name.Trim();
+			if (UniqueNaming)
+			{
+				if (!CheckDupe(m, name))
+				{
+					m.Name = GENERIC_NAME;
+				}
+				else
+				{
+					m.Name = name;
+				}
+			}
+			else
+			{
+				if (!NameVerification.Validate(name, 2, 16, true, false, true, 1, NameVerification.SpaceDashPeriodQuote))
+				{
+					name = "UOMoons Player";
+				}
 
-			if (!NameVerification.Validate(name, 2, 16, true, false, true, 1, NameVerification.SpaceDashPeriodQuote))
-				name = "Generic Player";
+				m.Name = name;
+			}
+		}
 
-			m.Name = name;
+		public static bool CheckDupe(IEntity m, string name)
+		{
+			if (m == null || name == null || name.Length == 0)
+			{
+				return false;
+			}
+
+			name = name.Trim(); //Trim the name and re-assign it
+
+			if (!NameVerification.Validate(name, 2, 16, true, true, true, 1, NameVerification.SpaceDashPeriodQuote))
+			{
+				return false;
+			}
+
+			foreach (Mobile wm in World.Mobiles.Values)
+			{
+				if (wm != m && !wm.Deleted && wm is PlayerMobile && Insensitive.Equals(wm.RawName, name)) //Filter Mobiles by PlayerMobile type and do the name check in one go, no need for another list.
+				{
+					return false; // No need to clear anything since we did not make any temporary lists.
+				}
+			}
+
+			return true;
 		}
 
 		private static bool ValidSkills(SkillNameValue[] skills)

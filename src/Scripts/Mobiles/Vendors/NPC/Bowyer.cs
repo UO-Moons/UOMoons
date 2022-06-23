@@ -29,8 +29,8 @@ public class Bowyer : BaseVendor
 	{
 		base.InitOutfit();
 
-		AddItem(new Bow());
-		AddItem(new LeatherGorget());
+		SetWearable(new Bow());
+		SetWearable(new LeatherGorget());
 	}
 
 	public override void InitSbInfo()

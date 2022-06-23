@@ -6,7 +6,7 @@ namespace Server.Commands.Generic
 {
 	public sealed class DistinctExtension : BaseExtension
 	{
-		public static ExtensionInfo ExtInfo = new(30, "Distinct", -1, delegate () { return new DistinctExtension(); });
+		public static ExtensionInfo ExtInfo = new(30, "Distinct", -1, () => new DistinctExtension());
 
 		public static void Initialize()
 		{
@@ -15,13 +15,13 @@ namespace Server.Commands.Generic
 
 		public override ExtensionInfo Info => ExtInfo;
 
-		private readonly List<Property> m_Properties;
+		private readonly List<Property> _mProperties;
 
-		private IComparer m_Comparer;
+		private IComparer _mComparer;
 
 		public DistinctExtension()
 		{
-			m_Properties = new List<Property>();
+			_mProperties = new List<Property>();
 		}
 
 		public override void Optimize(Mobile from, Type baseType, ref AssemblyEmitter assembly)
@@ -29,16 +29,15 @@ namespace Server.Commands.Generic
 			if (baseType == null)
 				throw new Exception("Distinct extension may only be used in combination with an object conditional.");
 
-			foreach (Property prop in m_Properties)
+			foreach (Property prop in _mProperties)
 			{
 				prop.BindTo(baseType, PropertyAccess.Read);
 				prop.CheckAccess(from);
 			}
 
-			if (assembly == null)
-				assembly = new AssemblyEmitter("__dynamic", false);
+			assembly ??= new AssemblyEmitter("__dynamic", false);
 
-			m_Comparer = DistinctCompiler.Compile(assembly, baseType, m_Properties.ToArray());
+			_mComparer = DistinctCompiler.Compile(assembly, baseType, _mProperties.ToArray());
 		}
 
 		public override void Parse(Mobile from, string[] arguments, int offset, int size)
@@ -52,18 +51,18 @@ namespace Server.Commands.Generic
 			{
 				string binding = arguments[offset++];
 
-				m_Properties.Add(new Property(binding));
+				_mProperties.Add(new Property(binding));
 			}
 		}
 
 		public override void Filter(ArrayList list)
 		{
-			if (m_Comparer == null)
+			if (_mComparer == null)
 				throw new InvalidOperationException("The extension must first be optimized.");
 
 			ArrayList copy = new(list);
 
-			copy.Sort(m_Comparer);
+			copy.Sort(_mComparer);
 
 			list.Clear();
 
@@ -73,7 +72,7 @@ namespace Server.Commands.Generic
 			{
 				object obj = copy[i];
 
-				if (last == null || m_Comparer.Compare(obj, last) != 0)
+				if (last == null || _mComparer.Compare(obj, last) != 0)
 				{
 					list.Add(obj);
 					last = obj;

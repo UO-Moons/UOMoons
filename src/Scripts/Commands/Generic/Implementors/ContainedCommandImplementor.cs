@@ -3,80 +3,77 @@ using Server.Targeting;
 using System;
 using System.Collections;
 
-namespace Server.Commands.Generic
+namespace Server.Commands.Generic;
+
+public class ContainedCommandImplementor : BaseCommandImplementor
 {
-	public class ContainedCommandImplementor : BaseCommandImplementor
+	public ContainedCommandImplementor()
 	{
-		public ContainedCommandImplementor()
+		Accessors = new string[] { "Contained" };
+		SupportRequirement = CommandSupport.Contained;
+		AccessLevel = AccessLevel.GameMaster;
+		Usage = "Contained <command> [condition]";
+		Description = "Invokes the command on all child items in a targeted container. Optional condition arguments can further restrict the set of objects.";
+	}
+
+	public override void Process(Mobile from, BaseCommand command, string[] args)
+	{
+		if (command.ValidateArgs(this, new CommandEventArgs(from, command.Commands[0], GenerateArgString(args), args)))
+			from.BeginTarget(-1, command.ObjectTypes == ObjectTypes.All, TargetFlags.None, new TargetStateCallback(OnTarget), new object[] { command, args });
+	}
+
+	public void OnTarget(Mobile from, object targeted, object state)
+	{
+		if (!BaseCommand.IsAccessible(from, targeted))
 		{
-			Accessors = new string[] { "Contained" };
-			SupportRequirement = CommandSupport.Contained;
-			AccessLevel = AccessLevel.GameMaster;
-			Usage = "Contained <command> [condition]";
-			Description = "Invokes the command on all child items in a targeted container. Optional condition arguments can further restrict the set of objects.";
+			from.SendMessage("That is not accessible.");
+			return;
 		}
 
-		public override void Process(Mobile from, BaseCommand command, string[] args)
+		object[] states = (object[])state;
+		BaseCommand command = (BaseCommand)states[0];
+		string[] args = (string[])states[1];
+
+		if (command.ObjectTypes == ObjectTypes.Mobiles)
+			return; // sanity check
+
+		if (!(targeted is Container cont))
 		{
-			if (command.ValidateArgs(this, new CommandEventArgs(from, command.Commands[0], GenerateArgString(args), args)))
-				from.BeginTarget(-1, command.ObjectTypes == ObjectTypes.All, TargetFlags.None, new TargetStateCallback(OnTarget), new object[] { command, args });
+			from.SendMessage("That is not a container.");
 		}
-
-		public void OnTarget(Mobile from, object targeted, object state)
+		else
 		{
-			if (!BaseCommand.IsAccessible(from, targeted))
+			try
 			{
-				from.SendMessage("That is not accessible.");
-				return;
-			}
+				Extensions ext = Extensions.Parse(from, ref args);
 
-			object[] states = (object[])state;
-			BaseCommand command = (BaseCommand)states[0];
-			string[] args = (string[])states[1];
 
-			if (command.ObjectTypes == ObjectTypes.Mobiles)
-				return; // sanity check
+				if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
+					return;
 
-			if (!(targeted is Container))
-			{
-				from.SendMessage("That is not a container.");
-			}
-			else
-			{
-				try
+				if (!items)
 				{
-					Extensions ext = Extensions.Parse(from, ref args);
-
-
-					if (!CheckObjectTypes(from, command, ext, out bool items, out bool mobiles))
-						return;
-
-					if (!items)
-					{
-						from.SendMessage("This command only works on items.");
-						return;
-					}
-
-					Container cont = (Container)targeted;
-
-					Item[] found = cont.FindItemsByType(typeof(Item), true);
-
-					ArrayList list = new ArrayList();
-
-					for (int i = 0; i < found.Length; ++i)
-					{
-						if (ext.IsValid(found[i]))
-							list.Add(found[i]);
-					}
-
-					ext.Filter(list);
-
-					RunCommand(from, list, command, args);
+					from.SendMessage("This command only works on items.");
+					return;
 				}
-				catch (Exception e)
+
+				Item[] found = cont.FindItemsByType(typeof(Item), true);
+
+				ArrayList list = new();
+
+				for (int i = 0; i < found.Length; ++i)
 				{
-					from.SendMessage(e.Message);
+					if (ext.IsValid(found[i]))
+						list.Add(found[i]);
 				}
+
+				ext.Filter(list);
+
+				RunCommand(from, list, command, args);
+			}
+			catch (Exception e)
+			{
+				from.SendMessage(e.Message);
 			}
 		}
 	}
