@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a kaze kemono";
 			Body = 196;
-			BaseSoundID = 655;
+			BaseSoundId = 655;
 
 			SetStr(201, 275);
 			SetDex(101, 155);
@@ -133,7 +133,7 @@ namespace Server.Mobiles
 				m_Mobile = m;
 				m_Mod = mod;
 				m_Table = table;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			public void DoExpire()

@@ -84,7 +84,7 @@ namespace Server.Items
 			public InternalTimer(Mobile m, TimeSpan duration) : base(duration)
 			{
 				m_Mobile = m;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

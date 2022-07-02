@@ -457,7 +457,7 @@ namespace Server.Items
 
 			writer.WriteEncodedInt(0); // version
 
-			writer.WriteItem<BroadcastCrystal>(m_Sender);
+			writer.Write(m_Sender);
 		}
 
 		public override void Deserialize(GenericReader reader)

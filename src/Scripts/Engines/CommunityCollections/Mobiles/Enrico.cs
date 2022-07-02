@@ -32,9 +32,9 @@ public class Enrico : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83FA;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x46C;
-		FacialHairItemID = 0x204C;
+		FacialHairItemId = 0x204C;
 		FacialHairHue = 0x46C;
 	}
 

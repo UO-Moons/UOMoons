@@ -79,9 +79,9 @@ public class Kodar : BaseEscort
 		Race = Race.Human;
 
 		Hue = 33790;
-		FacialHairItemID = 0x204D;
+		FacialHairItemId = 0x204D;
 		FacialHairHue = 1102;
-		HairItemID = 0x204A;
+		HairItemId = 0x204A;
 		HairHue = 1102;
 	}
 

@@ -24,7 +24,7 @@ namespace Server.Engines.Quests.Ninja
 
 		public override void InitOutfit()
 		{
-			HairItemID = 0x203B;
+			HairItemId = 0x203B;
 			HairHue = 0x901;
 
 			AddItem(new MaleKimono());

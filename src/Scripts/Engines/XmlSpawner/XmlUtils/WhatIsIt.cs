@@ -16,7 +16,7 @@ namespace Server.Commands
 			public WhatIsItTarget()
 				: base(30, true, TargetFlags.None)
 			{
-				CheckLOS = false;
+				CheckLos = false;
 			}
 			protected override void OnTarget(Mobile from, object targeted)
 			{

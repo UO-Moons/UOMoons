@@ -127,7 +127,7 @@ public class DonationStore
 			//get the Serial from its instance
 			if (gift != null)
 			{
-				Serial serial = gift.Serial.Value;
+				Serial serial = gift.Serial;
 
 				//update the serial to database for your later tracking
 				command.CommandText = $"INSERT INTO redeemed_gift (id,type_id,account_name,donate_time,redeem_time,serial,paypal_txn_id) VALUES ('{giftId}','{typeId}','{username}','{donateTime}','{Convert.ToInt32(ToUnixTimestamp(currTime))}','{serial}','{paypalTxnId}')";

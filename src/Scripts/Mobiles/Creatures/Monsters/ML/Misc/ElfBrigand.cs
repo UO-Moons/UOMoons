@@ -78,7 +78,7 @@ public class ElfBrigand : BaseCreature
 			AddItem(new ShortPants(Utility.RandomNeutralHue()));
 
 		// hair, facial hair			
-		HairItemID = Race.RandomHair(Female);
+		HairItemId = Race.RandomHair(Female);
 		HairHue = Race.RandomHairHue();
 
 		// weapon, shield

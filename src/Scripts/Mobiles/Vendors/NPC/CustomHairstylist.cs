@@ -333,7 +333,7 @@ public class ChangeHairHueGump : Gump
 				if (index < 0 || index >= _mEntries.Length) return;
 				if (offset >= 0 && offset < _mEntries[index].Hues.Length)
 				{
-					if (_mHair && _mFrom.HairItemID > 0 || _mFacialHair && _mFrom.FacialHairItemID > 0)
+					if (_mHair && _mFrom.HairItemId > 0 || _mFacialHair && _mFrom.FacialHairItemId > 0)
 					{
 						if (!Banker.Withdraw(_mFrom, _mPrice))
 						{
@@ -496,8 +496,8 @@ public class ChangeHairstyleGump : Gump
 				if (_mFrom is PlayerMobile mobile)
 					mobile.SetHairMods(-1, -1);
 
-				int hairId = _mFrom.HairItemID;
-				int facialHairId = _mFrom.FacialHairItemID;
+				int hairId = _mFrom.HairItemId;
+				int facialHairId = _mFrom.FacialHairItemId;
 
 				if (entry.ItemId == 0)
 				{
@@ -507,9 +507,9 @@ public class ChangeHairstyleGump : Gump
 					if (Banker.Withdraw(_mFrom, _mPrice))
 					{
 						if (_mFacialHair)
-							_mFrom.FacialHairItemID = 0;
+							_mFrom.FacialHairItemId = 0;
 						else
-							_mFrom.HairItemID = 0;
+							_mFrom.HairItemId = 0;
 					}
 					else
 						_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState); // You cannot afford my services for that style.
@@ -530,9 +530,9 @@ public class ChangeHairstyleGump : Gump
 					if (Banker.Withdraw(_mFrom, _mPrice))
 					{
 						if (_mFacialHair)
-							_mFrom.FacialHairItemID = entry.ItemId;
+							_mFrom.FacialHairItemId = entry.ItemId;
 						else
-							_mFrom.HairItemID = entry.ItemId;
+							_mFrom.HairItemId = entry.ItemId;
 					}
 					else
 						_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState); // You cannot afford my services for that style.

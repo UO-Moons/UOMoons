@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a red solen infiltrator";
 			Body = 782;
-			BaseSoundID = 959;
+			BaseSoundId = 959;
 
 			SetStr(206, 230);
 			SetDex(121, 145);

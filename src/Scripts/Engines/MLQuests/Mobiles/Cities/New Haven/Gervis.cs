@@ -31,7 +31,7 @@ public class Gervis : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F5;
-		HairItemID = 0x203B;
+		HairItemId = 0x203B;
 		HairHue = 0x5EC;
 	}
 

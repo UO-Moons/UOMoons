@@ -18,21 +18,16 @@ namespace Server.Items
 		{
 		}
 
-		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
 			if (item == Trade.From.VirtualCheck || item == Trade.To.VirtualCheck)
 			{
 				return true;
 			}
 
-			Mobile to;
+			var to = Trade.From.Container != this ? Trade.From.Mobile : Trade.To.Mobile;
 
-			if (Trade.From.Container != this)
-				to = Trade.From.Mobile;
-			else
-				to = Trade.To.Mobile;
-
-			return m.CheckTrade(to, item, this, message, checkItems, plusItems, plusWeight);
+			return m.CheckTrade(to, item, this, message, checkItems, checkWeight, plusItems, plusWeight);
 		}
 
 		public override bool CheckLift(Mobile from, Item item, ref LRReason reject)

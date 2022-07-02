@@ -23,7 +23,7 @@ namespace Server.Engines.Quests.Samurai
 
 		public override void InitOutfit()
 		{
-			HairItemID = 0x204A;
+			HairItemId = 0x204A;
 			HairHue = 0x901;
 
 			AddItem(new SamuraiTabi());

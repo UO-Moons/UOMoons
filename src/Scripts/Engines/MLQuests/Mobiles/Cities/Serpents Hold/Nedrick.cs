@@ -24,9 +24,9 @@ public class Nedrick : HeritageQuester
 		Race = Race.Human;
 
 		Hue = 0x8419;
-		HairItemID = 0x203B;
+		HairItemId = 0x203B;
 		HairHue = 0x464;
-		HairItemID = 0x203F;
+		HairItemId = 0x203F;
 		HairHue = 0x464;
 	}
 

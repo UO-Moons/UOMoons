@@ -248,7 +248,7 @@ public class AnimalTaming
 				_mMaxCount = count;
 				_mParalyzed = creature.Paralyzed;
 				_mStartTime = DateTime.UtcNow;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

@@ -33,7 +33,7 @@ public class Dallid : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8376;
-		HairItemID = 0x2FCD;
+		HairItemId = 0x2FCD;
 		HairHue = 0x100;
 	}
 

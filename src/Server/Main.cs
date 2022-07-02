@@ -17,14 +17,14 @@ public delegate void Slice();
 
 public static class Core
 {
-	private static bool m_Crashed;
-	private static Thread timerThread;
-	private static string m_BaseDirectory;
-	private static string m_ExePath;
-	private static bool m_Cache = true;
-	private static bool m_Profiling;
-	private static DateTime m_ProfileStart;
-	private static TimeSpan m_ProfileTime;
+	private static bool _crashed;
+	private static Thread _timerThread;
+	private static string _baseDirectory;
+	private static string _exePath;
+	private static bool _cache = true;
+	private static bool _profiling;
+	private static DateTime _profileStart;
+	private static TimeSpan _profileTime;
 
 	public static MessagePump MessagePump { get; set; }
 
@@ -32,18 +32,18 @@ public static class Core
 
 	public static bool Profiling
 	{
-		get => m_Profiling;
+		get => _profiling;
 		set
 		{
-			if (m_Profiling == value)
+			if (_profiling == value)
 				return;
 
-			m_Profiling = value;
+			_profiling = value;
 
-			if (m_ProfileStart > DateTime.MinValue)
-				m_ProfileTime += DateTime.UtcNow - m_ProfileStart;
+			if (_profileStart > DateTime.MinValue)
+				_profileTime += DateTime.UtcNow - _profileStart;
 
-			m_ProfileStart = (m_Profiling ? DateTime.UtcNow : DateTime.MinValue);
+			_profileStart = _profiling ? DateTime.UtcNow : DateTime.MinValue;
 		}
 	}
 
@@ -51,10 +51,10 @@ public static class Core
 	{
 		get
 		{
-			if (m_ProfileStart > DateTime.MinValue)
-				return m_ProfileTime + (DateTime.UtcNow - m_ProfileStart);
+			if (_profileStart > DateTime.MinValue)
+				return _profileTime + (DateTime.UtcNow - _profileStart);
 
-			return m_ProfileTime;
+			return _profileTime;
 		}
 	}
 
@@ -64,7 +64,8 @@ public static class Core
 	public static bool DebugLoad = false;
 	internal static bool HaltOnWarning { get; private set; }
 	internal static bool VBdotNet { get; private set; }
-	public static List<string> DataDirectories { get; } = new List<string>();
+	//public static List<string> DataDirectories { get; } = new List<string>();
+	public static HashSet<string> DataDirectories { get; } = new();
 	public static Assembly Assembly { get; set; }
 	public static Version Version => Assembly.GetName().Version;
 	public static Process Process { get; private set; }
@@ -82,14 +83,14 @@ public static class Core
 	 * enabling the usage of DateTime.UtcNow instead.
 	 */
 
-	private static readonly bool _HighRes = Stopwatch.IsHighResolution;
+	private static readonly bool m_HighRes = Stopwatch.IsHighResolution;
 
-	private static readonly double _HighFrequency = 1000.0 / Stopwatch.Frequency;
-	private static readonly double _LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
+	private static readonly double m_HighFrequency = 1000.0 / Stopwatch.Frequency;
+	private const double LowFrequency = 1000.0 / TimeSpan.TicksPerSecond;
 
-	private static bool _UseHRT;
+	private static bool _useHrt;
 
-	public static bool UsingHighResolutionTiming => _UseHRT && _HighRes && !Unix;
+	public static bool UsingHighResolutionTiming => _useHrt && m_HighRes && !Unix;
 
 	public static long TickCount => (long)Ticks;
 
@@ -97,12 +98,12 @@ public static class Core
 	{
 		get
 		{
-			if (_UseHRT && _HighRes && !Unix)
+			if (_useHrt && m_HighRes && !Unix)
 			{
-				return Stopwatch.GetTimestamp() * _HighFrequency;
+				return Stopwatch.GetTimestamp() * m_HighFrequency;
 			}
 
-			return DateTime.UtcNow.Ticks * _LowFrequency;
+			return DateTime.UtcNow.Ticks * LowFrequency;
 		}
 	}
 
@@ -205,31 +206,31 @@ public static class Core
 	public static bool XXXVIII => Publishes >= Publishes.XXXVIII;
 	public static bool XXXIX => Publishes >= Publishes.XXXIX;
 	public static bool XL => Publishes >= Publishes.XL;
-
+	public static event Action OnExpansionChanged;
 	#endregion
 
-	public static string ExePath => m_ExePath ??= Assembly.Location;
+	public static string ExePath => _exePath ??= Assembly.Location;
 
 	public static string BaseDirectory
 	{
 		get
 		{
-			if (m_BaseDirectory == null)
+			if (_baseDirectory == null)
 			{
 				try
 				{
-					m_BaseDirectory = ExePath;
+					_baseDirectory = ExePath;
 
-					if (m_BaseDirectory.Length > 0)
-						m_BaseDirectory = Path.GetDirectoryName(m_BaseDirectory);
+					if (_baseDirectory.Length > 0)
+						_baseDirectory = Path.GetDirectoryName(_baseDirectory);
 				}
 				catch
 				{
-					m_BaseDirectory = "";
+					_baseDirectory = "";
 				}
 			}
 
-			return m_BaseDirectory;
+			return _baseDirectory;
 		}
 	}
 
@@ -240,7 +241,7 @@ public static class Core
 
 		if (e.IsTerminating)
 		{
-			m_Crashed = true;
+			_crashed = true;
 
 			bool close = false;
 
@@ -284,11 +285,11 @@ public static class Core
 
 	internal enum ConsoleEventType
 	{
-		CTRL_C_EVENT,
-		CTRL_BREAK_EVENT,
-		CTRL_CLOSE_EVENT,
-		CTRL_LOGOFF_EVENT = 5,
-		CTRL_SHUTDOWN_EVENT
+		CtrlCEvent,
+		CtrlBreakEvent,
+		CtrlCloseEvent,
+		CtrlLogoffEvent = 5,
+		CtrlShutdownEvent
 	}
 
 	internal delegate bool ConsoleEventHandler(ConsoleEventType type);
@@ -302,7 +303,7 @@ public static class Core
 
 	private static bool OnConsoleEvent(ConsoleEventType type)
 	{
-		if (World.Saving || (Service && type == ConsoleEventType.CTRL_LOGOFF_EVENT))
+		if (World.Saving || (Service && type == ConsoleEventType.CtrlLogoffEvent))
 			return true;
 
 		Kill(); //Kill -> HandleClosed will handle waiting for the completion of flushing to disk
@@ -317,12 +318,12 @@ public static class Core
 
 	public static bool Closing { get; private set; }
 
-	private static int m_CycleIndex = 1;
+	private static int _cycleIndex = 1;
 	private static readonly float[] m_CyclesPerSecond = new float[100];
 
-	public static float CyclesPerSecond => m_CyclesPerSecond[(m_CycleIndex - 1) % m_CyclesPerSecond.Length];
+	public static float CyclesPerSecond => m_CyclesPerSecond[(_cycleIndex - 1) % m_CyclesPerSecond.Length];
 
-	public static float AverageCPS => m_CyclesPerSecond.Take(m_CycleIndex).Average();
+	public static float AverageCps => m_CyclesPerSecond.Take(_cycleIndex).Average();
 
 	public static void Kill()
 	{
@@ -350,7 +351,7 @@ public static class Core
 
 		World.WaitForWriteCompletion();
 
-		if (!m_Crashed)
+		if (!_crashed)
 			EventSink.InvokeShutdown();
 
 		Timer.TimerThread.Set();
@@ -376,13 +377,13 @@ public static class Core
 			else if (Insensitive.Equals(a, "-profile"))
 				Profiling = true;
 			else if (Insensitive.Equals(a, "-nocache"))
-				m_Cache = false;
+				_cache = false;
 			else if (Insensitive.Equals(a, "-haltonwarning"))
 				HaltOnWarning = true;
 			else if (Insensitive.Equals(a, "-vb"))
 				VBdotNet = true;
 			else if (Insensitive.Equals(a, "-usehrt"))
-				_UseHRT = true;
+				_useHrt = true;
 		}
 
 		try
@@ -414,7 +415,7 @@ public static class Core
 			Directory.SetCurrentDirectory(BaseDirectory);
 
 		Timer.TimerThread ttObj = new();
-		timerThread = new Thread(Timer.TimerThread.TimerMain)
+		_timerThread = new Thread(Timer.TimerThread.TimerMain)
 		{
 			Name = "Timer Thread"
 		};
@@ -453,10 +454,10 @@ public static class Core
 		if (GCSettings.IsServerGC)
 			Console.WriteLine("Core: Server garbage collection mode enabled");
 
-		if (_UseHRT)
+		if (_useHrt)
 			Console.WriteLine("Core: Requested high resolution timing ({0})", UsingHighResolutionTiming ? "Supported" : "Unsupported");
 
-		Utility.WriteConsole(ConsoleColor.Green, "RandomImpl: {0} ({1})", RandomImpl.Type.Name, RandomImpl.IsHardwareRNG ? "Hardware" : "Software");
+		Utility.WriteConsole(ConsoleColor.Green, "RandomImpl: {0} ({1})", RandomImpl.Type.Name, RandomImpl.IsHardwareRng ? "Hardware" : "Software");
 
 		while (!Assembler.Load())
 		{
@@ -480,7 +481,7 @@ public static class Core
 
 		MessagePump messagePump = MessagePump = new MessagePump();
 
-		timerThread.Start();
+		_timerThread.Start();
 
 		foreach (Map m in Map.AllMaps)
 			TileMatrix.Force();
@@ -491,7 +492,7 @@ public static class Core
 
 		try
 		{
-			long now, last = TickCount;
+			long last = TickCount;
 
 			const int sampleInterval = 100;
 			const float ticksPerSecond = 1000.0f * sampleInterval;
@@ -518,8 +519,8 @@ public static class Core
 					continue;
 				}
 
-				now = TickCount;
-				m_CyclesPerSecond[m_CycleIndex++ % m_CyclesPerSecond.Length] = ticksPerSecond / (now - last);
+				var now = TickCount;
+				m_CyclesPerSecond[_cycleIndex++ % m_CyclesPerSecond.Length] = ticksPerSecond / (now - last);
 				last = now;
 			}
 		}
@@ -541,10 +542,10 @@ public static class Core
 			if (Service)
 				Utility.Separate(sb, "-service", " ");
 
-			if (m_Profiling)
+			if (_profiling)
 				Utility.Separate(sb, "-profile", " ");
 
-			if (!m_Cache)
+			if (!_cache)
 				Utility.Separate(sb, "-nocache", " ");
 
 			if (HaltOnWarning)
@@ -553,22 +554,22 @@ public static class Core
 			if (VBdotNet)
 				Utility.Separate(sb, "-vb", " ");
 
-			if (_UseHRT)
+			if (_useHrt)
 				Utility.Separate(sb, "-usehrt", " ");
 
 			return sb.ToString();
 		}
 	}
 
-	private static int m_ItemCount, m_MobileCount;
+	private static int _itemCount, _mobileCount;
 
-	public static int ScriptItems => m_ItemCount;
-	public static int ScriptMobiles => m_MobileCount;
+	public static int ScriptItems => _itemCount;
+	public static int ScriptMobiles => _mobileCount;
 
 	public static void VerifySerialization()
 	{
-		m_ItemCount = 0;
-		m_MobileCount = 0;
+		_itemCount = 0;
+		_mobileCount = 0;
 
 		Assembly ca = Assembly.GetCallingAssembly();
 
@@ -592,11 +593,11 @@ public static class Core
 				return;
 			case true:
 				//++_ItemCount;
-				Interlocked.Increment(ref m_ItemCount);
+				Interlocked.Increment(ref _itemCount);
 				break;
 			default:
 				//++_MobileCount;
-				Interlocked.Increment(ref m_MobileCount);
+				Interlocked.Increment(ref _mobileCount);
 				break;
 		}
 
@@ -619,10 +620,7 @@ public static class Core
 						"Serialize",
 						BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
 				{
-					if (warningSb == null)
-					{
-						warningSb = new StringBuilder();
-					}
+					warningSb ??= new StringBuilder();
 
 					warningSb.AppendLine("       - No Serialize() method");
 				}
@@ -632,16 +630,13 @@ public static class Core
 						"Deserialize",
 						BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly) == null)
 				{
-					if (warningSb == null)
-					{
-						warningSb = new StringBuilder();
-					}
+					warningSb ??= new StringBuilder();
 
 					warningSb.AppendLine("       - No Deserialize() method");
 				}
 			}
 
-			if (warningSb != null && warningSb.Length > 0)
+			if (warningSb is {Length: > 0})
 			{
 				Utility.WriteConsole(ConsoleColor.Yellow, "Warning: {0}\n{1}", t, warningSb);
 			}
@@ -665,9 +660,9 @@ public class FileLogger : TextWriter
 {
 	public const string DateFormat = "[MMMM dd hh:mm:ss.f tt]: ";
 
-	private bool _NewLine;
+	private bool _newLine;
 
-	public string FileName { get; private set; }
+	public string FileName { get; }
 
 	public FileLogger(string file)
 		: this(file, false)
@@ -683,16 +678,16 @@ public class FileLogger : TextWriter
 			//f = Tuesday, April 10, 2001 3:51 PM
 		}
 
-		_NewLine = true;
+		_newLine = true;
 	}
 
 	public override void Write(char ch)
 	{
 		using StreamWriter writer = new(new FileStream(FileName, FileMode.Append, FileAccess.Write, FileShare.Read));
-		if (_NewLine)
+		if (_newLine)
 		{
 			writer.Write(DateTime.UtcNow.ToString(DateFormat));
-			_NewLine = false;
+			_newLine = false;
 		}
 
 		writer.Write(ch);
@@ -701,10 +696,10 @@ public class FileLogger : TextWriter
 	public override void Write(string str)
 	{
 		using StreamWriter writer = new(new FileStream(FileName, FileMode.Append, FileAccess.Write, FileShare.Read));
-		if (_NewLine)
+		if (_newLine)
 		{
 			writer.Write(DateTime.UtcNow.ToString(DateFormat));
-			_NewLine = false;
+			_newLine = false;
 		}
 
 		writer.Write(str);
@@ -713,13 +708,13 @@ public class FileLogger : TextWriter
 	public override void WriteLine(string line)
 	{
 		using StreamWriter writer = new(new FileStream(FileName, FileMode.Append, FileAccess.Write, FileShare.Read));
-		if (_NewLine)
+		if (_newLine)
 		{
 			writer.Write(DateTime.UtcNow.ToString(DateFormat));
 		}
 
 		writer.WriteLine(line);
-		_NewLine = true;
+		_newLine = true;
 	}
 
 	public override Encoding Encoding => Encoding.Default;

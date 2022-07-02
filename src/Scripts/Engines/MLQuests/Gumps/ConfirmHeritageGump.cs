@@ -55,7 +55,7 @@ public class ConfirmHeritageQuestGump : Gump
 		HeritageQuester.AddPending(m, _mQuester);
 		Timer.DelayCall(TimeSpan.FromMinutes(1), new TimerStateCallback(CloseHeritageGump), m);
 
-		state.Mobile.Send(new HeritagePacket(m.Female, (short)(_mQuester.Race.RaceID + 1)));
+		state.Mobile.Send(new HeritagePacket(m.Female, (short)(_mQuester.Race.RaceId + 1)));
 	}
 
 	private static void CloseHeritageGump(object args)

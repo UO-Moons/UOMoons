@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a fire elemental";
 			Body = 15;
-			BaseSoundID = 838;
+			BaseSoundId = 838;
 
 			SetStr(200);
 			SetDex(200);

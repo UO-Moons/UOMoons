@@ -25,7 +25,7 @@ public class Regina : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83EE;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 		HairHue = 0x599;
 	}
 

@@ -167,10 +167,10 @@ namespace Server.Mobiles
             Title = caster.Title;
             Kills = caster.Kills;
 
-            HairItemID = caster.HairItemID;
+            HairItemId = caster.HairItemId;
             HairHue = caster.HairHue;
 
-            FacialHairItemID = caster.FacialHairItemID;
+            FacialHairItemId = caster.FacialHairItemId;
             FacialHairHue = caster.FacialHairHue;
 
             for (int i = 0; i < caster.Skills.Length; ++i)

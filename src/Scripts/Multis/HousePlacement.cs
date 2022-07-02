@@ -144,7 +144,7 @@ namespace Server.Multis
 					}
 
 					LandTile landTile = map.Tiles.GetLandTile(tileX, tileY);
-					int landID = landTile.ID & TileData.MaxLandValue;
+					int landID = landTile.Id & TileData.MaxLandValue;
 
 					StaticTile[] oldTiles = map.Tiles.GetStaticTiles(tileX, tileY, true);
 
@@ -180,10 +180,10 @@ namespace Server.Multis
 					{
 						StaticTile addTile = addTiles[i];
 
-						if (addTile.ID == 0x1) // Nodraw
+						if (addTile.Id == 0x1) // Nodraw
 							continue;
 
-						TileFlag addTileFlags = TileData.ItemTable[addTile.ID & TileData.MaxItemValue].Flags;
+						TileFlag addTileFlags = TileData.ItemTable[addTile.Id & TileData.MaxItemValue].Flags;
 
 						bool isFoundation = (addTile.Z == 0 && (addTileFlags & TileFlag.Wall) != 0);
 						bool hasSurface = false;
@@ -203,13 +203,13 @@ namespace Server.Multis
 							return HousePlacementResult.BadLand; // Broke rule #2
 						}
 
-						if (isFoundation && ((TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Impassable) == 0) && landAvgZ == center.Z)
+						if (isFoundation && ((TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Impassable) == 0) && landAvgZ == center.Z)
 							hasSurface = true;
 
 						for (int j = 0; j < oldTiles.Length; ++j)
 						{
 							StaticTile oldTile = oldTiles[j];
-							ItemData id = TileData.ItemTable[oldTile.ID & TileData.MaxItemValue];
+							ItemData id = TileData.ItemTable[oldTile.Id & TileData.MaxItemValue];
 
 							if ((id.Impassable || (id.Surface && (id.Flags & TileFlag.Background) == 0)) && addTileTop > oldTile.Z && (oldTile.Z + id.CalcHeight) > addTileZ)
 							{
@@ -307,7 +307,7 @@ namespace Server.Multis
 									{
 										StaticTile breakTile = breakTiles[i];
 
-										if (breakTile.Height == 0 && breakTile.Z <= 8 && TileData.ItemTable[breakTile.ID & TileData.MaxItemValue].Surface)
+										if (breakTile.Height == 0 && breakTile.Z <= 8 && TileData.ItemTable[breakTile.Id & TileData.MaxItemValue].Surface)
 											shouldBreak = true;
 									}
 
@@ -330,7 +330,7 @@ namespace Server.Multis
 				Point2D borderPoint = borders[i];
 
 				LandTile landTile = map.Tiles.GetLandTile(borderPoint.X, borderPoint.Y);
-				int landID = landTile.ID & TileData.MaxLandValue;
+				int landID = landTile.Id & TileData.MaxLandValue;
 
 				if ((TileData.LandTable[landID].Flags & TileFlag.Impassable) != 0)
 				{
@@ -352,7 +352,7 @@ namespace Server.Multis
 				for (int j = 0; j < tiles.Length; ++j)
 				{
 					StaticTile tile = tiles[j];
-					ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+					ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 					if (id.Impassable || (id.Surface && (id.Flags & TileFlag.Background) == 0 && (tile.Z + id.CalcHeight) > (center.Z + 2)))
 					{

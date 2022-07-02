@@ -26,7 +26,7 @@ public class Dierdre : HumilityQuestMobile
 		Body = 0x191;
 
 		Hue = Race.RandomSkinHue();
-		HairItemID = Race.RandomHair(true);
+		HairItemId = Race.RandomHair(true);
 		HairHue = Race.RandomHairHue();
 	}
 

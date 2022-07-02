@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a wailing banshee";
 			Body = 310;
-			BaseSoundID = 0x482;
+			BaseSoundId = 0x482;
 
 			SetStr(126, 150);
 			SetDex(76, 100);

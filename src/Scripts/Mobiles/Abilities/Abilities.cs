@@ -370,8 +370,8 @@ namespace Server
 				from.NameMod = targ.Name;
 				from.Title = targ.Title;
 
-				from.HairItemID = targ.HairItemID;
-				from.FacialHairItemID = targ.FacialHairItemID;
+				from.HairItemId = targ.HairItemId;
+				from.FacialHairItemId = targ.FacialHairItemId;
 
 				from.VirtualArmor = targ.VirtualArmor;
 
@@ -444,8 +444,8 @@ namespace Server
 				from.NameMod = null;
 				from.Title = null;
 
-				from.HairItemID = 0;
-				from.FacialHairItemID = 0;
+				from.HairItemId = 0;
+				from.FacialHairItemId = 0;
 
 				from.VirtualArmor = 0;
 

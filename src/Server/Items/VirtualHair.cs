@@ -126,7 +126,7 @@ namespace Server
 			int hairSerial = HairInfo.FakeSerial(parent);
 
 			m_Stream.Write(hairSerial);
-			m_Stream.Write((short)parent.HairItemID);
+			m_Stream.Write((short)parent.HairItemId);
 			m_Stream.Write((byte)0);
 			m_Stream.Write((byte)Layer.Hair);
 			m_Stream.Write(parent.Serial);
@@ -147,7 +147,7 @@ namespace Server
 			int hairSerial = FacialHairInfo.FakeSerial(parent);
 
 			m_Stream.Write(hairSerial);
-			m_Stream.Write((short)parent.FacialHairItemID);
+			m_Stream.Write((short)parent.FacialHairItemId);
 			m_Stream.Write((byte)0);
 			m_Stream.Write((byte)Layer.FacialHair);
 			m_Stream.Write(parent.Serial);
@@ -170,7 +170,7 @@ namespace Server
 			int faceSerial = FaceInfo.FakeSerial(parent);
 
 			m_Stream.Write((int)faceSerial);
-			m_Stream.Write((short)parent.FaceItemID);
+			m_Stream.Write((short)parent.FaceItemId);
 			m_Stream.Write((byte)0);
 			m_Stream.Write((byte)Layer.Face);
 			m_Stream.Write((int)parent.Serial);

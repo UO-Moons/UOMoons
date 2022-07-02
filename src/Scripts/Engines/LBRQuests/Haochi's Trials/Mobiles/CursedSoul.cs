@@ -11,7 +11,7 @@ namespace Server.Engines.Quests.Samurai
 		{
 			Name = "a cursed soul";
 			Body = 3;
-			BaseSoundID = 471;
+			BaseSoundId = 471;
 
 			SetStr(20, 40);
 			SetDex(40, 60);

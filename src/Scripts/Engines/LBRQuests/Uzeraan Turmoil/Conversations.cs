@@ -101,7 +101,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 1) // warrior
+				if (System.From.Profession == Profession.Warrior) // warrior
 				{
 					/* <I>Uzeraan greets you as you approach...</I><BR><BR>
 					 * 
@@ -131,7 +131,7 @@ namespace Server.Engines.Quests.Haven
 					 */
 					return 1049088;
 				}
-				else if (System.From.Profession == 2) // magician
+				else if (System.From.Profession == Profession.Mage) // magician
 				{
 					/* <I>Uzeraan greets you as you approach...</I><BR><BR>
 					 * 
@@ -215,7 +215,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 2) // magician
+				if (System.From.Profession == Profession.Mage) // magician
 				{
 					/* <I>You give your report to Uzeraan and after a while, he begins to
 					 * speak...</I><BR><BR>
@@ -305,7 +305,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 5) // paladin
+				if (System.From.Profession == Profession.Paladin) // paladin
 				{
 					/* <I>Schmendrick barely pays you any attention as you approach him.
 					 * His mind seems to be occupied with something else. You explain to him that
@@ -467,7 +467,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 2) // magician
+				if (System.From.Profession == Profession.Mage) // magician
 				{
 					/* <I>Uzeraan takes the dirt from you and smiles...<BR><BR></I>
 					 * 
@@ -541,7 +541,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 2) // magician
+				if (System.From.Profession == Profession.Mage) // magician
 				{
 					//return 1049389; // localized message is bugged
 					return "<I>You hand Uzeraan the Vial of Blood, which he hastily accepts...</I><BR>"
@@ -600,7 +600,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 5) // paladin
+				if (System.From.Profession == Profession.Paladin) // paladin
 					return m_InfoPaladin;
 				else
 					return m_Info;

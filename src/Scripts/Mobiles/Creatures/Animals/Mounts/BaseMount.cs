@@ -142,7 +142,7 @@ namespace Server.Mobiles
 
 			for (int i = 0; i < tiles.Length && !onpath; ++i)
 			{
-				itemData = TileData.ItemTable[tiles[i].ID & TileData.MaxItemValue];
+				itemData = TileData.ItemTable[tiles[i].Id & TileData.MaxItemValue];
 				onpath = (itemData.Name == "hover over");
 			}
 

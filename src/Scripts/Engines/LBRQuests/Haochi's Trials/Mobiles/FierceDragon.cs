@@ -9,7 +9,7 @@ namespace Server.Engines.Quests.Samurai
 		{
 			Name = "a fierce dragon";
 			Body = 103;
-			BaseSoundID = 362;
+			BaseSoundId = 362;
 
 			SetStr(6000, 6020);
 			SetDex(0);

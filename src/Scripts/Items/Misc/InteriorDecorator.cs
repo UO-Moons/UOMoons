@@ -135,7 +135,7 @@ namespace Server.Items
 
 			public InternalTarget(InteriorDecorator decorator) : base(-1, false, TargetFlags.None)
 			{
-				CheckLOS = false;
+				CheckLos = false;
 
 				m_Decorator = decorator;
 			}
@@ -299,7 +299,7 @@ namespace Server.Items
 				for (int i = 0; i < tiles.Length; ++i)
 				{
 					StaticTile tile = tiles[i];
-					ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+					ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 					int top = tile.Z; // Confirmed : no height checks here
 

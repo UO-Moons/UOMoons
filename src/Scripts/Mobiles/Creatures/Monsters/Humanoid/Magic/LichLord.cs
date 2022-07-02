@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a lich lord";
 			Body = 79;
-			BaseSoundID = 412;
+			BaseSoundId = 412;
 
 			SetStr(416, 505);
 			SetDex(146, 165);

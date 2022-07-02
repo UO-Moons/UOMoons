@@ -45,9 +45,9 @@ public class Neil : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F5;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x46F;
-		FacialHairItemID = 0x203F;
+		FacialHairItemId = 0x203F;
 		FacialHairHue = 0x46F;
 	}
 

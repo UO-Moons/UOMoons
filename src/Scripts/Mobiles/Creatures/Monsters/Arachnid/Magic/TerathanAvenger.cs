@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a terathan avenger";
 			Body = 152;
-			BaseSoundID = 0x24D;
+			BaseSoundId = 0x24D;
 
 			SetStr(467, 645);
 			SetDex(77, 95);
@@ -68,8 +68,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 263)
-				BaseSoundID = 0x24D;
+			if (BaseSoundId == 263)
+				BaseSoundId = 0x24D;
 		}
 	}
 }

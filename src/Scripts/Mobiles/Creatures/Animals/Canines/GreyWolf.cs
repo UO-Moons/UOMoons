@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a grey wolf";
 			Body = Utility.RandomList(25, 27);
-			BaseSoundID = 0xE5;
+			BaseSoundId = 0xE5;
 
 			SetStr(56, 80);
 			SetDex(56, 75);

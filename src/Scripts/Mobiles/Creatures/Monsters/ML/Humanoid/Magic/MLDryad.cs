@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a dryad";
 			Body = 266;
-			BaseSoundID = 0x57B;
+			BaseSoundId = 0x57B;
 
 			SetStr(132, 149);
 			SetDex(152, 168);

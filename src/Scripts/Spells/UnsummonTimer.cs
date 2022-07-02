@@ -17,7 +17,7 @@ namespace Server.Spells
 
 		protected override void OnStop()
 		{
-			//Clear the timmer
+			//Clear the timer
 			m_Creature.UnsummonTimer = null;
 
 			if (!m_Creature.Deleted)

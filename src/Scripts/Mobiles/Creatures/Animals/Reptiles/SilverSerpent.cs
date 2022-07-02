@@ -14,7 +14,7 @@ namespace Server.Mobiles
 		{
 			Body = 92;
 			Name = "a silver serpent";
-			BaseSoundID = 219;
+			BaseSoundId = 219;
 
 			SetStr(161, 360);
 			SetDex(151, 300);
@@ -73,8 +73,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 219;
+			if (BaseSoundId == -1)
+				BaseSoundId = 219;
 		}
 	}
 }

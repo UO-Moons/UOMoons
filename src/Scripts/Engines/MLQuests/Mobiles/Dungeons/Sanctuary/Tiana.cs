@@ -41,7 +41,7 @@ public class Tiana : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x824E;
-		HairItemID = 0x2FCC;
+		HairItemId = 0x2FCC;
 		HairHue = 0x385;
 	}
 

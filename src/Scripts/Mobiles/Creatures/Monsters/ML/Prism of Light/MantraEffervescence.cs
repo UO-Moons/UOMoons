@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a mantra effervescence";
 			Body = 0x111;
-			BaseSoundID = 0x56E;
+			BaseSoundId = 0x56E;
 
 			SetStr(130, 150);
 			SetDex(120, 130);

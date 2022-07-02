@@ -470,7 +470,7 @@ namespace Server.Items
 			{
 				m_Mobile = from;
 
-				Priority = TimerPriority.TwentyFiveMS;
+				Priority = TimerPriority.TwentyFiveMs;
 			}
 
 			protected override void OnTick()

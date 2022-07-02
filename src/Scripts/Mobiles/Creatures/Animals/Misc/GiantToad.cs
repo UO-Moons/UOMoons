@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a giant toad";
 			Body = 80;
-			BaseSoundID = 0x26B;
+			BaseSoundId = 0x26B;
 
 			SetStr(76, 100);
 			SetDex(6, 25);

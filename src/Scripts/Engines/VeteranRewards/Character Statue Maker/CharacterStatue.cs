@@ -273,8 +273,8 @@ namespace Server.Mobiles
 			Name = from.Name;
 			BodyValue = from.BodyValue;
 			Female = from.Female;
-			HairItemID = from.HairItemID;
-			FacialHairItemID = from.FacialHairItemID;
+			HairItemId = from.HairItemId;
+			FacialHairItemId = from.FacialHairItemId;
 		}
 
 		public void CloneClothes(Mobile from)
@@ -311,7 +311,7 @@ namespace Server.Mobiles
 
 			HairHue = Hue;
 
-			if (FacialHairItemID > 0)
+			if (FacialHairItemId > 0)
 				FacialHairHue = Hue;
 
 			for (int i = Items.Count - 1; i >= 0; i--)

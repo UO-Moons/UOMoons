@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a snow leopard";
 			Body = Utility.RandomList(64, 65);
-			BaseSoundID = 0x73;
+			BaseSoundId = 0x73;
 
 			SetStr(56, 80);
 			SetDex(66, 85);

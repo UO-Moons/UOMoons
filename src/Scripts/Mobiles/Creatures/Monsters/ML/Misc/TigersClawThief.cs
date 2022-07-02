@@ -15,7 +15,7 @@ public class TigersClawThief : BaseCreature
 		Race = Race.Human;
 
 		Hue = Race.RandomSkinHue();
-		HairItemID = Race.RandomHair(Female);
+		HairItemId = Race.RandomHair(Female);
 		HairHue = Race.RandomHairHue();
 		_ = Race.RandomFacialHair(this);
 

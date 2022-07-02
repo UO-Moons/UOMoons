@@ -24,7 +24,7 @@ namespace Server.Mobiles
 			}
 
 			Body = 6;
-			BaseSoundID = 0x1B;
+			BaseSoundId = 0x1B;
 
 			VirtualArmor = Utility.RandomMinMax(0, 6);
 
@@ -85,7 +85,7 @@ namespace Server.Mobiles
 			Name = "a tropical bird";
 
 			Body = 6;
-			BaseSoundID = 0xBF;
+			BaseSoundId = 0xBF;
 
 			VirtualArmor = Utility.RandomMinMax(0, 6);
 

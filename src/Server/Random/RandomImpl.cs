@@ -1,86 +1,85 @@
 using System;
 using System.IO;
 
-namespace Server
+namespace Server;
+
+public interface IHardwareRng
 {
-	public interface IHardwareRNG
+	bool IsSupported();
+}
+
+public enum RdRandError
+{
+	Unknown = -4,
+	Unsupported = -3,
+	Supported = -2,
+	NotReady = -1,
+
+	Failure = 0,
+
+	Success = 1,
+}
+
+public interface IRandomImpl
+{
+	int Next(int c);
+	bool NextBool();
+	void NextBytes(byte[] b);
+	double NextDouble();
+}
+
+/// <summary>
+/// Handles random number generation.
+/// </summary>
+public static class RandomImpl
+{
+	private static readonly IRandomImpl m_Random;
+
+	static RandomImpl()
 	{
-		bool IsSupported();
+		if (Core.Is64Bit && File.Exists("rdrand64.dll"))
+		{
+			m_Random = new RdRand64();
+		}
+		else if (!Core.Is64Bit && File.Exists("rdrand32.dll"))
+		{
+			m_Random = new RdRand32();
+		}
+		else
+		{
+			m_Random = new SimpleRandom();
+		}
+
+		if (m_Random is IHardwareRng rNg)
+		{
+			if (!rNg.IsSupported())
+			{
+				m_Random = new CspRandom();
+			}
+		}
 	}
 
-	public enum RDRandError : int
+	public static bool IsHardwareRng => m_Random is IHardwareRng;
+
+	public static Type Type => m_Random.GetType();
+
+	public static int Next(int c)
 	{
-		Unknown = -4,
-		Unsupported = -3,
-		Supported = -2,
-		NotReady = -1,
-
-		Failure = 0,
-
-		Success = 1,
+		return m_Random.Next(c);
 	}
 
-	public interface IRandomImpl
+	public static bool NextBool()
 	{
-		int Next(int c);
-		bool NextBool();
-		void NextBytes(byte[] b);
-		double NextDouble();
+		return m_Random.NextBool();
 	}
 
-	/// <summary>
-	/// Handles random number generation.
-	/// </summary>
-	public static class RandomImpl
+	public static void NextBytes(byte[] b)
 	{
-		private static readonly IRandomImpl _Random;
+		m_Random.NextBytes(b);
+	}
 
-		static RandomImpl()
-		{
-			if (Core.Is64Bit && File.Exists("rdrand64.dll"))
-			{
-				_Random = new RDRand64();
-			}
-			else if (!Core.Is64Bit && File.Exists("rdrand32.dll"))
-			{
-				_Random = new RDRand32();
-			}
-			else
-			{
-				_Random = new SimpleRandom();
-			}
-
-			if (_Random is IHardwareRNG rNG)
-			{
-				if (!rNG.IsSupported())
-				{
-					_Random = new CSPRandom();
-				}
-			}
-		}
-
-		public static bool IsHardwareRNG => _Random is IHardwareRNG;
-
-		public static Type Type => _Random.GetType();
-
-		public static int Next(int c)
-		{
-			return _Random.Next(c);
-		}
-
-		public static bool NextBool()
-		{
-			return _Random.NextBool();
-		}
-
-		public static void NextBytes(byte[] b)
-		{
-			_Random.NextBytes(b);
-		}
-
-		public static double NextDouble()
-		{
-			return _Random.NextDouble();
-		}
+	public static double NextDouble()
+	{
+		return m_Random.NextDouble();
 	}
 }

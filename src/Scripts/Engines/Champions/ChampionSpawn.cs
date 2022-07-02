@@ -1141,7 +1141,7 @@ public class ChampionSpawn : BaseItem
 		}
 
 		writer.Write(ConfinedRoaming);
-		writer.WriteItem(_mIdol);
+		writer.Write(_mIdol);
 		writer.Write(HasBeenAdvanced);
 		writer.Write(_mSpawnArea);
 
@@ -1155,8 +1155,8 @@ public class ChampionSpawn : BaseItem
 		writer.Write(Creatures, true);
 		writer.Write(_mRedSkulls, true);
 		writer.Write(_mWhiteSkulls, true);
-		writer.WriteItem(_mPlatform);
-		writer.WriteItem(_mAltar);
+		writer.Write(_mPlatform);
+		writer.Write(_mAltar);
 		writer.Write(_mExpireDelay);
 		writer.WriteDeltaTime(ExpireTime);
 		writer.Write(Champion);

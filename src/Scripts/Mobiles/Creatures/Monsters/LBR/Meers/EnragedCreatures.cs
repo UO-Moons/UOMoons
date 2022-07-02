@@ -131,7 +131,7 @@ namespace Server.Mobiles
 		{
 			Name = "a black bear";
 			Body = 0xd3;
-			BaseSoundID = 0xa3;
+			BaseSoundId = 0xa3;
 		}
 		public EnragedBlackBear(Serial serial) : base(serial)
 		{
@@ -157,7 +157,7 @@ namespace Server.Mobiles
 		{
 			Name = "an eagle";
 			Body = 0x5;
-			BaseSoundID = 0x2ee;
+			BaseSoundId = 0x2ee;
 		}
 		public EnragedEagle(Serial serial) : base(serial)
 		{

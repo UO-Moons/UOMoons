@@ -12,7 +12,7 @@ namespace Server.Mobiles
 		{
 			Name = "a skeletal mage";
 			Body = 148;
-			BaseSoundID = 451;
+			BaseSoundId = 451;
 
 			SetStr( 76, 100 );
 			SetDex( 56, 75 );

@@ -30,7 +30,7 @@ public class Sarakki : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x841E;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 		HairHue = 0x1BB;
 	}
 

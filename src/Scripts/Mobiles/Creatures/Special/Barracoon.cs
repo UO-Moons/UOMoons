@@ -59,7 +59,7 @@ namespace Server.Mobiles
 			AddItem(new Cloak(Utility.RandomPinkHue()));
 			AddItem(new Sandals());
 
-			HairItemID = 0x203B; // Short Hair
+			HairItemId = 0x203B; // Short Hair
 			HairHue = 0x94;
 		}
 

@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a swamp tentacle";
 			Body = 66;
-			BaseSoundID = 352;
+			BaseSoundId = 352;
 
 			SetStr(96, 120);
 			SetDex(66, 85);

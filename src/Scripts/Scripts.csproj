@@ -13,7 +13,7 @@
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>Server</RootNamespace>
-	  <LangVersion>preview</LangVersion>
+	<LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

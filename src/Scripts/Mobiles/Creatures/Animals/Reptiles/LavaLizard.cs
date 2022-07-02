@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Name = "a lava lizard";
 			Body = 0xCE;
 			Hue = Utility.RandomList(0x647, 0x650, 0x659, 0x662, 0x66B, 0x674);
-			BaseSoundID = 0x5A;
+			BaseSoundId = 0x5A;
 
 			SetStr(126, 150);
 			SetDex(56, 75);

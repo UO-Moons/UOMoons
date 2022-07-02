@@ -245,7 +245,7 @@ namespace Server.Menus
 
 			public TeleportTimer(Mobile mobile, StuckMenuEntry destination, TimeSpan delay) : base(TimeSpan.Zero, TimeSpan.FromSeconds(1.0))
 			{
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 
 				m_Mobile = mobile;
 				m_Destination = destination;

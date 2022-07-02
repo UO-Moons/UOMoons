@@ -58,7 +58,7 @@ namespace Server.Mobiles
 		[Constructable]
 		public Unicorn(string name) : base(name, 0x7A, 0x3EB4, AIType.AI_Mage, FightMode.Evil, 10, 1, 0.2, 0.4)
 		{
-			BaseSoundID = 0x4BC;
+			BaseSoundId = 0x4BC;
 
 			SetStr(296, 325);
 			SetDex(96, 115);

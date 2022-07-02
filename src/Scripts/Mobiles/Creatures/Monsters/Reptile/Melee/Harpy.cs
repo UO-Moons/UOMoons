@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a harpy";
 			Body = 30;
-			BaseSoundID = 402;
+			BaseSoundId = 402;
 
 			SetStr(96, 120);
 			SetDex(86, 110);

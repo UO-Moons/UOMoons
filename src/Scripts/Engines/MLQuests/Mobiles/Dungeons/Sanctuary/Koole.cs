@@ -32,7 +32,7 @@ public class Koole : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x83E5;
-		HairItemID = 0x2FBF;
+		HairItemId = 0x2FBF;
 		HairHue = 0x386;
 	}
 

@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a ravager";
 			Body = 314;
-			BaseSoundID = 357;
+			BaseSoundId = 357;
 
 			SetStr(251, 275);
 			SetDex(101, 125);

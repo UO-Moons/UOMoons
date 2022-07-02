@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a devourer of souls";
 			Body = 303;
-			BaseSoundID = 357;
+			BaseSoundId = 357;
 
 			SetStr(801, 950);
 			SetDex(126, 175);

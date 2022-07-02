@@ -95,7 +95,7 @@ public class Begging
 			{
 				_mFrom = from;
 				_mTarget = target;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

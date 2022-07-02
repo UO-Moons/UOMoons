@@ -294,7 +294,7 @@ namespace Server.Items
 			Map = map;
 			From = from;
 
-			Priority = TimerPriority.TwoFiftyMS;
+			Priority = TimerPriority.TwoFiftyMs;
 		}
 
 		private int m_Step;

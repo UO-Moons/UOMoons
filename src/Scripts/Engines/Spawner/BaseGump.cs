@@ -683,7 +683,7 @@ namespace Server.Gumps
 			}
 
 			public Spoof()
-				: base(NewUID, Point3D.Zero, Map.Internal)
+				: base(new Serial(NewUID), Point3D.Zero, Map.Internal)
 			{ }
 		}
 

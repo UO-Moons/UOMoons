@@ -27,7 +27,7 @@ public class Kane : MondainQuester
 		InitStats(100, 100, 25);
 		Female = false;
 		Race = Race.Human;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x3B3;
 	}
 

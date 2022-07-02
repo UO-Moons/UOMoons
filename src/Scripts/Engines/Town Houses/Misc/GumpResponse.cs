@@ -19,7 +19,7 @@ namespace Server.Engines.TownHouses
 
 		private static void DisplayGumpResponse(NetState state, PacketReader pvSrc)
 		{
-			var serial = pvSrc.ReadInt32();
+			var serial = pvSrc.ReadSerial();
 			var typeId = pvSrc.ReadInt32();
 			var buttonId = pvSrc.ReadInt32();
 
@@ -97,7 +97,7 @@ namespace Server.Engines.TownHouses
 
 				if (buttonId == 1 && switchCount > 0)
 				{
-					var beheld = World.FindMobile(pvSrc.ReadInt32());
+					var beheld = World.FindMobile(pvSrc.ReadSerial());
 
 					if (beheld != null)
 					{

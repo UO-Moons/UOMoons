@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Body = Utility.RandomBool() ? 180 : 49;
 			Name = "a white wyrm";
-			BaseSoundID = 362;
+			BaseSoundId = 362;
 
 			SetStr(721, 760);
 			SetDex(101, 130);

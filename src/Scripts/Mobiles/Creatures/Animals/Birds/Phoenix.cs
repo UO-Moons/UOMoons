@@ -9,7 +9,7 @@ namespace Server.Mobiles
 			Name = "a phoenix";
 			Body = 5;
 			Hue = 0x674;
-			BaseSoundID = 0x8F;
+			BaseSoundId = 0x8F;
 
 			SetStr(504, 700);
 			SetDex(202, 300);

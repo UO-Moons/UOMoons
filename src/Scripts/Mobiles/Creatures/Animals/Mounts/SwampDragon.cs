@@ -83,7 +83,7 @@ namespace Server.Mobiles
 		[Constructable]
 		public SwampDragon(string name) : base(name, 0x31A, 0x3EBD, AIType.AI_Melee, FightMode.Aggressor, 10, 1, 0.2, 0.4)
 		{
-			BaseSoundID = 0x16A;
+			BaseSoundId = 0x16A;
 
 			SetStr(201, 300);
 			SetDex(66, 85);
@@ -203,8 +203,8 @@ namespace Server.Mobiles
 			if (Hue == 0 && !m_HasBarding)
 				Hue = 0x851;
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 0x16A;
+			if (BaseSoundId == -1)
+				BaseSoundId = 0x16A;
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Hue = Utility.RandomHairHue() | 0x8000;
 
-			BaseSoundID = 0x275;
+			BaseSoundId = 0x275;
 
 			SetStr(94, 170);
 			SetDex(96, 115);

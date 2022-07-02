@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a sea serpent";
 			Body = 150;
-			BaseSoundID = 447;
+			BaseSoundId = 447;
 
 			Hue = Utility.Random(0x530, 9);
 

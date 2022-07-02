@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an imp";
 			Body = 74;
-			BaseSoundID = 422;
+			BaseSoundId = 422;
 
 			SetStr(91, 115);
 			SetDex(61, 80);

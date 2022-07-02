@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a crystal elemental";
 			Body = 300;
-			BaseSoundID = 278;
+			BaseSoundId = 278;
 
 			SetStr(136, 160);
 			SetDex(51, 65);

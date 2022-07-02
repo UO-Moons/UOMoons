@@ -172,9 +172,10 @@ namespace Server.Items
 			string entryText = string.Empty;
 			_ = state.Mobile;
 
-			int serial = pvSrc.ReadInt32();
+			//int serial = pvSrc.ReadSerial();
 
-			Item bookitem = World.FindItem(serial);
+			//Item bookitem = World.FindItem(serial) as Item;
+			Item bookitem = World.FindItem(pvSrc.ReadSerial()) as Item;
 
 			// first try it as a normal basebook
 			if (bookitem is BaseBook)

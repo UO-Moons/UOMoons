@@ -439,7 +439,7 @@ public class BaseBook : BaseItem, ISecurable
 	{
 		Mobile from = state.Mobile;
 
-		if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+		if (World.FindItem(pvSrc.ReadSerial()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 			return;
 
 		pvSrc.Seek(4, SeekOrigin.Current); // Skip flags and page count
@@ -455,7 +455,7 @@ public class BaseBook : BaseItem, ISecurable
 	{
 		Mobile from = state.Mobile;
 
-		if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+		if (World.FindItem(pvSrc.ReadSerial()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 			return;
 
 		pvSrc.Seek(4, SeekOrigin.Current); // Skip flags and page count
@@ -482,7 +482,7 @@ public class BaseBook : BaseItem, ISecurable
 	{
 		Mobile from = state.Mobile;
 
-		if (World.FindItem(pvSrc.ReadInt32()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
+		if (World.FindItem(pvSrc.ReadSerial()) is not BaseBook book || !book.Writable || !from.InRange(book.GetWorldLocation(), 1) || !book.IsAccessibleTo(from))
 			return;
 
 		int pageCount = pvSrc.ReadUInt16();

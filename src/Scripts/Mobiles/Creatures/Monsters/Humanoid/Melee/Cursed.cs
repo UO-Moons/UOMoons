@@ -16,7 +16,7 @@ namespace Server.Mobiles
 			Hue = Utility.RandomMinMax(0x8596, 0x8599);
 			Body = 0x190;
 			Name = NameList.RandomName("male");
-			BaseSoundID = 471;
+			BaseSoundId = 471;
 
 			AddItem(new ShortPants(Utility.RandomNeutralHue()));
 			AddItem(new Shirt(Utility.RandomNeutralHue()));

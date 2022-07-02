@@ -76,7 +76,7 @@ namespace Server.Items
 				Owner = owner;
 				Enemy = enemy;
 				DamageReduction = _DamageReduction;
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 			}
 
 			protected override void OnTick()

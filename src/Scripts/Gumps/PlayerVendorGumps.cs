@@ -586,10 +586,10 @@ namespace Server.Gumps
 							{
 								int hue = m_Vendor.FacialHairHue;
 
-								m_Vendor.FacialHairItemID = 0;
+								m_Vendor.FacialHairItemId = 0;
 								m_Vendor.ProcessDelta(); // invalidate item ID for clients
 
-								m_Vendor.FacialHairItemID = Categories[cat].Entries[ent].ItemID;
+								m_Vendor.FacialHairItemId = Categories[cat].Entries[ent].ItemID;
 								m_Vendor.FacialHairHue = hue;
 							}
 						}
@@ -597,10 +597,10 @@ namespace Server.Gumps
 						{
 							int hue = m_Vendor.HairHue;
 
-							m_Vendor.HairItemID = 0;
+							m_Vendor.HairItemId = 0;
 							m_Vendor.ProcessDelta(); // invalidate item ID for clients
 
-							m_Vendor.HairItemID = Categories[cat].Entries[ent].ItemID;
+							m_Vendor.HairItemId = Categories[cat].Entries[ent].ItemID;
 							m_Vendor.HairHue = hue;
 						}
 						else
@@ -670,11 +670,11 @@ namespace Server.Gumps
 
 							if (category.Layer == Layer.Hair)
 							{
-								m_Vendor.HairItemID = 0;
+								m_Vendor.HairItemId = 0;
 							}
 							else if (category.Layer == Layer.FacialHair)
 							{
-								m_Vendor.FacialHairItemID = 0;
+								m_Vendor.FacialHairItemId = 0;
 							}
 							else
 							{
@@ -903,7 +903,7 @@ namespace Server.Gumps
 							m_Vendor.BodyValue = 401;
 							m_Vendor.Female = true;
 
-							m_Vendor.FacialHairItemID = 0;
+							m_Vendor.FacialHairItemId = 0;
 						}
 
 						from.SendGump(new NewPlayerVendorCustomizeGump(m_Vendor));
@@ -912,7 +912,7 @@ namespace Server.Gumps
 					}
 				case 2: // Remove hair
 					{
-						m_Vendor.HairItemID = 0;
+						m_Vendor.HairItemId = 0;
 
 						from.SendGump(new NewPlayerVendorCustomizeGump(m_Vendor));
 
@@ -920,7 +920,7 @@ namespace Server.Gumps
 					}
 				case 3: // Color hair
 					{
-						if (m_Vendor.HairItemID > 0)
+						if (m_Vendor.HairItemId > 0)
 						{
 							new PVHuePicker(m_Vendor, false, from).SendTo(from.NetState);
 						}
@@ -933,7 +933,7 @@ namespace Server.Gumps
 					}
 				case 4: // Remove beard
 					{
-						m_Vendor.FacialHairItemID = 0;
+						m_Vendor.FacialHairItemId = 0;
 
 						from.SendGump(new NewPlayerVendorCustomizeGump(m_Vendor));
 
@@ -941,7 +941,7 @@ namespace Server.Gumps
 					}
 				case 5: // Color beard
 					{
-						if (m_Vendor.FacialHairItemID > 0)
+						if (m_Vendor.FacialHairItemId > 0)
 						{
 							new PVHuePicker(m_Vendor, true, from).SendTo(from.NetState);
 						}
@@ -967,10 +967,10 @@ namespace Server.Gumps
 
 							hairhue = m_Vendor.HairHue;
 
-							m_Vendor.HairItemID = 0;
+							m_Vendor.HairItemId = 0;
 							m_Vendor.ProcessDelta();
 
-							m_Vendor.HairItemID = hairStyle.ItemID;
+							m_Vendor.HairItemId = hairStyle.ItemID;
 
 							m_Vendor.HairHue = hairhue;
 
@@ -990,10 +990,10 @@ namespace Server.Gumps
 
 							hairhue = m_Vendor.FacialHairHue;
 
-							m_Vendor.FacialHairItemID = 0;
+							m_Vendor.FacialHairItemId = 0;
 							m_Vendor.ProcessDelta();
 
-							m_Vendor.FacialHairItemID = beardStyle.ItemID;
+							m_Vendor.FacialHairItemId = beardStyle.ItemID;
 
 							m_Vendor.FacialHairHue = hairhue;
 

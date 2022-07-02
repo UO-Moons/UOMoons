@@ -19,13 +19,14 @@ namespace Server
 			From = new SecureTradeInfo(this, from, new SecureTradeContainer(this));
 			To = new SecureTradeInfo(this, to, new SecureTradeContainer(this));
 
-			bool from6017 = (from.NetState != null && from.NetState.ContainerGridLines);
-			bool to6017 = (to.NetState != null && to.NetState.ContainerGridLines);
+			bool from6017 = from.NetState is {ContainerGridLines: true};
+			bool to6017 = to.NetState is {ContainerGridLines: true};
 
-			bool from704565 = (from.NetState != null && from.NetState.NewSecureTrading);
-			bool to704565 = (to.NetState != null && to.NetState.NewSecureTrading);
+			bool from704565 = from.NetState is {NewSecureTrading: true};
+			bool to704565 = to.NetState is {NewSecureTrading: true};
 
-			from.Send(new MobileStatus(from, to));
+			var fromNs = from.NetState;
+			MobileStatus.Send(fromNs, to);
 			from.Send(new UpdateSecureTrade(From.Container, false, false));
 
 			if (from6017)
@@ -56,8 +57,8 @@ namespace Server
 				from.Send(
 					new UpdateSecureTrade(From.Container, TradeFlag.UpdateLedger, from.Account.TotalGold, from.Account.TotalPlat));
 			}
-
-			to.Send(new MobileStatus(to, from));
+			var toNs = to.NetState;
+			MobileStatus.Send(toNs, from);
 			to.Send(new UpdateSecureTrade(To.Container, false, false));
 
 			if (to6017)
@@ -185,7 +186,7 @@ namespace Server
 
 		private static void UpdateCurrency(SecureTradeInfo left, SecureTradeInfo right)
 		{
-			if (left.Mobile.NetState != null && left.Mobile.NetState.NewSecureTrading)
+			if (left.Mobile.NetState is {NewSecureTrading: true})
 			{
 				int plat = left.Mobile.Account.TotalPlat;
 				int gold = left.Mobile.Account.TotalGold;
@@ -193,7 +194,7 @@ namespace Server
 				left.Mobile.Send(new UpdateSecureTrade(left.Container, TradeFlag.UpdateLedger, gold, plat));
 			}
 
-			if (right.Mobile.NetState != null && right.Mobile.NetState.NewSecureTrading)
+			if (right.Mobile.NetState is {NewSecureTrading: true})
 			{
 				right.Mobile.Send(new UpdateSecureTrade(right.Container, TradeFlag.UpdateGold, left.Gold, left.Plat));
 			}
@@ -255,7 +256,7 @@ namespace Server
 					if (From.Mobile.Account != null)
 					{
 						double cur = From.Mobile.Account.TotalCurrency;
-						double off = From.Plat + (From.Gold / Math.Max(1.0, AccountGold.CurrencyThreshold));
+						double off = From.Plat + From.Gold / Math.Max(1.0, AccountGold.CurrencyThreshold);
 
 						if (off > cur)
 						{
@@ -267,7 +268,7 @@ namespace Server
 					if (To.Mobile.Account != null)
 					{
 						double cur = To.Mobile.Account.TotalCurrency;
-						double off = To.Plat + (To.Gold / Math.Max(1.0, AccountGold.CurrencyThreshold));
+						double off = To.Plat + To.Gold / Math.Max(1.0, AccountGold.CurrencyThreshold);
 
 						if (off > cur)
 						{

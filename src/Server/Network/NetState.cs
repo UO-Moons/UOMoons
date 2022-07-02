@@ -55,6 +55,8 @@ namespace Server.Network
 
 		private static bool m_Paused;
 
+		public static bool Paused => m_Paused;
+
 		[Flags]
 		private enum AsyncState
 		{
@@ -63,7 +65,7 @@ namespace Server.Network
 		}
 
 		private AsyncState m_AsyncState;
-		private readonly object m_AsyncLock = new object();
+		private readonly object m_AsyncLock = new();
 
 		public IPacketEncoder PacketEncoder { get; set; } = null;
 		public IPacketEncryptor PacketEncryptor { get; set; }
@@ -78,8 +80,27 @@ namespace Server.Network
 			set
 			{
 				m_Version = value;
-
-				if (value >= m_Version704565)
+				if (value >= m_Version70610)
+				{
+					_ProtocolChanges = ProtocolChanges.Version70610;
+				}
+				else if (value >= m_Version706047)
+				{
+					_ProtocolChanges = ProtocolChanges.Version706047;
+				}
+				else if (value >= m_Version70595)
+				{
+					_ProtocolChanges = ProtocolChanges.Version70595;
+				}
+				else if (value >= m_Version70560)
+				{
+					_ProtocolChanges = ProtocolChanges.Version70560;
+				}
+				else if (value >= m_Version70500)
+				{
+					_ProtocolChanges = ProtocolChanges.Version70500;
+				}
+				else if (value >= m_Version704565)
 				{
 					_ProtocolChanges = ProtocolChanges.Version704565;
 				}
@@ -152,6 +173,11 @@ namespace Server.Network
 		private static readonly ClientVersion m_Version70300 = new ClientVersion("7.0.30.0");
 		private static readonly ClientVersion m_Version70331 = new ClientVersion("7.0.33.1");
 		private static readonly ClientVersion m_Version704565 = new ClientVersion("7.0.45.65");
+		private static readonly ClientVersion m_Version70500 = new ClientVersion("7.0.50.0");
+		private static readonly ClientVersion m_Version70560 = new ClientVersion("7.0.56.0");
+		private static readonly ClientVersion m_Version70595 = new ClientVersion("7.0.59.5");
+		private static readonly ClientVersion m_Version706047 = new ClientVersion("7.0.60.47");
+		private static readonly ClientVersion m_Version70610 = new ClientVersion("7.0.61.0");
 
 		private ProtocolChanges _ProtocolChanges;
 
@@ -171,6 +197,11 @@ namespace Server.Network
 			ExtendedStatus = 0x00000800,
 			NewMobileIncoming = 0x00001000,
 			NewSecureTrading = 0x00002000,
+			UltimaStore = 0x00004000,
+			WeddingKit = 0x00008000,
+			WarpGates = 0x00010000,
+			DragonMount = 0x00020000,
+			EndlessJourney = 0x00040000,
 
 			Version400a = NewSpellbook,
 			Version407a = Version400a | DamagePacket,
@@ -185,7 +216,12 @@ namespace Server.Network
 			Version70160 = Version70130 | NewCharacterCreation,
 			Version70300 = Version70160 | ExtendedStatus,
 			Version70331 = Version70300 | NewMobileIncoming,
-			Version704565 = Version70331 | NewSecureTrading
+			Version704565 = Version70331 | NewSecureTrading,
+			Version70500 = Version704565 | UltimaStore,
+			Version70560 = Version70500 | WeddingKit,
+			Version70595 = Version70560 | WarpGates,
+			Version706047 = Version70595 | DragonMount,
+			Version70610 = Version706047 | EndlessJourney,
 		}
 
 		public bool NewSpellbook => ((_ProtocolChanges & ProtocolChanges.NewSpellbook) != 0);
@@ -202,12 +238,26 @@ namespace Server.Network
 		public bool ExtendedStatus => ((_ProtocolChanges & ProtocolChanges.ExtendedStatus) != 0);
 		public bool NewMobileIncoming => ((_ProtocolChanges & ProtocolChanges.NewMobileIncoming) != 0);
 		public bool NewSecureTrading => ((_ProtocolChanges & ProtocolChanges.NewSecureTrading) != 0);
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public bool UltimaStore => _ProtocolChanges.HasFlag(ProtocolChanges.UltimaStore);
+
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public bool WeddingKit => _ProtocolChanges.HasFlag(ProtocolChanges.WeddingKit);
+
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public bool WarpGates => _ProtocolChanges.HasFlag(ProtocolChanges.WarpGates);
+
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public bool DragonMount => _ProtocolChanges.HasFlag(ProtocolChanges.DragonMount);
+
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public bool EndlessJourney => _ProtocolChanges.HasFlag(ProtocolChanges.EndlessJourney);
 
 		[CommandProperty(AccessLevel.Administrator, true)]
 		public bool IsUOTDClient => ((Flags & ClientFlags.UOTD) != 0 || (m_Version != null && m_Version.Type == ClientType.UOTD));
 
 		[CommandProperty(AccessLevel.Administrator, true)]
-		public bool IsSAClient => (m_Version != null && m_Version.Type == ClientType.SA);
+		public bool IsSAClient => m_Version != null && m_Version.Type == ClientType.SA;
 
 		[CommandProperty(AccessLevel.Administrator, true)]
 		public bool IsEnhancedClient => IsUOTDClient || (m_Version != null && m_Version.Major >= 67);
@@ -305,6 +355,9 @@ namespace Server.Network
 		public static int GumpCap { get; set; } = 512;
 		public static int HuePickerCap { get; set; } = 512;
 		public static int MenuCap { get; set; } = 512;
+
+		[CommandProperty(AccessLevel.Administrator, true)]
+		public int UpdateRange { get; set; } = Map.GlobalUpdateRange;
 
 		public void WriteConsole(string text)
 		{
@@ -474,7 +527,11 @@ namespace Server.Network
 		public NetState(Socket socket, MessagePump messagePump)
 		{
 			Socket = socket;
-			Buffer = new ByteQueue();
+			for (var i = 0; i < Buffers.Length; i++)
+			{
+				Buffers[i] = new ByteQueue();
+			}
+			//Buffer = new ByteQueue();
 			Seeded = false;
 			Running = false;
 			m_RecvBuffer = ReceiveBuffers.AcquireBuffer();
@@ -503,7 +560,7 @@ namespace Server.Network
 			}
 
 			ConnectedOn = DateTime.UtcNow;
-
+			UpdateRange = Map.GlobalUpdateRange;
 			CreatedCallback?.Invoke(this);
 		}
 
@@ -1177,7 +1234,7 @@ namespace Server.Network
 			{
 				lock (ReceiveBuffers)
 				{
-					ReceiveBuffers.ReleaseBuffer(m_RecvBuffer);
+					ReceiveBuffers.ReleaseBuffer(ref m_RecvBuffer);
 				}
 			}
 
@@ -1186,7 +1243,11 @@ namespace Server.Network
 			PacketEncoder = null;
 			PacketEncryptor = null;
 
-			Buffer = null;
+			for (var i = 0; i < Buffers.Length; i++)
+			{
+				Buffers[i] = null;
+			}
+			//Buffer = null;
 			m_RecvBuffer = null;
 
 #if NewAsyncSockets
@@ -1282,8 +1343,12 @@ namespace Server.Network
 		public bool Seeded { get; set; }
 
 		public Socket Socket { get; private set; }
+		public ByteQueue[] Buffers { get; } = new ByteQueue[2];
 
-		public ByteQueue Buffer { get; private set; }
+		public ByteQueue Buffer => Buffers[0];
+		public ByteQueue BufferSlice => Buffers[1];
+
+		//public ByteQueue Buffer { get; private set; }
 
 		public ExpansionInfo ExpansionInfo
 		{
@@ -1293,7 +1358,7 @@ namespace Server.Network
 				{
 					ExpansionInfo info = ExpansionInfo.Table[i];
 
-					if ((info.RequiredClient != null && Version >= info.RequiredClient) || ((Flags & info.ClientFlags) != 0))
+					if ((info.RequiredClient != ClientVersion.Zero && Version >= info.RequiredClient) || (Flags & info.ClientFlags) != 0)
 					{
 						return info;
 					}
@@ -1310,8 +1375,10 @@ namespace Server.Network
 			if (info == null || (checkCoreExpansion && (int)Core.Expansion < info.ID))
 				return false;
 
-			if (info.RequiredClient != null)
-				return (Version >= info.RequiredClient);
+			if (info.RequiredClient != ClientVersion.Zero)
+			{
+				return IsEnhancedClient || Version >= info.RequiredClient;
+			}
 
 			return ((Flags & info.ClientFlags) != 0);
 		}
@@ -1338,5 +1405,26 @@ namespace Server.Network
 
 			return m_ToString.CompareTo(other.m_ToString);
 		}
+
+		#region Packet Throttling
+
+		private readonly long[] _Throttles = new long[Byte.MaxValue];
+
+		public void SetPacketTime(byte packetID)
+		{
+			_Throttles[packetID] = Core.TickCount;
+		}
+
+		public long GetPacketTime(byte packetID)
+		{
+			return _Throttles[packetID];
+		}
+
+		public bool IsThrottled(byte packetID, int delayMS)
+		{
+			return _Throttles[packetID] + delayMS > Core.TickCount;
+		}
+
+		#endregion
 	}
 }

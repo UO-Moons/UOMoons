@@ -32,6 +32,10 @@ namespace Server.Mobiles
 		{
 			AllVendors = new List<BaseVendor>(0x4000);
 		}
+		public static bool UseVendorEconomy { get; set; } = false;
+		public static int BuyItemChange { get; set; } = 1000;
+		public static int SellItemChange { get; set; } = 1000;
+		public static int EconomyStockAmount { get;  set; } = 500;
 
 		private const int MaxSell = 500;
 		public override bool ShowFameTitle => false;
@@ -355,8 +359,8 @@ namespace Server.Mobiles
 					item.Delete();
 			}
 
-			HairItemID = 0;
-			FacialHairItemID = 0;
+			HairItemId = 0;
+			FacialHairItemId = 0;
 
 			Body = 0x2F6;
 			Hue = Utility.RandomBrightHue() | 0x8000;
@@ -510,37 +514,46 @@ namespace Server.Mobiles
 
 			UpdateBuyInfo();
 
-			IBuyItemInfo[] buyInfo = GetBuyInfo();
-			IShopSellInfo[] sellInfo = GetSellInfo();
+			var count = 0;
+
+			var buyInfo = GetBuyInfo();
+			var sellInfo = GetSellInfo();
 
 			var list = new List<BuyItemState>(buyInfo.Length);
-			Container cont = BuyPack;
+			var cont = BuyPack;
 
 			List<ObjectPropertyList> opls = null;
 
-			for (var idx = 0; idx < buyInfo.Length; idx++)
+			for (var idx = 0; idx < buyInfo.Length && list.Count < 250; idx++)
 			{
-				IBuyItemInfo buyItem = buyInfo[idx];
+				var buyItem = buyInfo[idx];
 
-				if (buyItem.Amount <= 0 || list.Count >= 250)
-					continue;
-
-				// NOTE: Only GBI supported; if you use another implementation of IBuyItemInfo, this will crash
-				GenericBuyInfo gbi = (GenericBuyInfo)buyItem;
-				IEntity disp = gbi.GetDisplayEntity();
-
-				list.Add(new BuyItemState(buyItem.Name, cont.Serial, disp?.Serial ?? 0x7FC0FFEE, buyItem.Price, buyItem.Amount, buyItem.ItemId, buyItem.Hue));
-
-				opls ??= new List<ObjectPropertyList>();
-
-				switch (disp)
+				if (buyItem.Amount <= 0)
 				{
-					case Item item:
-						opls.Add(item.PropertyList);
-						break;
-					case Mobile mobile:
-						opls.Add(mobile.PropertyList);
-						break;
+					continue;
+				}
+
+				list.Add(new BuyItemState(cont, buyItem));
+
+				count++;
+
+				var disp = buyItem.GetDisplayEntity();
+
+				if (disp != null)
+				{
+					if (opls == null)
+					{
+						opls = new List<ObjectPropertyList>();
+					}
+
+					if (disp is Item)
+					{
+						opls.Add(((Item)disp).PropertyList);
+					}
+					else if (disp is Mobile)
+					{
+						opls.Add(((Mobile)disp).PropertyList);
+					}
 				}
 			}
 
@@ -1823,63 +1836,5 @@ namespace Server.ContextMenus
 		{
 			_mVendor.VendorSell(Owner.From);
 		}
-	}
-}
-
-namespace Server
-{
-	public interface IShopSellInfo
-	{
-		//get display name for an item
-		string GetNameFor(Item item);
-
-		//get price for an item which the player is selling
-		int GetSellPriceFor(Item item);
-
-		//get price for an item which the player is buying
-		int GetBuyPriceFor(Item item);
-
-		//can we sell this item to this vendor?
-		bool IsSellable(Item item);
-
-		//What do we sell?
-		Type[] Types { get; }
-
-		//does the vendor resell this item?
-		bool IsResellable(Item item);
-	}
-
-	public interface IBuyItemInfo
-	{
-		//get a new instance of an object (we just bought it)
-		IEntity GetEntity();
-
-		int ControlSlots { get; }
-
-		int PriceScalar { get; set; }
-
-		//display price of the item
-		int Price { get; }
-
-		//display name of the item
-		string Name { get; }
-
-		//display hue
-		int Hue { get; }
-
-		//display id
-		int ItemId { get; }
-
-		//amount in stock
-		int Amount { get; set; }
-
-		//max amount in stock
-		int MaxAmount { get; }
-
-		//Attempt to restock with item, (return true if restock sucessful)
-		bool Restock(Item item, int amount);
-
-		//called when its time for the whole shop to restock
-		void OnRestock();
 	}
 }

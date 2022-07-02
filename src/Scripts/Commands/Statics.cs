@@ -229,7 +229,7 @@ public class Statics
 					{
 						StaticTile toWrite = oldTiles[i];
 
-						mulWriter.Write((ushort)toWrite.ID);
+						mulWriter.Write((ushort)toWrite.Id);
 						mulWriter.Write((byte)toWrite.X);
 						mulWriter.Write((byte)toWrite.Y);
 						mulWriter.Write((sbyte)toWrite.Z);
@@ -240,7 +240,7 @@ public class Statics
 					{
 						StaticTile toWrite = newTiles[i];
 
-						mulWriter.Write((ushort)toWrite.ID);
+						mulWriter.Write((ushort)toWrite.Id);
 						mulWriter.Write((byte)toWrite.X);
 						mulWriter.Write((byte)toWrite.Y);
 						mulWriter.Write((sbyte)toWrite.Z);
@@ -376,7 +376,7 @@ public class Statics
 					{
 						++totalUnfrozen;
 
-						Item item = new Static(oldTile.ID)
+						Item item = new Static(oldTile.Id)
 						{
 							Hue = oldTile.Hue
 						};
@@ -401,7 +401,7 @@ public class Statics
 					{
 						StaticTile toWrite = newTiles[i];
 
-						mulWriter.Write((ushort)toWrite.ID);
+						mulWriter.Write((ushort)toWrite.Id);
 						mulWriter.Write((byte)toWrite.X);
 						mulWriter.Write((byte)toWrite.Y);
 						mulWriter.Write((sbyte)toWrite.Z);

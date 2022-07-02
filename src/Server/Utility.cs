@@ -489,15 +489,59 @@ namespace Server
 			int i;
 
 			if (value.StartsWith("0x"))
-				int.TryParse(value.Substring(2), NumberStyles.HexNumber, null, out i);
+				int.TryParse(value.AsSpan(2), NumberStyles.HexNumber, null, out i);
 			else
 				int.TryParse(value, out i);
 
 			return i;
 		}
+
+		public static long ToInt64(string value)
+		{
+			long i;
+
+			if (value.StartsWith("0x"))
+				long.TryParse(value.AsSpan(2), NumberStyles.HexNumber, null, out i);
+			else
+				long.TryParse(value, out i);
+
+			return i;
+		}
+
+		public static Serial ToSerial(string value)
+		{
+			return new Serial(ToInt32(value));
+		}
 		#endregion
 
 		#region Get[Something]
+		public static Serial GetXMLSerial(string serialString, Serial defaultValue)
+		{
+			try
+			{
+				return new Serial(XmlConvert.ToInt32(serialString));
+			}
+			catch
+			{
+				if (serialString.StartsWith("0x"))
+				{
+					if (Int32.TryParse(serialString.Substring(2), NumberStyles.HexNumber, null, out var val))
+					{
+						return new Serial(val);
+					}
+				}
+				else
+				{
+					if (Int32.TryParse(serialString, out var val))
+					{
+						return new Serial(val);
+					}
+				}
+
+				return defaultValue;
+			}
+		}
+
 		public static double GetXMLDouble(string doubleString, double defaultValue)
 		{
 			try
@@ -612,36 +656,16 @@ namespace Server
 		#endregion
 
 		#region In[...]Range
-		public static bool InRange(Point3D p1, Point3D p2, int range)
+		public static bool InRange(IPoint2D p1, IPoint2D p2, int range)
 		{
-			return (p1.m_X >= (p2.m_X - range))
-				&& (p1.m_X <= (p2.m_X + range))
-				&& (p1.m_Y >= (p2.m_Y - range))
-				&& (p1.m_Y <= (p2.m_Y + range));
-		}
+			if (p1 is Item i1)
+				p1 = i1.GetWorldLocation();
 
-		public static bool InUpdateRange(Point3D p1, Point3D p2)
-		{
-			return (p1.m_X >= (p2.m_X - Map.GlobalUpdateRange))
-				&& (p1.m_X <= (p2.m_X + Map.GlobalUpdateRange))
-				&& (p1.m_Y >= (p2.m_Y - Map.GlobalUpdateRange))
-				&& (p1.m_Y <= (p2.m_Y + Map.GlobalUpdateRange));
-		}
+			if (p2 is Item i2)
+				p2 = i2.GetWorldLocation();
 
-		public static bool InUpdateRange(Point2D p1, Point2D p2)
-		{
-			return (p1.m_X >= (p2.m_X - Map.GlobalUpdateRange))
-				&& (p1.m_X <= (p2.m_X + Map.GlobalUpdateRange))
-				&& (p1.m_Y >= (p2.m_Y - Map.GlobalUpdateRange))
-				&& (p1.m_Y <= (p2.m_Y + Map.GlobalUpdateRange));
-		}
-
-		public static bool InUpdateRange(IPoint2D p1, IPoint2D p2)
-		{
-			return (p1.X >= (p2.X - Map.GlobalUpdateRange))
-				&& (p1.X <= (p2.X + Map.GlobalUpdateRange))
-				&& (p1.Y >= (p2.Y - Map.GlobalUpdateRange))
-				&& (p1.Y <= (p2.Y + Map.GlobalUpdateRange));
+			return (p1.X >= (p2.X - range)) && (p1.X <= (p2.X + range))
+				&& (p1.Y >= (p2.Y - range)) && (p1.Y <= (p2.Y + range));
 		}
 		#endregion
 
@@ -881,7 +905,140 @@ namespace Server
 			FixMin(ref value, min);
 			FixMax(ref value, max);
 		}
+
+		public static void FixRange(ref double min, ref double max)
+		{
+			if (min < max)
+			{
+				var swap = max;
+				max = min;
+				min = swap;
+			}
+		}
+
+		public static void FixRange(ref int min, ref int max)
+		{
+			if (min > max)
+			{
+				var swap = max;
+				max = min;
+				min = swap;
+			}
+		}
 		#endregion
+
+		#region Clamp
+		public static void Clamp(ref sbyte val, sbyte min, sbyte max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static sbyte Clamp(sbyte val, sbyte min, sbyte max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref byte val, byte min, byte max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static byte Clamp(byte val, byte min, byte max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref short val, short min, short max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static short Clamp(short val, short min, short max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref ushort val, ushort min, ushort max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static ushort Clamp(ushort val, ushort min, ushort max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref int val, int min, int max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static int Clamp(int val, int min, int max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref uint val, uint min, uint max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static uint Clamp(uint val, uint min, uint max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref long val, long min, long max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static long Clamp(long val, long min, long max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref ulong val, ulong min, ulong max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static ulong Clamp(ulong val, ulong min, ulong max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref float val, float min, float max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static float Clamp(float val, float min, float max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref decimal val, decimal min, decimal max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static decimal Clamp(decimal val, decimal min, decimal max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+
+		public static void Clamp(ref double val, double min, double max)
+		{
+			val = Clamp(val, min, max);
+		}
+
+		public static double Clamp(double val, double min, double max)
+		{
+			return Math.Max(min, Math.Min(max, val));
+		}
+		#endregion
+
 		#region Random Hues
 
 		/// <summary>
@@ -1373,13 +1530,13 @@ namespace Server
 
 		public static void AssignRandomHair(Mobile m, int hue)
 		{
-			m.HairItemID = m.Race.RandomHair(m);
+			m.HairItemId = m.Race.RandomHair(m);
 			m.HairHue = hue;
 		}
 
 		public static void AssignRandomHair(Mobile m, bool randomHue)
 		{
-			m.HairItemID = m.Race.RandomHair(m);
+			m.HairItemId = m.Race.RandomHair(m);
 
 			if (randomHue)
 				m.HairHue = m.Race.RandomHairHue();
@@ -1392,13 +1549,13 @@ namespace Server
 
 		public static void AssignRandomFacialHair(Mobile m, int hue)
 		{
-			m.FacialHairItemID = m.Race.RandomFacialHair(m);
+			m.FacialHairItemId = m.Race.RandomFacialHair(m);
 			m.FacialHairHue = hue;
 		}
 
 		public static void AssignRandomFacialHair(Mobile m, bool randomHue)
 		{
-			m.FacialHairItemID = m.Race.RandomFacialHair(m);
+			m.FacialHairItemId = m.Race.RandomFacialHair(m);
 
 			if (randomHue)
 				m.FacialHairHue = m.Race.RandomHairHue();

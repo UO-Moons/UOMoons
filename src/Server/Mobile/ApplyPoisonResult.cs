@@ -1,10 +1,9 @@
-namespace Server
+namespace Server;
+
+public enum ApplyPoisonResult
 {
-	public enum ApplyPoisonResult
-	{
-		Poisoned,
-		Immune,
-		HigherPoisonActive,
-		Cured
-	}
+	Poisoned,
+	Immune,
+	HigherPoisonActive,
+	Cured
 }

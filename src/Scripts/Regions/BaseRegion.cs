@@ -286,7 +286,7 @@ public class BaseRegion : Region
 			int ltLowZ = 0, ltAvgZ = 0, ltTopZ = 0;
 			map.GetAverageZ(x, y, ref ltLowZ, ref ltAvgZ, ref ltTopZ);
 
-			TileFlag ltFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
+			TileFlag ltFlags = TileData.LandTable[lt.Id & TileData.MaxLandValue].Flags;
 			bool ltImpassable = ((ltFlags & TileFlag.Impassable) != 0);
 
 			if (!lt.Ignored && ltAvgZ >= minZ && ltAvgZ < maxZ)
@@ -303,7 +303,7 @@ public class BaseRegion : Region
 			for (int j = 0; j < staticTiles.Length; j++)
 			{
 				StaticTile tile = staticTiles[j];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 				int tileZ = tile.Z + id.CalcHeight;
 
 				if (tileZ >= minZ && tileZ < maxZ)
@@ -427,7 +427,7 @@ public class BaseRegion : Region
 			for (int j = 0; j < staticTiles.Length; j++)
 			{
 				StaticTile tile = staticTiles[j];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 				if ((id.Surface || id.Impassable) && tile.Z + id.CalcHeight > z && tile.Z < top)
 				{

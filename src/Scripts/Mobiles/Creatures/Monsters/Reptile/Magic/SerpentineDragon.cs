@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a serpentine dragon";
 			Body = 103;
-			BaseSoundID = 362;
+			BaseSoundId = 362;
 
 			SetStr(111, 140);
 			SetDex(201, 220);

@@ -105,14 +105,14 @@ namespace Server.Misc
 
 			if (surface is LandTile)
 			{
-				int id = ((LandTile)surface).ID;
+				int id = ((LandTile)surface).Id;
 
 				return (id >= 168 && id <= 171)
 					|| (id >= 310 && id <= 311);
 			}
 			else if (surface is StaticTile)
 			{
-				int id = ((StaticTile)surface).ID;
+				int id = ((StaticTile)surface).Id;
 
 				return (id >= 0x1796 && id <= 0x17B2);
 			}

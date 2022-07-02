@@ -106,68 +106,68 @@ namespace Server.Misc
 			//Protectors Essence
 			if ((Utility.RandomDouble() < 0.4) && (bc is Protector))
 			{
-				bc.PackItem(new ProtectorsEssence(ComputeAmount(1)));
+				bc.PackItem(new ProtectorsEssence());
 			}
 			//ParrotItem
 			if ((Utility.RandomDouble() < 0.1) && (bc is UnfrozenMummy || bc is Putrefier || bc is EnslavedSatyr || bc is InsaneDryad || bc is Saliva || bc is LadyJennifyr || bc is LadyMarai
 				|| bc is MasterJonath || bc is MasterMikael || bc is LadyLissith || bc is LadySabrix || bc is Malefic || bc is Virulent))
 			{
-				bc.PackItem(new ParrotItem(ComputeAmount(1)));
+				bc.PackItem(new ParrotItem());
 			}
 			if (bc is Saliva)
 			{
-				bc.PackItem(new SalivasFeather(ComputeAmount(1)));
+				bc.PackItem(new SalivasFeather());
 			}
 
 			if ((Utility.RandomDouble() < 0.4) && (bc is Tangle))
 			{
-				bc.PackItem(new TaintedSeeds(ComputeAmount(1)));
+				bc.PackItem(new TaintedSeeds());
 			}
 
 			//Broken Crystals
 			if ((Utility.RandomDouble() < 0.6) && (bc is UnfrozenMummy))
 			{
-				bc.PackItem(new BrokenCrystals(ComputeAmount(1)));
+				bc.PackItem(new BrokenCrystals());
 			}
 			//Crystalline Fragments
 			if ((Utility.RandomDouble() < 0.75) && (bc is CrystalVortex || bc is CrystalLatticeSeeker))
 			{
-				bc.PackItem(new CrystallineFragments(ComputeAmount(1)));
+				bc.PackItem(new CrystallineFragments());
 			}
 			//Jagged Crystals
 			if ((Utility.RandomDouble() < 0.6) && (bc is CrystalVortex))
 			{
-				bc.PackItem(new JaggedCrystals(ComputeAmount(1)));
+				bc.PackItem(new JaggedCrystals());
 			}
 			//Crushed Crystals
 			if ((Utility.RandomDouble() < 0.05) && (bc is CrystalSeaSerpent))
 			{
-				bc.PackItem(new CrushedCrystals(ComputeAmount(1)));
+				bc.PackItem(new CrushedCrystals());
 			}
 			//Pieces Of Crystal
 			if ((Utility.RandomDouble() < 0.07) && (bc is CrystalLatticeSeeker))
 			{
-				bc.PackItem(new PiecesOfCrystal(ComputeAmount(1)));
+				bc.PackItem(new PiecesOfCrystal());
 			}
 			//Scattered Crystals
 			if ((Utility.RandomDouble() < 0.4) && (bc is CrystalDaemon))
 			{
-				bc.PackItem(new ScatteredCrystals(ComputeAmount(1)));
+				bc.PackItem(new ScatteredCrystals());
 			}
 			//Icy Heart
 			if ((Utility.RandomDouble() < 0.1) && (bc is CrystalSeaSerpent))
 			{
-				bc.PackItem(new IcyHeart(ComputeAmount(1)));
+				bc.PackItem(new IcyHeart());
 			}
 			//Lucky Dagger
 			if ((Utility.RandomDouble() < 0.1) && (bc is CrystalSeaSerpent))
 			{
-				bc.PackItem(new LuckyDagger(ComputeAmount(1)));
+				bc.PackItem(new LuckyDagger());
 			}
 
 			if ((Utility.RandomDouble() < 0.15) && (bc is LadyJennifyr || bc is LadyMarai || bc is MasterJonath || bc is MasterMikael || bc is SirPatrick))
 			{
-				bc.PackItem(new DisintegratingThesisNotes(ComputeAmount(1)));
+				bc.PackItem(new DisintegratingThesisNotes());
 			}
 
 			if ((Utility.RandomDouble() < 0.05) && (bc is SirPatrick))
@@ -247,7 +247,7 @@ namespace Server.Misc
 
 			if ((Utility.RandomDouble() < 0.4) && (bc is Tangle))
 			{
-				bc.PackItem(new TaintedSeeds(ComputeAmount(1)));
+				bc.PackItem(new TaintedSeeds());
 			}
 
 			if (Utility.RandomDouble() < 0.025 && bc is Swoop)

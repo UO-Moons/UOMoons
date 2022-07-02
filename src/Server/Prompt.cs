@@ -6,7 +6,7 @@ namespace Server.Prompts
 		public string MessageArgs { get; }
 		public virtual int MessageCliloc => 1042971;
 		public virtual int MessageHue => 0;
-		public virtual int TypeId => GetType().FullName.GetHashCode();
+		public virtual int TypeId => GetType().FullName!.GetHashCode();
 
 		public Prompt()
 			: this(null)

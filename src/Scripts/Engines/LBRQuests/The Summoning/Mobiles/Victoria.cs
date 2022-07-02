@@ -67,7 +67,7 @@ namespace Server.Engines.Quests.Doom
 			EquipItem(SetHue(new SkullCap(), 0x455));
 			EquipItem(SetHue(new PlainDress(), 0x455));
 
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 			HairHue = 0x482;
 		}
 

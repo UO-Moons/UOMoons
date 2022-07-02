@@ -243,7 +243,7 @@ namespace Server.Items
 			for (var i = 0; i < tiles.Length; ++i)
 			{
 				var t = tiles[i];
-				var id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+				var id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 
 				if ((id.Flags & TileFlag.Wall) != 0 && (z + 16) > t.Z && (t.Z + t.Height) > z)
 				{

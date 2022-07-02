@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a poison elemental";
 			Body = 162;
-			BaseSoundID = 263;
+			BaseSoundId = 263;
 
 			SetStr(426, 515);
 			SetDex(166, 185);

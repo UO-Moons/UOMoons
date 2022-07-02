@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a wyvern";
 			Body = 62;
-			BaseSoundID = 362;
+			BaseSoundId = 362;
 
 			SetStr(202, 240);
 			SetDex(153, 172);

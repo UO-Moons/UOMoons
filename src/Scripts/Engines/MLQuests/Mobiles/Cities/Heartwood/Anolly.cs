@@ -33,7 +33,7 @@ public class Anolly : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8835;
-		HairItemID = 0x2FC0;
+		HairItemId = 0x2FC0;
 		HairHue = 0x325;
 	}
 

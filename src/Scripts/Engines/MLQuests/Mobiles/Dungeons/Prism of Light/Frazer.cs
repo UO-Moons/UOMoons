@@ -38,9 +38,9 @@ public class Frazer : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840F;
-		HairItemID = 0x204A;
+		HairItemId = 0x204A;
 		HairHue = 0x45A;
-		FacialHairItemID = 0x204D;
+		FacialHairItemId = 0x204D;
 		FacialHairHue = 0x45A;
 	}
 

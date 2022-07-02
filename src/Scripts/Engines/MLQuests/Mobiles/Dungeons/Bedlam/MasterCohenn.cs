@@ -29,7 +29,7 @@ public class Cohenn : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840C;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x453;
 	}
 

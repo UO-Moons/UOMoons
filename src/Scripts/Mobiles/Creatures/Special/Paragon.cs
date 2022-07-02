@@ -22,7 +22,7 @@ namespace Server.Mobiles
 			public ParagonStamRegen(Mobile m)
 				: base(FastRegenRate, FastRegenRate)
 			{
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 
 				m_Owner = m as BaseCreature;
 			}

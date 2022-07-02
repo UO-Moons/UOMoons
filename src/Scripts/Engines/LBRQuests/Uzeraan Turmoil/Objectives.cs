@@ -16,7 +16,7 @@ namespace Server.Engines.Quests.Haven
 
 		public override void OnComplete()
 		{
-			if (System.From.Profession == 5) // paladin
+			if (System.From.Profession == Profession.Paladin) // paladin
 				System.AddConversation(new UzeraanTitheConversation());
 			else
 				System.AddConversation(new UzeraanFirstTaskConversation());
@@ -118,7 +118,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 5) // paladin
+				if (System.From.Profession == Profession.Paladin) // paladin
 				{
 					switch (Step)
 					{
@@ -194,7 +194,7 @@ namespace Server.Engines.Quests.Haven
 
 		public override void OnComplete()
 		{
-			if (System.From.Profession == 5)
+			if (System.From.Profession == Profession.Paladin)
 			{
 				switch (Step)
 				{
@@ -452,7 +452,7 @@ namespace Server.Engines.Quests.Haven
 		{
 			get
 			{
-				if (System.From.Profession == 5)
+				if (System.From.Profession == Profession.Paladin)
 				{
 					/* Use your <a href="?ForceTopic108">Sacred Journey</a>
 					 * ability on the rune to the <a href="?ForceTopic13">North</a>

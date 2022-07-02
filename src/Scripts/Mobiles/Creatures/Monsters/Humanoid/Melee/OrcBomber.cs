@@ -15,7 +15,7 @@ namespace Server.Mobiles
 			Body = 182;
 
 			Name = "an orc bomber";
-			BaseSoundID = 0x45A;
+			BaseSoundId = 0x45A;
 
 			SetStr(147, 215);
 			SetDex(91, 115);
@@ -127,7 +127,7 @@ namespace Server.Mobiles
 			{
 				m_Mobile = m;
 				m_From = from;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

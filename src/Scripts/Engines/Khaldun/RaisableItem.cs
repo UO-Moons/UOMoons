@@ -78,7 +78,7 @@ namespace Server.Items
 				m_CloseTime = DateTime.UtcNow + item.CloseDelay;
 				m_Up = true;
 
-				Priority = TimerPriority.TenMS;
+				Priority = TimerPriority.TenMs;
 			}
 
 			protected override void OnTick()

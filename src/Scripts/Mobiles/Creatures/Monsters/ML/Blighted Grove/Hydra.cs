@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a hydra";
 			Body = 0x109;
-			BaseSoundID = 0x16A;
+			BaseSoundId = 0x16A;
 
 			SetStr(801, 828);
 			SetDex(102, 118);

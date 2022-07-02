@@ -82,10 +82,10 @@ namespace Server.Spells.Necromancy
 
             BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.PainSpike, 1075667, t.Expires - DateTime.UtcNow, m, Convert.ToString((int)damage)));
 
-            m.DFA = DFAlgorithm.PainSpike;
+            m.Dfa = DfAlgorithm.PainSpike;
             AOS.Damage(m, Caster, (int)damage, 0, 0, 0, 0, 0, 0, 100);
             AOS.DoLeech((int)damage, Caster, m);
-            m.DFA = DFAlgorithm.Standard;
+            m.Dfa = DfAlgorithm.Standard;
 
             HarmfulSpell(m);
         }
@@ -100,7 +100,7 @@ namespace Server.Spells.Necromancy
             public InternalTimer(Mobile m, double toRestore)
                 : base(TimeSpan.FromMilliseconds(250), TimeSpan.FromMilliseconds(250))
             {
-                Priority = TimerPriority.FiftyMS;
+                Priority = TimerPriority.FiftyMs;
 
                 m_Mobile = m;
                 m_ToRestore = (int)toRestore;

@@ -12,7 +12,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("darknight creeper");
 			Body = 313;
-			BaseSoundID = 0xE0;
+			BaseSoundId = 0xE0;
 
 			SetStr(301, 330);
 			SetDex(101, 110);
@@ -85,8 +85,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 471)
-				BaseSoundID = 0xE0;
+			if (BaseSoundId == 471)
+				BaseSoundId = 0xE0;
 		}
 	}
 }

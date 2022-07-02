@@ -28,10 +28,10 @@ namespace Server.Engines.Quests.Haven
 			AddItem(new WizardsHat(0x482));
 			AddItem(new Shoes(0x482));
 
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 			HairHue = 0x455;
 
-			FacialHairItemID = 0x203E;
+			FacialHairItemId = 0x203E;
 			FacialHairHue = 0x455;
 
 			GlacialStaff staff = new GlacialStaff

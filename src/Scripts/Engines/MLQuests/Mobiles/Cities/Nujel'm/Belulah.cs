@@ -27,7 +27,7 @@ public class Belulah : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F7;
-		HairItemID = 0x2046;
+		HairItemId = 0x2046;
 		HairHue = 0x463;
 	}
 

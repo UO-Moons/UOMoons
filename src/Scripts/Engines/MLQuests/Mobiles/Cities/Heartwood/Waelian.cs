@@ -36,7 +36,7 @@ public class Waelian : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8835;
-		HairItemID = 0x2FBF;
+		HairItemId = 0x2FBF;
 		HairHue = 0x2C2;
 	}
 

@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a skeleton";
 			Body = Utility.RandomList(50, 56);
-			BaseSoundID = 0x48D;
+			BaseSoundId = 0x48D;
 
 			SetStr(56, 80);
 			SetDex(56, 75);

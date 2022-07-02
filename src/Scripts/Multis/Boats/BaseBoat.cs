@@ -426,7 +426,7 @@ namespace Server.Multis
 			{
 				m_Boat = boat;
 
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()
@@ -1059,7 +1059,7 @@ namespace Server.Multis
 				m_Boat = boat;
 				m_Offset = offset;
 
-				Priority = TimerPriority.TenMS;
+				Priority = TimerPriority.TenMs;
 			}
 
 			protected override void OnTick()
@@ -1143,7 +1143,7 @@ namespace Server.Multis
 
 					bool hasWater = false;
 
-					if (landTile.Z == p.Z && ((landTile.ID >= 168 && landTile.ID <= 171) || (landTile.ID >= 310 && landTile.ID <= 311)))
+					if (landTile.Z == p.Z && ((landTile.Id >= 168 && landTile.Id <= 171) || (landTile.Id >= 310 && landTile.Id <= 311)))
 						hasWater = true;
 
 					int z = p.Z;
@@ -1158,7 +1158,7 @@ namespace Server.Multis
 					for (int i = 0; i < tiles.Length; ++i)
 					{
 						StaticTile tile = tiles[i];
-						bool isWater = (tile.ID >= 0x1796 && tile.ID <= 0x17B2);
+						bool isWater = (tile.Id >= 0x1796 && tile.Id <= 0x17B2);
 
 						if (tile.Z == p.Z && isWater)
 							hasWater = true;
@@ -1457,30 +1457,30 @@ namespace Server.Multis
 				{
 					if (e is Item item)
 					{
-						item.NoMoveHS = true;
+						item.NoMoveHs = true;
 
 						if (!(item is TillerMan || item is Hold || item is Plank))
 							item.Location = new Point3D(item.X + xOffset, item.Y + yOffset, item.Z);
 					}
 					else if (e is Mobile m)
 					{
-						m.NoMoveHS = true;
+						m.NoMoveHs = true;
 						m.Location = new Point3D(m.X + xOffset, m.Y + yOffset, m.Z);
 					}
 				}
 
-				NoMoveHS = true;
+				NoMoveHs = true;
 				Location = new Point3D(X + xOffset, Y + yOffset, Z);
 
 				foreach (IEntity e in toMove)
 				{
 					if (e is Item item)
-						item.NoMoveHS = false;
+						item.NoMoveHs = false;
 					else if (e is Mobile mobile)
-						mobile.NoMoveHS = false;
+						mobile.NoMoveHs = false;
 				}
 
-				NoMoveHS = false;
+				NoMoveHs = false;
 			}
 
 			return true;
@@ -1629,7 +1629,7 @@ namespace Server.Multis
 			public MoveTimer(BaseBoat boat, TimeSpan interval, bool single) : base(interval, interval, single ? 1 : 0)
 			{
 				m_Boat = boat;
-				Priority = TimerPriority.TwentyFiveMS;
+				Priority = TimerPriority.TwentyFiveMs;
 			}
 
 			protected override void OnTick()

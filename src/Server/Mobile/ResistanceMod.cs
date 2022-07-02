@@ -1,46 +1,43 @@
-﻿namespace Server
+namespace Server;
+
+public class ResistanceMod
 {
-	public class ResistanceMod
+	private ResistanceType _type;
+	private int _offset;
+
+	public Mobile Owner { get; set; }
+
+	public ResistanceType Type
 	{
-		private ResistanceType m_Type;
-		private int m_Offset;
-
-		public Mobile Owner { get; set; }
-
-		public ResistanceType Type
+		get => _type;
+		set
 		{
-			get => m_Type;
-			set
+			if (_type != value)
 			{
-				if (m_Type != value)
-				{
-					m_Type = value;
+				_type = value;
 
-					if (Owner != null)
-						Owner.UpdateResistances();
-				}
+				Owner?.UpdateResistances();
 			}
 		}
+	}
 
-		public int Offset
+	public int Offset
+	{
+		get => _offset;
+		set
 		{
-			get => m_Offset;
-			set
+			if (_offset != value)
 			{
-				if (m_Offset != value)
-				{
-					m_Offset = value;
+				_offset = value;
 
-					if (Owner != null)
-						Owner.UpdateResistances();
-				}
+				Owner?.UpdateResistances();
 			}
 		}
+	}
 
-		public ResistanceMod(ResistanceType type, int offset)
-		{
-			m_Type = type;
-			m_Offset = offset;
-		}
+	public ResistanceMod(ResistanceType type, int offset)
+	{
+		_type = type;
+		_offset = offset;
 	}
 }

@@ -20,7 +20,7 @@ namespace Server.Mobiles
 			Body = 173;
 			Name = "Mephitis";
 
-			BaseSoundID = 0x183;
+			BaseSoundId = 0x183;
 
 			SetStr(505, 1000);
 			SetDex(102, 300);

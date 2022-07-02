@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a blood elemental";
 			Body = 159;
-			BaseSoundID = 278;
+			BaseSoundId = 278;
 
 			SetStr(526, 615);
 			SetDex(66, 85);

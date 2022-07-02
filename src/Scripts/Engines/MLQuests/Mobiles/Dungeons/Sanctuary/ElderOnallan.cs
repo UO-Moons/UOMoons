@@ -31,7 +31,7 @@ public class Onallan : MondainQuester
 		CantWalk = true;
 
 		Hue = Race.RandomSkinHue();
-		HairItemID = 0x2FD0;
+		HairItemId = 0x2FD0;
 		HairHue = 0x322;
 	}
 

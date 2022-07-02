@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a gazer larva";
 			Body = 778;
-			BaseSoundID = 377;
+			BaseSoundId = 377;
 
 			SetStr(76, 100);
 			SetDex(51, 75);

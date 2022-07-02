@@ -10,7 +10,7 @@ namespace Server.Mobiles
 			Name = "an unfrozen mummy";
 			Body = 0x9B;
 			Hue = 0x480;
-			BaseSoundID = 0x1D7;
+			BaseSoundId = 0x1D7;
 
 			SetStr(450, 500);
 			SetDex(200, 250);

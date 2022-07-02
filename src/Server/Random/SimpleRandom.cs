@@ -1,40 +1,35 @@
 using System;
 
-namespace Server
+namespace Server;
+
+public sealed class SimpleRandom : IRandomImpl
 {
-	public sealed class SimpleRandom : IRandomImpl
+	private readonly Random _random = new();
+
+	public int Next(int c)
 	{
-		private readonly Random m_Random = new();
+		int r;
+		lock (_random)
+			r = _random.Next(c);
+		return r;
+	}
 
-		public SimpleRandom()
-		{
-		}
+	public bool NextBool()
+	{
+		return NextDouble() >= .5;
+	}
 
-		public int Next(int c)
-		{
-			int r;
-			lock (m_Random)
-				r = m_Random.Next(c);
-			return r;
-		}
+	public void NextBytes(byte[] b)
+	{
+		lock (_random)
+			_random.NextBytes(b);
+	}
 
-		public bool NextBool()
-		{
-			return NextDouble() >= .5;
-		}
-
-		public void NextBytes(byte[] b)
-		{
-			lock (m_Random)
-				m_Random.NextBytes(b);
-		}
-
-		public double NextDouble()
-		{
-			double r;
-			lock (m_Random)
-				r = m_Random.NextDouble();
-			return r;
-		}
+	public double NextDouble()
+	{
+		double r;
+		lock (_random)
+			r = _random.NextDouble();
+		return r;
 	}
 }

@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a giant black widow";
 			Body = 0x9D;
-			BaseSoundID = 0x388; // TODO: validate
+			BaseSoundId = 0x388; // TODO: validate
 
 			SetStr(76, 100);
 			SetDex(96, 115);

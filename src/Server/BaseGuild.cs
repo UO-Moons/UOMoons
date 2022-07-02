@@ -1,92 +1,84 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Server.Guilds
+namespace Server.Guilds;
+
+public enum GuildType
 {
-	public enum GuildType
+	Regular,
+	Chaos,
+	Order
+}
+
+public abstract class BaseGuild : ISerializable
+{
+	protected BaseGuild(int id) //serialization ctor
 	{
-		Regular,
-		Chaos,
-		Order
+		Id = id;
+		List.Add(Id, this);
+		if (Id + 1 > _nextId)
+		{
+			_nextId = Id + 1;
+		}
 	}
 
-	public abstract class BaseGuild : ISerializable
+	protected BaseGuild()
 	{
-		[CommandProperty(AccessLevel.Counselor)]
-		public Serial Serial { get; }
+		Id = _nextId++;
+		List.Add(Id, this);
+	}
 
-		protected BaseGuild()
-		{
-			Serial = Serial.NewGuild;
+	[CommandProperty(AccessLevel.Counselor)]
+	public int Id { get; }
 
-			World.AddGuild(this);
+	int ISerializable.TypeReference => 0;
 
-			_ = Timer.DelayCall(EventSink.InvokeOnCreateGuild, this);
-		}
+	int ISerializable.SerialIdentity => Id;
 
-		protected BaseGuild(Serial serial)
-		{
-			Serial = serial;
-		}
+	public abstract void Deserialize(GenericReader reader);
+	public abstract void Serialize(GenericWriter writer);
 
-		int ISerializable.TypeReference => 0;
+	public abstract string Abbreviation { get; set; }
+	public abstract string Name { get; set; }
 
-		int ISerializable.SerialIdentity => Serial;
+	public virtual GuildType Type { get; set; }
 
-		public abstract void Deserialize(GenericReader reader);
-		public abstract void Serialize(GenericWriter writer);
+	public abstract bool Disbanded { get; }
 
-		public abstract string Abbreviation { get; set; }
-		public abstract string Name { get; set; }
-		public abstract GuildType Type { get; set; }
-		public abstract bool Disbanded { get; }
-		public abstract void OnDelete(Mobile mob);
+	public abstract void OnDelete(Mobile mob);
 
-		public static BaseGuild Find(Serial serial)
-		{
-			World.Guilds.TryGetValue(serial, out BaseGuild g);
+	private static int _nextId = 1;
 
-			return g;
-		}
+	public static Dictionary<int, BaseGuild> List { get; } = new();
 
-		public static BaseGuild FindByName(string name)
-		{
-			return World.Guilds.Values.FirstOrDefault(guild => guild.Name == name);
-		}
+	public static BaseGuild Find(int id)
+	{
 
-		public static BaseGuild FindByAbbrev(string abbr)
-		{
-			return World.Guilds.Values.FirstOrDefault(guild => guild.Abbreviation == abbr);
-		}
+		List.TryGetValue(id, out var g);
 
-		public static List<BaseGuild> Search(string find)
-		{
-			string[] words = find.ToLower().Split(' ');
-			List<BaseGuild> results = new();
+		return g;
+	}
 
-			foreach (BaseGuild g in World.Guilds.Values)
-			{
-				bool match = true;
-				string name = g.Name.ToLower();
-				for (int i = 0; i < words.Length; i++)
-				{
-					if (name.IndexOf(words[i]) == -1)
-					{
-						match = false;
-						break;
-					}
-				}
+	public static BaseGuild FindByName(string name)
+	{
+		return List.Values.FirstOrDefault(g => g.Name == name);
+	}
 
-				if (match)
-					results.Add(g);
-			}
+	public static BaseGuild FindByAbbrev(string abbr)
+	{
+		return List.Values.FirstOrDefault(g => g.Abbreviation == abbr);
+	}
 
-			return results;
-		}
+	public static List<BaseGuild> Search(string find)
+	{
+		var words = find.ToLower().Split(' ');
 
-		public override string ToString()
-		{
-			return $"0x{Serial:X} \"{Name} [{Abbreviation}]\"";
-		}
+		return (from g in List.Values let name = g.Name.ToLower() let match = words.All(t => name.IndexOf(t, StringComparison.Ordinal) != -1) where match select g).ToList();
+	}
+
+	public override string ToString()
+	{
+		return $"0x{Id:X} \"{Name} [{Abbreviation}]\"";
 	}
 }

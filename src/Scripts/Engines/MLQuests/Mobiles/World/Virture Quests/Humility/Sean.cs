@@ -41,7 +41,7 @@ public class Sean : HumilityQuestMobile
 		Body = 0x190;
 
 		Hue = Race.RandomSkinHue();
-		HairItemID = Race.RandomHair(false);
+		HairItemId = Race.RandomHair(false);
 		HairHue = Race.RandomHairHue();
 	}
 

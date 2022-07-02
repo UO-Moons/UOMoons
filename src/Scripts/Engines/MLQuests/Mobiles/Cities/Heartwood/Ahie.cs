@@ -35,7 +35,7 @@ public class Ahie : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x853F;
-		HairItemID = 0x2FCD;
+		HairItemId = 0x2FCD;
 		HairHue = 0x90;
 	}
 

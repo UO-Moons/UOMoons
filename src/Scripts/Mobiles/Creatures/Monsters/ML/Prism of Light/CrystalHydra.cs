@@ -12,7 +12,7 @@ public class CrystalHydra : BaseCreature
 		Name = "a crystal hydra";
 		Body = 0x109;
 		Hue = 0x47E;
-		BaseSoundID = 0x16A;
+		BaseSoundId = 0x16A;
 
 		SetStr(800, 830);
 		SetDex(100, 120);

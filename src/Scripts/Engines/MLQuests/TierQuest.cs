@@ -150,12 +150,12 @@ public class TierQuestInfo
 
 		writer.Write(PlayerTierInfo.Count);
 
-		foreach (var kvp in PlayerTierInfo)
+		foreach (KeyValuePair<PlayerMobile, Dictionary<Type, int>> kvp in PlayerTierInfo)
 		{
-			writer.WriteMobile(kvp.Key);
+			writer.Write(kvp.Key);
 			writer.Write(kvp.Value.Count);
 
-			foreach (var kvp2 in kvp.Value)
+			foreach (KeyValuePair<Type, int> kvp2 in kvp.Value)
 			{
 				writer.Write(kvp2.Key.FullName);
 				writer.Write(kvp2.Value);

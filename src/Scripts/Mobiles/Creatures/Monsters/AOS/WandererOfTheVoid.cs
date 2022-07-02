@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a wanderer of the void";
 			Body = 316;
-			BaseSoundID = 377;
+			BaseSoundId = 377;
 
 			SetStr(111, 200);
 			SetDex(101, 125);

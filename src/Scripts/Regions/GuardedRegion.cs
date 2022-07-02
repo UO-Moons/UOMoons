@@ -482,7 +482,7 @@ public class GuardedRegion : BaseRegion
 
 		public GuardTimer(Mobile m, Dictionary<Mobile, GuardTimer> table) : base(TimeSpan.FromSeconds(15.0))
 		{
-			Priority = TimerPriority.TwoFiftyMS;
+			Priority = TimerPriority.TwoFiftyMs;
 
 			_mMobile = m;
 			_mTable = table;

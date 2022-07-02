@@ -11,7 +11,7 @@ namespace Server.Mobiles
 			Name = "a whipping vine";
 			Body = 8;
 			Hue = 0x851;
-			BaseSoundID = 352;
+			BaseSoundId = 352;
 
 			SetStr(251, 300);
 			SetDex(76, 100);

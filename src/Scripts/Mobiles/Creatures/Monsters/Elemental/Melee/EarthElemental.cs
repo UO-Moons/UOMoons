@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "an earth elemental";
 			Body = 14;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(126, 155);
 			SetDex(66, 85);

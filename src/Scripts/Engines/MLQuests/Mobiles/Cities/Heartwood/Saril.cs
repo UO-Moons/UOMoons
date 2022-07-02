@@ -44,7 +44,7 @@ public class Saril : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8361;
-		HairItemID = 0x2FC1;
+		HairItemId = 0x2FC1;
 		HairHue = 0x127;
 	}
 

@@ -326,7 +326,7 @@ namespace Server.Items
 			public UnlockTarget(Key key) : base(key.MaxRange, false, TargetFlags.None)
 			{
 				m_Key = key;
-				CheckLOS = false;
+				CheckLos = false;
 			}
 
 			protected override void OnTarget(Mobile from, object targeted)

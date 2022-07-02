@@ -28,10 +28,10 @@ namespace Server.Engines.Quests.Haven
 			AddItem(new WizardsHat(0x8A5));
 			AddItem(new Shoes(0x8A5));
 
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 			HairHue = 0x455;
 
-			FacialHairItemID = 0x203E;
+			FacialHairItemId = 0x203E;
 			FacialHairHue = 0x455;
 
 			BlackStaff staff = new BlackStaff
@@ -75,7 +75,7 @@ namespace Server.Engines.Quests.Haven
 				}
 				else
 				{
-					if (player.Profession == 2) // magician
+					if (player.Profession == Profession.Mage) // magician
 					{
 						Container backpack = player.Backpack;
 
@@ -115,7 +115,7 @@ namespace Server.Engines.Quests.Haven
 							{
 								Container cont = GetNewContainer();
 
-								if (player.Profession == 2) // magician
+								if (player.Profession == Profession.Mage) // magician
 								{
 									cont.DropItem(new MarkScroll(5));
 									cont.DropItem(new RecallScroll(5));
@@ -262,7 +262,7 @@ namespace Server.Engines.Quests.Haven
 						{
 							Container cont = GetNewContainer();
 
-							if (player.Profession == 2) // magician
+							if (player.Profession == Profession.Mage) // magician
 							{
 								cont.DropItem(new BlackPearl(20));
 								cont.DropItem(new Bloodmoss(20));
@@ -307,7 +307,7 @@ namespace Server.Engines.Quests.Haven
 						{
 							Item reward;
 
-							if (player.Profession == 2) // magician
+							if (player.Profession == Profession.Mage) // magician
 							{
 								Container cont = GetNewContainer();
 

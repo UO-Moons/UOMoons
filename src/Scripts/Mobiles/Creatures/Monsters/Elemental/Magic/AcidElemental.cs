@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "an acid elemental";
 			Body = 0x9E;
-			BaseSoundID = 278;
+			BaseSoundId = 278;
 
 			SetStr(326, 355);
 			SetDex(66, 85);
@@ -73,8 +73,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 263)
-				BaseSoundID = 278;
+			if (BaseSoundId == 263)
+				BaseSoundId = 278;
 
 			if (Body == 13)
 				Body = 0x9E;

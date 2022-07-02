@@ -10,7 +10,7 @@ namespace Server.Mobiles
 			Name = "a crystal vortex";
 			Body = 0xD;
 			Hue = 0x2B2;
-			BaseSoundID = 0x107;
+			BaseSoundId = 0x107;
 
 			SetStr(800, 900);
 			SetDex(500, 600);

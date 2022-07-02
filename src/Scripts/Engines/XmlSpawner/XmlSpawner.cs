@@ -2256,12 +2256,12 @@ namespace Server.Mobiles
 			Server.Mobiles.XmlSpawner.SpawnObject TheSpawn = new Server.Mobiles.XmlSpawner.SpawnObject(null, 0);
 
 			TheSpawn.TypeName = action;
-			string substitutedtypeName = BaseXmlSpawner.ApplySubstitution(null, attachedto, trigmob, action);
+			string substitutedtypeName = BaseXmlSpawner.ApplySubstitution(null, attachedto, action);
 			string typeName = BaseXmlSpawner.ParseObjectType(substitutedtypeName);
 
 			if (BaseXmlSpawner.IsTypeOrItemKeyword(typeName))
 			{
-				BaseXmlSpawner.SpawnTypeKeyword(attachedto, TheSpawn, typeName, substitutedtypeName, true, trigmob, loc, map, out status_str);
+				BaseXmlSpawner.SpawnTypeKeyword(attachedto, TheSpawn, typeName, substitutedtypeName, trigmob, map, out status_str);
 			}
 			else
 			{
@@ -2928,7 +2928,7 @@ namespace Server.Mobiles
 					needs_object_trigger = true;
 					string status_str;
 
-					if (BaseXmlSpawner.TestItemProperty(this, m_ObjectPropertyItem, m_ObjectPropertyName, null, out status_str))
+					if (BaseXmlSpawner.TestItemProperty(this, m_ObjectPropertyItem, m_ObjectPropertyName, out status_str))
 					{
 						has_object_trigger = true;
 					}
@@ -2949,7 +2949,7 @@ namespace Server.Mobiles
 					needs_player_trigger = true;
 					string status_str;
 
-					if (BaseXmlSpawner.TestMobProperty(this, m, m_PlayerPropertyName, null, out status_str))
+					if (BaseXmlSpawner.TestMobProperty(this, m, m_PlayerPropertyName, out status_str))
 					{
 						has_player_trigger = true;
 					}
@@ -2972,7 +2972,7 @@ namespace Server.Mobiles
 
 					string status_str;
 
-					if (BaseXmlSpawner.TestMobProperty(this, MobTriggerId, m_MobPropertyName, null, out status_str))
+					if (BaseXmlSpawner.TestMobProperty(this, MobTriggerId, m_MobPropertyName, out status_str))
 					{
 						has_mob_trigger = true;
 					}
@@ -9050,7 +9050,7 @@ namespace Server.Mobiles
 				}
 
 				// check for string substitions
-				string substitutedtypeName = BaseXmlSpawner.ApplySubstitution(this, this, m_mob_who_triggered, TheSpawn.TypeName);
+				string substitutedtypeName = BaseXmlSpawner.ApplySubstitution(this, this, TheSpawn.TypeName);
 
 				// random positioning is the default
 				List<SpawnPositionInfo> spawnpositioning = null;
@@ -9124,7 +9124,8 @@ namespace Server.Mobiles
 									if (ckeyvalueargs.Length > 1)
 									{
 										// dont spawn if it fails the test
-										if (!BaseXmlSpawner.CheckPropertyString(this, this, ckeyvalueargs[1], m_mob_who_triggered, out status_str)) return false;
+										if (!BaseXmlSpawner.CheckPropertyString(this, this, ckeyvalueargs[1], out status_str))
+											return false;
 
 									}
 									else
@@ -9165,8 +9166,8 @@ namespace Server.Mobiles
 				{
 					string status_str = null;
 
-					bool completedtypespawn = BaseXmlSpawner.SpawnTypeKeyword(this, TheSpawn, typeName, substitutedtypeName, requiresurface, spawnpositioning,
-						m_mob_who_triggered, Location, Map, new XmlGumpCallback(SpawnerGumpCallback), out status_str, loops);
+					bool completedtypespawn = BaseXmlSpawner.SpawnTypeKeyword(this, TheSpawn, typeName, substitutedtypeName,
+											m_mob_who_triggered, Map, out status_str, loops);
 
 					if (status_str != null)
 					{
@@ -9839,22 +9840,10 @@ namespace Server.Mobiles
 						// look it up by serial
 						if (wayargs.Length > 1)
 						{
-							int sernum = -1;
-							try { sernum = (int)Convert.ToUInt64(wayargs[1].Substring(2), 16); }
-							catch { }
+							IEntity e = World.FindEntity(Utility.ToSerial(wayargs[1]));
 
-							if (sernum > -1)
-							{
-								IEntity e = World.FindEntity(sernum);
-
-								if (e is WayPoint)
-									waypoint = e as WayPoint;
-
-							}
-						}
-						else
-						{
-							// improper serial format
+							if (e is WayPoint)
+								waypoint = e as WayPoint;
 						}
 					}
 					else
@@ -9998,7 +9987,7 @@ namespace Server.Mobiles
 			bool wet = false;
 
 			map.GetAverageZ(x, y, ref lowZ, ref avgZ, ref topZ);
-			TileFlag landFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
+			TileFlag landFlags = TileData.LandTable[lt.Id & TileData.MaxLandValue].Flags;
 
 			if (DebugThis)
 			{
@@ -10035,7 +10024,7 @@ namespace Server.Mobiles
 
 			for (int i = 0; i < staticTiles.Length; ++i)
 			{
-				ItemData id = TileData.ItemTable[staticTiles[i].ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[staticTiles[i].Id & TileData.MaxItemValue];
 				surface = id.Surface;
 				impassable = id.Impassable;
 				if (checkmob)
@@ -10160,12 +10149,12 @@ namespace Server.Mobiles
 					Point3D p = Point3D.Zero;
 					// go through all of the tiles at the location and find those that are in the allowed tiles list
 					LandTile ltile = map.Tiles.GetLandTile(x, y);
-					TileFlag lflags = TileData.LandTable[ltile.ID & TileData.MaxLandValue].Flags;
+					TileFlag lflags = TileData.LandTable[ltile.Id & TileData.MaxLandValue].Flags;
 
 					// check the land tile
 					if (includetilelist != null && includetilelist.Count > 0)
 					{
-						includetile = includetilelist.Contains(ltile.ID & TileData.MaxLandValue);
+						includetile = includetilelist.Contains(ltile.Id & TileData.MaxLandValue);
 					}
 					else
 					{
@@ -10176,7 +10165,7 @@ namespace Server.Mobiles
 					if (excludetilelist != null && excludetilelist.Count > 0)
 					{
 						// also require the tile to be passable
-						excludetile = ((lflags & TileFlag.Impassable) != 0) || excludetilelist.Contains(ltile.ID & TileData.MaxLandValue);
+						excludetile = ((lflags & TileFlag.Impassable) != 0) || excludetilelist.Contains(ltile.Id & TileData.MaxLandValue);
 					}
 					else
 					{
@@ -10186,7 +10175,7 @@ namespace Server.Mobiles
 					if (includetile && !excludetile && ((lflags & tileflag) == tileflag))
 					{
 						//Console.WriteLine("found landtile {0}/{1} at {2},{3},{4}", ltile.ID, ltile.ID & 0x3fff, x, y, ltile.Z + ltile.Height);
-						p = new Point3D(x, y, ltile.Z + ltile.Height);
+						p = new Point3D(x, y, ltile.Z + LandTile.Height);
 						allok = true;
 						//locations.Add(new Point3D(x, y, ltile.Z + ltile.Height));
 						//continue;
@@ -10198,11 +10187,11 @@ namespace Server.Mobiles
 					for (int i = 0; i < statictiles.Length; ++i)
 					{
 						StaticTile stile = statictiles[i];
-						TileFlag sflags = TileData.ItemTable[stile.ID & TileData.MaxItemValue].Flags;
+						TileFlag sflags = TileData.ItemTable[stile.Id & TileData.MaxItemValue].Flags;
 
 						if (includetilelist != null && includetilelist.Count > 0)
 						{
-							includetile = includetilelist.Contains(stile.ID & TileData.MaxItemValue);
+							includetile = includetilelist.Contains(stile.Id & TileData.MaxItemValue);
 						}
 						else
 						{
@@ -10212,7 +10201,7 @@ namespace Server.Mobiles
 						// non-excluded tiles must also be passable
 						if (excludetilelist != null && excludetilelist.Count > 0)
 						{
-							excludetile = ((sflags & TileFlag.Impassable) != 0) || excludetilelist.Contains(stile.ID & TileData.MaxItemValue);
+							excludetile = ((sflags & TileFlag.Impassable) != 0) || excludetilelist.Contains(stile.Id & TileData.MaxItemValue);
 						}
 						else
 						{
@@ -12285,7 +12274,7 @@ namespace Server.Mobiles
 
 							for (int x = 0; x < SpawnedCount; ++x)
 							{
-								int serial = reader.ReadInt();
+								Serial serial = reader.ReadSerial();
 								if (serial < -1)
 								{
 									// minusone is reserved for unknown types by default

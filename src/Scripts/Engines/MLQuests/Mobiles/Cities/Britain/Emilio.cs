@@ -26,9 +26,9 @@ public class Emilio : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83EB;
-		HairItemID = 0x2048;
+		HairItemId = 0x2048;
 		HairHue = 0x470;
-		FacialHairItemID = 0x204C;
+		FacialHairItemId = 0x204C;
 		FacialHairHue = 0x470;
 	}
 

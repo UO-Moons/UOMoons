@@ -167,9 +167,9 @@ namespace Server.Mobiles
 			NameHue = m.NameHue;
 			Title = m.Title;
 			Kills = m.Kills;
-			HairItemID = m.HairItemID;
+			HairItemId = m.HairItemId;
 			HairHue = m.HairHue;
-			FacialHairItemID = m.FacialHairItemID;
+			FacialHairItemId = m.FacialHairItemId;
 			FacialHairHue = m.FacialHairHue;
 
 			// TODO: Skills?
@@ -193,9 +193,9 @@ namespace Server.Mobiles
 			NameHue = -1;
 			Title = null;
 			Kills = 0;
-			HairItemID = 0;
+			HairItemId = 0;
 			HairHue = 0;
-			FacialHairItemID = 0;
+			FacialHairItemId = 0;
 			FacialHairHue = 0;
 
 			DeleteClonedItems();

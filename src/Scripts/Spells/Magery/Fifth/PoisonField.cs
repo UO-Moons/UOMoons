@@ -269,7 +269,7 @@ namespace Server.Spells.Fifth
 					m_InLOS = inLOS;
 					m_CanFit = canFit;
 
-					Priority = TimerPriority.FiftyMS;
+					Priority = TimerPriority.FiftyMs;
 				}
 
 				protected override void OnTick()

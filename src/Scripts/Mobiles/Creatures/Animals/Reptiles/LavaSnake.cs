@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Name = "a lava snake";
 			Body = 52;
 			Hue = Utility.RandomList(0x647, 0x650, 0x659, 0x662, 0x66B, 0x674);
-			BaseSoundID = 0xDB;
+			BaseSoundId = 0xDB;
 
 			SetStr(43, 55);
 			SetDex(16, 25);

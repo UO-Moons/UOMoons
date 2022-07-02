@@ -1,9 +1,8 @@
-namespace Server
+namespace Server;
+
+public enum StatLockType : byte
 {
-	public enum StatLockType : byte
-	{
-		Up,
-		Down,
-		Locked
-	}
+	Up,
+	Down,
+	Locked
 }

@@ -30,7 +30,7 @@ public class Kashiel : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83FE;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x1;
 	}
 

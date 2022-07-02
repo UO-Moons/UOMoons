@@ -52,7 +52,7 @@ namespace Server.Engines.ConPVP
 			{
 				m_Bomb = bomb;
 				m_Count = 0;
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 			}
 
 			protected override void OnTick()
@@ -222,7 +222,7 @@ namespace Server.Engines.ConPVP
 
 			public BombTarget(BRBomb bomb, Mobile from) : base(10, true, TargetFlags.None)
 			{
-				CheckLOS = false;
+				CheckLos = false;
 
 				m_Bomb = bomb;
 				m_Mob = from;
@@ -513,7 +513,7 @@ namespace Server.Engines.ConPVP
 
 					StaticTile[] statics = Map.Tiles.GetStaticTiles(point.X, point.Y, true);
 
-					if (landTile.ID == 0x244 && statics.Length == 0) // 0x244 = invalid land tile
+					if (landTile.Id == 0x244 && statics.Length == 0) // 0x244 = invalid land tile
 					{
 						bool empty = true;
 						IPooledEnumerable eable = Map.GetItemsInRange(point, 0);
@@ -540,7 +540,7 @@ namespace Server.Engines.ConPVP
 					{
 						StaticTile t = statics[j];
 
-						ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+						ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 						height = id.CalcHeight;
 
 						if (t.Z <= point.Z && t.Z + height >= point.Z && (id.Flags & (TileFlag.Impassable | TileFlag.Wall | TileFlag.NoShoot)) != 0)
@@ -674,7 +674,7 @@ namespace Server.Engines.ConPVP
 				{
 					StaticTile t = statics[j];
 
-					ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+					ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 					height = id.CalcHeight;
 
 					if (t.Z + height > myZ && t.Z + height <= Z)

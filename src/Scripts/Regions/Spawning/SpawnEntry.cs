@@ -80,7 +80,7 @@ public class SpawnEntry : ISpawner
 
 		for (int i = 0; i < count; i++)
 		{
-			int serial = reader.ReadInt();
+			Serial serial = reader.ReadSerial();
 			IEntity entity = World.FindEntity(serial);
 
 			if (entity != null)
@@ -211,9 +211,10 @@ public class SpawnEntry : ISpawner
 
 		for (int i = 0; i < count; i++)
 		{
-			int serial = reader.ReadInt();
+			Serial serial = reader.ReadSerial();
+			ISpawnable spawnableEntity = World.FindEntity(serial) as ISpawnable;
 
-			if (World.FindEntity(serial) is ISpawnable spawnableEntity)
+			if (spawnableEntity != null)
 				Add(spawnableEntity);
 		}
 

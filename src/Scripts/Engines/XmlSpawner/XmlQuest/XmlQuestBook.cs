@@ -1,5 +1,6 @@
 using Server.Gumps;
 using Server.Mobiles;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Server.Items
@@ -112,8 +113,8 @@ namespace Server.Items
 			{
 				// need to check to see if any other questtoken items are owned
 				// search the Owners top level pack for an xmlquest
-				List<Item> list = XmlQuest.FindXmlQuest(Owner);
-
+				//List<Item> list = XmlQuest.FindXmlQuest(Owner);
+				ArrayList list = XmlQuest.FindXmlQuest(Owner);
 				if (list == null || list.Count == 0)
 				{
 					// if none remain then flag the ower as having none

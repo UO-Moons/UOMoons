@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a lava serpent";
 			Body = 90;
-			BaseSoundID = 219;
+			BaseSoundId = 219;
 
 			SetStr(386, 415);
 			SetDex(56, 80);
@@ -73,8 +73,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 219;
+			if (BaseSoundId == -1)
+				BaseSoundId = 219;
 		}
 	}
 }

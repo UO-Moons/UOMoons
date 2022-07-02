@@ -29,7 +29,7 @@ namespace Server.Mobiles
         {
             Name = "a monstrous interred grizzle";
             Body = 0x103;
-            BaseSoundID = 589;
+            BaseSoundId = 589;
 
             SetStr(1198, 1207);
             SetDex(127, 135);

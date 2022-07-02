@@ -24,7 +24,7 @@ namespace Server.Mobiles
 
 			Body = m_IDs[random * 2];
 			ItemID = m_IDs[random * 2 + 1];
-			BaseSoundID = 0xA8;
+			BaseSoundId = 0xA8;
 
 			SetStr(22, 98);
 			SetDex(56, 75);

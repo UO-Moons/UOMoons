@@ -273,7 +273,7 @@ public class MapItem : BaseItem, ICraftable
 	{
 		Mobile from = state.Mobile;
 
-		if (World.FindItem(pvSrc.ReadInt32()) is not MapItem map)
+		if (World.FindItem(pvSrc.ReadSerial()) is not MapItem map)
 			return;
 
 		int command = pvSrc.ReadByte();

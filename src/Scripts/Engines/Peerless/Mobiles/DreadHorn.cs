@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a Dread Horn";
 			Body = 257;
-			BaseSoundID = 0xA8;
+			BaseSoundId = 0xA8;
 
 			SetStr(878, 993);
 			SetDex(581, 683);

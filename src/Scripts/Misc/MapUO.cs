@@ -29,7 +29,7 @@ namespace Server.Misc
 			{
 				Packets.PartyTrack packet = new(from, party);
 
-				if (packet.UnderlyingStream.Length > 8)
+				if (packet.Stream.Length > 8)
 					state.Send(packet);
 			}
 		}
@@ -44,7 +44,7 @@ namespace Server.Misc
 
 				Packets.GuildTrack packet = new(from, guild, locations);
 
-				if (packet.UnderlyingStream.Length > (locations ? 9 : 5))
+				if (packet.Stream.Length > (locations ? 9 : 5))
 					state.Send(packet);
 			}
 			else
@@ -66,7 +66,7 @@ namespace Server.Misc
 
 						Mobile mob = pmi.Mobile;
 
-						if (Utility.InUpdateRange(from, mob) && from.CanSee(mob))
+						if (from.InUpdateRange(mob) && from.CanSee(mob))
 							continue;
 
 						m_Stream.Write(mob.Serial);
@@ -98,7 +98,7 @@ namespace Server.Misc
 						if (mob == null || mob == from || mob.NetState == null)
 							continue;
 
-						if (locations && Utility.InUpdateRange(from, mob) && from.CanSee(mob))
+						if (locations && from.InUpdateRange(mob) && from.CanSee(mob))
 							continue;
 
 						m_Stream.Write(mob.Serial);

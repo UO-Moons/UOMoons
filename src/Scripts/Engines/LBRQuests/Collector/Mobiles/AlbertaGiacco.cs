@@ -33,7 +33,7 @@ namespace Server.Engines.Quests.Collector
 			AddItem(new FeatheredHat(0x59B));
 			AddItem(new FullApron(0x59B));
 
-			HairItemID = 0x203D; // Pony Tail
+			HairItemId = 0x203D; // Pony Tail
 			HairHue = 0x457;
 		}
 

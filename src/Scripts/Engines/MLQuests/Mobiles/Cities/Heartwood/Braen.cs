@@ -28,7 +28,7 @@ public class Braen : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x876C;
-		HairItemID = 0x2FBF;
+		HairItemId = 0x2FBF;
 		HairHue = 0x2C2;
 	}
 

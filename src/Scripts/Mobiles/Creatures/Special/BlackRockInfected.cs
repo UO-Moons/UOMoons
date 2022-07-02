@@ -47,7 +47,7 @@ namespace Server.Mobiles
             public BlackRockStamRegen(Mobile m)
                 : base(TimeSpan.FromSeconds(.5), TimeSpan.FromSeconds(2))
             {
-                Priority = TimerPriority.FiftyMS;
+                Priority = TimerPriority.FiftyMs;
                 m_Owner = m as BaseCreature;
             }
 

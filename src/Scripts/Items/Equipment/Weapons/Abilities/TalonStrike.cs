@@ -63,7 +63,7 @@ namespace Server.Items
 			{
 				m_Defender = defender;
 				m_DamageRemaining = totalDamage;
-				Priority = TimerPriority.TwentyFiveMS;
+				Priority = TimerPriority.TwentyFiveMs;
 
 				m_Attacker = attacker;
 

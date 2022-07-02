@@ -31,7 +31,7 @@ public class ArtsSection : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x8405;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x44E;
 	}
 

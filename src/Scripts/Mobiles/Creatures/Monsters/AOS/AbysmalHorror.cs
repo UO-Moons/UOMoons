@@ -17,7 +17,7 @@ namespace Server.Mobiles
 		{
 			Name = "an abyssmal horror";
 			Body = 312;
-			BaseSoundID = 0x451;
+			BaseSoundId = 0x451;
 
 			SetStr(401, 420);
 			SetDex(81, 90);
@@ -83,8 +83,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 357)
-				BaseSoundID = 0x451;
+			if (BaseSoundId == 357)
+				BaseSoundId = 0x451;
 		}
 	}
 }

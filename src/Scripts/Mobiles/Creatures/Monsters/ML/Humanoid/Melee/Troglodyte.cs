@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a troglodyte";
 			Body = 267;
-			BaseSoundID = 0x59F;
+			BaseSoundId = 0x59F;
 
 			SetStr(148, 217);
 			SetDex(91, 120);

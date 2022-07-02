@@ -682,17 +682,17 @@ public abstract class HarvestSystem
 				{
 					foreach (var tile in tiles)
 					{
-						int id = (tile.ID & 0x3FFF) | 0x4000;
+						int id = (tile.Id & 0x3FFF) | 0x4000;
 
 						if (!definition.Validate(id)) continue;
-						toHarvest = new StaticTarget(new Point3D(x, y, tile.Z), tile.ID);
+						toHarvest = new StaticTarget(new Point3D(x, y, tile.Z), tile.Id);
 						return true;
 					}
 				}
 
 				LandTile lt = map.Tiles.GetLandTile(x, y);
 
-				if (!definition.Validate(lt.ID)) continue;
+				if (!definition.Validate(lt.Id)) continue;
 				toHarvest = new LandTarget(new Point3D(x, y, lt.Z), map);
 				return true;
 			}
@@ -718,7 +718,7 @@ public abstract class HarvestSystem
 
 				foreach (var tile in tiles)
 				{
-					int itemId = tile.ID;
+					int itemId = tile.Id;
 
 					if (itemId != 0xED3 && itemId != 0xEDF && itemId != 0xEE0 && itemId != 0xEE1 && itemId != 0xEE2 &&
 					    itemId != 0xEE8) continue;
@@ -756,7 +756,7 @@ public abstract class HarvestSystem
 
 				foreach (var tile in tiles)
 				{
-					int itemId = tile.ID;
+					int itemId = tile.Id;
 
 					if (itemId != 0xD15 && itemId != 0xD16) continue;
 					if (m is not PlayerMobile player) continue;

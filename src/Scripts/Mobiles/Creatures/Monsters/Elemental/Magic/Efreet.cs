@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "an efreet";
 			Body = 131;
-			BaseSoundID = 768;
+			BaseSoundId = 768;
 
 			SetStr(326, 355);
 			SetDex(266, 285);

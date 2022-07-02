@@ -91,7 +91,7 @@ public class HairRestylingDeed : BaseItem
 
 			if (m_From is not PlayerMobile pm) return;
 			pm.SetHairMods(-1, -1); // clear any hairmods (disguise kit, incognito)
-			m_From.HairItemID = (m_From.Female) ? racialData[info.ButtonID][2] : racialData[info.ButtonID][3];
+			m_From.HairItemId = (m_From.Female) ? racialData[info.ButtonID][2] : racialData[info.ButtonID][3];
 			m_Deed.Delete();
 		}
 

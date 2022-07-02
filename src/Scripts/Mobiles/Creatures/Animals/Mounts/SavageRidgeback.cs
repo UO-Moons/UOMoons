@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		[Constructable]
 		public SavageRidgeback(string name) : base(name, 188, 0x3EB8, AIType.AI_Melee, FightMode.Aggressor, 10, 1, 0.2, 0.4)
 		{
-			BaseSoundID = 0x3F3;
+			BaseSoundId = 0x3F3;
 
 			SetStr(58, 100);
 			SetDex(56, 75);

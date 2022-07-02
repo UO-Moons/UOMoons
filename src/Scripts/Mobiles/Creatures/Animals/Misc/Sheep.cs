@@ -42,7 +42,7 @@ namespace Server.Mobiles
 		{
 			Name = "a sheep";
 			Body = 0xCF;
-			BaseSoundID = 0xD6;
+			BaseSoundId = 0xD6;
 
 			SetStr(19);
 			SetDex(25);

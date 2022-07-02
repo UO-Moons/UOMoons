@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a terathan matriarch";
 			Body = 72;
-			BaseSoundID = 599;
+			BaseSoundId = 599;
 
 			SetStr(316, 405);
 			SetDex(96, 115);

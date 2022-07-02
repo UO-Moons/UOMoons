@@ -157,6 +157,8 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool LiftOverride { get; set; }
 
+		public virtual Type[] SupportedContents => Type.EmptyTypes;
+
 		public virtual void UpdateContainerData()
 		{
 			ContainerData = ContainerData.GetData(ItemId);
@@ -168,6 +170,10 @@ namespace Server.Items
 
 		public virtual int DefaultMaxItems => GlobalMaxItems;
 		public virtual int DefaultMaxWeight => GlobalMaxWeight;
+
+		public virtual bool CheckHoldCount => true;
+		public virtual bool CheckHoldWeight => true;
+		public virtual bool CheckHoldParent => true;
 
 		public virtual bool IsDecoContainer => !Movable && !IsLockedDown && !IsSecure && Parent == null && !LiftOverride;
 
@@ -205,68 +211,162 @@ namespace Server.Items
 			return base.CheckItemUse(from, item);
 		}
 
+		public bool CheckHold(Item item)
+		{
+			return CheckHold(null, item, false);
+		}
+
 		public bool CheckHold(Mobile m, Item item, bool message)
 		{
-			return CheckHold(m, item, message, true, 0, 0);
+			return CheckHold(m, item, message, true, true, 0, 0);
 		}
 
 		public bool CheckHold(Mobile m, Item item, bool message, bool checkItems)
 		{
-			return CheckHold(m, item, message, checkItems, 0, 0);
+			return CheckHold(m, item, message, checkItems, true, 0, 0);
 		}
 
-		public virtual bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight)
 		{
-			if (!m.IsStaff())
+			return CheckHold(m, item, message, checkItems, checkWeight, 0, 0);
+		}
+
+		public bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems)
+		{
+			return CheckHold(m, item, message, checkItems, true, plusItems, 0);
+		}
+
+		public bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		{
+			return CheckHold(m, item, message, checkItems, true, plusItems, plusWeight);
+		}
+
+		public virtual bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
+		{
+			if (m == null || !m.IsStaff())
 			{
 				if (IsDecoContainer)
 				{
-					if (message)
+					if (m != null && message)
+					{
 						SendCantStoreMessage(m, item);
+					}
 
 					return false;
 				}
 
-				int maxItems = MaxItems;
-
-				if (checkItems && maxItems != 0 && (TotalItems + plusItems + item.TotalItems + (item.IsVirtualItem ? 0 : 1)) > maxItems)
+				if (checkItems && CheckHoldCount)
 				{
-					if (message)
-						SendFullItemsMessage(m, item);
+					if (!CanHold(m, item))
+					{
+						if (m != null && message)
+						{
+							SendDisallowedMessage(m, item);
+						}
 
-					return false;
+						return false;
+					}
+
+					var maxItems = MaxItems;
+
+					if (maxItems != 0 && (TotalItems + plusItems + item.TotalItems + (item.IsVirtualItem ? 0 : 1)) > maxItems)
+					{
+						if (m != null && message)
+						{
+							SendFullItemsMessage(m, item);
+						}
+
+						return false;
+					}
 				}
-				else
+
+				if (checkWeight && CheckHoldWeight)
 				{
-					int maxWeight = MaxWeight;
+					var maxWeight = MaxWeight;
 
 					if (maxWeight != 0 && (TotalWeight + plusWeight + item.TotalWeight + item.PileWeight) > maxWeight)
 					{
-						if (message)
+						if (m != null && message)
+						{
 							SendFullWeightMessage(m, item);
+						}
 
 						return false;
 					}
 				}
 			}
 
-			object parent = Parent;
+			if (!CheckHoldParent)
+			{
+				return true;
+			}
+
+			var parent = Parent;
 
 			while (parent != null)
 			{
-				if (parent is Container container)
-					return container.CheckHold(m, item, message, checkItems, plusItems, plusWeight);
-				else if (parent is Item item1)
-					parent = item1.Parent;
+				if (parent is Container cp)
+				{
+					return cp.CheckHold(m, item, message, checkItems, checkWeight, plusItems, plusWeight);
+				}
+
+				if (parent is Item ip)
+				{
+					parent = ip.Parent;
+				}
 				else
+				{
 					break;
+				}
 			}
 
 			return true;
 		}
 
+		public bool CanHold(Item item)
+		{
+			return CanHold(null, item);
+		}
+
+		public virtual bool CanHold(Mobile m, Item item)
+		{
+			if (item == null || item.Deleted)
+			{
+				return false;
+			}
+
+			if (m != null && m.AccessLevel >= AccessLevel.GameMaster)
+			{
+				return true;
+			}
+
+			var types = SupportedContents;
+
+			if (types == null || types.Length <= 0)
+			{
+				return true;
+			}
+
+			var type = item.GetType();
+
+			foreach (var t in types)
+			{
+				if (t.IsAssignableFrom(type))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		public virtual bool CheckStack(Mobile from, Item item)
 		{
+			if (item == null || item.Deleted || !item.Stackable)
+			{
+				return false;
+			}
+
 			foreach (var i in Items)
 			{
 				if (i.WillStack(from, item))
@@ -293,10 +393,17 @@ namespace Server.Items
 			to.SendLocalizedMessage(500176); // That is not your container, you can't store things here.
 		}
 
+		public virtual void SendDisallowedMessage(Mobile to, Item item)
+		{
+			to.SendMessage("This item can't be stored in that container.");
+		}
+
 		public virtual bool OnDragDropInto(Mobile from, Item item, Point3D p)
 		{
-			if (!CheckHold(from, item, true, true))
+			if (!CheckHold(from, item, true, true, true))
+			{
 				return false;
+			}
 
 			item.Location = new Point3D(p.m_X, p.m_Y, 0);
 			AddItem(item);
@@ -1756,15 +1863,8 @@ namespace Server.Items
 
 			ValidatePositions();
 
-			if (ns.HighSeas)
-				to.Send(new ContainerDisplayHS(this));
-			else
-				to.Send(new ContainerDisplay(this));
-
-			if (ns.ContainerGridLines)
-				to.Send(new ContainerContent6017(to, this));
-			else
-				to.Send(new ContainerContent(to, this));
+			ContainerDisplay.Send(ns, this);
+			ContainerContent.Send(ns, this);
 
 			if (ObjectPropertyList.Enabled)
 			{

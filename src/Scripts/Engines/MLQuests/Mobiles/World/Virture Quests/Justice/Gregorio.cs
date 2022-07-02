@@ -92,9 +92,9 @@ public class Gregorio : BaseCreature
 		Hue = 0x8412;
 		Female = false;
 
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x47A;
-		FacialHairItemID = 0x204D;
+		FacialHairItemId = 0x204D;
 		FacialHairHue = 0x47A;
 	}
 

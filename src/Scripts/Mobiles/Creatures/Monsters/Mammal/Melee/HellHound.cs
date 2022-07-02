@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a hell hound";
 			Body = 98;
-			BaseSoundID = 229;
+			BaseSoundId = 229;
 
 			SetStr(102, 150);
 			SetDex(81, 105);

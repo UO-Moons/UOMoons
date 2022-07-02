@@ -22,7 +22,7 @@ namespace Server.Mobiles
 			Name = "Twaulo";
 			Title = "of the Glade";
 			Body = 101;
-			BaseSoundID = 679;
+			BaseSoundId = 679;
 			Hue = 0x455;
 
 			SetStr(1751, 1950);

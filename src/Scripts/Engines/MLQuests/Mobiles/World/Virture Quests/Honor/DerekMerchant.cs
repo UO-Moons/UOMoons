@@ -27,9 +27,9 @@ public class DerekMerchant : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8406;
-		HairItemID = 0x2048;
+		HairItemId = 0x2048;
 		HairHue = 0x473;
-		FacialHairItemID = 0x204B;
+		FacialHairItemId = 0x204B;
 		FacialHairHue = 0x473;
 	}
 

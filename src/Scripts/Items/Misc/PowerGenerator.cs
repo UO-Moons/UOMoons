@@ -465,7 +465,7 @@ namespace Server.Items
 				m_To = to;
 				m_Step = 0;
 
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

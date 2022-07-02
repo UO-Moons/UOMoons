@@ -28,7 +28,7 @@ public class Synaeva : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8374;
-		HairItemID = 0x2B71;
+		HairItemId = 0x2B71;
 		HairHue = 0x385;
 	}
 

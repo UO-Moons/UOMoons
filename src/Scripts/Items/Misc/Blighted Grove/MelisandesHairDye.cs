@@ -64,7 +64,7 @@ namespace Server.Items
 			{
 				if (m_Item != null && !m_Item.Deleted && m_Item.IsChildOf(from.Backpack))
 				{
-					if (from.HairItemID != 0)
+					if (from.HairItemId != 0)
 					{
 						from.HairHue = m_Item.Hue;
 						from.PlaySound(0x240);

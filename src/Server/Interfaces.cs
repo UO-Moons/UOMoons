@@ -21,11 +21,15 @@ namespace Server
 {
 	public interface IVendor
 	{
+		IShopSellInfo[] GetSellInfo();
+		IBuyItemInfo[] GetBuyInfo();
+
 		bool OnBuyItems(Mobile from, List<BuyItemResponse> list);
 		bool OnSellItems(Mobile from, List<SellItemResponse> list);
 
 		DateTime LastRestock { get; set; }
 		TimeSpan RestockDelay { get; }
+
 		void Restock();
 	}
 
@@ -114,6 +118,8 @@ namespace Server
 
 		int Damage(int amount, Mobile attacker);
 
+		int ComputeNotoriety(Mobile viewer);
+
 		void PlaySound(int soundID);
 
 		void MovingEffect(IEntity to, int itemID, int speed, int duration, bool fixedDirection, bool explodes, int hue, int renderMode);
@@ -137,5 +143,36 @@ namespace Server
 	public interface IArtifact
 	{
 		int ArtifactRarity { get; }
+	}
+
+	public interface ISpellbook
+	{
+		int BookOffset { get; }
+		int BookCount { get; }
+
+		int SpellCount { get; }
+
+		ulong Content { get; set; }
+
+		void DisplayTo(Mobile to);
+	}
+
+	public interface ITamable : IEntity
+	{
+		bool IsDeadPet { get; }
+
+		bool Tamable { get; set; }
+
+		bool Controlled { get; set; }
+
+		double MinTameSkill { get; set; }
+
+		int ControlSlots { get; set; }
+
+		Mobile ControlMaster { get; set; }
+
+		Point3D ControlDest { get; set; }
+
+		IDamageable ControlTarget { get; set; }
 	}
 }

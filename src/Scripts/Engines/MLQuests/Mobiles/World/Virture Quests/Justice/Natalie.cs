@@ -30,7 +30,7 @@ public class Natalie : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8400;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x740;
 	}
 

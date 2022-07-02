@@ -58,7 +58,7 @@ namespace Server.Engines.Quests.Collector
 
 			public InternalTarget(EnchantedPaints paints) : base(-1, false, TargetFlags.None)
 			{
-				CheckLOS = false;
+				CheckLos = false;
 				m_Paints = paints;
 			}
 

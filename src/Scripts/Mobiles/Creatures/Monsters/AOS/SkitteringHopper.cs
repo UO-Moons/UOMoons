@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a skittering hopper";
 			Body = 302;
-			BaseSoundID = 959;
+			BaseSoundId = 959;
 
 			SetStr(41, 65);
 			SetDex(91, 115);

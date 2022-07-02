@@ -67,10 +67,10 @@ namespace Server.Engines.Quests.Necro
 			AddItem(new BlackStaff());
 			AddItem(new WizardsHat(0x1));
 
-			FacialHairItemID = 0x2041;
+			FacialHairItemId = 0x2041;
 			FacialHairHue = 0x482;
 
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 			HairHue = 0x482;
 
 			Item gloves = new BoneGloves

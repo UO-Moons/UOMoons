@@ -31,7 +31,7 @@ namespace Server.Engines.XmlSpawner2
 			// This will REPLACE the default packet handler called when the quest button on the paperdoll is pressed with the xmlquest gump.
 			//Timer.DelayCall(TimeSpan.Zero, new TimerCallback(QuestButtonOverride));
 			// This will ADD the xmlquest gump to the default packet handler called when the quest button on the paperdoll is pressed.
-			EventSink.OnQuestGumpRequest += XmlQuest.QuestButton;
+			EventSink.QuestGumpRequest += XmlQuest.QuestButton;
 
 		}
 

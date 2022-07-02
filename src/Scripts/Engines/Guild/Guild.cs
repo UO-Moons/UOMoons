@@ -7,6 +7,7 @@ using Server.Network;
 using Server.Targeting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Guilds
 {
@@ -507,7 +508,7 @@ namespace Server.Guilds
 		{
 			m_Leader = null;
 
-			World.RemoveGuild(this);
+			List.Remove(Id);
 
 			foreach (Mobile m in Members)
 			{

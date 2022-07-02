@@ -31,9 +31,9 @@ public class BritanniaWaters : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x8402;
-		HairItemID = 0x2044;
+		HairItemId = 0x2044;
 		HairHue = 0x46B;
-		FacialHairItemID = 0x203F;
+		FacialHairItemId = 0x203F;
 		FacialHairHue = 0x46B;
 	}
 

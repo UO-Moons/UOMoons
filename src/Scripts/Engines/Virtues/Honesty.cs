@@ -130,7 +130,7 @@ namespace Server.Services.Virtues
         private static bool ValidateSpawnPoint(Map map, int x, int y, int z)
         {
             var lt = map.Tiles.GetLandTile(x, y);
-            var ld = TileData.LandTable[lt.ID];
+            var ld = TileData.LandTable[lt.Id];
 
             if (lt.Ignored || (ld.Flags & TileFlag.Impassable) > 0 || (ld.Flags & TileFlag.Wet) > 0 || (ld.Flags & TileFlag.Roof) > 0)
             {
@@ -139,7 +139,7 @@ namespace Server.Services.Virtues
 
             for (var i = 0; i < HousePlacement.m_RoadIDs.Length; i += 2)
             {
-                if (lt.ID >= HousePlacement.m_RoadIDs[i] && lt.ID <= HousePlacement.m_RoadIDs[i + 1])
+                if (lt.Id >= HousePlacement.m_RoadIDs[i] && lt.Id <= HousePlacement.m_RoadIDs[i + 1])
                 {
                     return false;
                 }

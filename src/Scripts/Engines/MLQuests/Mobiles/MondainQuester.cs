@@ -106,9 +106,9 @@ public abstract class MondainQuester : BaseVendor
 	{
 		if (Race != null)
 		{
-			HairItemID = Race.RandomHair(Female);
+			HairItemId = Race.RandomHair(Female);
 			HairHue = Race.RandomHairHue();
-			FacialHairItemID = Race.RandomFacialHair(Female);
+			FacialHairItemId = Race.RandomFacialHair(Female);
 			FacialHairHue = Race.RandomHairHue();
 			Hue = Race.RandomSkinHue();
 		}

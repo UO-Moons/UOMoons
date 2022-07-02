@@ -11,7 +11,7 @@ namespace Server.Mobiles
         {
             Name = NameList.RandomName("pixie");
             Body = 128;
-            BaseSoundID = 0x467;
+            BaseSoundId = 0x467;
 
             SetStr(20);
             SetDex(150);

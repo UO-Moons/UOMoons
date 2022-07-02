@@ -60,27 +60,27 @@ namespace Server.Mobiles
 			{
 				case 0: // earth elemental
 					Body = 14;
-					BaseSoundID = 268;
+					BaseSoundId = 268;
 					break;
 				case 1: // headless one
 					Body = 31;
-					BaseSoundID = 0x39D;
+					BaseSoundId = 0x39D;
 					break;
 				case 2: // person
 					Body = Utility.RandomList(400, 401);
 					break;
 				case 3: // gorilla
 					Body = 0x1D;
-					BaseSoundID = 0x9E;
+					BaseSoundId = 0x9E;
 					break;
 				case 4: // serpent
 					Body = 0x15;
-					BaseSoundID = 0xDB;
+					BaseSoundId = 0xDB;
 					break;
 				default:
 				case 5: // slime
 					Body = 51;
-					BaseSoundID = 456;
+					BaseSoundId = 456;
 					break;
 			}
 

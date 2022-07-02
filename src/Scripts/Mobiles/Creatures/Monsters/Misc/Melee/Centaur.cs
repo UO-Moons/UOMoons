@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("centaur");
 			Body = 101;
-			BaseSoundID = 679;
+			BaseSoundId = 679;
 
 			SetStr(202, 300);
 			SetDex(104, 260);
@@ -70,8 +70,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 678)
-				BaseSoundID = 679;
+			if (BaseSoundId == 678)
+				BaseSoundId = 679;
 		}
 	}
 }

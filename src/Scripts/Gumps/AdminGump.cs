@@ -274,7 +274,7 @@ namespace Server.Gumps
 					{
 						AddLabel(20, 130, LabelHue, "Cycles Per Second:");
 						AddLabel(40, 150, LabelHue, "Current: " + Core.CyclesPerSecond.ToString("N2"));
-						AddLabel(40, 170, LabelHue, "Average: " + Core.AverageCPS.ToString("N2"));
+						AddLabel(40, 170, LabelHue, "Average: " + Core.AverageCps.ToString("N2"));
 
 						StringBuilder sb = new();
 
@@ -296,35 +296,28 @@ namespace Server.Gumps
 						sb.Append(((maxIOCP - curIOCP) * 100) / maxIOCP);
 						sb.Append("%");
 
-						List<BufferPool> pools = BufferPool.Pools;
-
-						lock (pools)
+						foreach (var pool in BufferPool.Pools)
 						{
-							for (int i = 0; i < pools.Count; ++i)
-							{
-								BufferPool pool = pools[i];
+							pool.GetInfo(out var name, out var freeCount, out _, out var currentCapacity, out var bufferSize, out var misses);
 
-								pool.GetInfo(out string name, out int freeCount, out int initialCapacity, out int currentCapacity, out int bufferSize, out int misses);
+							if (sb.Length > 0)
+								sb.Append("<br><br>");
 
-								if (sb.Length > 0)
-									sb.Append("<br><br>");
-
-								sb.Append(name);
-								sb.Append("<br>Size: ");
-								sb.Append(FormatByteAmount(bufferSize));
-								sb.Append("<br>Capacity: ");
-								sb.Append(currentCapacity);
-								sb.Append(" (");
-								sb.Append(misses);
-								sb.Append(" misses)<br>Available: ");
-								sb.Append(freeCount);
-								sb.Append("<br>Usage: ");
-								sb.Append(((currentCapacity - freeCount) * 100) / currentCapacity);
-								sb.Append("% : ");
-								sb.Append(FormatByteAmount((currentCapacity - freeCount) * bufferSize));
-								sb.Append(" of ");
-								sb.Append(FormatByteAmount(currentCapacity * bufferSize));
-							}
+							sb.Append(name);
+							sb.Append("<br>Size: ");
+							sb.Append(FormatByteAmount(bufferSize));
+							sb.Append("<br>Capacity: ");
+							sb.Append(currentCapacity);
+							sb.Append(" (");
+							sb.Append(misses);
+							sb.Append(" misses)<br>Available: ");
+							sb.Append(freeCount);
+							sb.Append("<br>Usage: ");
+							sb.Append(((currentCapacity - freeCount) * 100) / currentCapacity);
+							sb.Append("% : ");
+							sb.Append(FormatByteAmount((currentCapacity - freeCount) * bufferSize));
+							sb.Append(" of ");
+							sb.Append(FormatByteAmount(currentCapacity * bufferSize));
 						}
 
 

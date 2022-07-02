@@ -12,7 +12,7 @@ namespace Server.Mobiles
 		{
 			Name = "a pack horse";
 			Body = 291;
-			BaseSoundID = 0xA8;
+			BaseSoundId = 0xA8;
 
 			SetStr(44, 120);
 			SetDex(36, 55);

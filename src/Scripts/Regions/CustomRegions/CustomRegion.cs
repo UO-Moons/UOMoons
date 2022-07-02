@@ -79,7 +79,7 @@ public class CustomRegion : GuardedRegion
 		public MovePlayerTimer(Mobile mMobile, RegionControl controller)
 			: base(TimeSpan.FromSeconds(1.0), TimeSpan.FromSeconds(1.0))
 		{
-			Priority = TimerPriority.FiftyMS;
+			Priority = TimerPriority.FiftyMs;
 			m = mMobile;
 			_mController = controller;
 		}

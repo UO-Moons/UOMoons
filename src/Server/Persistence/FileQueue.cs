@@ -15,7 +15,7 @@ namespace Server
 			private readonly int _slot;
 			private readonly int _offset;
 
-			public byte[] Buffer { get; }
+			public byte[] Buffer;
 
 			public static int Offset => 0;
 
@@ -167,7 +167,7 @@ namespace Server
 					throw new ArgumentException();
 				}
 
-				BufferPool.ReleaseBuffer(chunk.Buffer);
+				BufferPool.ReleaseBuffer(ref chunk.Buffer);
 
 				if (_pending.Count > 0)
 				{

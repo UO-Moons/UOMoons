@@ -1,55 +1,54 @@
-namespace Server
+namespace Server;
+
+public class KeywordList
 {
-	public class KeywordList
+	public KeywordList()
 	{
-		public KeywordList()
+		Keywords = new int[8];
+		Count = 0;
+	}
+
+	public int[] Keywords { get; set; }
+	public int Count { get; set; }
+
+	public bool Contains(int keyword)
+	{
+		bool contains = false;
+
+		for (int i = 0; !contains && i < Count; ++i)
+			contains = keyword == Keywords[i];
+
+		return contains;
+	}
+
+	public void Add(int keyword)
+	{
+		if (Count + 1 > Keywords.Length)
 		{
-			Keywords = new int[8];
-			Count = 0;
+			int[] old = Keywords;
+			Keywords = new int[old.Length * 2];
+
+			for (int i = 0; i < old.Length; ++i)
+				Keywords[i] = old[i];
 		}
 
-		public int[] Keywords { get; set; }
-		public int Count { get; set; }
+		Keywords[Count++] = keyword;
+	}
 
-		public bool Contains(int keyword)
-		{
-			bool contains = false;
+	private static readonly int[] m_EmptyInts = System.Array.Empty<int>();
 
-			for (int i = 0; !contains && i < Count; ++i)
-				contains = (keyword == Keywords[i]);
+	public int[] ToArray()
+	{
+		if (Count == 0)
+			return m_EmptyInts;
 
-			return contains;
-		}
+		int[] keywords = new int[Count];
 
-		public void Add(int keyword)
-		{
-			if ((Count + 1) > Keywords.Length)
-			{
-				int[] old = Keywords;
-				Keywords = new int[old.Length * 2];
+		for (int i = 0; i < Count; ++i)
+			keywords[i] = Keywords[i];
 
-				for (int i = 0; i < old.Length; ++i)
-					Keywords[i] = old[i];
-			}
+		Count = 0;
 
-			Keywords[Count++] = keyword;
-		}
-
-		private static readonly int[] m_EmptyInts = System.Array.Empty<int>();
-
-		public int[] ToArray()
-		{
-			if (Count == 0)
-				return m_EmptyInts;
-
-			int[] keywords = new int[Count];
-
-			for (int i = 0; i < Count; ++i)
-				keywords[i] = Keywords[i];
-
-			Count = 0;
-
-			return keywords;
-		}
+		return keywords;
 	}
 }

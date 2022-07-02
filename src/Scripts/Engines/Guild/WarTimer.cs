@@ -19,7 +19,7 @@ namespace Server.Guilds
 
 		protected override void OnTick()
 		{
-			foreach (Guild g in World.Guilds.Values)
+			foreach (Guild g in BaseGuild.List.Values)
 				g.CheckExpiredWars();
 		}
 	}

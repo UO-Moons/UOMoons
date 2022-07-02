@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a gazer";
 			Body = 22;
-			BaseSoundID = 377;
+			BaseSoundId = 377;
 
 			SetStr(96, 125);
 			SetDex(86, 105);

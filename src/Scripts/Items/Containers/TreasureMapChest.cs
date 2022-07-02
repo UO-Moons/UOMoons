@@ -358,7 +358,7 @@ namespace Server.Items
 			base.OnItemLifted(from, item);
 		}
 
-		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
 			if (m.AccessLevel < AccessLevel.GameMaster)
 			{
@@ -366,7 +366,7 @@ namespace Server.Items
 				return false;
 			}
 
-			return base.CheckHold(m, item, message, checkItems, plusItems, plusWeight);
+			return base.CheckHold(m, item, message, checkItems, checkWeight, plusItems, plusWeight);
 		}
 
 		public TreasureMapChest(Serial serial) : base(serial)

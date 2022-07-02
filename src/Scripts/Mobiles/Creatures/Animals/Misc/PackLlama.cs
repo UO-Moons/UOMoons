@@ -12,7 +12,7 @@ namespace Server.Mobiles
 		{
 			Name = "a pack llama";
 			Body = 292;
-			BaseSoundID = 0x3F3;
+			BaseSoundId = 0x3F3;
 
 			SetStr(52, 80);
 			SetDex(36, 55);

@@ -9,7 +9,7 @@ namespace Server.Engines.Quests.Samurai
 		{
 			Name = "a deadly imp";
 			Body = 74;
-			BaseSoundID = 422;
+			BaseSoundId = 422;
 			Hue = 0x66A;
 
 			SetStr(91, 115);

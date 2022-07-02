@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a raging grizzly bear";
 			Body = 212;
-			BaseSoundID = 0xA3;
+			BaseSoundId = 0xA3;
 
 			SetStr(1251, 1550);
 			SetDex(801, 1050);

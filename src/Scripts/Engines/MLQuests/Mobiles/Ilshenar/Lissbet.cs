@@ -32,7 +32,7 @@ public class Lissbet : BaseEscort
 		Race = Race.Human;
 
 		Hue = 0x8411;
-		HairItemID = 0x203D;
+		HairItemId = 0x203D;
 		HairHue = 0x1BB;
 	}
 

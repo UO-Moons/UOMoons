@@ -33,6 +33,11 @@ public class ContextMenu : IDisposable
 	public ContextMenuEntry[] Entries { get; private set; }
 
 	/// <summary>
+	///     Returns true if this ContextMenu requires packet version 2.
+	/// </summary>
+	public bool RequiresNewPacket => Entries.Any(t => t.Number < 3000000 || t.Number > 3032767);
+
+	/// <summary>
 	///     Instantiates a new ContextMenu instance.
 	/// </summary>
 	/// <param name="from">
@@ -78,11 +83,6 @@ public class ContextMenu : IDisposable
 		Dispose();
 	}
 
-	/// <summary>
-	///     Returns true if this ContextMenu requires packet version 2.
-	/// </summary>
-	public bool RequiresNewPacket => Entries.Any(t => t.Number < 3000000 || t.Number > 3032767);
-
 	public void Dispose()
 	{
 		if (IsDisposed)
@@ -124,8 +124,8 @@ public class ContextMenu : IDisposable
 
 		switch (target)
 		{
-			case Mobile when !Utility.InUpdateRange(m, target.Location):
-			case Item item when !Utility.InUpdateRange(m, item.GetWorldLocation()):
+			case Mobile when !m.InUpdateRange(target.Location):
+			case Item item when !m.InUpdateRange(item.GetWorldLocation()):
 				return false;
 		}
 
@@ -211,5 +211,10 @@ public class ContextMenu : IDisposable
 		}
 
 		return index;
+	}
+
+	internal int GetIndexEC(int index)
+	{
+		throw new NotImplementedException();
 	}
 }

@@ -38,9 +38,9 @@ public class NewHavenBrideGroom : NewHavenEscortable
 			AddItem(new Boots(lowHue));
 
 		if (Utility.RandomBool())
-			HairItemID = 0x203B;
+			HairItemId = 0x203B;
 		else
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 
 		HairHue = Race.RandomHairHue();
 

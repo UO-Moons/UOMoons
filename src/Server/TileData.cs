@@ -9,20 +9,20 @@ namespace Server
 		public string Name { get; set; }
 		public int Header { get; set; }
 		public TileFlag Flags { get; set; }
-		public int TextureID { get; set; }
+		public int TextureId { get; set; }
 
 		public LandData(string name, int header, TileFlag flags, int textureId)
 		{
 			Name = name;
 			Header = header;
 			Flags = flags;
-			TextureID = textureId;
+			TextureId = textureId;
 		}
 	}
 
 	public struct ItemData
 	{
-		public int ItemID { get; set; }
+		public int ItemId { get; set; }
 		public int Header { get; set; }
 		public int MiscData { get; set; }
 		public int Unk2 { get; set; }
@@ -31,23 +31,23 @@ namespace Server
 		public int Animation { get; set; }
 		public int StackingOffset { get; set; }
 
-		private byte m_Weight;
-		private byte m_Quality;
-		private byte m_Quantity;
-		private byte m_Value;
-		private byte m_Height;
+		private byte _weight;
+		private byte _quality;
+		private byte _quantity;
+		private byte _value;
+		private byte _height;
 
 		public ItemData(int id, int header, string name, TileFlag flags, int weight, int quality, int quantity, int value, int height, int miscData, int unk2, int unk3, int hue, int anim, int offset)
 		{
-			ItemID = id;
+			ItemId = id;
 			Header = header;
 			Name = name;
 			Flags = flags;
-			m_Weight = (byte)weight;
-			m_Quality = (byte)quality;
-			m_Quantity = (byte)quantity;
-			m_Value = (byte)value;
-			m_Height = (byte)height;
+			_weight = (byte)weight;
+			_quality = (byte)quality;
+			_quantity = (byte)quantity;
+			_value = (byte)value;
+			_height = (byte)height;
 
 			MiscData = (short)miscData;
 			Unk2 = (byte)unk2;
@@ -99,32 +99,32 @@ namespace Server
 
 		public int Weight
 		{
-			get => m_Weight;
-			set => m_Weight = (byte)value;
+			get => _weight;
+			set => _weight = (byte)value;
 		}
 
 		public int Quality
 		{
-			get => m_Quality;
-			set => m_Quality = (byte)value;
+			get => _quality;
+			set => _quality = (byte)value;
 		}
 
 		public int Quantity
 		{
-			get => m_Quantity;
-			set => m_Quantity = (byte)value;
+			get => _quantity;
+			set => _quantity = (byte)value;
 		}
 
 		public int Value
 		{
-			get => m_Value;
-			set => m_Value = (byte)value;
+			get => _value;
+			set => _value = (byte)value;
 		}
 
 		public int Height
 		{
-			get => m_Height;
-			set => m_Height = (byte)value;
+			get => _height;
+			set => _height = (byte)value;
 		}
 
 		public int CalcHeight
@@ -132,9 +132,8 @@ namespace Server
 			get
 			{
 				if ((Flags & TileFlag.Bridge) != 0)
-					return m_Height / 2;
-				else
-					return m_Height;
+					return _height / 2;
+				return _height;
 			}
 		}
 	}
@@ -180,7 +179,7 @@ namespace Server
 	public static class TileData
 	{
 		public static string FilePath { get; set; }
-		public static bool IsUOHS { get; set; } = false;
+		public static bool IsUohs { get; set; }
 
 		public static LandData[] LandTable { get; private set; }
 		public static ItemData[] ItemTable { get; private set; }
@@ -206,18 +205,20 @@ namespace Server
 					BinaryReader bin = new(fs);
 
 					int itemLength;
-					if (fs.Length >= 3188736) // 7.0.9.0
+					switch (fs.Length)
 					{
-						itemLength = 0x10000;
-						IsUOHS = true;
-					}
-					else if (fs.Length >= 1644544) // 7.0.0.0
-					{
-						itemLength = 0x8000;
-					}
-					else
-					{
-						itemLength = 0x4000;
+						// 7.0.9.0
+						case >= 3188736:
+							itemLength = 0x10000;
+							IsUohs = true;
+							break;
+						// 7.0.0.0
+						case >= 1644544:
+							itemLength = 0x8000;
+							break;
+						default:
+							itemLength = 0x4000;
+							break;
 					}
 
 					//First its the Land Table
@@ -246,7 +247,7 @@ namespace Server
 							header = bin.ReadInt32(); // header
 						}
 
-						TileFlag flags = IsUOHS ? (TileFlag)bin.ReadInt64() : (TileFlag)bin.ReadInt32();
+						TileFlag flags = IsUohs ? (TileFlag)bin.ReadInt64() : (TileFlag)bin.ReadInt32();
 						int weight = bin.ReadByte();
 						int quality = bin.ReadByte();
 						int miscData = bin.ReadInt16();
@@ -268,7 +269,7 @@ namespace Server
 			}
 			else
 			{
-				throw new Exception(string.Format("TileData: {0} not found", FilePath));
+				throw new Exception($"TileData: {FilePath} not found");
 			}
 		}
 

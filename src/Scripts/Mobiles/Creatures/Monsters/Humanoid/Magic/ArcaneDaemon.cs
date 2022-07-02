@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "an arcane daemon";
 			Body = 0x310;
-			BaseSoundID = 0x47D;
+			BaseSoundId = 0x47D;
 
 			SetStr(131, 150);
 			SetDex(126, 145);

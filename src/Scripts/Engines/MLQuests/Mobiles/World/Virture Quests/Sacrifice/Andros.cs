@@ -25,9 +25,9 @@ public class Andros : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8409;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 		HairHue = 0x45E;
-		FacialHairItemID = 0x2041;
+		FacialHairItemId = 0x2041;
 		FacialHairHue = 0x45E;
 	}
 

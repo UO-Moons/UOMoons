@@ -603,7 +603,7 @@ namespace Server.Items
 							return;
 						}
 
-						BaseCreature.Summon(mob, from, from.Location, mob.BaseSoundID, TimeSpan.FromMinutes(10));
+						BaseCreature.Summon(mob, from, from.Location, mob.BaseSoundId, TimeSpan.FromMinutes(10));
 						Effects.SendLocationParticles(EffectItem.Create(mob.Location, mob.Map, EffectItem.DefaultDuration), 0x3728, 1, 10, 0x26B6);
 
 						mob.Summoned = false;

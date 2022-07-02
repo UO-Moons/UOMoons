@@ -215,6 +215,13 @@ public class DamageableItem : Item, IDamageableItem
 		IdDestroyed = destroyId;
 	}
 
+	int IDamageable.ComputeNotoriety(Mobile viewer) => GetNotoriety(viewer);
+
+	public virtual int GetNotoriety(Mobile beholder)
+	{
+		return Notoriety.Compute(beholder, this);
+	}
+
 	public override void OnDoubleClick(Mobile m)
 	{
 		if (m.Warmode)
@@ -237,7 +244,7 @@ public class DamageableItem : Item, IDamageableItem
 
 	public override void OnStatsQuery(Mobile from)
 	{
-		if (from.Map == Map && Utility.InUpdateRange(from, this) && from.CanSee(this))
+		if (from.Map == Map && from.InUpdateRange(this) && from.CanSee(this))
 		{
 			from.Send(new MobileStatusCompact(false, this));
 		}

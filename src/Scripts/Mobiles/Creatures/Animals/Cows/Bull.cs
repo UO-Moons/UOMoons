@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a bull";
 			Body = Utility.RandomList(0xE8, 0xE9);
-			BaseSoundID = 0x64;
+			BaseSoundId = 0x64;
 
 			if (0.5 >= Utility.RandomDouble())
 				Hue = 0x901;

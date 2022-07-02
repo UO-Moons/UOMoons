@@ -228,7 +228,7 @@ namespace Server.Spells.Bushido
                 : base(delay)
             {
                 m_Mobile = m;
-                Priority = TimerPriority.TwoFiftyMS;
+                Priority = TimerPriority.TwoFiftyMs;
             }
 
             protected override void OnTick()

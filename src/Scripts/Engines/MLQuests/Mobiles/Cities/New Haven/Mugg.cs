@@ -30,7 +30,7 @@ public class Mugg : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840A;
-		HairItemID = 0x2047;
+		HairItemId = 0x2047;
 		HairHue = 0x0;
 	}
 

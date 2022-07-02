@@ -12,7 +12,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("lizardman");
 			Body = Utility.RandomList(35, 36);
-			BaseSoundID = 417;
+			BaseSoundId = 417;
 
 			SetStr(96, 120);
 			SetDex(86, 105);

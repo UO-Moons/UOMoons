@@ -30,7 +30,7 @@ public class Lyle : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F7;
-		HairItemID = 0x204A;
+		HairItemId = 0x204A;
 		HairHue = 0x459;
 	}
 

@@ -108,7 +108,7 @@ public class Poisoning
 					_mPoison = potion.Poison;
 					_mMinSkill = potion.MinPoisoningSkill;
 					_mMaxSkill = potion.MaxPoisoningSkill;
-					Priority = TimerPriority.TwoFiftyMS;
+					Priority = TimerPriority.TwoFiftyMs;
 				}
 
 				protected override void OnTick()

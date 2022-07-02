@@ -9,11 +9,14 @@ using Server.Mobiles;
 using Server.Prompts;
 using Server.Targeting;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Server.Network
 {
@@ -269,6 +272,95 @@ namespace Server.Network
 
 	public sealed class MapPatches : Packet
 	{
+		public static bool Send(NetState ns)
+		{
+			return ns != null && Send(ns, Instantiate(ns));
+		}
+
+		public static MapPatches Instantiate(NetState ns)
+		{
+			if (ns.Flags.HasFlag(ClientFlags.TerMur))
+			{
+				return PacketCache<MapPatches>.Acquire(6, c => new MapPatches(c));
+			}
+
+			if (ns.Flags.HasFlag(ClientFlags.Tokuno))
+			{
+				return PacketCache<MapPatches>.Acquire(5, c => new MapPatches(c));
+			}
+
+			if (ns.Flags.HasFlag(ClientFlags.Malas))
+			{
+				return PacketCache<MapPatches>.Acquire(4, c => new MapPatches(c));
+			}
+
+			if (ns.Flags.HasFlag(ClientFlags.Ilshenar))
+			{
+				return PacketCache<MapPatches>.Acquire(3, c => new MapPatches(c));
+			}
+
+			if (ns.Flags.HasFlag(ClientFlags.Trammel))
+			{
+				return PacketCache<MapPatches>.Acquire(2, c => new MapPatches(c));
+			}
+
+			if (ns.Flags.HasFlag(ClientFlags.Felucca))
+			{
+				return PacketCache<MapPatches>.Acquire(1, c => new MapPatches(c));
+			}
+
+			return PacketCache<MapPatches>.Acquire(0, c => new MapPatches(c));
+		}
+
+		private MapPatches(int count)
+			: base(0xBF)
+		{
+			EnsureCapacity(9 + (8 * count));
+
+			m_Stream.Write((short)0x0018);
+
+			m_Stream.Write(count);
+
+			if (count >= 1)
+			{
+				m_Stream.Write(Map.Felucca.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.Felucca.Tiles.Patch.LandBlocks);
+			}
+
+			if (count >= 2)
+			{
+				m_Stream.Write(Map.Trammel.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.Trammel.Tiles.Patch.LandBlocks);
+			}
+
+			if (count >= 3)
+			{
+				m_Stream.Write(Map.Ilshenar.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.Ilshenar.Tiles.Patch.LandBlocks);
+			}
+
+			if (count >= 4)
+			{
+				m_Stream.Write(Map.Malas.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.Malas.Tiles.Patch.LandBlocks);
+			}
+
+			if (count >= 5)
+			{
+				m_Stream.Write(Map.Tokuno.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.Tokuno.Tiles.Patch.LandBlocks);
+			}
+
+			if (count >= 6)
+			{
+				m_Stream.Write(Map.TerMur.Tiles.Patch.StaticBlocks);
+				m_Stream.Write(Map.TerMur.Tiles.Patch.LandBlocks);
+			}
+		}
+	}
+
+	/*public sealed class MapPatches : Packet
+	{
 		public MapPatches() : base(0xBF)
 		{
 			EnsureCapacity(9 + (3 * 8));
@@ -289,7 +381,7 @@ namespace Server.Network
 			m_Stream.Write(Map.Malas.Tiles.Patch.StaticBlocks);
 			m_Stream.Write(Map.Malas.Tiles.Patch.LandBlocks);
 		}
-	}
+	}*/
 
 	public sealed class ObjectHelpResponse : Packet
 	{
@@ -320,7 +412,7 @@ namespace Server.Network
 				BuyItemState bis = list[i];
 
 				m_Stream.Write(bis.MySerial);
-				m_Stream.Write((ushort)bis.ItemID);
+				m_Stream.Write((ushort)bis.ItemId);
 				m_Stream.Write((byte)0);//itemid offset
 				m_Stream.Write((ushort)bis.Amount);
 				m_Stream.Write((short)(i + 1));//x
@@ -348,7 +440,7 @@ namespace Server.Network
 				BuyItemState bis = list[i];
 
 				m_Stream.Write(bis.MySerial);
-				m_Stream.Write((ushort)bis.ItemID);
+				m_Stream.Write((ushort)bis.ItemId);
 				m_Stream.Write((byte)0);//itemid offset
 				m_Stream.Write((ushort)bis.Amount);
 				m_Stream.Write((short)(i + 1));//x
@@ -580,23 +672,25 @@ namespace Server.Network
 
 	public sealed class ChangeUpdateRange : Packet
 	{
-		private static readonly ChangeUpdateRange[] m_Cache = new ChangeUpdateRange[0x100];
-
-		public static ChangeUpdateRange Instantiate(int range)
+		public static bool Send(NetState ns)
 		{
-			byte idx = (byte)range;
-			ChangeUpdateRange p = m_Cache[idx];
-
-			if (p == null)
-			{
-				m_Cache[idx] = p = new ChangeUpdateRange(range);
-				p.SetStatic();
-			}
-
-			return p;
+			return ns != null && Send(ns, Instantiate(ns));
 		}
 
-		public ChangeUpdateRange(int range) : base(0xC8, 2)
+		public static ChangeUpdateRange Instantiate(NetState ns)
+		{
+			var range = ns.UpdateRange;
+
+			if (range >= 0 && range <= Map.GlobalMaxUpdateRange + 8)
+			{
+				return PacketCache<ChangeUpdateRange>.Acquire(range, r => new ChangeUpdateRange(r));
+			}
+
+			return new ChangeUpdateRange(range);
+		}
+
+		private ChangeUpdateRange(int range)
+			: base(0xC8, 2)
 		{
 			m_Stream.Write((byte)range);
 		}
@@ -802,7 +896,7 @@ namespace Server.Network
 			{
 				ItemListEntry e = entries[i];
 
-				m_Stream.Write((ushort)e.ItemID);
+				m_Stream.Write((ushort)e.ItemId);
 				m_Stream.Write((short)e.Hue);
 
 				string name = e.Name;
@@ -1497,11 +1591,31 @@ namespace Server.Network
 	/// </summary>
 	public sealed class ClientVersionReq : Packet
 	{
-		public ClientVersionReq() : base(0xBD)
+		public static ClientVersionReq Instance => PacketCache<ClientVersionReq>.Global(() => new ClientVersionReq());
+
+		public static bool Send(NetState ns)
+		{
+			return ns != null && Send(ns, Instantiate(ns));
+		}
+
+		public static ClientVersionReq Instantiate(NetState ns)
+		{
+			return PacketCache<ClientVersionReq>.Global(() => new ClientVersionReq());
+		}
+
+		private ClientVersionReq()
+			: base(0xBD)
 		{
 			EnsureCapacity(3);
 		}
 	}
+/*public sealed class ClientVersionReq : Packet
+	{
+		public ClientVersionReq() : base(0xBD)
+		{
+			EnsureCapacity(3);
+		}
+	}*/
 
 	/// <summary>
 	/// Asks the client for it's "assist version". (Perhaps for UOAssist?)
@@ -1993,12 +2107,41 @@ namespace Server.Network
 		}
 	}
 
+	//public sealed class ContainerDisplay : Packet
+	//{
+	//	public ContainerDisplay(Container c) : base(0x24, 7)
+	//	{
+	///		m_Stream.Write(c.Serial);
+	//		m_Stream.Write((short)c.GumpID);
+	//	}
+	///}
 	public sealed class ContainerDisplay : Packet
 	{
-		public ContainerDisplay(Container c) : base(0x24, 7)
+		public static bool Send(NetState ns, Container c)
+		{
+			return ns != null && Send(ns, Instantiate(ns, c));
+		}
+
+		public static ContainerDisplay Instantiate(NetState ns, Container c)
+		{
+			if (ns.HighSeas)
+			{
+				return new ContainerDisplay(c, 0x7D);
+			}
+
+			return new ContainerDisplay(c, null);
+		}
+
+		public ContainerDisplay(Container c, short? unk)
+			: base(0x24, unk != null ? 9 : 7)
 		{
 			m_Stream.Write(c.Serial);
 			m_Stream.Write((short)c.GumpID);
+
+			if (unk != null)
+			{
+				m_Stream.Write(unk.Value);
+			}
 		}
 	}
 
@@ -2070,6 +2213,70 @@ namespace Server.Network
 	}
 
 	public sealed class ContainerContent : Packet
+	{
+		public static bool Send(NetState ns, Item c)
+		{
+			return ns != null && Send(ns, Instantiate(ns, c));
+		}
+
+		public static ContainerContent Instantiate(NetState ns, Item c)
+		{
+			if (ns.ContainerGridLines)
+			{
+				return new ContainerContent(ns.Mobile, c, true);
+			}
+
+			return new ContainerContent(ns.Mobile, c, false);
+		}
+
+		public ContainerContent(Mobile beholder, Item beheld, bool gridLocs)
+			: base(0x3C)
+		{
+			var items = beheld.Items;
+			var count = items.Count;
+
+			EnsureCapacity(5 + (count * (gridLocs ? 20 : 19)));
+
+			var written = 0;
+
+			m_Stream.Write((ushort)0);
+
+			for (var i = 0; i < count; ++i)
+			{
+				var child = items[i];
+
+				if (!child.Deleted && beholder.CanSee(child))
+				{
+					if (child.GridLocation == 0xFF)
+					{
+						child.GridLocation = (byte)(count - written);
+					}
+
+					m_Stream.Write(child.Serial);
+					m_Stream.Write((ushort)child.ItemId);
+					m_Stream.Write((sbyte)0); // itemID offset
+					m_Stream.Write((ushort)child.Amount);
+					m_Stream.Write((short)child.X);
+					m_Stream.Write((short)child.Y);
+
+					if (gridLocs)
+					{
+						m_Stream.Write(child.GridLocation);
+					}
+
+					m_Stream.Write(beheld.Serial);
+					m_Stream.Write((ushort)(child.QuestItem ? child.QuestItemHue : child.Hue));
+
+					++written;
+				}
+			}
+
+			m_Stream.Seek(3, SeekOrigin.Begin);
+			m_Stream.Write((ushort)written);
+		}
+	}
+
+	/*public sealed class ContainerContent : Packet
 	{
 		public ContainerContent(Mobile beholder, Item beheld)
 			: base(0x3C)
@@ -2163,7 +2370,7 @@ namespace Server.Network
 			m_Stream.Seek(pos, SeekOrigin.Begin);
 			m_Stream.Write((ushort)written);
 		}
-	}
+	}*/
 
 	public sealed class SetWarMode : Packet
 	{
@@ -2444,13 +2651,13 @@ namespace Server.Network
 		public MultiTargetReqHS(MultiTarget t) : base(0x99, 30)
 		{
 			m_Stream.Write(t.AllowGround);
-			m_Stream.Write(t.TargetID);
+			m_Stream.Write(t.TargetId);
 			m_Stream.Write((byte)t.Flags);
 
 			m_Stream.Fill();
 
 			m_Stream.Seek(18, SeekOrigin.Begin);
-			m_Stream.Write((short)t.MultiID);
+			m_Stream.Write((short)t.MultiId);
 			m_Stream.Write((short)t.Offset.X);
 			m_Stream.Write((short)t.Offset.Y);
 			m_Stream.Write((short)t.Offset.Z);
@@ -2464,13 +2671,13 @@ namespace Server.Network
 		public MultiTargetReq(MultiTarget t) : base(0x99, 26)
 		{
 			m_Stream.Write(t.AllowGround);
-			m_Stream.Write(t.TargetID);
+			m_Stream.Write(t.TargetId);
 			m_Stream.Write((byte)t.Flags);
 
 			m_Stream.Fill();
 
 			m_Stream.Seek(18, SeekOrigin.Begin);
-			m_Stream.Write((short)t.MultiID);
+			m_Stream.Write((short)t.MultiId);
 			m_Stream.Write((short)t.Offset.X);
 			m_Stream.Write((short)t.Offset.Y);
 			m_Stream.Write((short)t.Offset.Z);
@@ -2495,7 +2702,7 @@ namespace Server.Network
 		public TargetReq(Target t) : base(0x6C, 19)
 		{
 			m_Stream.Write(t.AllowGround);
-			m_Stream.Write(t.TargetID);
+			m_Stream.Write(t.TargetId);
 			m_Stream.Write((byte)t.Flags);
 			m_Stream.Fill();
 		}
@@ -2536,24 +2743,9 @@ namespace Server.Network
 
 	public sealed class DisplayGumpPacked : Packet, IGumpWriter
 	{
-		public int TextEntries { get; set; }
-		public int Switches { get; set; }
+		private const int GumpBufferSize = 0x10000;
 
-		private readonly Gump m_Gump;
-
-		private readonly PacketWriter m_Layout;
-		private readonly PacketWriter m_Strings;
-
-		private int m_StringCount;
-
-		public DisplayGumpPacked(Gump gump)
-			: base(0xDD)
-		{
-			m_Gump = gump;
-
-			m_Layout = PacketWriter.CreateInstance(8192);
-			m_Strings = PacketWriter.CreateInstance(8192);
-		}
+		private static readonly BufferPool m_PackBuffers = new BufferPool("Gump", 4, GumpBufferSize);
 
 		private static readonly byte[] m_True = Gump.StringToBuffer(" 1");
 		private static readonly byte[] m_False = Gump.StringToBuffer(" 0");
@@ -2568,6 +2760,25 @@ namespace Server.Network
 			m_Buffer[0] = (byte)' ';
 		}
 
+		public int TextEntries { get; set; }
+		public int Switches { get; set; }
+
+		private readonly Gump m_Gump;
+
+		private PacketWriter m_Layout;
+		private PacketWriter m_Strings;
+
+		private int m_StringCount;
+
+		public DisplayGumpPacked(Gump gump)
+			: base(0xDD)
+		{
+			m_Gump = gump;
+
+			m_Layout = PacketWriter.CreateInstance(8192);
+			m_Strings = PacketWriter.CreateInstance(8192);
+		}
+
 		public void AppendLayout(bool val)
 		{
 			AppendLayout(val ? m_True : m_False);
@@ -2575,16 +2786,16 @@ namespace Server.Network
 
 		public void AppendLayout(int val)
 		{
-			string toString = val.ToString();
-			int bytes = System.Text.Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1) + 1;
+			var toString = val.ToString();
+			var bytes = Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1) + 1;
 
 			m_Layout.Write(m_Buffer, 0, bytes);
 		}
 
 		public void AppendLayoutNS(int val)
 		{
-			string toString = val.ToString();
-			int bytes = System.Text.Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1);
+			var toString = val.ToString();
+			var bytes = Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1);
 
 			m_Layout.Write(m_Buffer, 1, bytes);
 		}
@@ -2607,12 +2818,9 @@ namespace Server.Network
 		{
 			m_StringCount = strings.Count;
 
-			for (int i = 0; i < strings.Count; ++i)
+			for (var i = 0; i < strings.Count; ++i)
 			{
-				string v = strings[i];
-
-				if (v == null)
-					v = string.Empty;
+				var v = strings[i] ?? String.Empty;
 
 				m_Strings.Write((ushort)v.Length);
 				m_Strings.WriteBigUniFixed(v, v.Length);
@@ -2628,25 +2836,23 @@ namespace Server.Network
 			m_Stream.Write(m_Gump.X);
 			m_Stream.Write(m_Gump.Y);
 
-			// Note: layout MUST be null terminated (don't listen to krrios)
+			// Note: layout MUST be null terminated
 			m_Layout.Write((byte)0);
+
 			WritePacked(m_Layout);
 
 			m_Stream.Write(m_StringCount);
 
 			WritePacked(m_Strings);
 
-			PacketWriter.ReleaseInstance(m_Layout);
-			PacketWriter.ReleaseInstance(m_Strings);
+			PacketWriter.ReleaseInstance(ref m_Layout);
+			PacketWriter.ReleaseInstance(ref m_Strings);
 		}
-
-		private const int GumpBufferSize = 0x5000;
-		private static readonly BufferPool m_PackBuffers = new("Gump", 4, GumpBufferSize);
 
 		private void WritePacked(PacketWriter src)
 		{
-			byte[] buffer = src.UnderlyingStream.GetBuffer();
-			int length = (int)src.Length;
+			var buffer = src.UnderlyingStream.GetBuffer();
+			var length = (int)src.Length;
 
 			if (length == 0)
 			{
@@ -2654,42 +2860,47 @@ namespace Server.Network
 				return;
 			}
 
-			int wantLength = 1 + ((buffer.Length * 1024) / 1000);
+			var wantLength = 1 + (buffer.Length * 1024 / 1000);
 
 			wantLength += 4095;
 			wantLength &= ~4095;
 
-			byte[] m_PackBuffer;
-			lock (m_PackBuffers)
-				m_PackBuffer = m_PackBuffers.AcquireBuffer();
+			var packBuffer = m_PackBuffers.AcquireBuffer();
 
-			if (m_PackBuffer.Length < wantLength)
+			if (packBuffer.Length < wantLength)
 			{
-				Console.WriteLine("Notice: DisplayGumpPacked creating new {0} byte buffer", wantLength);
-				m_PackBuffer = new byte[wantLength];
+				packBuffer = new byte[wantLength];
 			}
 
-			int packLength = m_PackBuffer.Length;
+			var packLength = packBuffer.Length;
 
-			Compression.Pack(m_PackBuffer, ref packLength, buffer, length, ZLibQuality.Default);
+			Compression.Pack(packBuffer, ref packLength, buffer, length, ZLibQuality.Default);
 
 			m_Stream.Write(4 + packLength);
 			m_Stream.Write(length);
-			m_Stream.Write(m_PackBuffer, 0, packLength);
+			m_Stream.Write(packBuffer, 0, packLength);
 
-			lock (m_PackBuffers)
-				m_PackBuffers.ReleaseBuffer(m_PackBuffer);
+			m_PackBuffers.ReleaseBuffer(ref packBuffer);
 		}
 	}
 
 	public sealed class DisplayGumpFast : Packet, IGumpWriter
 	{
+		private static readonly byte[] m_True = Gump.StringToBuffer(" 1");
+		private static readonly byte[] m_False = Gump.StringToBuffer(" 0");
+
+		private static readonly byte[] m_BeginTextSeparator = Gump.StringToBuffer(" @");
+		private static readonly byte[] m_EndTextSeparator = Gump.StringToBuffer("@");
+
+		private readonly byte[] m_Buffer = new byte[48];
+
 		private int m_LayoutLength;
 
 		public int TextEntries { get; set; }
 		public int Switches { get; set; }
 
-		public DisplayGumpFast(Gump g) : base(0xB0)
+		public DisplayGumpFast(Gump g)
+			: base(0xB0)
 		{
 			m_Buffer[0] = (byte)' ';
 
@@ -2702,14 +2913,6 @@ namespace Server.Network
 			m_Stream.Write((ushort)0xFFFF);
 		}
 
-		private static readonly byte[] m_True = Gump.StringToBuffer(" 1");
-		private static readonly byte[] m_False = Gump.StringToBuffer(" 0");
-
-		private static readonly byte[] m_BeginTextSeparator = Gump.StringToBuffer(" @");
-		private static readonly byte[] m_EndTextSeparator = Gump.StringToBuffer("@");
-
-		private readonly byte[] m_Buffer = new byte[48];
-
 		public void AppendLayout(bool val)
 		{
 			AppendLayout(val ? m_True : m_False);
@@ -2717,19 +2920,21 @@ namespace Server.Network
 
 		public void AppendLayout(int val)
 		{
-			string toString = val.ToString();
-			int bytes = System.Text.Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1) + 1;
+			var toString = val.ToString();
+			var bytes = Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1) + 1;
 
 			m_Stream.Write(m_Buffer, 0, bytes);
+
 			m_LayoutLength += bytes;
 		}
 
 		public void AppendLayoutNS(int val)
 		{
-			string toString = val.ToString();
-			int bytes = System.Text.Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1);
+			var toString = val.ToString();
+			var bytes = Encoding.ASCII.GetBytes(toString, 0, toString.Length, m_Buffer, 1);
 
 			m_Stream.Write(m_Buffer, 1, bytes);
+
 			m_LayoutLength += bytes;
 		}
 
@@ -2737,8 +2942,10 @@ namespace Server.Network
 		{
 			AppendLayout(m_BeginTextSeparator);
 
-			int length = text.Length;
+			var length = text.Length;
+
 			m_Stream.WriteAsciiFixed(text, length);
+
 			m_LayoutLength += length;
 
 			AppendLayout(m_EndTextSeparator);
@@ -2746,8 +2953,10 @@ namespace Server.Network
 
 		public void AppendLayout(byte[] buffer)
 		{
-			int length = buffer.Length;
+			var length = buffer.Length;
+
 			m_Stream.Write(buffer, 0, length);
+
 			m_LayoutLength += length;
 		}
 
@@ -2755,16 +2964,13 @@ namespace Server.Network
 		{
 			m_Stream.Seek(19, SeekOrigin.Begin);
 			m_Stream.Write((ushort)m_LayoutLength);
-			m_Stream.Seek(0, SeekOrigin.End);
 
+			m_Stream.Seek(0, SeekOrigin.End);
 			m_Stream.Write((ushort)text.Count);
 
-			for (int i = 0; i < text.Count; ++i)
+			for (var i = 0; i < text.Count; ++i)
 			{
-				string v = text[i];
-
-				if (v == null)
-					v = string.Empty;
+				var v = text[i] ?? string.Empty;
 
 				int length = (ushort)v.Length;
 
@@ -2774,15 +2980,18 @@ namespace Server.Network
 		}
 
 		public void Flush()
-		{
-		}
+		{ }
 	}
 
 	public sealed class DisplayGump : Packet
 	{
-		public DisplayGump(Gump g, string layout, string[] text) : base(0xB0)
+		public DisplayGump(Gump g, string layout, string[] text)
+			: base(0xB0)
 		{
-			if (layout == null) layout = "";
+			if (layout == null)
+			{
+				layout = "";
+			}
 
 			EnsureCapacity(256);
 
@@ -2795,11 +3004,9 @@ namespace Server.Network
 
 			m_Stream.Write((ushort)text.Length);
 
-			for (int i = 0; i < text.Length; ++i)
+			for (var i = 0; i < text.Length; ++i)
 			{
-				string v = text[i];
-
-				if (v == null) v = "";
+				var v = text[i] ?? string.Empty;
 
 				int length = (ushort)v.Length;
 
@@ -2829,7 +3036,24 @@ namespace Server.Network
 
 	public sealed class PopupMessage : Packet
 	{
-		public PopupMessage(PMMessage msg) : base(0x53, 2)
+		public static PopupMessage CharNoExist => PacketCache<PopupMessage>.Acquire(PMMessage.CharNoExist, m => new PopupMessage(m));
+		public static PopupMessage CharExists => PacketCache<PopupMessage>.Acquire(PMMessage.CharExists, m => new PopupMessage(m));
+		public static PopupMessage CharInWorld => PacketCache<PopupMessage>.Acquire(PMMessage.CharInWorld, m => new PopupMessage(m));
+		public static PopupMessage LoginSyncError => PacketCache<PopupMessage>.Acquire(PMMessage.LoginSyncError, m => new PopupMessage(m));
+		public static PopupMessage IdleWarning => PacketCache<PopupMessage>.Acquire(PMMessage.IdleWarning, m => new PopupMessage(m));
+
+		public static bool Send(NetState ns, PMMessage msg)
+		{
+			return ns != null && Send(ns, Instantiate(ns, msg));
+		}
+
+		public static PopupMessage Instantiate(NetState ns, PMMessage msg)
+		{
+			return PacketCache<PopupMessage>.Acquire(msg, m => new PopupMessage(m));
+		}
+
+		private PopupMessage(PMMessage msg)
+			: base(0x53, 2)
 		{
 			m_Stream.Write((byte)msg);
 		}
@@ -2912,6 +3136,37 @@ namespace Server.Network
 
 	public sealed class MapChange : Packet
 	{
+		public static MapChange Felucca => PacketCache<MapChange>.Acquire(0, id => new MapChange(id));
+		public static MapChange Trammel => PacketCache<MapChange>.Acquire(1, id => new MapChange(id));
+		public static MapChange Ilshenar => PacketCache<MapChange>.Acquire(2, id => new MapChange(id));
+		public static MapChange Malas => PacketCache<MapChange>.Acquire(3, id => new MapChange(id));
+		public static MapChange Tokuno => PacketCache<MapChange>.Acquire(4, id => new MapChange(id));
+		public static MapChange TerMur => PacketCache<MapChange>.Acquire(5, id => new MapChange(id));
+
+		public static bool Send(NetState ns)
+		{
+			return ns != null && Send(ns, Instantiate(ns));
+		}
+
+		public static MapChange Instantiate(NetState ns)
+		{
+			var mapID = ns.Mobile?.Map?.MapID ?? 0;
+
+			return PacketCache<MapChange>.Acquire(mapID, id => new MapChange(id));
+		}
+
+		private MapChange(int mapID)
+			: base(0xBF)
+		{
+			EnsureCapacity(6);
+
+			m_Stream.Write((short)0x08);
+			m_Stream.Write((byte)mapID);
+		}
+	}
+
+	/*public sealed class MapChange : Packet
+	{
 		public MapChange(Mobile m) : base(0xBF)
 		{
 			EnsureCapacity(6);
@@ -2919,9 +3174,9 @@ namespace Server.Network
 			m_Stream.Write((short)0x08);
 			m_Stream.Write((byte)(m.Map == null ? 0 : m.Map.MapID));
 		}
-	}
+	}*/
 
-	public sealed class SeasonChange : Packet
+	/*public sealed class SeasonChange : Packet
 	{
 		private static readonly SeasonChange[][] m_Cache = new SeasonChange[5][]
 			{
@@ -2968,9 +3223,45 @@ namespace Server.Network
 			m_Stream.Write((byte)season);
 			m_Stream.Write(playSound);
 		}
+	}*/
+
+	public sealed class SeasonChange : Packet
+	{
+		public static SeasonChange Spring => PacketCache<SeasonChange>.Acquire(1 << 0, () => new SeasonChange(0, false));
+		public static SeasonChange Summer => PacketCache<SeasonChange>.Acquire(1 << 1, () => new SeasonChange(1, false));
+		public static SeasonChange Autumn => PacketCache<SeasonChange>.Acquire(1 << 2, () => new SeasonChange(2, false));
+		public static SeasonChange Winter => PacketCache<SeasonChange>.Acquire(1 << 3, () => new SeasonChange(3, false));
+		public static SeasonChange Desolate => PacketCache<SeasonChange>.Acquire(1 << 4, () => new SeasonChange(4, false));
+
+		public static SeasonChange SpringSFX => PacketCache<SeasonChange>.Acquire(1 << 5, () => new SeasonChange(0, true));
+		public static SeasonChange SummerSFX => PacketCache<SeasonChange>.Acquire(1 << 6, () => new SeasonChange(1, true));
+		public static SeasonChange AutumnSFX => PacketCache<SeasonChange>.Acquire(1 << 7, () => new SeasonChange(2, true));
+		public static SeasonChange WinterSFX => PacketCache<SeasonChange>.Acquire(1 << 8, () => new SeasonChange(3, true));
+		public static SeasonChange DesolateSFX => PacketCache<SeasonChange>.Acquire(1 << 9, () => new SeasonChange(4, true));
+
+		public static bool Send(NetState ns, bool playSound)
+		{
+			return ns != null && Send(ns, Instantiate(ns, playSound));
+		}
+
+		public static SeasonChange Instantiate(NetState ns, bool playSound)
+		{
+			var season = Math.Max(0, Math.Min(4, ns.Mobile?.GetSeason() ?? 0));
+
+			var uid = 1 << (season + (playSound ? 5 : 0));
+
+			return PacketCache<SeasonChange>.Acquire(uid, () => new SeasonChange(season, playSound));
+		}
+
+		private SeasonChange(int season, bool playSound)
+			: base(0xBC, 3)
+		{
+			m_Stream.Write((byte)season);
+			m_Stream.Write(playSound);
+		}
 	}
 
-	public sealed class SupportedFeatures : Packet
+	/*public sealed class SupportedFeatures : Packet
 	{
 		public static FeatureFlags Value { get; set; }
 
@@ -2999,6 +3290,63 @@ namespace Server.Network
 			}
 
 			if (ns.ExtendedSupportedFeatures)
+			{
+				m_Stream.Write((uint)flags);
+			}
+			else
+			{
+				m_Stream.Write((ushort)flags);
+			}
+		}
+	}*/
+	public delegate void FeatureValidator(IAccount acct, ref FeatureFlags flags);
+
+	public sealed class SupportedFeatures : Packet
+	{
+		public static event FeatureValidator Validate;
+
+		public static FeatureFlags Value { get; set; }
+
+		public static bool Send(NetState ns)
+		{
+			return ns != null && Send(ns, Instantiate(ns));
+		}
+
+		public static SupportedFeatures Instantiate(NetState ns)
+		{
+			if (ns.ExtendedSupportedFeatures)
+			{
+				return new SupportedFeatures(ns.Account, true);
+			}
+
+			return new SupportedFeatures(ns.Account, false);
+		}
+
+		private SupportedFeatures(IAccount acct, bool extended)
+			: base(0xB9, extended ? 5 : 3)
+		{
+			var flags = ExpansionInfo.CoreExpansion.SupportedFeatures;
+
+			flags |= Value;
+
+			if (acct != null && acct.Limit >= 6)
+			{
+				flags |= FeatureFlags.LiveAccount;
+				flags &= ~FeatureFlags.UOTD;
+
+				if (acct.Limit > 6)
+				{
+					flags |= FeatureFlags.SeventhCharacterSlot;
+				}
+				else
+				{
+					flags |= FeatureFlags.SixthCharacterSlot;
+				}
+			}
+
+			Validate?.Invoke(acct, ref flags);
+
+			if (extended)
 			{
 				m_Stream.Write((uint)flags);
 			}
@@ -3263,7 +3611,7 @@ namespace Server.Network
 			if (type >= 5)
 			{
 				m_Stream.Write((short)m.MaxWeight);
-				m_Stream.Write((byte)(m.Race.RaceID + 1)); // Would be 0x00 if it's a non-ML enabled account but...
+				m_Stream.Write((byte)(m.Race.RaceId + 1)); // Would be 0x00 if it's a non-ML enabled account but...
 			}
 
 			m_Stream.Write((short)m.StatCap);
@@ -3300,13 +3648,13 @@ namespace Server.Network
 
 				for (int i = 0; i <= count; ++i)
 				{
-					m_Stream.Write((short)m.GetAOSStatus(i));
+					m_Stream.Write((short)m.GetAosStatus(i));
 				}
 			}
 		}
 	}
 
-	public sealed class MobileStatus : Packet
+	/*public sealed class MobileStatus : Packet
 	{
 		public MobileStatus(Mobile beholder, Mobile beheld)
 			: this(beholder, beheld, beheld.NetState)
@@ -3421,6 +3769,178 @@ namespace Server.Network
 					}
 				}
 			}
+		private void WriteAttr(int current, int maximum)
+		{
+			m_Stream.Write((short)current);
+			m_Stream.Write((short)maximum);
+		}
+
+		private void WriteAttrNorm(int current, int maximum)
+		{
+			AttributeNormalizer.WriteReverse(m_Stream, current, maximum);
+		}
+	}
+		}*/
+
+	public sealed class MobileStatus : Packet
+	{
+		public static bool Send(NetState ns, IDamageable beheld)
+		{
+			return ns != null && Send(ns, Instantiate(ns, beheld));
+		}
+
+		public static MobileStatus Instantiate(NetState ns, IDamageable beheld)
+		{
+			int type;
+
+			if (ns.Mobile != beheld)
+			{
+				type = 0;
+			}
+			else if (Core.ML && ns.ExtendedStatus)
+			{
+				type = 6;
+			}
+			else if (Core.ML && ns.SupportsExpansion(Expansion.ML))
+			{
+				type = 5;
+			}
+			else if (Core.AOS)
+			{
+				type = 4;
+			}
+			else
+			{
+				type = 3;
+			}
+
+			return new MobileStatus(ns.Mobile, beheld, type, ns.IsEnhancedClient);
+		}
+
+		private MobileStatus(Mobile beholder, IDamageable beheld, int type, bool enhanced)
+			: base(0x11)
+		{
+			var size = 3;
+
+			switch (type)
+			{
+				case 0:
+					size += 40;
+					break;
+				case 3:
+					size += 85;
+					break;
+				case 4:
+					size += 85;
+					break;
+				case 5:
+					size += 88;
+					break;
+				case 6:
+					size += enhanced ? 148 : 118;
+					break;
+				default:
+					type = 0;
+					goto case 0;
+			}
+
+			EnsureCapacity(size);
+
+			var name = beheld?.Name ?? String.Empty;
+
+			m_Stream.Write(beheld.Serial);
+			m_Stream.WriteAsciiFixed(name, 30);
+
+			if (type == 0)
+			{
+				WriteAttrNorm(beheld.Hits, beheld.HitsMax);
+			}
+			else
+			{
+				WriteAttr(beheld.Hits, beheld.HitsMax);
+			}
+
+			if (beheld is Mobile r)
+			{
+				m_Stream.Write(r.CanBeRenamedBy(beholder));
+			}
+			else
+			{
+				m_Stream.Write(false);
+			}
+
+			m_Stream.Write((byte)type);
+
+			if (type > 0 && beheld is Mobile m)
+			{
+				m_Stream.Write(m.Female);
+
+				m_Stream.Write((short)m.Str);
+				m_Stream.Write((short)m.Dex);
+				m_Stream.Write((short)m.Int);
+
+				WriteAttr(m.Stam, m.StamMax);
+				WriteAttr(m.Mana, m.ManaMax);
+
+				m_Stream.Write(m.TotalGold);
+
+				if (Core.AOS)
+				{
+					m_Stream.Write((short)m.PhysicalResistance);
+				}
+				else
+				{
+					m_Stream.Write((short)(m.ArmorRating + 0.5));
+				}
+
+				m_Stream.Write((short)(Mobile.BodyWeight + m.TotalWeight));
+
+				if (type >= 5)
+				{
+					m_Stream.Write((short)m.MaxWeight);
+					m_Stream.Write((byte)(m.Race.RaceId + 1)); // Would be 0x00 if it's a non-ML enabled account but...
+				}
+
+				m_Stream.Write((short)m.StatCap);
+
+				m_Stream.Write((byte)m.Followers);
+				m_Stream.Write((byte)m.FollowersMax);
+
+				if (type >= 4)
+				{
+					m_Stream.Write((short)m.FireResistance); // Fire
+					m_Stream.Write((short)m.ColdResistance); // Cold
+					m_Stream.Write((short)m.PoisonResistance); // Poison
+					m_Stream.Write((short)m.EnergyResistance); // Energy
+					m_Stream.Write((short)m.Luck); // Luck
+
+					var weapon = m.Weapon;
+
+					int min = 0, max = 0;
+
+					if (weapon != null)
+					{
+						weapon.GetStatusDamage(m, out min, out max);
+					}
+
+					m_Stream.Write((short)min); // Damage min
+					m_Stream.Write((short)max); // Damage max
+
+					m_Stream.Write(m.TithingPoints);
+				}
+
+				if (type >= 6)
+				{
+					var count = enhanced ? 28 : 14;
+
+					for (var i = 0; i <= count; ++i)
+					{
+						m_Stream.Write((short)m.GetAosStatus(i));
+					}
+				}
+			}
+
+			m_Stream.Fill();
 		}
 
 		private void WriteAttr(int current, int maximum)
@@ -3531,6 +4051,46 @@ namespace Server.Network
 
 	public sealed class MobileUpdate : Packet
 	{
+		public static bool Send(NetState ns, Mobile beheld)
+		{
+			return ns != null && Send(ns, Instantiate(ns, beheld));
+		}
+
+		public static MobileUpdate Instantiate(NetState ns, Mobile beheld)
+		{
+			if (ns.StygianAbyss)
+			{
+				return new MobileUpdate(beheld, beheld.GetPacketFlags());
+			}
+
+			return new MobileUpdate(beheld, beheld.GetOldPacketFlags());
+		}
+
+		private MobileUpdate(Mobile m, int flags)
+			: base(0x20, 19)
+		{
+			var hue = m.Hue;
+
+			if (m.SolidHueOverride >= 0)
+			{
+				hue = m.SolidHueOverride;
+			}
+
+			m_Stream.Write(m.Serial);
+			m_Stream.Write((short)m.Body);
+			m_Stream.Write((byte)0);
+			m_Stream.Write((short)hue);
+			m_Stream.Write((byte)flags);
+			m_Stream.Write((short)m.X);
+			m_Stream.Write((short)m.Y);
+			m_Stream.Write((short)0);
+			m_Stream.Write((byte)m.Direction);
+			m_Stream.Write((sbyte)m.Z);
+		}
+	}
+
+	/*public sealed class MobileUpdate : Packet
+	{
 		public MobileUpdate(Mobile m) : base(0x20, 19)
 		{
 			int hue = m.Hue;
@@ -3550,7 +4110,7 @@ namespace Server.Network
 			m_Stream.Write((byte)m.Direction);
 			m_Stream.Write((sbyte)m.Z);
 		}
-	}
+	}*/
 
 	// Pre-7.0.0.0 Mobile Update
 	public sealed class MobileUpdateOld : Packet
@@ -3577,6 +4137,203 @@ namespace Server.Network
 	}
 
 	public sealed class MobileIncoming : Packet
+	{
+		private static readonly ThreadLocal<int[]> m_DupedLayersTL = new ThreadLocal<int[]>(() => new int[256]);
+		private static readonly ThreadLocal<int> m_VersionTL = new ThreadLocal<int>();
+
+		public static bool Send(NetState ns, Mobile beheld)
+		{
+			return ns != null && Send(ns, Instantiate(ns, beheld));
+		}
+
+		public static MobileIncoming Instantiate(NetState ns, Mobile beheld)
+		{
+			if (ns.NewMobileIncoming)
+			{
+				return new MobileIncoming(ns.Mobile, beheld, beheld.GetPacketFlags(), true, false);
+			}
+
+			if (ns.StygianAbyss)
+			{
+				return new MobileIncoming(ns.Mobile, beheld, beheld.GetPacketFlags(), true, true);
+			}
+
+			return new MobileIncoming(ns.Mobile, beheld, beheld.GetOldPacketFlags(), false, true);
+		}
+
+		private MobileIncoming(Mobile beholder, Mobile beheld, int flags, bool useFace, bool prefixHues)
+			: base(0x78)
+		{
+			var m_Version = ++m_VersionTL.Value;
+			var m_DupedLayers = m_DupedLayersTL.Value;
+
+			var eq = beheld.Items;
+			var count = eq.Count;
+
+			if (beheld.HairItemId > 0)
+			{
+				count++;
+			}
+
+			if (beheld.FacialHairItemId > 0)
+			{
+				count++;
+			}
+
+			if (useFace && beheld.FaceItemId > 0)
+			{
+				count++;
+			}
+
+			EnsureCapacity(23 + (count * 9));
+
+			var hue = beheld.Hue;
+
+			if (beheld.SolidHueOverride >= 0)
+			{
+				hue = beheld.SolidHueOverride;
+			}
+
+			m_Stream.Write(beheld.Serial);
+			m_Stream.Write((short)beheld.Body);
+			m_Stream.Write((short)beheld.X);
+			m_Stream.Write((short)beheld.Y);
+			m_Stream.Write((sbyte)beheld.Z);
+			m_Stream.Write((byte)beheld.Direction);
+			m_Stream.Write((short)hue);
+			m_Stream.Write((byte)flags);
+			m_Stream.Write((byte)beheld.GetNotoriety(beholder));
+
+			for (var i = 0; i < eq.Count; ++i)
+			{
+				var item = eq[i];
+
+				var layer = (byte)item.Layer;
+
+				if (!item.Deleted && beholder.CanSee(item) && m_DupedLayers[layer] != m_Version)
+				{
+					m_DupedLayers[layer] = m_Version;
+
+					hue = item.Hue;
+
+					if (beheld.SolidHueOverride >= 0)
+					{
+						hue = beheld.SolidHueOverride;
+					}
+
+					var itemID = item.ItemId & (prefixHues ? 0x7FFF : 0xFFFF);
+
+					if (prefixHues && hue != 0)
+					{
+						itemID |= 0x8000;
+					}
+
+					m_Stream.Write(item.Serial);
+					m_Stream.Write((ushort)itemID);
+					m_Stream.Write(layer);
+
+					if (!prefixHues || hue != 0)
+					{
+						m_Stream.Write((short)hue);
+					}
+				}
+			}
+
+			if (beheld.HairItemId > 0)
+			{
+				if (m_DupedLayers[(int)Layer.Hair] != m_Version)
+				{
+					m_DupedLayers[(int)Layer.Hair] = m_Version;
+					hue = beheld.HairHue;
+
+					if (beheld.SolidHueOverride >= 0)
+					{
+						hue = beheld.SolidHueOverride;
+					}
+
+					var itemID = beheld.HairItemId & (prefixHues ? 0x7FFF : 0xFFFF);
+
+					if (prefixHues && hue != 0)
+					{
+						itemID |= 0x8000;
+					}
+
+					m_Stream.Write(HairInfo.FakeSerial(beheld));
+					m_Stream.Write((ushort)itemID);
+					m_Stream.Write((byte)Layer.Hair);
+
+					if (!prefixHues || hue != 0)
+					{
+						m_Stream.Write((short)hue);
+					}
+				}
+			}
+
+			if (beheld.FacialHairItemId > 0)
+			{
+				if (m_DupedLayers[(int)Layer.FacialHair] != m_Version)
+				{
+					m_DupedLayers[(int)Layer.FacialHair] = m_Version;
+					hue = beheld.FacialHairHue;
+
+					if (beheld.SolidHueOverride >= 0)
+					{
+						hue = beheld.SolidHueOverride;
+					}
+
+					var itemID = beheld.FacialHairItemId & (prefixHues ? 0x7FFF : 0xFFFF);
+
+					if (prefixHues && hue != 0)
+					{
+						itemID |= 0x8000;
+					}
+
+					m_Stream.Write(FacialHairInfo.FakeSerial(beheld));
+					m_Stream.Write((ushort)itemID);
+					m_Stream.Write((byte)Layer.FacialHair);
+
+					if (!prefixHues || hue != 0)
+					{
+						m_Stream.Write((short)hue);
+					}
+				}
+			}
+
+			if (useFace && beheld.FaceItemId > 0)
+			{
+				if (m_DupedLayers[(int)Layer.Face] != m_Version)
+				{
+					m_DupedLayers[(int)Layer.Face] = m_Version;
+					hue = beheld.FaceHue;
+
+					if (beheld.SolidHueOverride >= 0)
+					{
+						hue = beheld.SolidHueOverride;
+					}
+
+					var itemID = beheld.FaceItemId & (prefixHues ? 0x7FFF : 0xFFFF);
+
+					if (prefixHues && hue != 0)
+					{
+						itemID |= 0x8000;
+					}
+
+					m_Stream.Write(FaceInfo.FakeSerial(beheld));
+					m_Stream.Write((ushort)itemID);
+					m_Stream.Write((byte)Layer.Face);
+
+					if (!prefixHues || hue != 0)
+					{
+						m_Stream.Write((short)hue);
+					}
+				}
+			}
+
+			m_Stream.Write(0); // terminate
+		}
+	}
+
+	/*public sealed class MobileIncoming : Packet
 	{
 		public static Packet Create(NetState ns, Mobile beholder, Mobile beheld)
 		{
@@ -3693,7 +4450,7 @@ namespace Server.Network
 
 			m_Stream.Write(0); // terminate
 		}
-	}
+	}*/
 
 	public sealed class MobileIncomingSA : Packet
 	{
@@ -3712,9 +4469,9 @@ namespace Server.Network
 			List<Item> eq = beheld.Items;
 			int count = eq.Count;
 
-			if (beheld.HairItemID > 0)
+			if (beheld.HairItemId > 0)
 				count++;
-			if (beheld.FacialHairItemID > 0)
+			if (beheld.FacialHairItemId > 0)
 				count++;
 
 			EnsureCapacity(23 + (count * 9));
@@ -3765,7 +4522,7 @@ namespace Server.Network
 				}
 			}
 
-			if (beheld.HairItemID > 0)
+			if (beheld.HairItemId > 0)
 			{
 				if (m_DupedLayers[(int)Layer.Hair] != m_Version)
 				{
@@ -3775,7 +4532,7 @@ namespace Server.Network
 					if (beheld.SolidHueOverride >= 0)
 						hue = beheld.SolidHueOverride;
 
-					int itemID = beheld.HairItemID & 0x7FFF;
+					int itemID = beheld.HairItemId & 0x7FFF;
 
 					bool writeHue = (hue != 0);
 
@@ -3791,7 +4548,7 @@ namespace Server.Network
 				}
 			}
 
-			if (beheld.FacialHairItemID > 0)
+			if (beheld.FacialHairItemId > 0)
 			{
 				if (m_DupedLayers[(int)Layer.FacialHair] != m_Version)
 				{
@@ -3801,7 +4558,7 @@ namespace Server.Network
 					if (beheld.SolidHueOverride >= 0)
 						hue = beheld.SolidHueOverride;
 
-					int itemID = beheld.FacialHairItemID & 0x7FFF;
+					int itemID = beheld.FacialHairItemId & 0x7FFF;
 
 					bool writeHue = (hue != 0);
 
@@ -3839,9 +4596,9 @@ namespace Server.Network
 			List<Item> eq = beheld.Items;
 			int count = eq.Count;
 
-			if (beheld.HairItemID > 0)
+			if (beheld.HairItemId > 0)
 				count++;
-			if (beheld.FacialHairItemID > 0)
+			if (beheld.FacialHairItemId > 0)
 				count++;
 
 			EnsureCapacity(23 + (count * 9));
@@ -3892,7 +4649,7 @@ namespace Server.Network
 				}
 			}
 
-			if (beheld.HairItemID > 0)
+			if (beheld.HairItemId > 0)
 			{
 				if (m_DupedLayers[(int)Layer.Hair] != m_Version)
 				{
@@ -3902,7 +4659,7 @@ namespace Server.Network
 					if (beheld.SolidHueOverride >= 0)
 						hue = beheld.SolidHueOverride;
 
-					int itemID = beheld.HairItemID & 0x7FFF;
+					int itemID = beheld.HairItemId & 0x7FFF;
 
 					bool writeHue = (hue != 0);
 
@@ -3918,7 +4675,7 @@ namespace Server.Network
 				}
 			}
 
-			if (beheld.FacialHairItemID > 0)
+			if (beheld.FacialHairItemId > 0)
 			{
 				if (m_DupedLayers[(int)Layer.FacialHair] != m_Version)
 				{
@@ -3928,7 +4685,7 @@ namespace Server.Network
 					if (beheld.SolidHueOverride >= 0)
 						hue = beheld.SolidHueOverride;
 
-					int itemID = beheld.FacialHairItemID & 0x7FFF;
+					int itemID = beheld.FacialHairItemId & 0x7FFF;
 
 					bool writeHue = (hue != 0);
 
@@ -4491,6 +5248,7 @@ namespace Server.Network
 		}
 	}
 
+	[Flags]
 	public enum AffixType : byte
 	{
 		Append = 0x00,
@@ -4674,6 +5432,68 @@ namespace Server.Network
 		}
 	}
 
+	public static class PacketCache<P> where P : Packet
+	{
+		private static readonly ConcurrentDictionary<object, P> m_Instances = new ConcurrentDictionary<object, P>();
+
+		private static volatile P m_Instance;
+
+		public static P Global(Func<P> ctor)
+		{
+			if ((m_Instance?.State & PacketState.Static) != PacketState.Static)
+			{
+				return m_Instance = Packet.SetStatic(ctor());
+			}
+
+			return m_Instance;
+		}
+
+		public static P Acquire<K>(K key, Func<P> ctor)
+		{
+			if (!m_Instances.TryGetValue(key, out var p) || (p?.State & PacketState.Static) != PacketState.Static)
+			{
+				m_Instances[key] = p = Packet.SetStatic(ctor());
+			}
+
+			return p;
+		}
+
+		public static P Acquire<K>(K key, Func<K, P> ctor)
+		{
+			if (!m_Instances.TryGetValue(key, out var p) || (p?.State & PacketState.Static) != PacketState.Static)
+			{
+				m_Instances[key] = p = Packet.SetStatic(ctor(key));
+			}
+
+			return p;
+		}
+
+		public static void Free()
+		{
+			Packet.Release(Interlocked.Exchange(ref m_Instance, null));
+		}
+
+		public static void Free<K>(K key)
+		{
+			if (m_Instances.TryRemove(key, out var p))
+			{
+				Packet.Release(ref p);
+			}
+		}
+
+		public static void Clear()
+		{
+			Free();
+
+			if (m_Instances.Count > 0)
+			{
+				Parallel.ForEach(m_Instances.Values, Packet.Release);
+
+				m_Instances.Clear();
+			}
+		}
+	}
+
 	[Flags]
 	public enum PacketState
 	{
@@ -4685,6 +5505,282 @@ namespace Server.Network
 		Warned = 0x10
 	}
 
+	public abstract class Packet
+	{
+		private const int CompressorBufferSize = 0x10000;
+		private const int BufferSize = 4096;
+
+		private static readonly BufferPool m_CompressorBuffers = new BufferPool("Compressor", 4, CompressorBufferSize);
+		private static readonly BufferPool m_Buffers = new BufferPool("Compressed", 16, BufferSize);
+
+		public static bool Send(NetState ns, Packet p)
+		{
+			if (ns != null && p != null && ns.Socket != null && !ns.IsDisposing)
+			{
+				ns.Send(p);
+				return true;
+			}
+
+			return false;
+		}
+
+		public static T SetStatic<T>(T p) where T : Packet
+		{
+			p?.SetStatic();
+
+			return p;
+		}
+
+		public static T Acquire<T>(T p) where T : Packet
+		{
+			p?.Acquire();
+
+			return p;
+		}
+
+		public static void Release<T>(T p) where T : Packet
+		{
+			p?.Release();
+		}
+
+		public static void Release<T>(ref T p) where T : Packet
+		{
+			p?.Release();
+
+			p = null;
+		}
+
+		private readonly int m_PacketID;
+		private readonly int m_Length;
+
+		private volatile byte[] m_CompiledBuffer;
+		private volatile int m_CompiledLength;
+
+		private volatile PacketState m_State;
+
+		protected PacketWriter m_Stream;
+
+		public int PacketID => m_PacketID;
+
+		public PacketState State => m_State;
+		public PacketWriter Stream => m_Stream;
+
+		protected Packet(int packetID)
+		{
+			m_PacketID = packetID;
+
+			if (Core.Profiling)
+			{
+				var prof = PacketSendProfile.Acquire(GetType());
+				prof.Increment();
+			}
+		}
+
+		protected Packet(int packetID, int length)
+			: this(packetID, length, PacketWriter.CreateInstance(length))
+		{ }
+
+		protected Packet(int packetID, int length, PacketWriter stream)
+		{
+			m_PacketID = packetID;
+			m_Length = length;
+
+			m_Stream = stream;
+			m_Stream.Write((byte)packetID);
+
+			if (Core.Profiling)
+			{
+				var prof = PacketSendProfile.Acquire(GetType());
+
+				prof.Increment();
+			}
+		}
+
+		public void EnsureCapacity(int length)
+		{
+			m_Stream = PacketWriter.CreateInstance(length);
+
+			m_Stream.Write((byte)m_PacketID);
+			m_Stream.Write((short)0);
+		}
+
+		public void SetStatic()
+		{
+			m_State |= PacketState.Static | PacketState.Acquired;
+		}
+
+		public void Acquire()
+		{
+			m_State |= PacketState.Acquired;
+		}
+
+		public void OnSend()
+		{
+			Core.Set();
+
+			if ((m_State & (PacketState.Acquired | PacketState.Static)) == 0)
+			{
+				Free();
+			}
+		}
+
+		protected virtual void Free()
+		{
+			var buffer = Interlocked.Exchange(ref m_CompiledBuffer, null);
+
+			if (buffer == null)
+			{
+				return;
+			}
+
+			if ((m_State & PacketState.Buffered) != 0)
+			{
+				m_Buffers.ReleaseBuffer(ref buffer);
+			}
+
+			m_State &= ~(PacketState.Static | PacketState.Acquired | PacketState.Buffered);
+		}
+
+		public void Release()
+		{
+			if ((m_State & PacketState.Acquired) != 0)
+			{
+				Free();
+			}
+		}
+
+		public byte[] Compile(bool compress, out int length)
+		{
+			lock (this)
+			{
+				if (m_CompiledBuffer == null)
+				{
+					if ((m_State & PacketState.Accessed) == 0)
+					{
+						m_State |= PacketState.Accessed;
+					}
+					else
+					{
+						if ((m_State & PacketState.Warned) == 0)
+						{
+							m_State |= PacketState.Warned;
+
+							try
+							{
+								var trace = new StackTrace();
+								var notice = $"Redundant compile for packet 0x{m_PacketID:X2} ('{GetType().Name}'), use Acquire() and Release()";
+
+								Console.WriteLine($"Warning: {notice}");
+
+								File.AppendAllText("packet_errors.log", $"{DateTime.UtcNow}{Environment.NewLine}{notice}{Environment.NewLine}{trace}{Environment.NewLine}{Environment.NewLine}");
+							}
+							catch (Exception e)
+							{
+								//ExceptionLogging.LogException(e);
+							}
+						}
+
+						m_CompiledBuffer = new byte[0];
+
+						length = m_CompiledLength = 0;
+
+						return m_CompiledBuffer;
+					}
+
+					InternalCompile(compress);
+				}
+
+				length = m_CompiledLength;
+
+				return m_CompiledBuffer;
+			}
+		}
+
+		private void InternalCompile(bool compress)
+		{
+			if (m_Length == 0)
+			{
+				var streamLen = m_Stream.Length;
+
+				m_Stream.Seek(1, SeekOrigin.Begin);
+				m_Stream.Write((ushort)streamLen);
+			}
+			else if (m_Stream.Length != m_Length)
+			{
+				var diff = (int)m_Stream.Length - m_Length;
+
+				Console.WriteLine($"Packet: 0x{m_PacketID:X2}: Bad packet length! ({(diff >= 0 ? "+" : "")}{diff} bytes)");
+			}
+
+			var ms = m_Stream.UnderlyingStream;
+
+			m_CompiledBuffer = ms.GetBuffer();
+
+			var length = (int)ms.Length;
+
+			if (compress)
+			{
+				var buffer = m_CompressorBuffers.AcquireBuffer();
+
+				Compression.Compress(m_CompiledBuffer, 0, length, buffer, ref length);
+
+				if (length <= 0)
+				{
+					Console.WriteLine($"Warning: Compression buffer overflowed on packet 0x{m_PacketID:X2} ('{GetType().Name}') (length={length})");
+
+					using (var op = new StreamWriter("compression_overflow.log", true))
+					{
+						op.WriteLine($"{DateTime.UtcNow} Warning: Compression buffer overflowed on packet 0x{m_PacketID:X2} ('{GetType().Name}') (length={length})");
+						op.WriteLine(new StackTrace());
+					}
+				}
+				else
+				{
+					m_CompiledLength = length;
+
+					if (length > BufferSize || (m_State & PacketState.Static) != 0)
+					{
+						m_CompiledBuffer = new byte[length];
+					}
+					else
+					{
+						lock (m_Buffers)
+						{
+							m_CompiledBuffer = m_Buffers.AcquireBuffer();
+						}
+
+						m_State |= PacketState.Buffered;
+					}
+
+					Buffer.BlockCopy(buffer, 0, m_CompiledBuffer, 0, length);
+
+					m_CompressorBuffers.ReleaseBuffer(ref buffer);
+				}
+			}
+			else if (length > 0)
+			{
+				var old = m_CompiledBuffer;
+
+				m_CompiledLength = length;
+
+				if (length > BufferSize || (m_State & PacketState.Static) != 0)
+				{
+					m_CompiledBuffer = new byte[length];
+				}
+				else
+				{
+					m_CompiledBuffer = m_Buffers.AcquireBuffer();
+
+					m_State |= PacketState.Buffered;
+				}
+
+				Buffer.BlockCopy(old, 0, m_CompiledBuffer, 0, length);
+			}
+
+			PacketWriter.ReleaseInstance(ref m_Stream);
+		}
+	}
+	/*
 	public abstract class Packet
 	{
 		protected PacketWriter m_Stream;
@@ -4998,5 +6094,5 @@ namespace Server.Network
 			PacketWriter.ReleaseInstance(m_Stream);
 			m_Stream = null;
 		}
-	}
+	}*/
 }

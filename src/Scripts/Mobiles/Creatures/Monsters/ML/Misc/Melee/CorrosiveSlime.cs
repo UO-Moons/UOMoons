@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a corrosive slime";
 			Body = 51;
-			BaseSoundID = 456;
+			BaseSoundId = 456;
 
 			Hue = Utility.RandomSlimeHue();
 

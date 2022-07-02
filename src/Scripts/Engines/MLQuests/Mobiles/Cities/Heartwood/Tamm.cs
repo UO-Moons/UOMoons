@@ -43,7 +43,7 @@ public class Tamm : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8353;
-		HairItemID = 0x2FBF;
+		HairItemId = 0x2FBF;
 		HairHue = 0x386;
 	}
 

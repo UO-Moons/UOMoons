@@ -20,7 +20,7 @@ namespace Server.Mobiles
 		{
 			Name = "Semidar";
 			Body = 174;
-			BaseSoundID = 0x4B0;
+			BaseSoundId = 0x4B0;
 
 			SetStr(502, 600);
 			SetDex(102, 200);

@@ -153,7 +153,7 @@ namespace Server.Mobiles
 			public DrainTimer(HarrowerTentacles owner) : base(TimeSpan.FromSeconds(5.0), TimeSpan.FromSeconds(5.0))
 			{
 				m_Owner = owner;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			private static readonly ArrayList m_ToDrain = new ArrayList();

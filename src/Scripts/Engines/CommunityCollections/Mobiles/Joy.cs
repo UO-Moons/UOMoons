@@ -31,9 +31,9 @@ public class PastTreasures : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83F9;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 		HairHue = 0x45B;
-		FacialHairItemID = 0x2041;
+		FacialHairItemId = 0x2041;
 		FacialHairHue = 0x45B;
 	}
 

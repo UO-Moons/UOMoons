@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a Rai-Ju";
 			Body = 199;
-			BaseSoundID = 0x346;
+			BaseSoundId = 0x346;
 
 			SetStr(151, 225);
 			SetDex(81, 135);
@@ -92,7 +92,7 @@ namespace Server.Mobiles
 			public ExpireTimer(Mobile m, TimeSpan delay) : base(delay)
 			{
 				m_Mobile = m;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			public void DoExpire()

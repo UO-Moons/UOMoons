@@ -30,7 +30,7 @@ public class Lefty : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F4;
-		HairItemID = 0x203B;
+		HairItemId = 0x203B;
 		HairHue = 0x470;
 	}
 

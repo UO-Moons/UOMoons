@@ -259,7 +259,7 @@ namespace Server.Network
 						length = buffer.Length;
 
 						if (BufferSize >= packetLength)
-							m_Buffers.ReleaseBuffer(packetBuffer);
+							m_Buffers.ReleaseBuffer(ref packetBuffer);
 
 						if (prof != null)
 						{

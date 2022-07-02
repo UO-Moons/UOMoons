@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an alligator";
 			Body = 0xCA;
-			BaseSoundID = 660;
+			BaseSoundId = 660;
 
 			SetStr(76, 100);
 			SetDex(6, 25);
@@ -62,8 +62,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 0x5A)
-				BaseSoundID = 660;
+			if (BaseSoundId == 0x5A)
+				BaseSoundId = 660;
 		}
 	}
 }

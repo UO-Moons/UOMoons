@@ -41,10 +41,10 @@ namespace Server.Factions
 			AddItem(Immovable(Rehued(new Sandals(), 1645)));
 			AddItem(Newbied(new DoubleAxe()));
 
-			HairItemID = 0x2047; // Afro
+			HairItemId = 0x2047; // Afro
 			HairHue = 0x29;
 
-			FacialHairItemID = 0x204B; // Medium Short Beard
+			FacialHairItemId = 0x204B; // Medium Short Beard
 			FacialHairHue = 0x29;
 
 			PackItem(new Bandage(Utility.RandomMinMax(30, 40)));

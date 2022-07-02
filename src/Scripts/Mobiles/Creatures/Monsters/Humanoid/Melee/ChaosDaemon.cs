@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a chaos daemon";
 			Body = 792;
-			BaseSoundID = 0x3E9;
+			BaseSoundId = 0x3E9;
 
 			SetStr(106, 130);
 			SetDex(171, 200);

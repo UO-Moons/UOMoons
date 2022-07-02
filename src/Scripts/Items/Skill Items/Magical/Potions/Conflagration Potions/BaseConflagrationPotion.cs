@@ -289,7 +289,7 @@ namespace Server.Items
 					m_Item = item;
 					m_End = end;
 
-					Priority = TimerPriority.FiftyMS;
+					Priority = TimerPriority.FiftyMs;
 				}
 
 				protected override void OnTick()

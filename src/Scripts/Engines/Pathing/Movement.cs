@@ -33,7 +33,7 @@ public class MovementImpl : IMovementImpl
 		for (int i = 0; i < tiles.Length; ++i)
 		{
 			StaticTile check = tiles[i];
-			ItemData itemData = TileData.ItemTable[check.ID & TileData.MaxItemValue];
+			ItemData itemData = TileData.ItemTable[check.Id & TileData.MaxItemValue];
 
 			if ((itemData.Flags & ImpassableSurface) != 0) // Impassable || Surface
 			{
@@ -92,12 +92,12 @@ public class MovementImpl : IMovementImpl
 		StaticTile[] tiles = map.Tiles.GetStaticTiles(x, y, true);
 		LandTile landTile = map.Tiles.GetLandTile(x, y);
 
-		bool landBlocks = (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Impassable) != 0;
+		bool landBlocks = (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Impassable) != 0;
 		bool considerLand = !landTile.Ignored;
 
-		if (landBlocks && canSwim && (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)   //Impassable, Can Swim, and Is water.  Don't block it.
+		if (landBlocks && canSwim && (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)   //Impassable, Can Swim, and Is water.  Don't block it.
 			landBlocks = false;
-		else if (cantWalk && (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Wet) == 0)   //Can't walk and it's not water
+		else if (cantWalk && (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Wet) == 0)   //Can't walk and it's not water
 			landBlocks = true;
 
 		int landZ = 0, landCenter = 0, landTop = 0;
@@ -116,7 +116,7 @@ public class MovementImpl : IMovementImpl
 		for (int i = 0; i < tiles.Length; ++i)
 		{
 			StaticTile tile = tiles[i];
-			ItemData itemData = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+			ItemData itemData = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 			TileFlag flags = itemData.Flags;
 
 			if ((flags & ImpassableSurface) == TileFlag.Surface || (canSwim && (flags & TileFlag.Wet) != 0)) // Surface && !Impassable
@@ -488,11 +488,11 @@ public class MovementImpl : IMovementImpl
 
 		LandTile landTile = map.Tiles.GetLandTile(xCheck, yCheck);
 		int landZ = 0, landCenter = 0, landTop = 0;
-		bool landBlocks = (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Impassable) != 0;
+		bool landBlocks = (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Impassable) != 0;
 
-		if (landBlocks && m.CanSwim && (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)
+		if (landBlocks && m.CanSwim && (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)
 			landBlocks = false;
-		else if (m.CantWalk && (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Wet) == 0)
+		else if (m.CantWalk && (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Wet) == 0)
 			landBlocks = true;
 
 		map.GetAverageZ(xCheck, yCheck, ref landZ, ref landCenter, ref landTop);
@@ -518,7 +518,7 @@ public class MovementImpl : IMovementImpl
 		for (int i = 0; i < staticTiles.Length; ++i)
 		{
 			StaticTile tile = staticTiles[i];
-			ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+			ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 			int calcTop = (tile.Z + id.CalcHeight);
 

@@ -103,9 +103,9 @@ namespace Server.Mobiles
 
 			Title = "the mystic llama herder";
 			Hue = Race.Human.RandomSkinHue();
-			HairItemID = Race.Human.RandomHair(this);
+			HairItemId = Race.Human.RandomHair(this);
 			HairHue = Race.Human.RandomHairHue();
-			FacialHairItemID = Race.Human.RandomFacialHair(this);
+			FacialHairItemId = Race.Human.RandomFacialHair(this);
 			FacialHairHue = HairHue;
 
 			switch (Utility.Random(4))
@@ -131,9 +131,9 @@ namespace Server.Mobiles
 			Title = null;
 			BodyMod = 0;
 			Hue = 0;
-			HairItemID = 0;
+			HairItemId = 0;
 			HairHue = 0;
-			FacialHairItemID = 0;
+			FacialHairItemId = 0;
 			FacialHairHue = 0;
 
 			DeleteItemOnLayer(Layer.OuterTorso);
@@ -193,7 +193,7 @@ namespace Server.Mobiles
 			{
 				m_Mobile = m;
 				m_From = from;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			public void DoExpire()

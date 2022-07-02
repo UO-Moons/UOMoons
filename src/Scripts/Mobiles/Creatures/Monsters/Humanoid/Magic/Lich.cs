@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a lich";
 			Body = 24;
-			BaseSoundID = 0x3E9;
+			BaseSoundId = 0x3E9;
 
 			SetStr(171, 200);
 			SetDex(126, 145);

@@ -10,7 +10,7 @@ namespace Server.Engines.Quests.Samurai
 		{
 			Body = 0xE1;
 			Name = "an injured wolf";
-			BaseSoundID = 0xE5;
+			BaseSoundId = 0xE5;
 
 			Hue = Utility.RandomAnimalHue();
 

@@ -30,7 +30,7 @@ public class Asandos : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83FF;
-		HairItemID = 0x2044;
+		HairItemId = 0x2044;
 		HairHue = 0x1;
 	}
 

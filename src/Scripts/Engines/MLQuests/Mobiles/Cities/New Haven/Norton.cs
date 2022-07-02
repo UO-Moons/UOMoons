@@ -30,7 +30,7 @@ public class Norton : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F8;
-		HairItemID = 0x203B;
+		HairItemId = 0x203B;
 		HairHue = 0x472;
 	}
 

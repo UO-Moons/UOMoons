@@ -7,7 +7,7 @@ namespace Server.Mobiles
 		{
 			Name = "Silvani";
 			Body = 176;
-			BaseSoundID = 0x467;
+			BaseSoundId = 0x467;
 
 			SetStr(253, 400);
 			SetDex(157, 850);

@@ -9,7 +9,7 @@ public class Arielle : MondainQuester
 	public Arielle()
 		: base("Arielle")
 	{
-		BaseSoundID = 0x46F;
+		BaseSoundId = 0x46F;
 
 		SetSkill(SkillName.Focus, 60.0, 83.0);
 	}

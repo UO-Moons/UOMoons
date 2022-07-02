@@ -285,44 +285,44 @@ namespace Server.Items
             return false;
         }
 
-        public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
-        {
-            if (!Movable)
-                return false;
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
+		{
+			if (!Movable)
+				return false;
 
-            if (!CheckType(item))
-            {
-                if (message)
-                    m.SendLocalizedMessage(1074836); // The container can not hold that type of object.
+			if (!CheckType(item))
+			{
+				if (message)
+					m.SendLocalizedMessage(1074836); // The container can not hold that type of object.
 
-                return false;
-            }
+				return false;
+			}
 
-            Item ammo = Ammo;
+			Item ammo = Ammo;
 
-            if (ammo != null && ammo.Amount > 0)
-            {
-                if (IsArrowAmmo && item is CrossBowBolt)
-                    return false;
+			if (ammo != null && ammo.Amount > 0)
+			{
+				if (IsArrowAmmo && item is CrossBowBolt)
+					return false;
 
-                if (!IsArrowAmmo && item is Arrow)
-                    return false;
-            }
+				if (!IsArrowAmmo && item is Arrow)
+					return false;
+			}
 
-            if (!checkItems || Items.Count < DefaultMaxItems)
-            {
-                int currentAmount = 0;
+			if (!checkItems || Items.Count < DefaultMaxItems)
+			{
+				int currentAmount = 0;
 
-                Items.ForEach(i => currentAmount += i.Amount);
+				Items.ForEach(i => currentAmount += i.Amount);
 
-                if (item.Amount + currentAmount <= m_Capacity)
-                    return base.CheckHold(m, item, message, checkItems, plusItems, plusWeight);
-            }
+				if (item.Amount + currentAmount <= m_Capacity)
+					return base.CheckHold(m, item, message, checkItems, checkWeight, plusItems, plusWeight);
+			}
 
-            return false;
-        }
+			return false;
+		}
 
-        public override bool CheckStack(Mobile from, Item item)
+		public override bool CheckStack(Mobile from, Item item)
         {
             if (!CheckType(item))
             {

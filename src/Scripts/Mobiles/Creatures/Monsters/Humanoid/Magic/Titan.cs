@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a titan";
 			Body = 76;
-			BaseSoundID = 609;
+			BaseSoundId = 609;
 
 			SetStr(536, 585);
 			SetDex(126, 145);

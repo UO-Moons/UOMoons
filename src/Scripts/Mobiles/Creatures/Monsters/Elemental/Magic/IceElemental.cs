@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ice elemental";
 			Body = 161;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(156, 185);
 			SetDex(96, 115);

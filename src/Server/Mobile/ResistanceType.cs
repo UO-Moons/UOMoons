@@ -1,11 +1,10 @@
-namespace Server
+namespace Server;
+
+public enum ResistanceType
 {
-	public enum ResistanceType
-	{
-		Physical,
-		Fire,
-		Cold,
-		Poison,
-		Energy
-	}
+	Physical,
+	Fire,
+	Cold,
+	Poison,
+	Energy
 }

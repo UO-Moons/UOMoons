@@ -39,7 +39,7 @@ namespace Server.Items
 			{
 				m_Player = player;
 
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 
 				Start();
 			}
@@ -81,7 +81,7 @@ namespace Server.Items
 			{
 				m_Player = player;
 
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 
 				Start();
 			}

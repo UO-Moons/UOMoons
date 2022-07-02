@@ -17,7 +17,7 @@ namespace Server.Mobiles
 			Name = "a pestilent bandage";
 			Body = 154;
 			Hue = 0x515;
-			BaseSoundID = 471;
+			BaseSoundId = 471;
 
 			SetStr(691, 740);
 			SetDex(141, 180);

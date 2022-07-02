@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a dread spider";
 			Body = 11;
-			BaseSoundID = 1170;
+			BaseSoundId = 1170;
 
 			SetStr(196, 220);
 			SetDex(126, 145);
@@ -68,8 +68,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 263)
-				BaseSoundID = 1170;
+			if (BaseSoundId == 263)
+				BaseSoundId = 1170;
 		}
 	}
 }

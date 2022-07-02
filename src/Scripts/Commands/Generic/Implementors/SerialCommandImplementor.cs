@@ -15,7 +15,7 @@ public class SerialCommandImplementor : BaseCommandImplementor
 	{
 		if (e.Length >= 2)
 		{
-			Serial serial = e.GetInt32(0);
+			Serial serial = e.GetSerial(0);
 
 			object obj = null;
 

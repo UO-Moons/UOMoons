@@ -215,7 +215,7 @@ namespace Server.Mobiles
         {
             Name = "an ant lion";
             Body = 787;
-            BaseSoundID = 1006;
+            BaseSoundId = 1006;
 
             SetStr(296, 320);
             SetDex(81, 105);
@@ -265,7 +265,7 @@ namespace Server.Mobiles
         {
             Name = "an arctic ogre lord";
             Body = 135;
-            BaseSoundID = 427;
+            BaseSoundId = 427;
 
             SetStr(767, 945);
             SetDex(66, 75);
@@ -365,7 +365,7 @@ namespace Server.Mobiles
         {
             Name = "a bogling";
             Body = 779;
-            BaseSoundID = 422;
+            BaseSoundId = 422;
 
             SetStr(96, 120);
             SetDex(91, 115);
@@ -415,7 +415,7 @@ namespace Server.Mobiles
             Name = "a bull frog";
             Body = 81;
             Hue = Utility.RandomList(0x5AC, 0x5A3, 0x59A, 0x591, 0x588, 0x57F);
-            BaseSoundID = 0x266;
+            BaseSoundId = 0x266;
 
             SetStr(46, 70);
             SetDex(6, 25);
@@ -461,7 +461,7 @@ namespace Server.Mobiles
         {
             Name = "a chicken";
             Body = 0xD0;
-            BaseSoundID = 0x6E;
+            BaseSoundId = 0x6E;
 
             SetStr(5);
             SetDex(15);
@@ -507,7 +507,7 @@ namespace Server.Mobiles
         {
             Name = "a cow";
             Body = Utility.RandomList(0xD8, 0xE7);
-            BaseSoundID = 0x78;
+            BaseSoundId = 0x78;
 
             SetStr(30);
             SetDex(15);
@@ -555,7 +555,7 @@ namespace Server.Mobiles
         {
             Name = "a doppleganger";
             Body = 0x309;
-            BaseSoundID = 0x451;
+            BaseSoundId = 0x451;
 
             SetStr(81, 110);
             SetDex(56, 75);
@@ -602,7 +602,7 @@ namespace Server.Mobiles
         {
             Name = "a frost spider";
             Body = 20;
-            BaseSoundID = 0x388;
+            BaseSoundId = 0x388;
 
             SetStr(76, 100);
             SetDex(126, 145);
@@ -701,7 +701,7 @@ namespace Server.Mobiles
         {
             Name = "a lava serpent";
             Body = 90;
-            BaseSoundID = 219;
+            BaseSoundId = 219;
 
             SetStr(386, 415);
             SetDex(56, 80);
@@ -795,7 +795,7 @@ namespace Server.Mobiles
             Body = 189;
 
             Name = "an orc brute";
-            BaseSoundID = 0x45A;
+            BaseSoundId = 0x45A;
 
             SetStr(767, 945);
             SetDex(66, 75);
@@ -846,7 +846,7 @@ namespace Server.Mobiles
             Name = "a panther";
             Body = 0xD6;
             Hue = 0x901;
-            BaseSoundID = 0x462;
+            BaseSoundId = 0x462;
 
             SetStr(61, 85);
             SetDex(86, 105);
@@ -895,7 +895,7 @@ namespace Server.Mobiles
         {
             Name = "a sheep";
             Body = 0xCF;
-            BaseSoundID = 0xD6;
+            BaseSoundId = 0xD6;
 
             SetStr(19);
             SetDex(25);
@@ -941,7 +941,7 @@ namespace Server.Mobiles
         {
             Name = "a skeletal knight";
             Body = 147;
-            BaseSoundID = 451;
+            BaseSoundId = 451;
 
             SetStr(196, 250);
             SetDex(76, 95);
@@ -1054,7 +1054,7 @@ namespace Server.Mobiles
         {
             Name = "a wailing banshee";
             Body = 310;
-            BaseSoundID = 0x482;
+            BaseSoundId = 0x482;
 
             SetStr(126, 150);
             SetDex(76, 100);

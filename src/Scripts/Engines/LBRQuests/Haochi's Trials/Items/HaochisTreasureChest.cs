@@ -37,7 +37,7 @@ namespace Server.Engines.Quests.Samurai
 			}
 		}
 
-		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
 			return false;
 		}

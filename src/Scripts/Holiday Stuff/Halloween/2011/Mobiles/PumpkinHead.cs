@@ -19,7 +19,7 @@ namespace Server.Mobiles
 			Name = "a killer pumpkin";
 			Body = 1246 + Utility.Random(2);
 
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(350);
 			SetDex(125);

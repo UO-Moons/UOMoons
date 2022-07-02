@@ -400,7 +400,7 @@ public class Party : IParty
 		{
 			Mobile c = Members[i].Mobile;
 
-			if (c != m && m.Map == c.Map && Utility.InUpdateRange(c, m) && c.CanSee(m))
+			if (c != m && m.Map == c.Map && c.InUpdateRange(m) && c.CanSee(m))
 			{
 				p ??= Packet.Acquire(new MobileStamN(m));
 
@@ -419,7 +419,7 @@ public class Party : IParty
 		{
 			Mobile c = Members[i].Mobile;
 
-			if (c != m && m.Map == c.Map && Utility.InUpdateRange(c, m) && c.CanSee(m))
+			if (c != m && m.Map == c.Map && c.InUpdateRange(m) && c.CanSee(m))
 			{
 				p ??= Packet.Acquire(new MobileManaN(m));
 
@@ -432,7 +432,7 @@ public class Party : IParty
 
 	public void OnStatsQuery(Mobile beholder, Mobile beheld)
 	{
-		if (beholder != beheld && Contains(beholder) && beholder.Map == beheld.Map && Utility.InUpdateRange(beholder, beheld))
+		if (beholder != beheld && Contains(beholder) && beholder.Map == beheld.Map && beholder.InUpdateRange(beheld))
 		{
 			if (!beholder.CanSee(beheld))
 				beholder.Send(new MobileStatusCompact(beheld.CanBeRenamedBy(beholder), beheld));

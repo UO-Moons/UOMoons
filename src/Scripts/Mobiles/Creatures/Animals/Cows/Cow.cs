@@ -16,7 +16,7 @@ namespace Server.Mobiles
 		{
 			Name = "a cow";
 			Body = Utility.RandomList(0xD8, 0xE7);
-			BaseSoundID = 0x78;
+			BaseSoundId = 0x78;
 
 			SetStr(30);
 			SetDex(15);

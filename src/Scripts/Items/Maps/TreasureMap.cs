@@ -455,7 +455,7 @@ public class TreasureMap : MapItem
 			m_NextActionTime = from.NextActionTime;
 			m_LastMoveTime = from.LastMoveTime;
 
-			Priority = TimerPriority.TenMS;
+			Priority = TimerPriority.TenMs;
 		}
 
 		private void Terminate()
@@ -582,7 +582,7 @@ public class TreasureMap : MapItem
 				m_From = from;
 				m_SoundID = soundID;
 
-				Priority = TimerPriority.TenMS;
+				Priority = TimerPriority.TenMs;
 			}
 
 			protected override void OnTick()

@@ -38,7 +38,7 @@ namespace Server.Mobiles
             Name = "Travesty";
             Body = 0x108;
 
-            BaseSoundID = 0x46E;
+            BaseSoundId = 0x46E;
 
             SetStr(900, 950);
             SetDex(900, 950);
@@ -200,9 +200,9 @@ namespace Server.Mobiles
             NameMod = attacker.Name;
             Female = attacker.Female;
             Title = "(Travesty)";
-            HairItemID = attacker.HairItemID;
+            HairItemId = attacker.HairItemId;
             HairHue = attacker.HairHue;
-            FacialHairItemID = attacker.FacialHairItemID;
+            FacialHairItemId = attacker.FacialHairItemId;
             FacialHairHue = attacker.FacialHairHue;
 
             foreach (Item item in attacker.Items)

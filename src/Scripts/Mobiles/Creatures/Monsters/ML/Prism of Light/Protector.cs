@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Body = 401;
 			Female = true;
 			Hue = Race.Human.RandomSkinHue();
-			HairItemID = Race.Human.RandomHair(this);
+			HairItemId = Race.Human.RandomHair(this);
 			HairHue = Race.Human.RandomHairHue();
 
 			Name = "a Protector";

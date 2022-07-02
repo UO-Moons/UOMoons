@@ -376,8 +376,8 @@ namespace Server
 		public LineOfSight LOS { get { return m_LOS; } }
 		// XXX LOS
 		public static int GlobalUpdateRange { get; set; } = Settings.Configuration.Get<int>("Map", "UpdateRange", 18);
-
 		public static int GlobalMaxUpdateRange { get; set; } = Settings.Configuration.Get<int>("Map", "MaxUpdateRange", 24);
+		public static int GlobalRadarRange { get; set; } = Settings.Configuration.Get<int>("Map", "RadarRange", 40);
 
 		#region Compile-Time -> Run-Time Support
 #if Map_NewEnumerables || Map_AllUpdates
@@ -868,7 +868,7 @@ namespace Server
 			int lowZ = 0, avgZ = 0, topZ = 0;
 
 			GetAverageZ(x, y, ref lowZ, ref avgZ, ref topZ);
-			TileFlag landFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
+			TileFlag landFlags = TileData.LandTable[lt.Id & TileData.MaxLandValue].Flags;
 
 			if ((landFlags & TileFlag.Impassable) != 0 && avgZ > z && (z + height) > lowZ)
 				return false;
@@ -881,7 +881,7 @@ namespace Server
 
 			for (int i = 0; i < staticTiles.Length; ++i)
 			{
-				ItemData id = TileData.ItemTable[staticTiles[i].ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[staticTiles[i].Id & TileData.MaxItemValue];
 				surface = id.Surface;
 				impassable = id.Impassable;
 
@@ -954,7 +954,7 @@ namespace Server
 			bool wet = false;
 
 			GetAverageZ(x, y, ref lowZ, ref avgZ, ref topZ);
-			TileFlag landFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
+			TileFlag landFlags = TileData.LandTable[lt.Id & TileData.MaxLandValue].Flags;
 
 			impassable = (landFlags & TileFlag.Impassable) != 0;
 
@@ -981,7 +981,7 @@ namespace Server
 
 			for (int i = 0; i < staticTiles.Length; ++i)
 			{
-				ItemData id = TileData.ItemTable[staticTiles[i].ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[staticTiles[i].Id & TileData.MaxItemValue];
 				surface = id.Surface;
 				impassable = id.Impassable;
 				if (checkmob)
@@ -1366,7 +1366,7 @@ namespace Server
 				for (int j = 0; j < tiles.Length; ++j)
 				{
 					StaticTile tile = tiles[j];
-					ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+					ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 					int checkZ = tile.Z;
 					int checkTop = checkZ + id.CalcHeight;
@@ -1464,7 +1464,7 @@ namespace Server
 			for (int i = 0; i < staticTiles.Length; i++)
 			{
 				StaticTile tile = staticTiles[i];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 				if (id.Surface || (id.Flags & TileFlag.Wet) != 0)
 				{
@@ -2822,7 +2822,7 @@ namespace Server
 				StaticTile[] statics = Tiles.GetStaticTiles(point.m_X, point.m_Y, true);
 
 				bool contains = false;
-				int ltID = landTile.ID;
+				int ltID = landTile.Id;
 
 				for (int j = 0; !contains && j < InvalidLandTiles.Length; ++j)
 					contains = (ltID == InvalidLandTiles[j]);
@@ -2850,7 +2850,7 @@ namespace Server
 				{
 					StaticTile t = statics[j];
 
-					ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+					ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 
 					flags = id.Flags;
 					height = id.CalcHeight;

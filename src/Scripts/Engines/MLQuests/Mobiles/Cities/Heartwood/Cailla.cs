@@ -42,7 +42,7 @@ public class Cailla : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x876B;
-		HairItemID = 0x2FCE;
+		HairItemId = 0x2FCE;
 		HairHue = 0x2C8;
 	}
 

@@ -701,7 +701,7 @@ namespace Server.Misc
 			if (!GGSActive)
 				return false;
 
-			if (from is PlayerMobile && skill.NextGGSGain < DateTime.UtcNow)
+			if (from is PlayerMobile && skill.NextGgsGain < DateTime.UtcNow)
 			{
 				return true;
 			}
@@ -717,7 +717,7 @@ namespace Server.Misc
 			var list = (int)Math.Min(GGSTable.Length - 1, skill.Base / 5);
 			var column = from.Skills.Total >= 7000 ? 2 : from.Skills.Total >= 3500 ? 1 : 0;
 
-			skill.NextGGSGain = DateTime.UtcNow + TimeSpan.FromMinutes(GGSTable[list][column]);
+			skill.NextGgsGain = DateTime.UtcNow + TimeSpan.FromMinutes(GGSTable[list][column]);
 		}
 
 		private static readonly int[][] GGSTable =

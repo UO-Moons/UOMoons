@@ -50,11 +50,11 @@ public class HolyMage : BaseVendor
 			SetWearable(ApplyHue(new PlateGorget(), 0x47E));
 		}
 
-		HairItemID = Utility.Random(Female ? 2 : 1) switch
+		HairItemId = Utility.Random(Female ? 2 : 1) switch
 		{
 			0 => 0x203C,
 			1 => 0x203D,
-			_ => HairItemID
+			_ => HairItemId
 		};
 
 		HairHue = 0x47E;

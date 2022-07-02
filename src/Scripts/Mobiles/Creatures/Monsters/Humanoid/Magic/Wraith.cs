@@ -9,7 +9,7 @@ namespace Server.Mobiles
 			Name = "a wraith";
 			Body = 26;
 			Hue = 0x4001;
-			BaseSoundID = 0x482;
+			BaseSoundId = 0x482;
 
 			SetStr(76, 100);
 			SetDex(76, 95);

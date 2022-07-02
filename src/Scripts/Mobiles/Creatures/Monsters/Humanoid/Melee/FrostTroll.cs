@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a frost troll";
 			Body = 55;
-			BaseSoundID = 461;
+			BaseSoundId = 461;
 
 			SetStr(227, 265);
 			SetDex(66, 85);

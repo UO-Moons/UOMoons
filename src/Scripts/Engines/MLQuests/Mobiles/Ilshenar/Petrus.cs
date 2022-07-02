@@ -31,7 +31,7 @@ public class Petrus : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840C;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x3B3;
 	}
 

@@ -34,7 +34,7 @@ public class Beotham : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x876C;
-		HairItemID = 0x2FC0;
+		HairItemId = 0x2FC0;
 		HairHue = 0x238;
 	}
 

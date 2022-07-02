@@ -28,7 +28,7 @@ public class FastMovementImpl : IMovementImpl
 
 	private static bool IsOk(StaticTile tile, int ourZ, int ourTop)
 	{
-		ItemData itemData = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+		ItemData itemData = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 		return tile.Z + itemData.CalcHeight <= ourZ || ourTop <= tile.Z || (itemData.Flags & ImpassableSurface) == 0;
 	}
@@ -84,7 +84,7 @@ public class FastMovementImpl : IMovementImpl
 
 		StaticTile[] tiles = map.Tiles.GetStaticTiles(x, y, true);
 		LandTile landTile = map.Tiles.GetLandTile(x, y);
-		LandData landData = TileData.LandTable[landTile.ID & TileData.MaxLandValue];
+		LandData landData = TileData.LandTable[landTile.Id & TileData.MaxLandValue];
 		bool landBlocks = (landData.Flags & TileFlag.Impassable) != 0;
 		bool considerLand = !landTile.Ignored;
 
@@ -119,7 +119,7 @@ public class FastMovementImpl : IMovementImpl
 		#region Tiles
 		foreach (StaticTile tile in tiles)
 		{
-			itemData = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+			itemData = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 			#region SA
 			if (m.Flying && Insensitive.Equals(itemData.Name, "hover over"))
@@ -519,7 +519,7 @@ public class FastMovementImpl : IMovementImpl
 		int xCheck = loc.X, yCheck = loc.Y;
 
 		LandTile landTile = map.Tiles.GetLandTile(xCheck, yCheck);
-		LandData landData = TileData.LandTable[landTile.ID & TileData.MaxLandValue];
+		LandData landData = TileData.LandTable[landTile.Id & TileData.MaxLandValue];
 		bool landBlocks = (landData.Flags & TileFlag.Impassable) != 0;
 
 		if (landBlocks && m.CanSwim && (landData.Flags & TileFlag.Wet) != 0)
@@ -552,7 +552,7 @@ public class FastMovementImpl : IMovementImpl
 
 		foreach (StaticTile tile in staticTiles)
 		{
-			ItemData tileData = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+			ItemData tileData = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 			int calcTop = (tile.Z + tileData.CalcHeight);
 
 			if (isSet && calcTop < zCenter)

@@ -36,6 +36,6 @@ public class Configuration
 			PacketHandlers.SingleClickProps = true; // single click for everything is overriden to check object property list
 
 		Mobile.ActionDelay = 1000;
-		Mobile.AOSStatusHandler = AOS.GetStatus;
+		Mobile.AosStatusHandler = AOS.GetStatus;
 	}
 }

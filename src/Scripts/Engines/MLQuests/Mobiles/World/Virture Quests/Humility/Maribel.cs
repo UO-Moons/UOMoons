@@ -33,7 +33,7 @@ public class Maribel : HumilityQuestMobile
 		Body = 0x191;
 
 		Hue = 0x83EA;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 	}
 
 	public override void InitOutfit()

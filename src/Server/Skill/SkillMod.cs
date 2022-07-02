@@ -1,145 +1,125 @@
-﻿namespace Server
+namespace Server;
+
+public abstract class SkillMod
 {
-	public abstract class SkillMod
+	private Mobile _owner;
+	private SkillName _skill;
+	private bool _relative;
+	private double _value;
+	private bool _obeyCap;
+
+	protected SkillMod(SkillName skill, bool relative, double value)
 	{
-		private Mobile m_Owner;
-		private SkillName m_Skill;
-		private bool m_Relative;
-		private double m_Value;
-		private bool m_ObeyCap;
-
-		protected SkillMod(SkillName skill, bool relative, double value)
-		{
-			m_Skill = skill;
-			m_Relative = relative;
-			m_Value = value;
-		}
-
-		public bool ObeyCap
-		{
-			get => m_ObeyCap;
-			set
-			{
-				m_ObeyCap = value;
-
-				if (m_Owner != null)
-				{
-					Skill sk = m_Owner.Skills[m_Skill];
-
-					if (sk != null)
-						sk.Update();
-				}
-			}
-		}
-
-		public Mobile Owner
-		{
-			get => m_Owner;
-			set
-			{
-				if (m_Owner != value)
-				{
-					if (m_Owner != null)
-						m_Owner.RemoveSkillMod(this);
-
-					m_Owner = value;
-
-					if (m_Owner != value)
-						m_Owner.AddSkillMod(this);
-				}
-			}
-		}
-
-		public void Remove()
-		{
-			Owner = null;
-		}
-
-		public SkillName Skill
-		{
-			get => m_Skill;
-			set
-			{
-				if (m_Skill != value)
-				{
-					Skill oldUpdate = m_Owner?.Skills[m_Skill];
-
-					m_Skill = value;
-
-					if (m_Owner != null)
-					{
-						Skill sk = m_Owner.Skills[m_Skill];
-
-						if (sk != null)
-							sk.Update();
-					}
-
-					if (oldUpdate != null)
-						oldUpdate.Update();
-				}
-			}
-		}
-
-		public bool Relative
-		{
-			get => m_Relative;
-			set
-			{
-				if (m_Relative != value)
-				{
-					m_Relative = value;
-
-					if (m_Owner != null)
-					{
-						Skill sk = m_Owner.Skills[m_Skill];
-
-						if (sk != null)
-							sk.Update();
-					}
-				}
-			}
-		}
-
-		public bool Absolute
-		{
-			get => !m_Relative;
-			set
-			{
-				if (m_Relative == value)
-				{
-					m_Relative = !value;
-
-					if (m_Owner != null)
-					{
-						Skill sk = m_Owner.Skills[m_Skill];
-
-						if (sk != null)
-							sk.Update();
-					}
-				}
-			}
-		}
-
-		public double Value
-		{
-			get => m_Value;
-			set
-			{
-				if (m_Value != value)
-				{
-					m_Value = value;
-
-					if (m_Owner != null)
-					{
-						Skill sk = m_Owner.Skills[m_Skill];
-
-						if (sk != null)
-							sk.Update();
-					}
-				}
-			}
-		}
-
-		public abstract bool CheckCondition();
+		_skill = skill;
+		_relative = relative;
+		_value = value;
 	}
+
+	public bool ObeyCap
+	{
+		get => _obeyCap;
+		set
+		{
+			_obeyCap = value;
+
+			if (_owner != null)
+			{
+				Skill sk = _owner.Skills[_skill];
+
+				sk?.Update();
+			}
+		}
+	}
+
+	public Mobile Owner
+	{
+		get => _owner;
+		set
+		{
+			if (_owner != value)
+			{
+				_owner?.RemoveSkillMod(this);
+
+				_owner = value;
+
+				if (_owner != value)
+					_owner.AddSkillMod(this);
+			}
+		}
+	}
+
+	public void Remove()
+	{
+		Owner = null;
+	}
+
+	public SkillName Skill
+	{
+		get => _skill;
+		set
+		{
+			if (_skill != value)
+			{
+				Skill oldUpdate = _owner?.Skills[_skill];
+
+				_skill = value;
+
+				Skill sk = _owner?.Skills[_skill];
+
+				sk?.Update();
+
+				oldUpdate?.Update();
+			}
+		}
+	}
+
+	public bool Relative
+	{
+		get => _relative;
+		set
+		{
+			if (_relative != value)
+			{
+				_relative = value;
+
+				Skill sk = _owner?.Skills[_skill];
+
+				sk?.Update();
+			}
+		}
+	}
+
+	public bool Absolute
+	{
+		get => !_relative;
+		set
+		{
+			if (_relative == value)
+			{
+				_relative = !value;
+
+				Skill sk = _owner?.Skills[_skill];
+
+				sk?.Update();
+			}
+		}
+	}
+
+	public double Value
+	{
+		get => _value;
+		set
+		{
+			if (_value != value)
+			{
+				_value = value;
+
+				Skill sk = _owner?.Skills[_skill];
+
+				sk?.Update();
+			}
+		}
+	}
+
+	public abstract bool CheckCondition();
 }

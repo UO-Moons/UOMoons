@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a boar";
 			Body = 0x122;
-			BaseSoundID = 0xC4;
+			BaseSoundId = 0xC4;
 
 			SetStr(25);
 			SetDex(15);

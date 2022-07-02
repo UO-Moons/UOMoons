@@ -2,182 +2,181 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Server
+namespace Server;
+
+public class AggressorInfo
 {
-	public class AggressorInfo
+	private Mobile _attacker, _defender;
+	private DateTime _lastCombatTime;
+	private bool _canReportMurder;
+	private bool _reported;
+	private bool _criminalAggression;
+
+	private bool _queued;
+
+	private static readonly Queue<AggressorInfo> m_Pool = new();
+
+	public static TimeSpan ExpireDelay { get; set; } = TimeSpan.FromMinutes(2.0);
+
+	private AggressorInfo(Mobile attacker, Mobile defender, bool criminal)
 	{
-		private Mobile m_Attacker, m_Defender;
-		private DateTime m_LastCombatTime;
-		private bool m_CanReportMurder;
-		private bool m_Reported;
-		private bool m_CriminalAggression;
+		_attacker = attacker;
+		_defender = defender;
 
-		private bool m_Queued;
+		_canReportMurder = criminal;
+		_criminalAggression = criminal;
 
-		private static readonly Queue<AggressorInfo> m_Pool = new();
+		Refresh();
+	}
 
-		public static TimeSpan ExpireDelay { get; set; } = TimeSpan.FromMinutes(2.0);
+	public static AggressorInfo Create(Mobile attacker, Mobile defender, bool criminal)
+	{
+		AggressorInfo info;
 
-		private AggressorInfo(Mobile attacker, Mobile defender, bool criminal)
+		if (m_Pool.Count > 0)
 		{
-			m_Attacker = attacker;
-			m_Defender = defender;
+			info = m_Pool.Dequeue();
 
-			m_CanReportMurder = criminal;
-			m_CriminalAggression = criminal;
+			info._attacker = attacker;
+			info._defender = defender;
 
-			Refresh();
+			info._canReportMurder = criminal;
+			info._criminalAggression = criminal;
+
+			info._queued = false;
+
+			info.Refresh();
+		}
+		else
+		{
+			info = new AggressorInfo(attacker, defender, criminal);
 		}
 
-		public static AggressorInfo Create(Mobile attacker, Mobile defender, bool criminal)
+		return info;
+	}
+
+	public void Free()
+	{
+		if (_queued)
+			return;
+
+		_queued = true;
+		m_Pool.Enqueue(this);
+	}
+
+	public static void DumpAccess()
+	{
+		using StreamWriter op = new("warnings.log", true);
+		op.WriteLine("Warning: Access to queued AggressorInfo:");
+		op.WriteLine(new System.Diagnostics.StackTrace());
+		op.WriteLine();
+		op.WriteLine();
+	}
+
+	public bool Expired
+	{
+		get
 		{
-			AggressorInfo info;
-
-			if (m_Pool.Count > 0)
-			{
-				info = m_Pool.Dequeue();
-
-				info.m_Attacker = attacker;
-				info.m_Defender = defender;
-
-				info.m_CanReportMurder = criminal;
-				info.m_CriminalAggression = criminal;
-
-				info.m_Queued = false;
-
-				info.Refresh();
-			}
-			else
-			{
-				info = new AggressorInfo(attacker, defender, criminal);
-			}
-
-			return info;
-		}
-
-		public void Free()
-		{
-			if (m_Queued)
-				return;
-
-			m_Queued = true;
-			m_Pool.Enqueue(this);
-		}
-
-		public static void DumpAccess()
-		{
-			using StreamWriter op = new("warnings.log", true);
-			op.WriteLine("Warning: Access to queued AggressorInfo:");
-			op.WriteLine(new System.Diagnostics.StackTrace());
-			op.WriteLine();
-			op.WriteLine();
-		}
-
-		public bool Expired
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return (m_Attacker.Deleted || m_Defender.Deleted || DateTime.UtcNow >= (m_LastCombatTime + ExpireDelay));
-			}
-		}
-
-		public bool CriminalAggression
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_CriminalAggression;
-			}
-			set
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				m_CriminalAggression = value;
-			}
-		}
-
-		public Mobile Attacker
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_Attacker;
-			}
-		}
-
-		public Mobile Defender
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_Defender;
-			}
-		}
-
-		public DateTime LastCombatTime
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_LastCombatTime;
-			}
-		}
-
-		public bool Reported
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_Reported;
-			}
-			set
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				m_Reported = value;
-			}
-		}
-
-		public bool CanReportMurder
-		{
-			get
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				return m_CanReportMurder;
-			}
-			set
-			{
-				if (m_Queued)
-					DumpAccess();
-
-				m_CanReportMurder = value;
-			}
-		}
-
-		public void Refresh()
-		{
-			if (m_Queued)
+			if (_queued)
 				DumpAccess();
 
-			m_LastCombatTime = DateTime.UtcNow;
-			m_Reported = false;
+			return _attacker.Deleted || _defender.Deleted || DateTime.UtcNow >= _lastCombatTime + ExpireDelay;
 		}
+	}
+
+	public bool CriminalAggression
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _criminalAggression;
+		}
+		set
+		{
+			if (_queued)
+				DumpAccess();
+
+			_criminalAggression = value;
+		}
+	}
+
+	public Mobile Attacker
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _attacker;
+		}
+	}
+
+	public Mobile Defender
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _defender;
+		}
+	}
+
+	public DateTime LastCombatTime
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _lastCombatTime;
+		}
+	}
+
+	public bool Reported
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _reported;
+		}
+		set
+		{
+			if (_queued)
+				DumpAccess();
+
+			_reported = value;
+		}
+	}
+
+	public bool CanReportMurder
+	{
+		get
+		{
+			if (_queued)
+				DumpAccess();
+
+			return _canReportMurder;
+		}
+		set
+		{
+			if (_queued)
+				DumpAccess();
+
+			_canReportMurder = value;
+		}
+	}
+
+	public void Refresh()
+	{
+		if (_queued)
+			DumpAccess();
+
+		_lastCombatTime = DateTime.UtcNow;
+		_reported = false;
 	}
 }

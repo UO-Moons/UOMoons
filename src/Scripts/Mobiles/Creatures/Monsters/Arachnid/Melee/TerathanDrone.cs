@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a terathan drone";
 			Body = 71;
-			BaseSoundID = 594;
+			BaseSoundId = 594;
 
 			SetStr(36, 65);
 			SetDex(96, 145);
@@ -67,8 +67,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 589)
-				BaseSoundID = 594;
+			if (BaseSoundId == 589)
+				BaseSoundId = 594;
 		}
 	}
 }

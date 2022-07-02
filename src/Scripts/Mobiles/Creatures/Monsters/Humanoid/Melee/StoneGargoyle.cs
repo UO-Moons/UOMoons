@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a stone gargoyle";
 			Body = 67;
-			BaseSoundID = 0x174;
+			BaseSoundId = 0x174;
 
 			SetStr(246, 275);
 			SetDex(76, 95);

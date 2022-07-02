@@ -2,192 +2,193 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Server
+namespace Server;
+
+public sealed class FileIndex
 {
-    public sealed class FileIndex
-    {
-        public Entry3D[] Index { get; }
-        public Stream Stream { get; private set; }
-        public long IdxLength { get; }
-        private readonly string MulPath;
+	public Entry3D[] Index { get; }
+	public Stream Stream { get; private set; }
+	public long IdxLength { get; }
+	private readonly string _mulPath;
 
-        public Stream Seek(int index, out int length, out int extra, out bool patched)
-        {
-            if (index < 0 || index >= Index.Length)
-            {
-                length = extra = 0;
-                patched = false;
-                return null;
-            }
+	public Stream Seek(int index, out int length, out int extra, out bool patched)
+	{
+		if (index < 0 || index >= Index.Length)
+		{
+			length = extra = 0;
+			patched = false;
+			return null;
+		}
 
-            Entry3D e = Index[index];
+		Entry3D e = Index[index];
 
-            if (e.lookup < 0)
-            {
-                length = extra = 0;
-                patched = false;
-                return null;
-            }
+		if (e.lookup < 0)
+		{
+			length = extra = 0;
+			patched = false;
+			return null;
+		}
 
-            length = e.length & 0x7FFFFFFF;
-            extra = e.extra;
+		length = e.length & 0x7FFFFFFF;
+		extra = e.extra;
 
-            if (e.length < 0)
-            {
-                length = extra = 0;
-                patched = false;
-                return null;
-            }
+		if (e.length < 0)
+		{
+			length = extra = 0;
+			patched = false;
+			return null;
+		}
 
-            if ((Stream == null) || (!Stream.CanRead) || (!Stream.CanSeek))
-            {
-                if (MulPath == null)
-                {
-                    Stream = null;
-                }
-                else
-                {
-                    Stream = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-                }
-            }
+		if (Stream is not {CanRead: true, CanSeek: true})
+		{
+			if (_mulPath == null)
+			{
+				Stream = null;
+			}
+			else
+			{
+				Stream = new FileStream(_mulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+			}
+		}
 
-            if (Stream == null)
-            {
-                length = extra = 0;
-                patched = false;
-                return null;
-            }
-            else if (Stream.Length < e.lookup)
-            {
-                length = extra = 0;
-                patched = false;
-                return null;
-            }
+		if (Stream == null)
+		{
+			length = extra = 0;
+			patched = false;
+			return null;
+		}
 
-            patched = false;
+		if (Stream.Length < e.lookup)
+		{
+			length = extra = 0;
+			patched = false;
+			return null;
+		}
 
-            Stream.Seek(e.lookup, SeekOrigin.Begin);
-            return Stream;
-        }
+		patched = false;
 
-        public FileIndex(
-            string uopFile,
-            int length,
-            string uopEntryExtension,
-            int idxLength,
-            bool hasExtra)
-        {
-            Index = new Entry3D[length];
+		Stream.Seek(e.lookup, SeekOrigin.Begin);
+		return Stream;
+	}
 
-            MulPath = Core.FindDataFile(uopFile);
+	public FileIndex(
+		string uopFile,
+		int length,
+		string uopEntryExtension,
+		int idxLength,
+		bool hasExtra)
+	{
+		Index = new Entry3D[length];
 
-            /* UOP files support code, written by Wyatt (c) www.ruosi.org
-			 * idxLength variable was added for compatibility with legacy code for art (see art.cs)
-			 * At the moment the only UOP file having entries with extra field is gumpartlegacy.uop,
-			 * and it's two dwords in the beginning of the entry.
-			 * It's possible that UOP can include some entries with unknown hash: not really unknown for me, but
-			 * not useful for reading legacy entries. That's why i removed unknown hash exception throwing from this code
-			 */
-            if (MulPath != null && MulPath.EndsWith(".uop"))
-            {
-	            using FileStream index = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-	            Stream = new FileStream(MulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+		_mulPath = Core.FindDataFile(uopFile);
 
-	            FileInfo fi = new FileInfo(MulPath);
-	            string uopPattern = fi.Name.Replace(fi.Extension, "").ToLowerInvariant();
+		/* UOP files support code, written by Wyatt (c) www.ruosi.org
+		 * idxLength variable was added for compatibility with legacy code for art (see art.cs)
+		 * At the moment the only UOP file having entries with extra field is gumpartlegacy.uop,
+		 * and it's two dwords in the beginning of the entry.
+		 * It's possible that UOP can include some entries with unknown hash: not really unknown for me, but
+		 * not useful for reading legacy entries. That's why i removed unknown hash exception throwing from this code
+		 */
+		if (_mulPath != null && _mulPath.EndsWith(".uop"))
+		{
+			using FileStream index = new(_mulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+			Stream = new FileStream(_mulPath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-	            using (BinaryReader br = new BinaryReader(Stream))
-	            {
-		            br.BaseStream.Seek(0, SeekOrigin.Begin);
+			FileInfo fi = new(_mulPath);
+			string uopPattern = fi.Name.Replace(fi.Extension, "").ToLowerInvariant();
 
-		            if (br.ReadInt32() != 0x50594D)
-			            return;
+			using (BinaryReader br = new(Stream))
+			{
+				br.BaseStream.Seek(0, SeekOrigin.Begin);
 
-		            br.ReadInt64(); // version + signature
-		            long nextBlock = br.ReadInt64();
-		            br.ReadInt32(); // block capacity
-		            int count = br.ReadInt32();
+				if (br.ReadInt32() != 0x50594D)
+					return;
 
-		            if (idxLength > 0)
-		            {
-			            IdxLength = idxLength * 12;
-		            }
+				br.ReadInt64(); // version + signature
+				long nextBlock = br.ReadInt64();
+				br.ReadInt32(); // block capacity
+				br.ReadInt32();
+				//int count = br.ReadInt32();
 
-		            Dictionary<ulong, int> hashes = new Dictionary<ulong, int>();
+				if (idxLength > 0)
+				{
+					IdxLength = idxLength * 12;
+				}
 
-		            for (int i = 0; i < length; i++)
-		            {
-			            string entryName = $"build/{uopPattern}/{i:D8}{uopEntryExtension}";
-			            ulong hash = UOPHash.HashLittle2(entryName);
+				Dictionary<ulong, int> hashes = new();
 
-			            if (!hashes.ContainsKey(hash))
-			            {
-				            hashes.Add(hash, i);
-			            }
-		            }
+				for (int i = 0; i < length; i++)
+				{
+					string entryName = $"build/{uopPattern}/{i:D8}{uopEntryExtension}";
+					ulong hash = UopHash.HashLittle2(entryName);
 
-		            br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
+					if (!hashes.ContainsKey(hash))
+					{
+						hashes.Add(hash, i);
+					}
+				}
 
-		            do
-		            {
-			            int filesCount = br.ReadInt32();
-			            nextBlock = br.ReadInt64();
+				br.BaseStream.Seek(nextBlock, SeekOrigin.Begin);
 
-			            for (int i = 0; i < filesCount; i++)
-			            {
-				            long offset = br.ReadInt64();
-				            int headerLength = br.ReadInt32();
-				            int compressedLength = br.ReadInt32();
-				            int decompressedLength = br.ReadInt32();
-				            ulong hash = br.ReadUInt64();
-				            br.ReadUInt32(); // Adler32
-				            short flag = br.ReadInt16();
+				do
+				{
+					int filesCount = br.ReadInt32();
+					nextBlock = br.ReadInt64();
 
-				            int entryLength = flag == 1 ? compressedLength : decompressedLength;
+					for (int i = 0; i < filesCount; i++)
+					{
+						long offset = br.ReadInt64();
+						int headerLength = br.ReadInt32();
+						int compressedLength = br.ReadInt32();
+						int decompressedLength = br.ReadInt32();
+						ulong hash = br.ReadUInt64();
+						br.ReadUInt32(); // Adler32
+						short flag = br.ReadInt16();
 
-				            if (offset == 0)
-				            {
-					            continue;
-				            }
+						int entryLength = flag == 1 ? compressedLength : decompressedLength;
 
-				            if (hashes.TryGetValue(hash, out int idx))
-				            {
-					            if (idx < 0 || idx > Index.Length)
-						            return;
+						if (offset == 0)
+						{
+							continue;
+						}
 
-					            Index[idx].lookup = (int)(offset + headerLength);
-					            Index[idx].length = entryLength;
+						if (hashes.TryGetValue(hash, out int idx))
+						{
+							if (idx < 0 || idx > Index.Length)
+								return;
 
-					            if (hasExtra)
-					            {
-						            long curPos = br.BaseStream.Position;
+							Index[idx].lookup = (int)(offset + headerLength);
+							Index[idx].length = entryLength;
 
-						            br.BaseStream.Seek(offset + headerLength, SeekOrigin.Begin);
+							if (hasExtra)
+							{
+								long curPos = br.BaseStream.Position;
 
-						            byte[] extra = br.ReadBytes(8);
+								br.BaseStream.Seek(offset + headerLength, SeekOrigin.Begin);
 
-						            ushort extra1 = (ushort)((extra[3] << 24) | (extra[2] << 16) | (extra[1] << 8) | extra[0]);
-						            ushort extra2 = (ushort)((extra[7] << 24) | (extra[6] << 16) | (extra[5] << 8) | extra[4]);
+								byte[] extra = br.ReadBytes(8);
 
-						            Index[idx].lookup += 8;
-						            Index[idx].extra = extra1 << 16 | extra2;
+								ushort extra1 = (ushort)((extra[3] << 24) | (extra[2] << 16) | (extra[1] << 8) | extra[0]);
+								ushort extra2 = (ushort)((extra[7] << 24) | (extra[6] << 16) | (extra[5] << 8) | extra[4]);
 
-						            br.BaseStream.Seek(curPos, SeekOrigin.Begin);
-					            }
-				            }
-			            }
-		            }
-		            while (br.BaseStream.Seek(nextBlock, SeekOrigin.Begin) != 0);
-	            }
-            }
-        }
-    }
+								Index[idx].lookup += 8;
+								Index[idx].extra = extra1 << 16 | extra2;
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct Entry3D
-    {
-        public int lookup;
-        public int length;
-        public int extra;
-    }
+								br.BaseStream.Seek(curPos, SeekOrigin.Begin);
+							}
+						}
+					}
+				}
+				while (br.BaseStream.Seek(nextBlock, SeekOrigin.Begin) != 0);
+			}
+		}
+	}
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 1)]
+public struct Entry3D
+{
+	public int lookup;
+	public int length;
+	public int extra;
 }

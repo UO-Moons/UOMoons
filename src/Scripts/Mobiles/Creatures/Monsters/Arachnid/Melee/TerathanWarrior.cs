@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a terathan warrior";
 			Body = 70;
-			BaseSoundID = 589;
+			BaseSoundId = 589;
 
 			SetStr(166, 215);
 			SetDex(96, 145);

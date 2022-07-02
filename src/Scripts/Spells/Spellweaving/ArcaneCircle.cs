@@ -83,7 +83,7 @@ namespace Server.Spells.Spellweaving
         {
             LandTile lt = map.Tiles.GetLandTile(location.X, location.Y);         // Land   Tiles            
 
-            if (IsValidTile(lt.ID) && lt.Z == location.Z)
+            if (IsValidTile(lt.Id) && lt.Z == location.Z)
                 return true;
 
             StaticTile[] tiles = map.Tiles.GetStaticTiles(location.X, location.Y); // Static Tiles
@@ -91,9 +91,9 @@ namespace Server.Spells.Spellweaving
             for (int i = 0; i < tiles.Length; ++i)
             {
                 StaticTile t = tiles[i];
-                ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+                ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 
-                int tand = t.ID;
+                int tand = t.Id;
 
                 if (t.Z + id.CalcHeight != location.Z)
                     continue;

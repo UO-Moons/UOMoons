@@ -40,7 +40,7 @@ public class Salaenih : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x851D;
-		HairItemID = 0x2FCD;
+		HairItemId = 0x2FCD;
 		HairHue = 0x324;
 	}
 

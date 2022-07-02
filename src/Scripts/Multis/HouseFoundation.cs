@@ -227,7 +227,7 @@ namespace Server.Multis
             for (int i = 0; i < list.Length; ++i)
             {
                 MultiTileEntry mte = list[i];
-                int itemID = mte.m_ItemID;
+                int itemID = mte.ItemId;
 
                 if (itemID >= 0x181D && itemID < 0x1829)
                 {
@@ -237,7 +237,7 @@ namespace Server.Multis
                 }
                 else
                 {
-                    BaseDoor door = AddDoor(from, itemID, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
+                    BaseDoor door = AddDoor(from, itemID, mte.OffsetX, mte.OffsetY, mte.OffsetZ);
 
                     if (door != null)
                     {
@@ -358,7 +358,7 @@ namespace Server.Multis
         public void AddFixture(Item item, MultiTileEntry mte)
         {
             Fixtures.Add(item);
-            item.MoveToWorld(new Point3D(X + mte.m_OffsetX, Y + mte.m_OffsetY, Z + mte.m_OffsetZ), Map);
+            item.MoveToWorld(new Point3D(X + mte.OffsetX, Y + mte.OffsetY, Z + mte.OffsetZ), Map);
         }
 
         public static void GetFoundationGraphics(FoundationType type, out int east, out int south, out int post, out int corner)
@@ -775,8 +775,8 @@ namespace Server.Multis
 
         public static void Initialize()
         {
-            //EventSink.OnMultiDesign += QueryDesignDetails;
-            PacketHandlers.RegisterExtended(0x1E, true, new OnPacketReceive(QueryDesignDetails));
+            EventSink.OnMultiDesign += QueryDesignDetails;
+            //PacketHandlers.RegisterExtended(0x1E, true, new OnPacketReceive(QueryDesignDetails));
 
 			PacketHandlers.RegisterEncoded(0x02, true, new OnEncodedPacketReceive(Designer_Backup));
             PacketHandlers.RegisterEncoded(0x03, true, new OnEncodedPacketReceive(Designer_Restore));
@@ -1235,7 +1235,7 @@ namespace Server.Multis
 
                     if (tile.Z == (z + 5))
                     {
-                        id = tile.ID;
+                        id = tile.Id;
                         z = tile.Z;
 
                         if (!IsStairBlock(id))
@@ -1299,7 +1299,7 @@ namespace Server.Multis
                 y = yStart + (i * yInc);
 
                 for (int j = 0; j <= i; ++j)
-                    mcl.RemoveXYZH(x, y, zStart + (j * 5), 5);
+                    mcl.RemoveXyzh(x, y, zStart + (j * 5), 5);
 
                 ax = x + mcl.Center.X;
                 ay = y + mcl.Center.Y;
@@ -1311,7 +1311,7 @@ namespace Server.Multis
                     bool hasBaseFloor = false;
 
                     for (int j = 0; !hasBaseFloor && j < tiles.Length; ++j)
-                        hasBaseFloor = (tiles[j].Z == 7 && tiles[j].ID != 1);
+                        hasBaseFloor = (tiles[j].Z == 7 && tiles[j].Id != 1);
 
                     if (!hasBaseFloor)
                         mcl.Add(0x31F4, x, y, 7);
@@ -1372,7 +1372,7 @@ namespace Server.Multis
                     bool hasBaseFloor = false;
 
                     for (int i = 0; !hasBaseFloor && i < tiles.Length; ++i)
-                        hasBaseFloor = (tiles[i].Z == 7 && tiles[i].ID != 1);
+                        hasBaseFloor = (tiles[i].Z == 7 && tiles[i].Id != 1);
 
                     if (!hasBaseFloor)
                     {
@@ -1464,9 +1464,9 @@ namespace Server.Multis
                     {
                         MultiTileEntry entry = stairs.List[i];
 
-                        if (entry.m_ItemID != 1)
+                        if (entry.ItemId != 1)
                         {
-                            mcl.Add(entry.m_ItemID, x + entry.m_OffsetX, y + entry.m_OffsetY, z + entry.m_OffsetZ);
+                            mcl.Add(entry.ItemId, x + entry.OffsetX, y + entry.OffsetY, z + entry.OffsetZ);
                         }
                     }
                 }
@@ -1666,47 +1666,47 @@ namespace Server.Multis
             }
         }
 
-		/*public static void QueryDesignDetails(NetState state, PacketReader pvSrc)
-        {
-            var multi = World.FindItem(pvSrc.ReadInt32()) as BaseMulti;
-
-            if (multi != null)
-            {
-                EventSink.OnMultiDesign(state, multi);
-            }
-        }
-
-        public static void QueryDesignDetails(NetState e, BaseMulti m)
-        {
-            QueryDesignDetails(e, m);
-        }
-
-        public static void QueryDesignDetails(NetState state, BaseMulti multi)
-        {
-            Mobile from = state.Mobile;
-            DesignContext context = DesignContext.Find(from);
-
-            HouseFoundation foundation = multi as HouseFoundation;
-
-            if (foundation != null && from.Map == foundation.Map)
-            {
-                var range = foundation.GetUpdateRange(from);
-
-                if (Utility.InRange(from.Location, foundation.GetWorldLocation(), range) && from.CanSee(foundation))
-                {
-                    DesignState stateToSend;
-
-                    if (context != null && context.Foundation == foundation)
-                        stateToSend = foundation.DesignState;
-                    else
-                        stateToSend = foundation.CurrentState;
-
-                    stateToSend.SendDetailedInfoTo(state);
-                }
-            }
-        }*/
-
 		public static void QueryDesignDetails(NetState state, PacketReader pvSrc)
+		{
+			BaseMulti multi = World.FindItem(pvSrc.ReadSerial()) as BaseMulti;
+
+			if (multi != null)
+			{
+				EventSink.InvokeMultiDesignQuery(new MultiDesignQueryEventArgs(state, multi));
+			}
+		}
+
+		public static void QueryDesignDetails(MultiDesignQueryEventArgs e)
+		{
+			QueryDesignDetails(e.NetState, e.Multi);
+		}
+
+		public static void QueryDesignDetails(NetState state, BaseMulti multi)
+		{
+			Mobile from = state.Mobile;
+			DesignContext context = DesignContext.Find(from);
+
+			HouseFoundation foundation = multi as HouseFoundation;
+
+			if (foundation != null && from.Map == foundation.Map)
+			{
+				int range = foundation.GetUpdateRange(from);
+
+				if (Utility.InRange(from.Location, foundation.GetWorldLocation(), range) && from.CanSee(foundation))
+				{
+					DesignState stateToSend;
+
+					if (context != null && context.Foundation == foundation)
+						stateToSend = foundation.DesignState;
+					else
+						stateToSend = foundation.CurrentState;
+
+					stateToSend.SendDetailedInfoTo(state);
+				}
+			}
+		}
+
+		/*public static void QueryDesignDetails(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 			DesignContext context = DesignContext.Find(from);
@@ -1724,7 +1724,7 @@ namespace Server.Multis
 
 				stateToSend.SendDetailedInfoTo(state);
 			}
-		}
+		}*/
 
 		public static void Designer_Roof(NetState state, IEntity e, EncodedReader pvSrc)
         {
@@ -1760,8 +1760,8 @@ namespace Server.Multis
                 {
                     MultiTileEntry mte = list[i];
 
-                    if (mte.m_OffsetX == x && mte.m_OffsetY == y && GetZLevel(mte.m_OffsetZ, context.Foundation) == context.Level && (TileData.ItemTable[mte.m_ItemID & TileData.MaxItemValue].Flags & TileFlag.Roof) != 0)
-                        mcl.Remove(mte.m_ItemID, x, y, mte.m_OffsetZ);
+                    if (mte.OffsetX == x && mte.OffsetY == y && GetZLevel(mte.OffsetZ, context.Foundation) == context.Level && (TileData.ItemTable[mte.ItemId & TileData.MaxItemValue].Flags & TileFlag.Roof) != 0)
+                        mcl.Remove(mte.ItemId, x, y, mte.OffsetZ);
                 }
 
                 mcl.Add(itemID, x, y, z);
@@ -1870,15 +1870,15 @@ namespace Server.Multis
 
                         for (int i = 0; i < length; ++i)
                         {
-                            Fixtures[i].m_ItemID = reader.ReadUShort();
-                            Fixtures[i].m_OffsetX = reader.ReadShort();
-                            Fixtures[i].m_OffsetY = reader.ReadShort();
-                            Fixtures[i].m_OffsetZ = reader.ReadShort();
+                            Fixtures[i].ItemId = reader.ReadUShort();
+                            Fixtures[i].OffsetX = reader.ReadShort();
+                            Fixtures[i].OffsetY = reader.ReadShort();
+                            Fixtures[i].OffsetZ = reader.ReadShort();
 
                             if (version > 0)
-                                Fixtures[i].m_Flags = (TileFlag)reader.ReadULong();
+                                Fixtures[i].Flags = (TileFlag)reader.ReadULong();
                             else
-                                Fixtures[i].m_Flags = (TileFlag)reader.ReadUInt();
+                                Fixtures[i].Flags = (TileFlag)reader.ReadUInt();
                         }
 
                         Revision = reader.ReadInt();
@@ -1900,12 +1900,12 @@ namespace Server.Multis
             {
                 MultiTileEntry ent = Fixtures[i];
 
-                writer.Write(ent.m_ItemID);
-                writer.Write(ent.m_OffsetX);
-                writer.Write(ent.m_OffsetY);
-                writer.Write(ent.m_OffsetZ);
+                writer.Write(ent.ItemId);
+                writer.Write(ent.OffsetX);
+                writer.Write(ent.OffsetY);
+                writer.Write(ent.OffsetZ);
 
-                writer.Write((ulong)ent.m_Flags);
+                writer.Write((ulong)ent.Flags);
             }
 
             writer.Write(Revision);
@@ -1952,7 +1952,7 @@ namespace Server.Multis
             {
                 MultiTileEntry mte = Fixtures[i];
 
-                Components.Add(mte.m_ItemID, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
+                Components.Add(mte.ItemId, mte.OffsetX, mte.OffsetY, mte.OffsetZ);
             }
 
             Fixtures = new MultiTileEntry[0];
@@ -1969,7 +1969,7 @@ namespace Server.Multis
             {
                 MultiTileEntry mte = list[i];
 
-                if (IsFixture(mte.m_ItemID))
+                if (IsFixture(mte.ItemId))
                     ++length;
             }
 
@@ -1979,10 +1979,10 @@ namespace Server.Multis
             {
                 MultiTileEntry mte = list[i];
 
-                if (IsFixture(mte.m_ItemID))
+                if (IsFixture(mte.ItemId))
                 {
                     Fixtures[--length] = mte;
-                    Components.Remove(mte.m_ItemID, mte.m_OffsetX, mte.m_OffsetY, mte.m_OffsetZ);
+                    Components.Remove(mte.ItemId, mte.OffsetX, mte.OffsetY, mte.OffsetZ);
                 }
             }
         }
@@ -2355,10 +2355,10 @@ namespace Server.Multis
             for (int i = 0; i < tiles.Length; ++i)
             {
                 MultiTileEntry mte = tiles[i];
-                int x = mte.m_OffsetX - xMin;
-                int y = mte.m_OffsetY - yMin;
-                int z = mte.m_OffsetZ;
-                bool floor = (TileData.ItemTable[mte.m_ItemID & TileData.MaxItemValue].Height <= 0);
+                int x = mte.OffsetX - xMin;
+                int y = mte.OffsetY - yMin;
+                int z = mte.OffsetZ;
+                bool floor = (TileData.ItemTable[mte.ItemId & TileData.MaxItemValue].Height <= 0);
                 int plane, size;
 
                 switch (z)
@@ -2375,12 +2375,12 @@ namespace Server.Multis
 
                             int byteIndex = (totalStairsUsed % MaxItemsPerStairBuffer) * 5;
 
-                            stairBuffer[byteIndex++] = (byte)(mte.m_ItemID >> 8);
-                            stairBuffer[byteIndex++] = (byte)mte.m_ItemID;
+                            stairBuffer[byteIndex++] = (byte)(mte.ItemId >> 8);
+                            stairBuffer[byteIndex++] = (byte)mte.ItemId;
 
-                            stairBuffer[byteIndex++] = (byte)mte.m_OffsetX;
-                            stairBuffer[byteIndex++] = (byte)mte.m_OffsetY;
-                            stairBuffer[byteIndex++] = (byte)mte.m_OffsetZ;
+                            stairBuffer[byteIndex++] = (byte)mte.OffsetX;
+                            stairBuffer[byteIndex++] = (byte)mte.OffsetY;
+                            stairBuffer[byteIndex++] = (byte)mte.OffsetZ;
 
                             ++totalStairsUsed;
 
@@ -2413,20 +2413,20 @@ namespace Server.Multis
 
                     int byteIndex = (totalStairsUsed % MaxItemsPerStairBuffer) * 5;
 
-                    stairBuffer[byteIndex++] = (byte)(mte.m_ItemID >> 8);
-                    stairBuffer[byteIndex++] = (byte)mte.m_ItemID;
+                    stairBuffer[byteIndex++] = (byte)(mte.ItemId >> 8);
+                    stairBuffer[byteIndex++] = (byte)mte.ItemId;
 
-                    stairBuffer[byteIndex++] = (byte)mte.m_OffsetX;
-                    stairBuffer[byteIndex++] = (byte)mte.m_OffsetY;
-                    stairBuffer[byteIndex++] = (byte)mte.m_OffsetZ;
+                    stairBuffer[byteIndex++] = (byte)mte.OffsetX;
+                    stairBuffer[byteIndex++] = (byte)mte.OffsetY;
+                    stairBuffer[byteIndex++] = (byte)mte.OffsetZ;
 
                     ++totalStairsUsed;
                 }
                 else
                 {
                     m_PlaneUsed[plane] = true;
-                    m_PlaneBuffers[plane][index] = (byte)(mte.m_ItemID >> 8);
-                    m_PlaneBuffers[plane][index + 1] = (byte)mte.m_ItemID;
+                    m_PlaneBuffers[plane][index] = (byte)(mte.ItemId >> 8);
+                    m_PlaneBuffers[plane][index + 1] = (byte)mte.ItemId;
                 }
             }
 
@@ -2440,7 +2440,7 @@ namespace Server.Multis
             {
                 if (!m_PlaneUsed[i])
                 {
-                    m_PlaneBufferPool.ReleaseBuffer(m_PlaneBuffers[i]);
+                    m_PlaneBufferPool.ReleaseBuffer(ref m_PlaneBuffers[i]);
                     continue;
                 }
 
@@ -2475,7 +2475,7 @@ namespace Server.Multis
 
                 totalLength += 4 + deflatedLength;
                 lock (m_PlaneBufferPool)
-                    m_PlaneBufferPool.ReleaseBuffer(inflatedBuffer);
+                    m_PlaneBufferPool.ReleaseBuffer(ref inflatedBuffer);
             }
 
             int totalStairBuffersUsed = (totalStairsUsed + (MaxItemsPerStairBuffer - 1)) / MaxItemsPerStairBuffer;
@@ -2514,10 +2514,10 @@ namespace Server.Multis
 
             lock (m_StairBufferPool)
                 for (int i = 0; i < m_StairBuffers.Length; ++i)
-                    m_StairBufferPool.ReleaseBuffer(m_StairBuffers[i]);
+                    m_StairBufferPool.ReleaseBuffer(ref m_StairBuffers[i]);
 
             lock (m_DeflatedBufferPool)
-                m_DeflatedBufferPool.ReleaseBuffer(m_DeflatedBuffer);
+                m_DeflatedBufferPool.ReleaseBuffer(ref m_DeflatedBuffer);
 
             m_Stream.Seek(15, System.IO.SeekOrigin.Begin);
 

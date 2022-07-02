@@ -31,7 +31,7 @@ namespace Server.Mobiles
 			Name = "Meraktus";
 			Title = "the Tormented";
 			Body = 263;
-			BaseSoundID = 680;
+			BaseSoundId = 680;
 			Hue = 0x835;
 
 			SetStr(1419, 1438);

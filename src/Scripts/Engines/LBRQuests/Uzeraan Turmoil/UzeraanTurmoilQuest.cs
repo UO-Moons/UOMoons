@@ -80,8 +80,8 @@ namespace Server.Engines.Quests.Haven
 			{
 				switch (From.Profession)
 				{
-					case 1: return 0x15C9; // warrior
-					case 2: return 0x15C1; // magician
+					case Profession.Warrior: return 0x15C9; // warrior
+					case Profession.Mage: return 0x15C1; // magician
 					default: return 0x15D3; // paladin
 				}
 			}

@@ -32,7 +32,7 @@ public class Gorrow : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8412;
-		HairItemID = 0x2047;
+		HairItemId = 0x2047;
 		HairHue = 0x465;
 	}
 

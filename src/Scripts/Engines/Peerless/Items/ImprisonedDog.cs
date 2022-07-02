@@ -85,9 +85,9 @@ namespace Server.Mobiles
             Name = to.Name;
             Female = to.Female;
             Title = to.Title;
-            HairItemID = to.HairItemID;
+            HairItemId = to.HairItemId;
             HairHue = to.HairHue;
-            FacialHairItemID = to.FacialHairItemID;
+            FacialHairItemId = to.FacialHairItemId;
             FacialHairHue = to.FacialHairHue;
 
             for (int i = to.Items.Count - 1; i >= 0; i--)
@@ -113,9 +113,9 @@ namespace Server.Mobiles
             Name = m_Name;
             Female = false;
             Title = null;
-            HairItemID = 0;
+            HairItemId = 0;
             HairHue = 0;
-            FacialHairItemID = 0;
+            FacialHairItemId = 0;
             FacialHairHue = 0;
 
             m_Name = null;

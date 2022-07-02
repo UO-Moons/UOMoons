@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ice fiend";
 			Body = 43;
-			BaseSoundID = 357;
+			BaseSoundId = 357;
 
 			SetStr(376, 405);
 			SetDex(176, 195);

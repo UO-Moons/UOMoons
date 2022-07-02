@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a copper elemental";
 			Body = 109;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(226, 255);
 			SetDex(126, 145);

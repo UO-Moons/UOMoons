@@ -31,9 +31,9 @@ public class WizardsCompendium : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83F3;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x386;
-		FacialHairItemID = 0x203F;
+		FacialHairItemId = 0x203F;
 		FacialHairHue = 0x386;
 	}
 

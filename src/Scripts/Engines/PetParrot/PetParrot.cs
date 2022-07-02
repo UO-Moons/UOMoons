@@ -19,7 +19,7 @@ namespace Server.Mobiles
 			Name = "a pet parrot";
 			Title = "the parrot";
 			Body = 0x11A;
-			BaseSoundID = 0xBF;
+			BaseSoundId = 0xBF;
 
 			SetStr(1, 5);
 			SetDex(25, 30);
@@ -66,7 +66,7 @@ namespace Server.Mobiles
 
 		public override void OnStatsQuery(Mobile from)
 		{
-			if (from.Map != Map || !Utility.InUpdateRange(this, from) || !from.CanSee(this)) return;
+			if (from.Map != Map || !from.InUpdateRange(from) || !from.CanSee(this)) return;
 			BaseHouse house = BaseHouse.FindHouseAt(this);
 
 			if (house != null && house.IsCoOwner(from) && from.IsPlayer())
@@ -75,7 +75,7 @@ namespace Server.Mobiles
 			if (house != null && house.IsCoOwner(from) && from.IsStaff() )
 				from.SendAsciiMessage("As the house owner and staff member, you may rename this Parrot.");
 
-			_ = from.Send(new Network.MobileStatus(from, this));
+			Network.MobileStatus.Send(from.NetState, this);
 		}
 
 		public override void GetProperties(ObjectPropertyList list)

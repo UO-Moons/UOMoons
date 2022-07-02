@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("fire gargoyle");
 			Body = 130;
-			BaseSoundID = 0x174;
+			BaseSoundId = 0x174;
 
 			SetStr(351, 400);
 			SetDex(126, 145);

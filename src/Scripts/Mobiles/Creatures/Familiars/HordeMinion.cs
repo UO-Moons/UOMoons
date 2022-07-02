@@ -17,7 +17,7 @@ namespace Server.Mobiles
 		{
 			Name = "a horde minion";
 			Body = 776;
-			BaseSoundID = 0x39D;
+			BaseSoundId = 0x39D;
 
 			SetStr(100);
 			SetDex(110);

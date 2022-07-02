@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a corporeal brume";
 			Body = 0x104; // TODO: Verify
-			BaseSoundID = 0x56B;
+			BaseSoundId = 0x56B;
 
 			SetStr(400, 450);
 			SetDex(100, 150);

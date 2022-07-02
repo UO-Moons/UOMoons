@@ -8,7 +8,7 @@ namespace Server.Mobiles
 			Name = "a death adder";
 			Body = 0x15;
 			Hue = 0x455;
-			BaseSoundID = 219;
+			BaseSoundId = 219;
 
 			SetStr(70);
 			SetDex(150);

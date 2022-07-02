@@ -29,7 +29,7 @@ public class Kia : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8418;
-		HairItemID = 0x2046;
+		HairItemId = 0x2046;
 		HairHue = 0x466;
 	}
 

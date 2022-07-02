@@ -30,8 +30,8 @@ public class OilAndOubliette : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83F3;
-		HairItemID = 0x203C;
-		FacialHairItemID = 0x2040;
+		HairItemId = 0x203C;
+		FacialHairItemId = 0x2040;
 	}
 
 	public override void InitOutfit()

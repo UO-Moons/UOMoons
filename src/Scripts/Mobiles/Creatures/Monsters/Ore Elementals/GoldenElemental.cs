@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a golden elemental";
 			Body = 166;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(226, 255);
 			SetDex(126, 145);

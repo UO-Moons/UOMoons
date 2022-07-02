@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ophidian matriarch";
 			Body = 87;
-			BaseSoundID = 644;
+			BaseSoundId = 644;
 
 			SetStr(416, 505);
 			SetDex(96, 115);

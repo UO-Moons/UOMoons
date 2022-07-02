@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a sewer rat";
 			Body = 238;
-			BaseSoundID = 0xCC;
+			BaseSoundId = 0xCC;
 
 			SetStr(9);
 			SetDex(25);

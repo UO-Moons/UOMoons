@@ -1083,27 +1083,27 @@ namespace Server
 
 		public void LabelTo(Mobile to, int number)
 		{
-			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", ""));
+			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", ""));
 		}
 		
 		public void LabelTo(Mobile to, int hue, int number)
 		{
-			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, hue, 3, number, "", ""));
+			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", ""));
 		}
 
 		public void LabelTo(Mobile to, int number, string args)
 		{
-			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", args));
+			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", args));
 		}
 
 		public void LabelTo(Mobile to, int hue, int number, string args)
 		{
-			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, hue, 3, number, "", args));
+			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", args));
 		}
 
 		public void LabelTo(Mobile to, string text)
 		{
-			_ = to.Send(new UnicodeMessage(Serial, _mItemId, MessageType.Label, DisplayColor, 3, "ENU", "", text));
+			_ = to.Send(new UnicodeMessage(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, "ENU", "", text));
 		}
 
 		public void LabelTo(Mobile to, string format, params object[] args)
@@ -1113,22 +1113,22 @@ namespace Server
 
 		public void LabelToAffix(Mobile to, int number, AffixType type, string affix)
 		{
-			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, ""));
+			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, ""));
 		}
 
 		public void LabelToAffix(Mobile to, int hue, int number, AffixType type, string affix)
 		{
-			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, ""));
+			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, ""));
 		}
 
 		public void LabelToAffix(Mobile to, int number, AffixType type, string affix, string args)
 		{
-			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, args));
+			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, args));
 		}
 
 		public void LabelToAffix(Mobile to, int hue, int number, AffixType type, string affix, string args)
 		{
-			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, args));
+			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, args));
 		}
 
 		public virtual void LabelLootTypeTo(Mobile to)
@@ -1529,7 +1529,7 @@ namespace Server
 					lock (_opll)
 					{
 						if (_mOplPacket != null) return _mOplPacket;
-						_mOplPacket = new OPLInfo(PropertyList);
+						_mOplPacket = new OplInfo(PropertyList);
 						_mOplPacket.SetStatic();
 					}
 				}
@@ -1762,6 +1762,14 @@ namespace Server
 			return flags;
 		}
 
+		public virtual void OnEnterLocation(Mobile m)
+		{
+		}
+
+		public virtual void OnLeaveLocation(Mobile m)
+		{
+		}
+
 		public virtual bool OnMoveOff(Mobile m)
 		{
 			return true;
@@ -1870,7 +1878,7 @@ namespace Server
 
 		int ISerializable.TypeReference => MTypeRef;
 
-		int ISerializable.SerialIdentity => Serial;
+		int ISerializable.SerialIdentity => m_Serial;
 
 		public virtual void Serialize(GenericWriter writer)
 		{
@@ -2255,7 +2263,7 @@ namespace Server
 
 						if (flags.HasFlag(SaveFlag.Parent))
 						{
-							Serial parent = reader.ReadInt();
+							var parent = reader.ReadSerial();
 
 							if (parent.IsMobile)
 								_mParent = World.FindMobile(parent);
@@ -2701,7 +2709,7 @@ namespace Server
 			}
 		}
 
-		public bool NoMoveHS { get; set; }
+		public bool NoMoveHs { get; set; }
 
 		public void ProcessDelta()
 		{
@@ -3036,9 +3044,9 @@ namespace Server
 					if (p == null)
 					{
 						if (ascii)
-							p = new AsciiMessage(Serial, _mItemId, type, hue, 3, Name, text);
+							p = new AsciiMessage(m_Serial, _mItemId, type, hue, 3, Name, text);
 						else
-							p = new UnicodeMessage(Serial, _mItemId, type, hue, 3, "ENU", Name, text);
+							p = new UnicodeMessage(m_Serial, _mItemId, type, hue, 3, "ENU", Name, text);
 
 						p.Acquire();
 					}
@@ -3070,7 +3078,7 @@ namespace Server
 				Mobile m = state.Mobile;
 
 				if (!m.CanSee(this) || !m.InRange(worldLoc, GetUpdateRange(m))) continue;
-				p ??= Packet.Acquire(new MessageLocalized(Serial, _mItemId, type, hue, 3, number, Name, args));
+				p ??= Packet.Acquire(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
 
 				state.Send(p);
 			}
@@ -3090,7 +3098,7 @@ namespace Server
 
 			if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
 			{
-				p ??= Packet.Acquire(new MessageLocalized(Serial, _mItemId, type, hue, 3, number, Name, args));
+				p ??= Packet.Acquire(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
 
 				state.Send(p);
 			}
@@ -3111,13 +3119,13 @@ namespace Server
 			{
 				if (ascii)
 				{
-					asciip = Packet.Acquire(new AsciiMessage(Serial, _mItemId, type, hue, 3, Name, text));
+					asciip = Packet.Acquire(new AsciiMessage(m_Serial, _mItemId, type, hue, 3, Name, text));
 
 					state.Send(asciip);
 				}
 				else
 				{
-					p ??= Packet.Acquire(new UnicodeMessage(Serial, _mItemId, type, hue, 3, m.Language, Name, text));
+					p ??= Packet.Acquire(new UnicodeMessage(m_Serial, _mItemId, type, hue, 3, m.Language, Name, text));
 
 					state.Send(p);
 				}
@@ -3125,6 +3133,25 @@ namespace Server
 
 			Packet.Release(asciip);
 			Packet.Release(p);
+		}
+
+		public void PrivateOverheadMessage(MessageType type, int hue, int number, NetState state)
+		{
+			PrivateOverheadMessage(type, hue, number, "", state);
+		}
+
+		public void PrivateOverheadMessage(MessageType type, int hue, int number, string args, NetState state)
+		{
+			Point3D worldLoc = GetWorldLocation();
+			if (Map != null && Map != Map.Internal && state != null)
+			{
+				var m = state.Mobile;
+
+				if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
+				{
+					state.Send(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
+				}
+			}
 		}
 
 		public Region GetRegion()
@@ -3239,8 +3266,14 @@ namespace Server
 		public virtual int PoisonResistance => 0;
 		public virtual int EnergyResistance => 0;
 
+		private Serial m_Serial;
 		[CommandProperty(AccessLevel.Counselor)]
-		public Serial Serial { get; }
+		public Serial Serial => m_Serial;
+
+		internal void NewSerial()
+		{
+			m_Serial = Serial.NewItem;
+		}
 
 		[CommandProperty(AccessLevel.GameMaster, AccessLevel.Developer)]
 		public IEntity ParentEntity => Parent;
@@ -3249,10 +3282,35 @@ namespace Server
 		public IEntity RootParentEntity => RootParent;
 
 		#region Location Location Location!
-
 		public virtual void OnLocationChange(Point3D oldLocation)
 		{
+			var items = Items;
+
+			if (items == null)
+			{
+				return;
+			}
+
+			var i = items.Count;
+
+			while (--i >= 0)
+			{
+				if (i >= items.Count)
+				{
+					continue;
+				}
+
+				var o = items[i];
+
+				if (o != null)
+				{
+					o.OnParentLocationChange(oldLocation);
+				}
+			}
 		}
+
+		public virtual void OnParentLocationChange(Point3D oldLocation)
+		{ }
 
 		[CommandProperty(AccessLevel.Counselor, AccessLevel.GameMaster)]
 		public virtual Point3D Location
@@ -3300,7 +3358,7 @@ namespace Server
 							{
 								Mobile m = state.Mobile;
 
-								if (m.CanSee(this) && m.InRange(_mLocation, GetUpdateRange(m)) && (!state.HighSeas || !NoMoveHS || (_mDeltaFlags & ItemDelta.Update) != 0 || !m.InRange(oldLoc, GetUpdateRange(m))))
+								if (m.CanSee(this) && m.InRange(_mLocation, GetUpdateRange(m)) && (!state.HighSeas || !NoMoveHs || (_mDeltaFlags & ItemDelta.Update) != 0 || !m.InRange(oldLoc, GetUpdateRange(m))))
 									SendInfoTo(state);
 							}
 
@@ -3620,7 +3678,7 @@ namespace Server
 			int maxZ = from.Z + 16;
 
 			LandTile landTile = map.Tiles.GetLandTile(x, y);
-			TileFlag landFlags = TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags;
+			TileFlag landFlags = TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags;
 
 			int landZ = 0, landAvg = 0, landTop = 0;
 			map.GetAverageZ(x, y, ref landZ, ref landAvg, ref landTop);
@@ -3636,7 +3694,7 @@ namespace Server
 			for (int i = 0; i < tiles.Length; ++i)
 			{
 				StaticTile tile = tiles[i];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 				if (!id.Surface)
 					continue;
@@ -3688,7 +3746,7 @@ namespace Server
 			for (int i = 0; i < tiles.Length; ++i)
 			{
 				StaticTile tile = tiles[i];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 				int checkZ = tile.Z;
 				int checkTop = checkZ + id.CalcHeight;
@@ -3782,7 +3840,7 @@ namespace Server
 			for (int i = 0; i < tiles.Length; ++i)
 			{
 				StaticTile tile = tiles[i];
-				ItemData id = TileData.ItemTable[tile.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[tile.Id & TileData.MaxItemValue];
 
 				int checkZ = tile.Z;
 				int checkTop = checkZ + id.CalcHeight;
@@ -4073,7 +4131,7 @@ namespace Server
 				return;
 			}
 
-			if (Utility.InUpdateRange(m, this) && m.CanSee(this))
+			if (m.InUpdateRange(this) && m.CanSee(this))
 			{
 				SendStatusTo(m.NetState);
 			}
@@ -4402,7 +4460,7 @@ namespace Server
 
 		public Item()
 		{
-			Serial = Serial.NewItem;
+			m_Serial = Serial.NewItem;
 
 			Visible = true;
 			Movable = true;
@@ -4439,7 +4497,7 @@ namespace Server
 
 		public Item(Serial serial)
 		{
-			Serial = serial;
+			m_Serial = serial;
 
 			Type ourType = GetType();
 			MTypeRef = World.m_ItemTypes.IndexOf(ourType);

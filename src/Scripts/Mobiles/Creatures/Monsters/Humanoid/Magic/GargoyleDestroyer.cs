@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "Gargoyle Destroyer";
 			Body = 0x2F3;
-			BaseSoundID = 0x174;
+			BaseSoundId = 0x174;
 
 			SetStr(760, 850);
 			SetDex(102, 150);

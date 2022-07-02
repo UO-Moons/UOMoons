@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Name = "a giant serpent";
 			Body = 0x15;
 			Hue = Utility.RandomSnakeHue();
-			BaseSoundID = 219;
+			BaseSoundId = 219;
 
 			SetStr(186, 215);
 			SetDex(56, 80);
@@ -77,8 +77,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 219;
+			if (BaseSoundId == -1)
+				BaseSoundId = 219;
 		}
 	}
 }

@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "an orcish lord";
 			Body = 138;
-			BaseSoundID = 0x45A;
+			BaseSoundId = 0x45A;
 
 			SetStr(147, 215);
 			SetDex(91, 115);

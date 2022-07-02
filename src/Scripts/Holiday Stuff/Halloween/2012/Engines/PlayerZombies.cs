@@ -199,7 +199,7 @@ namespace Server.Engines.Events
 			Name = (player != null) ? string.Format("{0}'s {1}", player.Name, m_Name) : m_Name;
 
 			Body = 0x93;
-			BaseSoundID = 0x1c3;
+			BaseSoundId = 0x1c3;
 
 			SetStr(500);
 			SetDex(500);
@@ -274,7 +274,7 @@ namespace Server.Engines.Events
 			base.Serialize(writer);
 			writer.Write(0);
 
-			writer.WriteMobile(m_DeadPlayer);
+			writer.Write(m_DeadPlayer);
 		}
 
 		public override void Deserialize(GenericReader reader)

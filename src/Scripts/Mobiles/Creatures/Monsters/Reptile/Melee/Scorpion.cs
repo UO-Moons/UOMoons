@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a scorpion";
 			Body = 48;
-			BaseSoundID = 397;
+			BaseSoundId = 397;
 
 			SetStr(73, 115);
 			SetDex(76, 95);

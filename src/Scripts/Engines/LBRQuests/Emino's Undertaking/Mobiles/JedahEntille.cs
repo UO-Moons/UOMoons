@@ -22,7 +22,7 @@ namespace Server.Engines.Quests.Ninja
 
 		public override void InitOutfit()
 		{
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 			HairHue = 0x6BE;
 
 			AddItem(new PlainDress(0x528));

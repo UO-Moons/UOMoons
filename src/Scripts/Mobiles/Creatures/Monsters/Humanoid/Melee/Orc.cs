@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("orc");
 			Body = 17;
-			BaseSoundID = 0x45A;
+			BaseSoundId = 0x45A;
 
 			SetStr(96, 120);
 			SetDex(81, 105);

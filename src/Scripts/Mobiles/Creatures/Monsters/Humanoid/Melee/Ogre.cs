@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ogre";
 			Body = 1;
-			BaseSoundID = 427;
+			BaseSoundId = 427;
 
 			SetStr(166, 195);
 			SetDex(46, 65);

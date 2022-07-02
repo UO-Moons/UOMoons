@@ -203,7 +203,7 @@ namespace Server.Spells
 			{
 				AggressorInfo info = m.Aggressed[i];
 
-				if (info.Defender.Player && (DateTime.UtcNow - info.LastCombatTime) < BaseMobile.COMBAT_HEAT_DELAY)
+				if (info.Defender.Player && (DateTime.UtcNow - info.LastCombatTime) < BaseMobile.CombatHeatDelay)
 					return true;
 			}
 
@@ -213,7 +213,7 @@ namespace Server.Spells
 				{
 					AggressorInfo info = m.Aggressors[i];
 
-					if (info.Attacker.Player && (DateTime.UtcNow - info.LastCombatTime) < BaseMobile.COMBAT_HEAT_DELAY)
+					if (info.Attacker.Player && (DateTime.UtcNow - info.LastCombatTime) < BaseMobile.CombatHeatDelay)
 						return true;
 				}
 			}
@@ -278,7 +278,7 @@ namespace Server.Spells
 		{
 			var landTile = map.Tiles.GetLandTile(p.X, p.Y);
 
-			if (landTile.Z == p.Z && ((landTile.ID >= 168 && landTile.ID <= 171) || (landTile.ID >= 310 && landTile.ID <= 311)))
+			if (landTile.Z == p.Z && ((landTile.Id >= 168 && landTile.Id <= 171) || (landTile.Id >= 310 && landTile.Id <= 311)))
 			{
 				return false;
 			}
@@ -287,7 +287,7 @@ namespace Server.Spells
 
 			foreach (var tile in tiles)
 			{
-				if (tile.Z == p.Z && tile.ID >= 0x1796 && tile.ID <= 0x17B2)
+				if (tile.Z == p.Z && tile.Id >= 0x1796 && tile.Id <= 0x17B2)
 				{
 					return false;
 				}
@@ -1526,10 +1526,10 @@ namespace Server.Spells
 		{
 			TimeSpan ts = GetDamageDelayForSpell(spell);
 
-			Damage(spell, ts, damageable, spell.Caster, damage, phys, fire, cold, pois, nrgy, DFAlgorithm.Standard);
+			Damage(spell, ts, damageable, spell.Caster, damage, phys, fire, cold, pois, nrgy, DfAlgorithm.Standard);
 		}
 
-		public static void Damage(Spell spell, IDamageable damageable, double damage, int phys, int fire, int cold, int pois, int nrgy, DFAlgorithm dfa)
+		public static void Damage(Spell spell, IDamageable damageable, double damage, int phys, int fire, int cold, int pois, int nrgy, DfAlgorithm dfa)
 		{
 			TimeSpan ts = GetDamageDelayForSpell(spell);
 
@@ -1540,7 +1540,7 @@ namespace Server.Spells
 		{
 			TimeSpan ts = GetDamageDelayForSpell(spell);
 
-			Damage(spell, ts, damageable, spell.Caster, damage, phys, fire, cold, pois, nrgy, DFAlgorithm.Standard, chaos, direct);
+			Damage(spell, ts, damageable, spell.Caster, damage, phys, fire, cold, pois, nrgy, DfAlgorithm.Standard, chaos, direct);
 		}
 
 		public static void Damage(TimeSpan delay, IDamageable damageable, double damage, int phys, int fire, int cold, int pois, int nrgy)
@@ -1550,20 +1550,20 @@ namespace Server.Spells
 
 		public static void Damage(TimeSpan delay, IDamageable damageable, double damage, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct)
 		{
-			Damage(null, delay, damageable, null, damage, phys, fire, cold, pois, nrgy, DFAlgorithm.Standard, chaos, direct);
+			Damage(null, delay, damageable, null, damage, phys, fire, cold, pois, nrgy, DfAlgorithm.Standard, chaos, direct);
 		}
 
 		public static void Damage(TimeSpan delay, IDamageable damageable, Mobile from, double damage, int phys, int fire, int cold, int pois, int nrgy)
 		{
-			Damage(delay, damageable, from, damage, phys, fire, cold, pois, nrgy, DFAlgorithm.Standard);
+			Damage(delay, damageable, from, damage, phys, fire, cold, pois, nrgy, DfAlgorithm.Standard);
 		}
 
-		public static void Damage(TimeSpan delay, IDamageable damageable, Mobile from, double damage, int phys, int fire, int cold, int pois, int nrgy, DFAlgorithm dfa)
+		public static void Damage(TimeSpan delay, IDamageable damageable, Mobile from, double damage, int phys, int fire, int cold, int pois, int nrgy, DfAlgorithm dfa)
 		{
 			Damage(null, delay, damageable, from, damage, phys, fire, cold, pois, nrgy, dfa);
 		}
 
-		public static void Damage(Spell spell, TimeSpan delay, IDamageable damageable, Mobile from, double damage, int phys, int fire, int cold, int pois, int nrgy, DFAlgorithm dfa, int chaos = 0, int direct = 0)
+		public static void Damage(Spell spell, TimeSpan delay, IDamageable damageable, Mobile from, double damage, int phys, int fire, int cold, int pois, int nrgy, DfAlgorithm dfa, int chaos = 0, int direct = 0)
 		{
 			Mobile target = damageable as Mobile;
 			int iDamage = (int)damage;
@@ -1580,7 +1580,7 @@ namespace Server.Spells
 
 				if (target != null)
 				{
-					target.DFA = dfa;
+					target.Dfa = dfa;
 				}
 
 				int damageGiven = AOS.Damage(damageable, from, iDamage, phys, fire, cold, pois, nrgy, chaos, direct, dtype);
@@ -1590,9 +1590,9 @@ namespace Server.Spells
 				//	Spells.Mysticism.SpellPlagueSpell.OnMobileDamaged(target);
 				//}
 
-				if (target != null && target.DFA != DFAlgorithm.Standard)
+				if (target != null && target.Dfa != DfAlgorithm.Standard)
 				{
-					target.DFA = DFAlgorithm.Standard;
+					target.Dfa = DfAlgorithm.Standard;
 				}
 
 				//NegativeAttributes.OnCombatAction(from);
@@ -1670,7 +1670,7 @@ namespace Server.Spells
 				if (m_Spell != null && m_Spell.DelayedDamage && !m_Spell.DelayedDamageStacking)
 					m_Spell.StartDelayedDamageContext(target, this);
 
-				Priority = TimerPriority.TwentyFiveMS;
+				Priority = TimerPriority.TwentyFiveMs;
 			}
 
 			protected override void OnTick()
@@ -1699,11 +1699,11 @@ namespace Server.Spells
 			private int m_Nrgy;
 			private int m_Chaos;
 			private int m_Direct;
-			private DFAlgorithm m_DFA;
+			private DfAlgorithm m_DFA;
 
 			public Spell Spell { get; }
 
-			public SpellDamageTimerAOS(Spell s, IDamageable target, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, TimeSpan delay, DFAlgorithm dfa)
+			public SpellDamageTimerAOS(Spell s, IDamageable target, Mobile from, int damage, int phys, int fire, int cold, int pois, int nrgy, int chaos, int direct, TimeSpan delay, DfAlgorithm dfa)
 				: base(delay)
 			{
 				m_Target = target;
@@ -1724,7 +1724,7 @@ namespace Server.Spells
 					Spell.StartDelayedDamageContext(target, this);
 				}
 
-				Priority = TimerPriority.TwentyFiveMS;
+				Priority = TimerPriority.TwentyFiveMs;
 			}
 
 			protected override void OnTick()
@@ -1745,14 +1745,14 @@ namespace Server.Spells
 
 				if (target != null)
 				{
-					target.DFA = m_DFA;
+					target.Dfa = m_DFA;
 				}
 
 				int damageGiven = AOS.Damage(m_Target, m_From, m_Damage, m_Phys, m_Fire, m_Cold, m_Pois, m_Nrgy, m_Chaos, m_Direct, dtype);
 
-				if (target != null && target.DFA != DFAlgorithm.Standard)
+				if (target != null && target.Dfa != DfAlgorithm.Standard)
 				{
-					target.DFA = DFAlgorithm.Standard;
+					target.Dfa = DfAlgorithm.Standard;
 				}
 
 				if (m_Target is BaseMobile bm && m_From != null)
@@ -2067,7 +2067,7 @@ namespace Server.Spells
 			m_Mobile = from;
 			m_Spell = spell;
 
-			Priority = TimerPriority.TwoFiftyMS;
+			Priority = TimerPriority.TwoFiftyMs;
 		}
 
 		protected override void OnTick()

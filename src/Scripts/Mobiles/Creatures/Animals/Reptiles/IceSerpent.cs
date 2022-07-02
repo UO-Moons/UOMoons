@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a giant ice serpent";
 			Body = 89;
-			BaseSoundID = 219;
+			BaseSoundId = 219;
 
 			SetStr(216, 245);
 			SetDex(26, 50);
@@ -88,8 +88,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 219;
+			if (BaseSoundId == -1)
+				BaseSoundId = 219;
 		}
 	}
 }

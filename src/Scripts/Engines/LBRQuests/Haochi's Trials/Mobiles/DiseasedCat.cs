@@ -10,7 +10,7 @@ namespace Server.Engines.Quests.Samurai
 			Name = "a diseased cat";
 			Body = 0xC9;
 			Hue = Utility.RandomAnimalHue();
-			BaseSoundID = 0x69;
+			BaseSoundId = 0x69;
 
 			SetStr(9);
 			SetDex(35);

@@ -40,7 +40,7 @@ namespace Server.Engines.Quests.Hag
 			};
 			AddItem(gloves);
 
-			FacialHairItemID = 0x203E; // Long Beard
+			FacialHairItemId = 0x203E; // Long Beard
 			FacialHairHue = 0x455;
 
 			Item sword = new Cutlass

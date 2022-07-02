@@ -14,7 +14,7 @@ namespace Server.Mobiles
 		{
 			Name = "a dark wolf";
 			Body = 99;
-			BaseSoundID = 0xE5;
+			BaseSoundId = 0xE5;
 
 			SetStr(96, 120);
 			SetDex(81, 105);

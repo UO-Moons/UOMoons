@@ -18,7 +18,7 @@ namespace Server.Engines.Quests.Necro
 
 			PlayerMobile pm = m as PlayerMobile;
 
-			if (pm != null && pm.Profession == 4)
+			if (pm != null && pm.Profession == Profession.Necromancer)
 			{
 				m.SendLocalizedMessage(1060188, 0x24); // The wicked may not enter!
 				return false;

@@ -2829,7 +2829,7 @@ namespace Server.Mobiles
 
 				m_Owner.m_NextDetectHidden = Core.TickCount;
 
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 			}
 
 			protected override void OnTick()

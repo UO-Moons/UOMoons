@@ -28,7 +28,7 @@ public class Broolol : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x851D;
-		HairItemID = 0x2FCF;
+		HairItemId = 0x2FCF;
 		HairHue = 0x323;
 	}
 

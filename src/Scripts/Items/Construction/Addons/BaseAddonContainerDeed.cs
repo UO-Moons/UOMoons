@@ -109,7 +109,7 @@ namespace Server.Items
 			{
 				m_Deed = deed;
 
-				CheckLOS = false;
+				CheckLos = false;
 			}
 
 			protected override void OnTarget(Mobile from, object targeted)

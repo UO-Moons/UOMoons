@@ -198,7 +198,7 @@ namespace Server.Items
 
 		private static bool ValidateDeepWater(Map map, int x, int y)
 		{
-			int tileID = map.Tiles.GetLandTile(x, y).ID;
+			int tileID = map.Tiles.GetLandTile(x, y).Id;
 			bool water = false;
 
 			for (int i = 0; !water && i < m_WaterTiles.Length; i += 2)

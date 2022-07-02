@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("daemon");
 			Body = Core.AOS ? 10 : 9;
-			BaseSoundID = 357;
+			BaseSoundId = 357;
 
 			SetStr(200);
 			SetDex(110);

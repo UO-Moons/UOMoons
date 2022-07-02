@@ -21,7 +21,7 @@ namespace Server.Mobiles
 			// May not be OSI accurate; mostly copied from krakens
 			Name = "a leviathan";
 			Body = 77;
-			BaseSoundID = 353;
+			BaseSoundId = 353;
 
 			Hue = 0x481;
 

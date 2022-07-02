@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "an agapite elemental";
 			Body = 107;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(226, 255);
 			SetDex(126, 145);

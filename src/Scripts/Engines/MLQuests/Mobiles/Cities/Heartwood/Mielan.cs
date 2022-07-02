@@ -31,7 +31,7 @@ public class Mielan : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8376;
-		HairItemID = 0x2FCE;
+		HairItemId = 0x2FCE;
 		HairHue = 0x368;
 	}
 

@@ -33,7 +33,7 @@ public class Unoelil : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8362;
-		HairItemID = 0x2FCD;
+		HairItemId = 0x2FCD;
 		HairHue = 0x31D;
 	}
 

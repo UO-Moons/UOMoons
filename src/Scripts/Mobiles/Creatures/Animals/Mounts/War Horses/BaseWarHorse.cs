@@ -5,7 +5,7 @@ namespace Server.Mobiles
 	{
 		public BaseWarHorse(int bodyID, int itemID, AIType aiType, FightMode fightMode, int rangePerception, int rangeFight, double activeSpeed, double passiveSpeed) : base("a war horse", bodyID, itemID, aiType, fightMode, rangePerception, rangeFight, activeSpeed, passiveSpeed)
 		{
-			BaseSoundID = 0xA8;
+			BaseSoundId = 0xA8;
 
 			InitStats(Utility.Random(300, 100), 125, 60);
 

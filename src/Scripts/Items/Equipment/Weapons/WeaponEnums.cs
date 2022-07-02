@@ -42,7 +42,8 @@ namespace Server.Items
 		Pierce2H = 14,
 		ShootBow = 18,
 		ShootXBow = 19,
-		Wrestle = 31
+		Wrestle = 31,
+		Throwing = 32
 	}
 
 	public enum CheckSlayerResult

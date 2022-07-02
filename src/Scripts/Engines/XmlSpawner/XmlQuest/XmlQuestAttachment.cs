@@ -1,10 +1,18 @@
 using System;
+using Server;
+using Server.Items;
+using Server.Network;
+using Server.Mobiles;
+using System.IO;
 
 namespace Server.Engines.XmlSpawner2
 {
 	public class XmlQuestAttachment : XmlAttachment
 	{
-		public DateTime Date { get; set; }
+		private DateTime m_DataValue;
+
+
+		public DateTime Date { get { return m_DataValue; } set { m_DataValue = value; } }
 
 		// These are the various ways in which the message attachment can be constructed.  
 		// These can be called via the [addatt interface, via scripts, via the spawner ATTACH keyword.
@@ -20,14 +28,14 @@ namespace Server.Engines.XmlSpawner2
 		public XmlQuestAttachment(string name)
 		{
 			Name = name;
-			Date = DateTime.UtcNow;
+			Date = DateTime.Now;
 		}
 
 		[Attachable]
 		public XmlQuestAttachment(string name, double expiresin)
 		{
 			Name = name;
-			Date = DateTime.UtcNow;
+			Date = DateTime.Now;
 			Expiration = TimeSpan.FromMinutes(expiresin);
 
 		}
@@ -46,30 +54,32 @@ namespace Server.Engines.XmlSpawner2
 		{
 			base.Serialize(writer);
 
-			writer.Write(0);
-			writer.Write(Date);
+			writer.Write((int)0);
+			// version 0
+			writer.Write(m_DataValue);
 
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			_ = reader.ReadInt();
-			Date = reader.ReadDateTime();
+
+			int version = reader.ReadInt();
+			// version 0
+			m_DataValue = reader.ReadDateTime();
 		}
 
 		public override string OnIdentify(Mobile from)
 		{
-			if (from.AccessLevel == AccessLevel.Player)
-				return null;
+			if (from.AccessLevel == AccessLevel.Player) return null;
 
 			if (Expiration > TimeSpan.Zero)
 			{
-				return string.Format("Quest '{2}' Completed {0} expires in {1} mins", Date, Expiration.TotalMinutes, Name);
+				return String.Format("Quest '{2}' Completed {0} expires in {1} mins", Date, Expiration.TotalMinutes, Name);
 			}
 			else
 			{
-				return string.Format("Quest '{1}' Completed {0}", Date, Name);
+				return String.Format("Quest '{1}' Completed {0}", Date, Name);
 			}
 		}
 	}

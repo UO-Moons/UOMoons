@@ -1,527 +1,526 @@
 using Server.Network;
 
-namespace Server
+namespace Server;
+
+public enum EffectLayer
 {
-	public enum EffectLayer
+	Head = 0,
+	RightHand = 1,
+	LeftHand = 2,
+	Waist = 3,
+	LeftFoot = 4,
+	RightFoot = 5,
+	CenterFeet = 7
+}
+
+public enum ParticleSupportType
+{
+	Full,
+	Detect,
+	None
+}
+
+public static class Effects
+{
+	public static ParticleSupportType ParticleSupportType { get; set; } = ParticleSupportType.Detect;
+
+	public static bool SendParticlesTo(NetState state)
 	{
-		Head = 0,
-		RightHand = 1,
-		LeftHand = 2,
-		Waist = 3,
-		LeftFoot = 4,
-		RightFoot = 5,
-		CenterFeet = 7
+		return ParticleSupportType == ParticleSupportType.Full ||
+		       (ParticleSupportType == ParticleSupportType.Detect && (state.IsUOTDClient || state.IsEnhancedClient));
 	}
 
-	public enum ParticleSupportType
+	public static void PlayExplodeSound(IPoint3D p, Map map)
 	{
-		Full,
-		Detect,
-		None
+		PlaySound(p, map, Utility.RandomList(283, 284, 285, 286, 519, 773, 774, 775, 776, 777, 1231));
 	}
 
-	public static class Effects
+	public static void PlaySound(IPoint3D p, Map map, int soundId)
 	{
-		public static ParticleSupportType ParticleSupportType { get; set; } = ParticleSupportType.Detect;
-
-		public static bool SendParticlesTo(NetState state)
+		if (soundId <= -1)
 		{
-			return ParticleSupportType == ParticleSupportType.Full ||
-			       (ParticleSupportType == ParticleSupportType.Detect && (state.IsUOTDClient || state.IsEnhancedClient));
+			return;
 		}
 
-		public static void PlayExplodeSound(IPoint3D p, Map map)
+		if (map != null)
 		{
-			PlaySound(p, map, Utility.RandomList(283, 284, 285, 286, 519, 773, 774, 775, 776, 777, 1231));
-		}
+			Packet playSound = null;
 
-		public static void PlaySound(IPoint3D p, Map map, int soundId)
-		{
-			if (soundId <= -1)
+			var eable = map.GetClientsInRange(new Point3D(p));
+
+			foreach (NetState state in eable)
 			{
-				return;
+				state.Mobile.ProcessDelta();
+
+				playSound ??= Packet.Acquire(new PlaySound(soundId, p));
+
+				state.Send(playSound);
 			}
 
-			if (map != null)
+			Packet.Release(playSound);
+
+			eable.Free();
+		}
+	}
+
+	public static void SendBoltEffect(IEntity e)
+	{
+		SendBoltEffect(e, true, 0);
+	}
+
+	public static void SendBoltEffect(IEntity e, bool sound)
+	{
+		SendBoltEffect(e, sound, 0);
+	}
+
+	public static void SendBoltEffect(IEntity e, bool sound, int hue, bool delay)
+	{
+		if (delay)
+		{
+			Timer.DelayCall(() => SendBoltEffect(e, sound, hue));
+		}
+		else
+		{
+			SendBoltEffect(e, sound, hue);
+		}
+	}
+
+	public static void SendBoltEffect(IEntity e, bool sound, int hue)
+	{
+		Map map = e.Map;
+
+		if (map == null)
+		{
+			return;
+		}
+
+		e.ProcessDelta();
+
+		Packet preEffect = null, postEffect = null, boltEffect = null, playSound = null;
+
+		var eable = map.GetClientsInRange(e.Location);
+
+		foreach (NetState state in eable)
+		{
+			if (state.Mobile.CanSee(e))
 			{
-				Packet playSound = null;
+				bool sendParticles = SendParticlesTo(state);
 
-				var eable = map.GetClientsInRange(new Point3D(p));
-
-				foreach (NetState state in eable)
+				if (sendParticles)
 				{
-					state.Mobile.ProcessDelta();
+					preEffect ??= Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
 
-					playSound ??= Packet.Acquire(new PlaySound(soundId, p));
+					state.Send(preEffect);
+				}
+
+				if (boltEffect == null)
+				{
+					if (Core.SA && hue == 0)
+					{
+						boltEffect = Packet.Acquire(new BoltEffectNew(e));
+					}
+					else
+					{
+						boltEffect = Packet.Acquire(new BoltEffect(e, hue));
+					}
+				}
+
+				state.Send(boltEffect);
+
+				if (sendParticles)
+				{
+					postEffect ??= Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location,
+						e.Location, 0, 0, false, 0));
+
+					state.Send(postEffect);
+				}
+
+				if (sound)
+				{
+					playSound ??= Packet.Acquire(new PlaySound(0x29, e));
 
 					state.Send(playSound);
 				}
-
-				Packet.Release(playSound);
-
-				eable.Free();
 			}
 		}
 
-		public static void SendBoltEffect(IEntity e)
+		Packet.Release(preEffect);
+		Packet.Release(postEffect);
+		Packet.Release(boltEffect);
+		Packet.Release(playSound);
+
+		eable.Free();
+	}
+
+	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration)
+	{
+		SendLocationEffect(p, map, itemId, duration, 10, 0, 0);
+	}
+
+	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int speed)
+	{
+		SendLocationEffect(p, map, itemId, duration, speed, 0, 0);
+	}
+
+	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int hue, int renderMode)
+	{
+		SendLocationEffect(p, map, itemId, duration, 10, hue, renderMode);
+	}
+
+	public static void SendLocationEffect(
+		IPoint3D p, Map map, int itemId, int duration, int speed, int hue, int renderMode)
+	{
+		SendPacket(p, map, new LocationEffect(p, itemId, speed, duration, hue, renderMode));
+	}
+
+	public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect)
+	{
+		SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, 0);
+	}
+
+	public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect, int unknown)
+	{
+		SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, unknown);
+	}
+
+	public static void SendLocationParticles(
+		IEntity e, int itemId, int speed, int duration, int hue, int renderMode, int effect, int unknown)
+	{
+		Map map = e.Map;
+
+		if (map != null)
 		{
-			SendBoltEffect(e, true, 0);
-		}
-
-		public static void SendBoltEffect(IEntity e, bool sound)
-		{
-			SendBoltEffect(e, sound, 0);
-		}
-
-		public static void SendBoltEffect(IEntity e, bool sound, int hue, bool delay)
-		{
-			if (delay)
-			{
-				Timer.DelayCall(() => SendBoltEffect(e, sound, hue));
-			}
-			else
-			{
-				SendBoltEffect(e, sound, hue);
-			}
-		}
-
-		public static void SendBoltEffect(IEntity e, bool sound, int hue)
-		{
-			Map map = e.Map;
-
-			if (map == null)
-			{
-				return;
-			}
-
-			e.ProcessDelta();
-
-			Packet preEffect = null, postEffect = null, boltEffect = null, playSound = null;
+			Packet particles = null, regular = null;
 
 			var eable = map.GetClientsInRange(e.Location);
 
 			foreach (NetState state in eable)
 			{
-				if (state.Mobile.CanSee(e))
+				state.Mobile.ProcessDelta();
+
+				if (SendParticlesTo(state))
 				{
-					bool sendParticles = SendParticlesTo(state);
+					particles ??= Packet.Acquire(new LocationParticleEffect(e, itemId, speed, duration, hue, renderMode, effect, unknown));
 
-					if (sendParticles)
-					{
-						preEffect ??= Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
+					state.Send(particles);
+				}
+				else if (itemId != 0)
+				{
+					regular ??= Packet.Acquire(new LocationEffect(e, itemId, speed, duration, hue, renderMode));
 
-						state.Send(preEffect);
-					}
-
-					if (boltEffect == null)
-					{
-						if (Core.SA && hue == 0)
-						{
-							boltEffect = Packet.Acquire(new BoltEffectNew(e));
-						}
-						else
-						{
-							boltEffect = Packet.Acquire(new BoltEffect(e, hue));
-						}
-					}
-
-					state.Send(boltEffect);
-
-					if (sendParticles)
-					{
-						postEffect ??= Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location,
-							e.Location, 0, 0, false, 0));
-
-						state.Send(postEffect);
-					}
-
-					if (sound)
-					{
-						playSound ??= Packet.Acquire(new PlaySound(0x29, e));
-
-						state.Send(playSound);
-					}
+					state.Send(regular);
 				}
 			}
 
-			Packet.Release(preEffect);
-			Packet.Release(postEffect);
-			Packet.Release(boltEffect);
-			Packet.Release(playSound);
+			Packet.Release(particles);
+			Packet.Release(regular);
+
+			eable.Free();
+		}
+		//SendPacket( e.Location, e.Map, new LocationParticleEffect( e, itemID, speed, duration, hue, renderMode, effect, unknown ) );
+	}
+
+	public static void SendTargetEffect(IEntity target, int itemId, int duration)
+	{
+		SendTargetEffect(target, itemId, duration, 0, 0);
+	}
+
+	public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration)
+	{
+		SendTargetEffect(target, itemId, speed, duration, 0, 0);
+	}
+
+	public static void SendTargetEffect(IEntity target, int itemId, int duration, int hue, int renderMode)
+	{
+		SendTargetEffect(target, itemId, 10, duration, hue, renderMode);
+	}
+
+	public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration, int hue, int renderMode)
+	{
+		if (target is Mobile mobile)
+		{
+			mobile.ProcessDelta();
+		}
+
+		SendPacket(target.Location, target.Map, new TargetEffect(target, itemId, speed, duration, hue, renderMode));
+	}
+
+	public static void SendTargetParticles(
+		IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer)
+	{
+		SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, 0);
+	}
+
+	public static void SendTargetParticles(
+		IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer, int unknown)
+	{
+		SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, unknown);
+	}
+
+	public static void SendTargetParticles(
+		IEntity target,
+		int itemId,
+		int speed,
+		int duration,
+		int hue,
+		int renderMode,
+		int effect,
+		EffectLayer layer,
+		int unknown)
+	{
+		if (target is Mobile mobile)
+		{
+			mobile.ProcessDelta();
+		}
+
+		Map map = target.Map;
+
+		if (map != null)
+		{
+			Packet particles = null, regular = null;
+
+			var eable = map.GetClientsInRange(target.Location);
+
+			foreach (NetState state in eable)
+			{
+				state.Mobile.ProcessDelta();
+
+				if (SendParticlesTo(state))
+				{
+					particles ??= Packet.Acquire(
+						new TargetParticleEffect(target, itemId, speed, duration, hue, renderMode, effect, (int) layer, unknown));
+
+					state.Send(particles);
+				}
+				else if (itemId != 0)
+				{
+					regular ??= Packet.Acquire(new TargetEffect(target, itemId, speed, duration, hue, renderMode));
+
+					state.Send(regular);
+				}
+			}
+
+			Packet.Release(particles);
+			Packet.Release(regular);
 
 			eable.Free();
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration)
+		//SendPacket( target.Location, target.Map, new TargetParticleEffect( target, itemID, speed, duration, hue, renderMode, effect, (int)layer, unknown ) );
+	}
+
+	public static void SendMovingEffect(
+		IEntity from, IEntity to, int itemId, int speed, int duration, bool fixedDirection, bool explodes)
+	{
+		SendMovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0);
+	}
+
+	public static void SendMovingEffect(
+		IEntity from,
+		IEntity to,
+		int itemId,
+		int speed,
+		int duration,
+		bool fixedDirection,
+		bool explodes,
+		int hue,
+		int renderMode)
+	{
+		if (from is Mobile mobile)
 		{
-			SendLocationEffect(p, map, itemId, duration, 10, 0, 0);
+			mobile.ProcessDelta();
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int speed)
+		if (to is Mobile mobile1)
 		{
-			SendLocationEffect(p, map, itemId, duration, speed, 0, 0);
+			mobile1.ProcessDelta();
 		}
 
-		public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int hue, int renderMode)
+		SendPacket(
+			from.Location,
+			from.Map,
+			new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue, renderMode));
+	}
+
+	public static void SendMovingParticles(
+		IEntity from,
+		IEntity to,
+		int itemId,
+		int speed,
+		int duration,
+		bool fixedDirection,
+		bool explodes,
+		int effect,
+		int explodeEffect,
+		int explodeSound)
+	{
+		SendMovingParticles(
+			from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, 0);
+	}
+
+	public static void SendMovingParticles(
+		IEntity from,
+		IEntity to,
+		int itemId,
+		int speed,
+		int duration,
+		bool fixedDirection,
+		bool explodes,
+		int effect,
+		int explodeEffect,
+		int explodeSound,
+		int unknown)
+	{
+		SendMovingParticles(
+			from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, unknown);
+	}
+
+	public static void SendMovingParticles(
+		IEntity from,
+		IEntity to,
+		int itemId,
+		int speed,
+		int duration,
+		bool fixedDirection,
+		bool explodes,
+		int hue,
+		int renderMode,
+		int effect,
+		int explodeEffect,
+		int explodeSound,
+		int unknown)
+	{
+		SendMovingParticles(
+			from,
+			to,
+			itemId,
+			speed,
+			duration,
+			fixedDirection,
+			explodes,
+			hue,
+			renderMode,
+			effect,
+			explodeEffect,
+			explodeSound,
+			(EffectLayer)255,
+			unknown);
+	}
+
+	public static void SendMovingParticles(
+		IEntity from,
+		IEntity to,
+		int itemId,
+		int speed,
+		int duration,
+		bool fixedDirection,
+		bool explodes,
+		int hue,
+		int renderMode,
+		int effect,
+		int explodeEffect,
+		int explodeSound,
+		EffectLayer layer,
+		int unknown)
+	{
+		if (from is Mobile mobile)
 		{
-			SendLocationEffect(p, map, itemId, duration, 10, hue, renderMode);
+			mobile.ProcessDelta();
 		}
 
-		public static void SendLocationEffect(
-			IPoint3D p, Map map, int itemId, int duration, int speed, int hue, int renderMode)
+		if (to is Mobile mobile1)
 		{
-			SendPacket(p, map, new LocationEffect(p, itemId, speed, duration, hue, renderMode));
+			mobile1.ProcessDelta();
 		}
 
-		public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect)
-		{
-			SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, 0);
-		}
+		Map map = from.Map;
 
-		public static void SendLocationParticles(IEntity e, int itemId, int speed, int duration, int effect, int unknown)
+		if (map != null)
 		{
-			SendLocationParticles(e, itemId, speed, duration, 0, 0, effect, unknown);
-		}
+			Packet particles = null, regular = null;
 
-		public static void SendLocationParticles(
-			IEntity e, int itemId, int speed, int duration, int hue, int renderMode, int effect, int unknown)
-		{
-			Map map = e.Map;
+			var eable = map.GetClientsInRange(from.Location);
 
-			if (map != null)
+			foreach (NetState state in eable)
 			{
-				Packet particles = null, regular = null;
+				state.Mobile.ProcessDelta();
 
-				var eable = map.GetClientsInRange(e.Location);
-
-				foreach (NetState state in eable)
+				if (SendParticlesTo(state))
 				{
-					state.Mobile.ProcessDelta();
+					particles ??= Packet.Acquire(
+						new MovingParticleEffect(
+							from,
+							to,
+							itemId,
+							speed,
+							duration,
+							fixedDirection,
+							explodes,
+							hue,
+							renderMode,
+							effect,
+							explodeEffect,
+							explodeSound,
+							layer,
+							unknown));
 
-					if (SendParticlesTo(state))
-					{
-						particles ??= Packet.Acquire(new LocationParticleEffect(e, itemId, speed, duration, hue, renderMode, effect, unknown));
-
-						state.Send(particles);
-					}
-					else if (itemId != 0)
-					{
-						regular ??= Packet.Acquire(new LocationEffect(e, itemId, speed, duration, hue, renderMode));
-
-						state.Send(regular);
-					}
+					state.Send(particles);
 				}
-
-				Packet.Release(particles);
-				Packet.Release(regular);
-
-				eable.Free();
-			}
-			//SendPacket( e.Location, e.Map, new LocationParticleEffect( e, itemID, speed, duration, hue, renderMode, effect, unknown ) );
-		}
-
-		public static void SendTargetEffect(IEntity target, int itemId, int duration)
-		{
-			SendTargetEffect(target, itemId, duration, 0, 0);
-		}
-
-		public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration)
-		{
-			SendTargetEffect(target, itemId, speed, duration, 0, 0);
-		}
-
-		public static void SendTargetEffect(IEntity target, int itemId, int duration, int hue, int renderMode)
-		{
-			SendTargetEffect(target, itemId, 10, duration, hue, renderMode);
-		}
-
-		public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration, int hue, int renderMode)
-		{
-			if (target is Mobile mobile)
-			{
-				mobile.ProcessDelta();
-			}
-
-			SendPacket(target.Location, target.Map, new TargetEffect(target, itemId, speed, duration, hue, renderMode));
-		}
-
-		public static void SendTargetParticles(
-			IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer)
-		{
-			SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, 0);
-		}
-
-		public static void SendTargetParticles(
-			IEntity target, int itemId, int speed, int duration, int effect, EffectLayer layer, int unknown)
-		{
-			SendTargetParticles(target, itemId, speed, duration, 0, 0, effect, layer, unknown);
-		}
-
-		public static void SendTargetParticles(
-			IEntity target,
-			int itemId,
-			int speed,
-			int duration,
-			int hue,
-			int renderMode,
-			int effect,
-			EffectLayer layer,
-			int unknown)
-		{
-			if (target is Mobile mobile)
-			{
-				mobile.ProcessDelta();
-			}
-
-			Map map = target.Map;
-
-			if (map != null)
-			{
-				Packet particles = null, regular = null;
-
-				var eable = map.GetClientsInRange(target.Location);
-
-				foreach (NetState state in eable)
+				else if (itemId > 1)
 				{
-					state.Mobile.ProcessDelta();
+					regular ??= Packet.Acquire(new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue,
+						renderMode));
 
-					if (SendParticlesTo(state))
-					{
-						particles ??= Packet.Acquire(
-							new TargetParticleEffect(target, itemId, speed, duration, hue, renderMode, effect, (int) layer, unknown));
-
-						state.Send(particles);
-					}
-					else if (itemId != 0)
-					{
-						regular ??= Packet.Acquire(new TargetEffect(target, itemId, speed, duration, hue, renderMode));
-
-						state.Send(regular);
-					}
+					state.Send(regular);
 				}
-
-				Packet.Release(particles);
-				Packet.Release(regular);
-
-				eable.Free();
 			}
 
-			//SendPacket( target.Location, target.Map, new TargetParticleEffect( target, itemID, speed, duration, hue, renderMode, effect, (int)layer, unknown ) );
+			Packet.Release(particles);
+			Packet.Release(regular);
+
+			eable.Free();
 		}
 
-		public static void SendMovingEffect(
-			IEntity from, IEntity to, int itemId, int speed, int duration, bool fixedDirection, bool explodes)
-		{
-			SendMovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0);
-		}
+		//SendPacket( from.Location, from.Map, new MovingParticleEffect( from, to, itemID, speed, duration, fixedDirection, explodes, hue, renderMode, effect, explodeEffect, explodeSound, unknown ) );
+	}
 
-		public static void SendMovingEffect(
-			IEntity from,
-			IEntity to,
-			int itemId,
-			int speed,
-			int duration,
-			bool fixedDirection,
-			bool explodes,
-			int hue,
-			int renderMode)
+	public static void SendPacket(Point3D origin, Map map, Packet p)
+	{
+		if (map != null)
 		{
-			if (from is Mobile mobile)
+			var eable = map.GetClientsInRange(origin);
+
+			p.Acquire();
+
+			foreach (NetState state in eable)
 			{
-				mobile.ProcessDelta();
+				state.Mobile.ProcessDelta();
+				state.Send(p);
 			}
 
-			if (to is Mobile mobile1)
-			{
-				mobile1.ProcessDelta();
-			}
+			p.Release();
 
-			SendPacket(
-				from.Location,
-				from.Map,
-				new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue, renderMode));
+			eable.Free();
 		}
+	}
 
-		public static void SendMovingParticles(
-			IEntity from,
-			IEntity to,
-			int itemId,
-			int speed,
-			int duration,
-			bool fixedDirection,
-			bool explodes,
-			int effect,
-			int explodeEffect,
-			int explodeSound)
+	public static void SendPacket(IPoint3D origin, Map map, Packet p)
+	{
+		if (map != null)
 		{
-			SendMovingParticles(
-				from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, 0);
-		}
+			var eable = map.GetClientsInRange(new Point3D(origin));
 
-		public static void SendMovingParticles(
-			IEntity from,
-			IEntity to,
-			int itemId,
-			int speed,
-			int duration,
-			bool fixedDirection,
-			bool explodes,
-			int effect,
-			int explodeEffect,
-			int explodeSound,
-			int unknown)
-		{
-			SendMovingParticles(
-				from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0, effect, explodeEffect, explodeSound, unknown);
-		}
+			p.Acquire();
 
-		public static void SendMovingParticles(
-			IEntity from,
-			IEntity to,
-			int itemId,
-			int speed,
-			int duration,
-			bool fixedDirection,
-			bool explodes,
-			int hue,
-			int renderMode,
-			int effect,
-			int explodeEffect,
-			int explodeSound,
-			int unknown)
-		{
-			SendMovingParticles(
-				from,
-				to,
-				itemId,
-				speed,
-				duration,
-				fixedDirection,
-				explodes,
-				hue,
-				renderMode,
-				effect,
-				explodeEffect,
-				explodeSound,
-				(EffectLayer)255,
-				unknown);
-		}
-
-		public static void SendMovingParticles(
-			IEntity from,
-			IEntity to,
-			int itemId,
-			int speed,
-			int duration,
-			bool fixedDirection,
-			bool explodes,
-			int hue,
-			int renderMode,
-			int effect,
-			int explodeEffect,
-			int explodeSound,
-			EffectLayer layer,
-			int unknown)
-		{
-			if (from is Mobile mobile)
+			foreach (NetState state in eable)
 			{
-				mobile.ProcessDelta();
+				state.Mobile.ProcessDelta();
+				state.Send(p);
 			}
 
-			if (to is Mobile mobile1)
-			{
-				mobile1.ProcessDelta();
-			}
+			p.Release();
 
-			Map map = from.Map;
-
-			if (map != null)
-			{
-				Packet particles = null, regular = null;
-
-				var eable = map.GetClientsInRange(from.Location);
-
-				foreach (NetState state in eable)
-				{
-					state.Mobile.ProcessDelta();
-
-					if (SendParticlesTo(state))
-					{
-						particles ??= Packet.Acquire(
-							new MovingParticleEffect(
-								from,
-								to,
-								itemId,
-								speed,
-								duration,
-								fixedDirection,
-								explodes,
-								hue,
-								renderMode,
-								effect,
-								explodeEffect,
-								explodeSound,
-								layer,
-								unknown));
-
-						state.Send(particles);
-					}
-					else if (itemId > 1)
-					{
-						regular ??= Packet.Acquire(new MovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, hue,
-							renderMode));
-
-						state.Send(regular);
-					}
-				}
-
-				Packet.Release(particles);
-				Packet.Release(regular);
-
-				eable.Free();
-			}
-
-			//SendPacket( from.Location, from.Map, new MovingParticleEffect( from, to, itemID, speed, duration, fixedDirection, explodes, hue, renderMode, effect, explodeEffect, explodeSound, unknown ) );
-		}
-
-		public static void SendPacket(Point3D origin, Map map, Packet p)
-		{
-			if (map != null)
-			{
-				var eable = map.GetClientsInRange(origin);
-
-				p.Acquire();
-
-				foreach (NetState state in eable)
-				{
-					state.Mobile.ProcessDelta();
-					state.Send(p);
-				}
-
-				p.Release();
-
-				eable.Free();
-			}
-		}
-
-		public static void SendPacket(IPoint3D origin, Map map, Packet p)
-		{
-			if (map != null)
-			{
-				var eable = map.GetClientsInRange(new Point3D(origin));
-
-				p.Acquire();
-
-				foreach (NetState state in eable)
-				{
-					state.Mobile.ProcessDelta();
-					state.Send(p);
-				}
-
-				p.Release();
-
-				eable.Free();
-			}
+			eable.Free();
 		}
 	}
 }

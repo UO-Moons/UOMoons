@@ -98,7 +98,9 @@ namespace Server.Network
 		{
 			lock (m_UnusedBuffers)
 				if (buffer != null && buffer.Length == m_CoalesceBufferSize)
-					m_UnusedBuffers.ReleaseBuffer(buffer);
+				{
+					m_UnusedBuffers.ReleaseBuffer(ref buffer);
+				}
 		}
 
 		private readonly Queue<Gram> _pending;

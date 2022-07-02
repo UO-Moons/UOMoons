@@ -207,7 +207,7 @@ namespace Server.Engines.ConPVP
 				Captures = 0;
 				m_Counter = 0;
 
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 			}
 
 			public void StartHillTicker()

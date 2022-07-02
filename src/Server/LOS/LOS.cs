@@ -439,7 +439,7 @@ namespace Server.LOS
 		//--------------------------------------------------------------------------
 		private static bool IsInvalidLandTile(LandTile tile)
 		{
-			int id = tile.ID;
+			int id = tile.Id;
 
 			int[] invalidLandTiles = Map.InvalidLandTiles;
 
@@ -627,7 +627,7 @@ namespace Server.LOS
 		//--------------------------------------------------------------------------
 		public bool LandBlocksVis(LandTile landTile, int x, int y, int eyelevel, Point3D beholder)
 		{
-			if (!Config.GetInstance().Mountain(landTile.ID))
+			if (!Config.GetInstance().Mountain(landTile.Id))
 			{
 				return false;
 			}
@@ -649,7 +649,7 @@ namespace Server.LOS
 		//--------------------------------------------------------------------------
 		public bool TileBlocksVis(StaticTile tile, int eyelevel, int x, int y, Point3D beholder)
 		{
-			ItemData data = TileData.ItemTable[tile.ID & 0x3FFF];
+			ItemData data = TileData.ItemTable[tile.Id & 0x3FFF];
 			int height = data.CalcHeight;
 			int windowRange = Config.GetInstance().WindowRange;
 
@@ -664,7 +664,7 @@ namespace Server.LOS
 			//  whitelisted tils dont block vis
 			//----------------------------------------------------------------------
 
-			if (Config.GetInstance().WhiteListed(tile.ID))
+			if (Config.GetInstance().WhiteListed(tile.Id))
 				return false;
 
 			//----------------------------------------------------------------------
@@ -688,7 +688,7 @@ namespace Server.LOS
 			//  Trees
 			//----------------------------------------------------------------------
 
-			if (Config.GetInstance().Tree(tile.ID))
+			if (Config.GetInstance().Tree(tile.Id))
 			{
 				int treeRange = Config.GetInstance().TreeRange;
 
@@ -791,7 +791,7 @@ namespace Server.LOS
 			//  Blacklisted Items
 			//----------------------------------------------------------------------
 
-			if (Config.GetInstance().BlackListed(tile.ID))
+			if (Config.GetInstance().BlackListed(tile.Id))
 			{
 				return true;
 			}
@@ -892,7 +892,7 @@ namespace Server.LOS
 
 						LandTile landTile = m_map.Tiles.GetLandTile(x, y);
 
-						ItemData landData = TileData.ItemTable[landTile.ID & 0x3FFF];
+						ItemData landData = TileData.ItemTable[landTile.Id & 0x3FFF];
 
 						if (landData.Impassable)
 						{
@@ -907,7 +907,7 @@ namespace Server.LOS
 
 						foreach (StaticTile staticTile in staticTiles)
 						{
-							ItemData staticData = TileData.ItemTable[staticTile.ID & 0x3FFF];
+							ItemData staticData = TileData.ItemTable[staticTile.Id & 0x3FFF];
 
 							if (staticData.Impassable || staticTile.Z > landTile.Z)
 							{

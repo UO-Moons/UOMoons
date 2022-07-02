@@ -445,7 +445,7 @@ public class PlayerBarkeeper : BaseVendor
 			Body = 401;
 			Name = NameList.RandomName("female");
 
-			FacialHairItemID = 0;
+			FacialHairItemId = 0;
 		}
 		else
 		{

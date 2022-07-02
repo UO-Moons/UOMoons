@@ -1,65 +1,64 @@
 using System;
 
-namespace Server
+namespace Server;
+
+public class TileList
 {
-	public class TileList
+	private StaticTile[] _tiles;
+
+	public TileList()
 	{
-		private StaticTile[] m_Tiles;
+		_tiles = new StaticTile[8];
+		Count = 0;
+	}
 
-		public TileList()
+	public int Count { get; private set; }
+
+	public void AddRange(StaticTile[] tiles)
+	{
+		if (Count + tiles.Length > _tiles.Length)
 		{
-			m_Tiles = new StaticTile[8];
-			Count = 0;
+			StaticTile[] old = _tiles;
+			_tiles = new StaticTile[(Count + tiles.Length) * 2];
+
+			for (int i = 0; i < old.Length; ++i)
+				_tiles[i] = old[i];
 		}
 
-		public int Count { get; private set; }
+		for (int i = 0; i < tiles.Length; ++i)
+			_tiles[Count++] = tiles[i];
+	}
 
-		public void AddRange(StaticTile[] tiles)
+	public void Add(ushort id, sbyte z)
+	{
+		if (Count + 1 > _tiles.Length)
 		{
-			if ((Count + tiles.Length) > m_Tiles.Length)
-			{
-				StaticTile[] old = m_Tiles;
-				m_Tiles = new StaticTile[(Count + tiles.Length) * 2];
+			StaticTile[] old = _tiles;
+			_tiles = new StaticTile[old.Length * 2];
 
-				for (int i = 0; i < old.Length; ++i)
-					m_Tiles[i] = old[i];
-			}
-
-			for (int i = 0; i < tiles.Length; ++i)
-				m_Tiles[Count++] = tiles[i];
+			for (int i = 0; i < old.Length; ++i)
+				_tiles[i] = old[i];
 		}
 
-		public void Add(ushort id, sbyte z)
-		{
-			if ((Count + 1) > m_Tiles.Length)
-			{
-				StaticTile[] old = m_Tiles;
-				m_Tiles = new StaticTile[old.Length * 2];
+		_tiles[Count].m_ID = id;
+		_tiles[Count].m_Z = z;
+		++Count;
+	}
 
-				for (int i = 0; i < old.Length; ++i)
-					m_Tiles[i] = old[i];
-			}
+	private static readonly StaticTile[] m_EmptyTiles = Array.Empty<StaticTile>();
 
-			m_Tiles[Count].m_ID = id;
-			m_Tiles[Count].m_Z = z;
-			++Count;
-		}
+	public StaticTile[] ToArray()
+	{
+		if (Count == 0)
+			return m_EmptyTiles;
 
-		private static readonly StaticTile[] m_EmptyTiles = Array.Empty<StaticTile>();
+		StaticTile[] tiles = new StaticTile[Count];
 
-		public StaticTile[] ToArray()
-		{
-			if (Count == 0)
-				return m_EmptyTiles;
+		for (int i = 0; i < Count; ++i)
+			tiles[i] = _tiles[i];
 
-			StaticTile[] tiles = new StaticTile[Count];
+		Count = 0;
 
-			for (int i = 0; i < Count; ++i)
-				tiles[i] = m_Tiles[i];
-
-			Count = 0;
-
-			return tiles;
-		}
+		return tiles;
 	}
 }

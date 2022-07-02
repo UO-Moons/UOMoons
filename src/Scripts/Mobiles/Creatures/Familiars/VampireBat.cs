@@ -7,7 +7,7 @@ namespace Server.Mobiles
 		{
 			Name = "a vampire bat";
 			Body = 317;
-			BaseSoundID = 0x270;
+			BaseSoundId = 0x270;
 
 			SetStr(120);
 			SetDex(120);

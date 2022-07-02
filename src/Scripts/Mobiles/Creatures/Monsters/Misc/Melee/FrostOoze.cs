@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a frost ooze";
 			Body = 94;
-			BaseSoundID = 456;
+			BaseSoundId = 456;
 
 			SetStr(18, 30);
 			SetDex(16, 21);

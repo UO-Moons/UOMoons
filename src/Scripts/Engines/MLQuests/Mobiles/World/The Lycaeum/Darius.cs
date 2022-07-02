@@ -24,7 +24,7 @@ public class Darius : HeritageQuester
 		Race = Race.Elf;
 
 		Hue = 0x8385;
-		HairItemID = 0x2FCE;
+		HairItemId = 0x2FCE;
 		HairHue = 0x1BC;
 	}
 

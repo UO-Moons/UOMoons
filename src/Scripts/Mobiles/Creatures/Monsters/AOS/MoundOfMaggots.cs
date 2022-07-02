@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a mound of maggots";
 			Body = 319;
-			BaseSoundID = 898;
+			BaseSoundId = 898;
 
 			SetStr(61, 70);
 			SetDex(61, 70);

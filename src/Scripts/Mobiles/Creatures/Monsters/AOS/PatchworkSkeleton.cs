@@ -15,7 +15,7 @@ namespace Server.Mobiles
 		{
 			Name = "a patchwork skeleton";
 			Body = 309;
-			BaseSoundID = 0x48D;
+			BaseSoundId = 0x48D;
 
 			SetStr(96, 120);
 			SetDex(71, 95);

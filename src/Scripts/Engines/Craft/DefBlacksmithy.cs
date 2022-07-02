@@ -80,7 +80,7 @@ public class DefBlacksmithy : CraftSystem
 
 				for (int i = 0; (!anvil || !forge) && i < tiles.Length; ++i)
 				{
-					int id = tiles[i].ID;
+					int id = tiles[i].Id;
 
 					bool isAnvil = (id == 4015 || id == 4016 || id == 0x2DD5 || id == 0x2DD6);
 					bool isForge = (id == 4017 || (id >= 6522 && id <= 6569) || id == 0x2DD8);

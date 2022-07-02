@@ -284,7 +284,7 @@ namespace Server.Items
 			{
 				_mMobile = m;
 
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 
 				_ = _mMobile.BeginAction(typeof(Fists));
 			}

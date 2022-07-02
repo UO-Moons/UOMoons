@@ -51,7 +51,7 @@ namespace Server
 		{
 			LandTile lt = map.Tiles.GetLandTile(x, y);
 
-			if (IsFloor(lt.ID) && map.CanFit(x, y, lt.Z, 16, false, false))
+			if (IsFloor(lt.Id) && map.CanFit(x, y, lt.Z, 16, false, false))
 			{
 				z = lt.Z;
 				return true;
@@ -62,9 +62,9 @@ namespace Server
 			for (int i = 0; i < tiles.Length; ++i)
 			{
 				StaticTile t = tiles[i];
-				ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 
-				if (IsStaticFloor(t.ID) && map.CanFit(x, y, t.Z + (id.Surface ? id.CalcHeight : 0), 16, false, false))
+				if (IsStaticFloor(t.Id) && map.CanFit(x, y, t.Z + (id.Surface ? id.CalcHeight : 0), 16, false, false))
 				{
 					z = t.Z + (id.Surface ? id.CalcHeight : 0);
 					return true;
@@ -79,7 +79,7 @@ namespace Server
 		{
 			LandTile lt = map.Tiles.GetLandTile(x, y);
 
-			if (IsFloor(lt.ID) && (canFit || CanFit(map, x, y, lt.Z)))
+			if (IsFloor(lt.Id) && (canFit || CanFit(map, x, y, lt.Z)))
 			{
 				return true;
 			}
@@ -89,9 +89,9 @@ namespace Server
 			for (int i = 0; i < tiles.Length; ++i)
 			{
 				StaticTile t = tiles[i];
-				ItemData id = TileData.ItemTable[t.ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
 
-				if (IsStaticFloor(t.ID) && (canFit || CanFit(map, x, y, t.Z + (id.Surface ? id.CalcHeight : 0))))
+				if (IsStaticFloor(t.Id) && (canFit || CanFit(map, x, y, t.Z + (id.Surface ? id.CalcHeight : 0))))
 				{
 					return true;
 				}
@@ -288,7 +288,7 @@ namespace Server
 
 			for (int i = 0; i < tiles.Length; ++i)
 			{
-				if (IsDisplayCase(tiles[i].ID))
+				if (IsDisplayCase(tiles[i].Id))
 				{
 					ProcessDisplayCase(map, tiles, x, y);
 					break;
@@ -499,7 +499,7 @@ namespace Server
 			ShopFlags flags = ShopFlags.None;
 
 			for (int i = 0; i < tiles.Length; ++i)
-				flags |= ProcessDisplayedItem(tiles[i].ID);
+				flags |= ProcessDisplayedItem(tiles[i].Id);
 
 			if (flags != ShopFlags.None)
 			{
@@ -551,7 +551,7 @@ namespace Server
 			int lowZ = 0, avgZ = 0, topZ = 0;
 
 			map.GetAverageZ(x, y, ref lowZ, ref avgZ, ref topZ);
-			TileFlag landFlags = TileData.LandTable[lt.ID & TileData.MaxLandValue].Flags;
+			TileFlag landFlags = TileData.LandTable[lt.Id & TileData.MaxLandValue].Flags;
 
 			if ((landFlags & TileFlag.Impassable) != 0 && topZ > z && (z + 16) > lowZ)
 			{
@@ -568,12 +568,12 @@ namespace Server
 
 			for (int i = 0; i < staticTiles.Length; ++i)
 			{
-				if (IsDisplayCase(staticTiles[i].ID))
+				if (IsDisplayCase(staticTiles[i].Id))
 				{
 					continue;
 				}
 
-				ItemData id = TileData.ItemTable[staticTiles[i].ID & TileData.MaxItemValue];
+				ItemData id = TileData.ItemTable[staticTiles[i].Id & TileData.MaxItemValue];
 
 				surface = id.Surface;
 				impassable = id.Impassable;

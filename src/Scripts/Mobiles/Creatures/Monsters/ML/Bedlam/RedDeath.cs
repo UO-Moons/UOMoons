@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			IsParagon = true;
 
 			Hue = 0x21;
-			BaseSoundID = 0x1C3;
+			BaseSoundId = 0x1C3;
 
 			AI = AIType.AI_Melee;
 			FightMode = FightMode.Closest;

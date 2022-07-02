@@ -17,7 +17,7 @@ namespace Server.Mobiles
 		{
 			Name = NameList.RandomName("impaler");
 			Body = 306;
-			BaseSoundID = 0x2A7;
+			BaseSoundId = 0x2A7;
 
 			SetStr(190);
 			SetDex(45);
@@ -85,8 +85,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 1200)
-				BaseSoundID = 0x2A7;
+			if (BaseSoundId == 1200)
+				BaseSoundId = 0x2A7;
 		}
 	}
 }

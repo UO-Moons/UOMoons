@@ -34,7 +34,7 @@ public class Thallary : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8389;
-		HairItemID = 0x2FCF;
+		HairItemId = 0x2FCF;
 		HairHue = 0x33;
 	}
 

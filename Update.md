@@ -1,10 +1,9 @@
-# UO Moons Version 4.0.1
+# UO Moons Version 4.0.0.1
 
 1. Added Hashed Wheel Timer Check out readme for details.
 2. Fixed an issue with item/mobile creation where the event is triggered on a deleted object.
 3. Updated Mobile Scripts.
 - went through all scripts to update them to SetWearable.
-- reverted change to AddItem.
 4. Update to SetWearable.
 - last item being set will be worn (if no override to OnEquip returns false.
 - delete the item on the layer that is the same as the new item (if existend).
@@ -19,5 +18,8 @@
 10. Moved Creaturekilledby to eventsink.cs
 11. Added Rare Name verifaction System defualt enabled is false.
 12. Added Player History System Defualt Enabled is false.
+13. Upgraded Version Control2.
+14. Upgraded Server Files to be Current.
+15. Added Texas Hold'm.
 
 

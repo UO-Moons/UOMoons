@@ -39,7 +39,7 @@ public class Aulan : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x847E;
-		HairItemID = 0x2FC1;
+		HairItemId = 0x2FC1;
 		HairHue = 0x852;
 	}
 

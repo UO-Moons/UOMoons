@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a dolphin";
 			Body = 0x97;
-			BaseSoundID = 0x8A;
+			BaseSoundId = 0x8A;
 
 			SetStr(21, 49);
 			SetDex(66, 85);

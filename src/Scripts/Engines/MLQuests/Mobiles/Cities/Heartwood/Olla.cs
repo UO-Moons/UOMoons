@@ -34,7 +34,7 @@ public class Olla : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x824E;
-		HairItemID = 0x2FCE;
+		HairItemId = 0x2FCE;
 		HairHue = 0x8F;
 	}
 

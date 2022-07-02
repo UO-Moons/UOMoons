@@ -16,7 +16,7 @@ namespace Server.Mobiles
 		{
 			Name = "a yomotsu elder";
 			Body = 255;
-			BaseSoundID = 0x452;
+			BaseSoundId = 0x452;
 
 			SetStr(686, 830);
 			SetDex(251, 365);

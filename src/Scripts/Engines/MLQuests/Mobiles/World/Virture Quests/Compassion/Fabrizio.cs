@@ -29,9 +29,9 @@ public class Fabrizio : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840E;
-		HairItemID = 0x203D;
+		HairItemId = 0x203D;
 		HairHue = 0x1;
-		FacialHairItemID = 0x203F;
+		FacialHairItemId = 0x203F;
 		FacialHairHue = 0x1;
 	}
 

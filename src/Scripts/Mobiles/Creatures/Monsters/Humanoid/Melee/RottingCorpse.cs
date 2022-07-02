@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a rotting corpse";
 			Body = 155;
-			BaseSoundID = 471;
+			BaseSoundId = 471;
 
 			SetStr(301, 350);
 			SetDex(75);

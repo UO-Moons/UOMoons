@@ -32,7 +32,7 @@ namespace Server.Engines.Quests.Collector
 			AddItem(new Boots(0x452));
 			AddItem(new FullApron(0x455));
 
-			HairItemID = 0x203B;    //ShortHair
+			HairItemId = 0x203B;    //ShortHair
 			HairHue = 0x455;
 		}
 

@@ -38,7 +38,7 @@ public class Oolua : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x853F;
-		HairItemID = 0x2FCC;
+		HairItemId = 0x2FCC;
 		HairHue = 0x388;
 	}
 

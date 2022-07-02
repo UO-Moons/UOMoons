@@ -34,7 +34,7 @@ public class Clehin : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8362;
-		HairItemID = 0x2FC2;
+		HairItemId = 0x2FC2;
 		HairHue = 0x324;
 	}
 

@@ -31,10 +31,10 @@ namespace Server.Engines.Quests.Collector
 			AddItem(new LongPants(0x5F7));
 			AddItem(new Shoes(0x5F7));
 
-			HairItemID = 0x2049; // Pig Tails
+			HairItemId = 0x2049; // Pig Tails
 			HairHue = 0x460;
 
-			FacialHairItemID = 0x2041; // Mustache
+			FacialHairItemId = 0x2041; // Mustache
 			FacialHairHue = 0x460;
 		}
 

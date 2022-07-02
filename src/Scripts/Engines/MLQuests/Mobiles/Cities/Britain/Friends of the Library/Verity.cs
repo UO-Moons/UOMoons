@@ -29,7 +29,7 @@ public class Verity : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83EF;
-		HairItemID = 0x2047;
+		HairItemId = 0x2047;
 		HairHue = 0x3B3;
 	}
 

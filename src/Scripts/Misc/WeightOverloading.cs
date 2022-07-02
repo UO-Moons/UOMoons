@@ -12,21 +12,21 @@ namespace Server.Misc
 			Mobile.FatigueHandler = FatigueOnDamage;
 		}
 
-		public static DFAlgorithm DFA { get; set; }
+		public static DfAlgorithm DFA { get; set; }
 
-		public static void FatigueOnDamage(Mobile m, int damage, DFAlgorithm df)
+		public static void FatigueOnDamage(Mobile m, int damage, DfAlgorithm df)
 		{
 			double fatigue = 0.0;
 			var hits = Math.Max(1, m.Hits);
 
-			switch (m.DFA)
+			switch (m.Dfa)
 			{
-				case DFAlgorithm.Standard:
+				case DfAlgorithm.Standard:
 					{
 						fatigue = (damage * (m.HitsMax / hits) * ((double)m.Stam / m.StamMax)) - 5;
 					}
 					break;
-				case DFAlgorithm.PainSpike:
+				case DfAlgorithm.PainSpike:
 					{
 						fatigue = (damage * ((m.HitsMax / hits) + ((50.0 + m.Stam) / m.StamMax) - 1.0)) - 5;
 					}

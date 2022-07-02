@@ -43,7 +43,7 @@ namespace Server.Engines.Quests.Haven
 			AddItem(new Kilt(0x301));
 			AddItem(new FancyShirt(0x300));
 
-			HairItemID = 0x203D; // Pony Tail
+			HairItemId = 0x203D; // Pony Tail
 			HairHue = 0x22;
 
 			Bow bow = new Bow

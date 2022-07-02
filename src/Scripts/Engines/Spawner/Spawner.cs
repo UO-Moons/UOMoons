@@ -878,7 +878,7 @@ namespace Server.Mobiles
 							int count = reader.ReadInt();
 							for (int i = 0; i < count; ++i)
 							{
-								if (World.FindEntity(reader.ReadInt()) is ISpawnable e)
+								if (World.FindEntity(reader.ReadSerial()) is ISpawnable e)
 								{
 									e.Delete(); // lets make this easy
 								}
@@ -1075,7 +1075,7 @@ namespace Server.Mobiles
 
 			LandTile landTile = map.Tiles.GetLandTile(x, y);
 
-			if (landTile.Z == z && (TileData.LandTable[landTile.ID & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)
+			if (landTile.Z == z && (TileData.LandTable[landTile.Id & TileData.MaxLandValue].Flags & TileFlag.Wet) != 0)
 				return true;
 
 			StaticTile[] staticTiles = map.Tiles.GetStaticTiles(x, y, true);
@@ -1084,7 +1084,7 @@ namespace Server.Mobiles
 			{
 				StaticTile staticTile = staticTiles[i];
 
-				if (staticTile.Z == z && (TileData.ItemTable[staticTile.ID & TileData.MaxItemValue].Flags & TileFlag.Wet) != 0)
+				if (staticTile.Z == z && (TileData.ItemTable[staticTile.Id & TileData.MaxItemValue].Flags & TileFlag.Wet) != 0)
 					return true;
 			}
 

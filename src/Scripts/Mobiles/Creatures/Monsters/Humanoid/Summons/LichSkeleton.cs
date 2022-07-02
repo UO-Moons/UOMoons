@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a skeleton";
 			Body = 50;
-			BaseSoundID = 0x48D;
+			BaseSoundId = 0x48D;
 
 			SetStr( 56, 80 );
 			SetDex( 56, 75 );

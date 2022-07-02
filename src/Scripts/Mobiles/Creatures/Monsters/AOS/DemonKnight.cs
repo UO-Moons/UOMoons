@@ -163,7 +163,7 @@ namespace Server.Mobiles
 			Name = NameList.RandomName("demon knight");
 			Title = "the Dark Father";
 			Body = 318;
-			BaseSoundID = 0x165;
+			BaseSoundId = 0x165;
 
 			SetStr(500);
 			SetDex(100);

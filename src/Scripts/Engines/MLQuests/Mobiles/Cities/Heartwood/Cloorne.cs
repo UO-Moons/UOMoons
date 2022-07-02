@@ -37,7 +37,7 @@ public class Cloorne : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8376;
-		HairItemID = 0x2FBF;
+		HairItemId = 0x2FBF;
 		HairHue = 0x386;
 	}
 

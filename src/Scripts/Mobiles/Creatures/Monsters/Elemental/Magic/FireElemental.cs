@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a fire elemental";
 			Body = 15;
-			BaseSoundID = 838;
+			BaseSoundId = 838;
 
 			SetStr(126, 155);
 			SetDex(166, 185);
@@ -74,8 +74,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 274)
-				BaseSoundID = 838;
+			if (BaseSoundId == 274)
+				BaseSoundId = 838;
 		}
 	}
 }

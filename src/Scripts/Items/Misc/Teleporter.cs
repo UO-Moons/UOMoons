@@ -825,7 +825,7 @@ namespace Server.Items
 
 			writer.Write(0); // version
 
-			writer.WriteItem<TimeoutTeleporter>(Teleporter);
+			writer.Write(Teleporter);
 		}
 
 		public override void Deserialize(GenericReader reader)

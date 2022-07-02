@@ -123,7 +123,7 @@ namespace Server
 
 			WriteCount(_itemIndex, World.Items.Count);
 			WriteCount(_mobileIndex, World.Mobiles.Count);
-			WriteCount(_guildIndex, World.Guilds.Count);
+			WriteCount(_guildIndex, BaseGuild.List.Count);
 		}
 
 		private static void WriteCount(SequentialFileWriter indexFile, int count)
@@ -188,7 +188,7 @@ namespace Server
 
 		private void Save(BaseGuild guild, BinaryMemoryWriter writer)
 		{
-			_ = writer.CommitTo(_guildData, _guildIndex, 0, guild.Serial);
+			_ = writer.CommitTo(_guildData, _guildIndex, 0, guild.Id);
 		}
 
 		private bool Enqueue(ISerializable value)
@@ -237,7 +237,7 @@ namespace Server
 			{
 				_items = World.Items.Values;
 				_mobiles = World.Mobiles.Values;
-				_guilds = World.Guilds.Values;
+				_guilds = BaseGuild.List.Values;
 			}
 
 			public IEnumerator<ISerializable> GetEnumerator()

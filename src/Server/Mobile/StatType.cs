@@ -1,13 +1,12 @@
 using System;
 
-namespace Server
+namespace Server;
+
+[Flags]
+public enum StatType
 {
-	[Flags]
-	public enum StatType
-	{
-		Str = 1,
-		Dex = 2,
-		Int = 4,
-		All = 7
-	}
+	Str = 1,
+	Dex = 2,
+	Int = 4,
+	All = 7
 }

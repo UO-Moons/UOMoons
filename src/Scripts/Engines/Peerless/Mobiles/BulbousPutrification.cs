@@ -10,7 +10,7 @@ namespace Server.Mobiles
             Name = "a bulbous putrification";
             Body = 0x307;
             Hue = 0x55C;
-            BaseSoundID = 0x165;
+            BaseSoundId = 0x165;
 
             SetStr(755, 800);
             SetDex(53, 60);

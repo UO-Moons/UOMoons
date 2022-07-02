@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Body = 89;
 			Name = "a giant ice worm";
-			BaseSoundID = 0xDC;
+			BaseSoundId = 0xDC;
 
 			SetStr(216, 245);
 			SetDex(76, 100);

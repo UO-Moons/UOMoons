@@ -19,7 +19,7 @@ namespace Server.Mobiles
 			// TODO: Gas attack
 			Name = "a valorite elemental";
 			Body = 112;
-			BaseSoundID = 268;
+			BaseSoundId = 268;
 
 			SetStr(226, 255);
 			SetDex(126, 145);

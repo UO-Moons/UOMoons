@@ -408,7 +408,7 @@ namespace Server.Items
 
 		public FurnitureTimer(Container c, Mobile m) : base(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5))
 		{
-			Priority = TimerPriority.TwoFiftyMS;
+			Priority = TimerPriority.TwoFiftyMs;
 
 			m_Container = c;
 			m_Mobile = m;

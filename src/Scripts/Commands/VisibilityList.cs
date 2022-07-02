@@ -72,7 +72,7 @@ public class VisibilityList
 			{
 				Mobile m = list[i];
 
-				if (!m.CanSee(pm) && Utility.InUpdateRange(m, pm))
+				if (!m.CanSee(pm) && m.InUpdateRange(pm))
 					m.Send(pm.RemovePacket);
 			}
 		}
@@ -103,7 +103,7 @@ public class VisibilityList
 						pm.SendMessage("{0} has been added to your visibility list.", targ.Name);
 					}
 
-					if (Utility.InUpdateRange(targ, from))
+					if (targ.InUpdateRange(from))
 					{
 						NetState ns = targ.NetState;
 
@@ -111,8 +111,8 @@ public class VisibilityList
 						{
 							if (targ.CanSee(pm))
 							{
-								ns.Send(MobileIncoming.Create(ns, targ, pm));
-
+								//ns.Send(MobileIncoming.Create(ns, targ, pm));
+								MobileIncoming.Send(ns, from);
 								if (ObjectPropertyList.Enabled)
 								{
 									ns.Send(pm.OplPacket);

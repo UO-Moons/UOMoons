@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a doppleganger";
 			Body = 0x309;
-			BaseSoundID = 0x451;
+			BaseSoundId = 0x451;
 
 			SetStr(81, 110);
 			SetDex(56, 75);

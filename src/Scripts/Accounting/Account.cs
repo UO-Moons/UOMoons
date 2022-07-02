@@ -776,7 +776,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 				try
 				{
 					int index = Utility.GetXMLInt32(Utility.GetAttribute(ele, "index", "0"), 0);
-					int serial = Utility.GetXMLInt32(Utility.GetText(ele, "0"), 0);
+					Serial serial = Utility.GetXMLSerial(Utility.GetText(ele, "0"), Serial.Zero);
 
 					if (index >= 0 && index < list.Length)
 						list[index] = World.FindMobile(serial);

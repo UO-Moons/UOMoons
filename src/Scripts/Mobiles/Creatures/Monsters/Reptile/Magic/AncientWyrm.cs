@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ancient wyrm";
 			Body = 46;
-			BaseSoundID = 362;
+			BaseSoundId = 362;
 
 			SetStr(1096, 1185);
 			SetDex(86, 175);

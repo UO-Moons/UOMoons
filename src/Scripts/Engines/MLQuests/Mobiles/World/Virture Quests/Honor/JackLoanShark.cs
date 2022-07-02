@@ -26,9 +26,9 @@ public class JackLoanShark : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83EC;
-		HairItemID = 0x2045;
+		HairItemId = 0x2045;
 		HairHue = 0x464;
-		FacialHairItemID = 0x204B;
+		FacialHairItemId = 0x204B;
 		FacialHairHue = 0x464;
 	}
 

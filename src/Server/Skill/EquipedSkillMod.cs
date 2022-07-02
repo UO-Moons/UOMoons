@@ -1,20 +1,19 @@
-﻿namespace Server
+namespace Server;
+
+public class EquipedSkillMod : SkillMod
 {
-	public class EquipedSkillMod : SkillMod
+	private readonly Item _item;
+	private readonly Mobile _mobile;
+
+	public EquipedSkillMod(SkillName skill, bool relative, double value, Item item, Mobile mobile)
+		: base(skill, relative, value)
 	{
-		private readonly Item m_Item;
-		private readonly Mobile m_Mobile;
+		_item = item;
+		_mobile = mobile;
+	}
 
-		public EquipedSkillMod(SkillName skill, bool relative, double value, Item item, Mobile mobile)
-			: base(skill, relative, value)
-		{
-			m_Item = item;
-			m_Mobile = mobile;
-		}
-
-		public override bool CheckCondition()
-		{
-			return (!m_Item.Deleted && !m_Mobile.Deleted && m_Item.Parent == m_Mobile);
-		}
+	public override bool CheckCondition()
+	{
+		return !_item.Deleted && !_mobile.Deleted && _item.Parent == _mobile;
 	}
 }

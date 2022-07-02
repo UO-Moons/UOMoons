@@ -26,9 +26,9 @@ public class Evan : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x841B;
-		HairItemID = 0x204A;
+		HairItemId = 0x204A;
 		HairHue = 0x451;
-		FacialHairItemID = 0x203F;
+		FacialHairItemId = 0x203F;
 		FacialHairHue = 0x451;
 	}
 

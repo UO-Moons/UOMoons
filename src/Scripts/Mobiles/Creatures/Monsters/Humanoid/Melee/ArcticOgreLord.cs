@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "an arctic ogre lord";
 			Body = 135;
-			BaseSoundID = 427;
+			BaseSoundId = 427;
 
 			SetStr(767, 945);
 			SetDex(66, 75);

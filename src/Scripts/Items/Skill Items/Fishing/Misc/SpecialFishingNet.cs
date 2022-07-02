@@ -248,7 +248,7 @@ namespace Server.Items
 
 				LandTile t = map.Tiles.GetLandTile(tx, ty);
 
-				if (t.Z == p.Z && ((t.ID >= 0xA8 && t.ID <= 0xAB) || (t.ID >= 0x136 && t.ID <= 0x137)) && !Spells.SpellHelper.CheckMulti(new Point3D(tx, ty, p.Z), map))
+				if (t.Z == p.Z && ((t.Id >= 0xA8 && t.Id <= 0xAB) || (t.Id >= 0x136 && t.Id <= 0x137)) && !Spells.SpellHelper.CheckMulti(new Point3D(tx, ty, p.Z), map))
 				{
 					x = tx;
 					y = ty;
@@ -316,7 +316,7 @@ namespace Server.Items
 
 		private static bool ValidateDeepWater(Map map, int x, int y)
 		{
-			int tileID = map.Tiles.GetLandTile(x, y).ID;
+			int tileID = map.Tiles.GetLandTile(x, y).Id;
 			bool water = false;
 
 			for (int i = 0; !water && i < m_WaterTiles.Length; i += 2)

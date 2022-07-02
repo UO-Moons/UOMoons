@@ -233,7 +233,7 @@ public class HouseRegion : BaseRegion
 			{
 				AggressorInfo info = m.Aggressed[i];
 
-				if (info.Defender.Player && DateTime.UtcNow - info.LastCombatTime < BaseMobile.COMBAT_HEAT_DELAY)
+				if (info.Defender.Player && DateTime.UtcNow - info.LastCombatTime < BaseMobile.CombatHeatDelay)
 					return base.GetLogoutDelay(m);
 			}
 

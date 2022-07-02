@@ -40,7 +40,7 @@ public class Brinnae : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8382;
-		HairItemID = 0x2FD0;
+		HairItemId = 0x2FD0;
 		HairHue = 0x852;
 	}
 

@@ -34,7 +34,7 @@ public class Ciala : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8374;
-		HairItemID = 0x2FD0;
+		HairItemId = 0x2FD0;
 		HairHue = 0x31D;
 	}
 

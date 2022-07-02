@@ -2344,7 +2344,7 @@ namespace Server.Engines.XmlSpawner2
 			Mobile from = state.Mobile;
 			if (from.AccessLevel >= AccessLevel.GameMaster || Core.TickCount >= from.NextActionTime)
 			{
-				int value = pvSrc.ReadInt32();
+				Serial value = pvSrc.ReadSerial();
 
 				if ((value & ~0x7FFFFFFF) != 0)
 				{

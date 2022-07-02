@@ -156,8 +156,6 @@ namespace Server.Items
 			base.Serialize(writer);
 
 			writer.WriteEncodedInt(0); // version
-
-			writer.WriteItem<PlagueBeastOrgan>(Organ);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -166,7 +164,10 @@ namespace Server.Items
 
 			int version = reader.ReadEncodedInt();
 
-			Organ = reader.ReadItem<PlagueBeastOrgan>();
+			PlagueBeastLord owner = Owner;
+
+			if (owner == null || !owner.Alive)
+				Delete();
 		}
 	}
 }

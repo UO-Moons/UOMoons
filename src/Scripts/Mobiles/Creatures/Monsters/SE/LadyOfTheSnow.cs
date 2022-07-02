@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a lady of the snow";
 			Body = 252;
-			BaseSoundID = 0x482;
+			BaseSoundId = 0x482;
 
 			SetStr(276, 305);
 			SetDex(106, 125);
@@ -110,7 +110,7 @@ namespace Server.Mobiles
 			{
 				m_Mobile = m;
 				m_From = from;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			public void DoExpire()

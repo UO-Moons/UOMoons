@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a hell cat";
 			Body = 127;
-			BaseSoundID = 0xBA;
+			BaseSoundId = 0xBA;
 
 			SetStr(161, 185);
 			SetDex(96, 115);

@@ -37,7 +37,7 @@ public class Sleen : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x83E6;
-		HairItemID = 0x2FC0;
+		HairItemId = 0x2FC0;
 		HairHue = 0x386;
 	}
 

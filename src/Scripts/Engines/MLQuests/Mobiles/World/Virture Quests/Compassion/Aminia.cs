@@ -18,7 +18,7 @@ public class Aminia : BaseCreature
 		Race = Race.Human;
 
 		Hue = 0x83ED;
-		HairItemID = 0x203B;
+		HairItemId = 0x203B;
 		HairHue = 0x454;
 
 		AddItem(new Backpack());

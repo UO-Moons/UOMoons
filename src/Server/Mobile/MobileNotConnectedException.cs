@@ -1,14 +1,13 @@
-﻿using System;
+using System;
 
-namespace Server
+namespace Server;
+
+[Serializable]
+public sealed class MobileNotConnectedException : Exception
 {
-	[Serializable]
-	public class MobileNotConnectedException : Exception
+	public MobileNotConnectedException(Mobile source, string message)
+		: base(message)
 	{
-		public MobileNotConnectedException(Mobile source, string message)
-			: base(message)
-		{
-			Source = source.ToString();
-		}
+		Source = source.ToString();
 	}
 }

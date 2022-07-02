@@ -33,7 +33,7 @@ public class Tholef : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x876C;
-		HairItemID = 0x2FC2;
+		HairItemId = 0x2FC2;
 		HairHue = 0x15A;
 	}
 

@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a red solen queen";
 			Body = 783;
-			BaseSoundID = 959;
+			BaseSoundId = 959;
 
 			SetStr(296, 320);
 			SetDex(121, 145);

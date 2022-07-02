@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a frost spider";
 			Body = 20;
-			BaseSoundID = 0x388;
+			BaseSoundId = 0x388;
 
 			SetStr(76, 100);
 			SetDex(126, 145);
@@ -70,8 +70,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 387)
-				BaseSoundID = 0x388;
+			if (BaseSoundId == 387)
+				BaseSoundId = 0x388;
 		}
 	}
 }

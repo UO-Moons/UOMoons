@@ -34,7 +34,7 @@ public class Aniel : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8384;
-		HairItemID = 0x2FC2;
+		HairItemId = 0x2FC2;
 		HairHue = 0x36;
 	}
 

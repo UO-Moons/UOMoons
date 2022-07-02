@@ -31,7 +31,7 @@ public class Siarra : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8384;
-		HairItemID = 0x2FC1;
+		HairItemId = 0x2FC1;
 		HairHue = 0x33;
 	}
 

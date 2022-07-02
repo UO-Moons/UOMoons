@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "an ettin";
 			Body = 18;
-			BaseSoundID = 367;
+			BaseSoundId = 367;
 
 			SetStr(136, 165);
 			SetDex(56, 75);

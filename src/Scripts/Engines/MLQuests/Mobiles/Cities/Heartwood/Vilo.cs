@@ -42,7 +42,7 @@ public class Vilo : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8579;
-		HairItemID = 0x2FC0;
+		HairItemId = 0x2FC0;
 		HairHue = 0x389;
 	}
 

@@ -12,7 +12,7 @@ namespace Server.Mobiles
         {
             Name = "a lady melisande";
             Body = 0x102;
-            BaseSoundID = 451;
+            BaseSoundId = 451;
 
             SetStr(400, 1000);
             SetDex(300, 400);

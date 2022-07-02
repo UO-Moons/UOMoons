@@ -30,7 +30,7 @@ public class Nibbet : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x840C;
-		HairItemID = 0x2044;
+		HairItemId = 0x2044;
 		HairHue = 0x1;
 	}
 

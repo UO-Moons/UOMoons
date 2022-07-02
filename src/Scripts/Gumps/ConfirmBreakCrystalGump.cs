@@ -39,7 +39,7 @@ namespace Server.Gumps
 					summon.Skills.MagicResist.Base = 100;
 					summon.Skills.Anatomy.Base = 100;
 
-					Effects.PlaySound(summon.Location, summon.Map, summon.BaseSoundID);
+					Effects.PlaySound(summon.Location, summon.Map, summon.BaseSoundId);
 					Effects.SendLocationParticles(EffectItem.Create(summon.Location, summon.Map, EffectItem.DefaultDuration), 0x3728, 1, 10, 0x26B6);
 
 					m_Item.Release(from, summon);

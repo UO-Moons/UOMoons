@@ -123,8 +123,8 @@ namespace Server.Mobiles
 
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 263)
-				BaseSoundID = 0;
+			if (BaseSoundId == 263)
+				BaseSoundId = 0;
 		}
 	}
 }

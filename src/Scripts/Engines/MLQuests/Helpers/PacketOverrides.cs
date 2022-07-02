@@ -86,9 +86,9 @@ public class PacketOverrides
 				if (proceed)
 				{
 					m.Hue = reader.ReadUInt16();
-					m.HairItemID = reader.ReadUInt16();
+					m.HairItemId = reader.ReadUInt16();
 					m.HairHue = reader.ReadUInt16();
-					m.FacialHairItemID = reader.ReadUInt16();
+					m.FacialHairItemId = reader.ReadUInt16();
 					m.FacialHairHue = reader.ReadUInt16();
 				}
 

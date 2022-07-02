@@ -1,4 +1,4 @@
-# UO Moons Version 4.0.0.
+# UO Moons Version 4.0.0.1
 
 [![GitHub build](https://img.shields.io/github/workflow/status/UO-Moons/UOMoons/Build?logo=github)](https://github.com/UO-Moons/UOMoons/actions)
 [![GitHub issues](https://img.shields.io/github/issues/UO-Moons/UOMoons.svg)](https://github.com/UO-Moons/UOMoons/issues)

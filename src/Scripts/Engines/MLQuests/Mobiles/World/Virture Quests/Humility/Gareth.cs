@@ -34,7 +34,7 @@ public class Gareth : MondainQuester
 		Body = 0x190;
 
 		Hue = 0x83EA;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 	}
 
 	public override void InitOutfit()

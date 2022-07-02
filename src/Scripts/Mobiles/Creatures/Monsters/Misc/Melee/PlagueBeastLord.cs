@@ -41,7 +41,7 @@ namespace Server.Mobiles
 		{
 			Name = "a plague beast lord";
 			Body = 775;
-			BaseSoundID = 679;
+			BaseSoundId = 679;
 			SpeechHue = 0x3B2;
 
 			SetStr(500);

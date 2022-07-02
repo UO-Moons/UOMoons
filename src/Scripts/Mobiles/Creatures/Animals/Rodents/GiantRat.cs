@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a giant rat";
 			Body = 0xD7;
-			BaseSoundID = 0x188;
+			BaseSoundId = 0x188;
 
 			SetStr(32, 74);
 			SetDex(46, 65);

@@ -1,16 +1,15 @@
-namespace Server
+namespace Server;
+
+public enum AccessLevel
 {
-	public enum AccessLevel
-	{
-		Player,
-		VIP,
-		Counselor,
-		Decorator,
-		Spawner,
-		GameMaster,
-		Seer,
-		Administrator,
-		Developer,
-		Owner
-	}
+	Player,
+	VIP,
+	Counselor,
+	Decorator,
+	Spawner,
+	GameMaster,
+	Seer,
+	Administrator,
+	Developer,
+	Owner
 }

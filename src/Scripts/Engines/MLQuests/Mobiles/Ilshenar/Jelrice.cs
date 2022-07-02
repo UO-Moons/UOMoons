@@ -31,7 +31,7 @@ public class Jelrice : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8410;
-		HairItemID = 0x2047;
+		HairItemId = 0x2047;
 		HairHue = 0x471;
 	}
 

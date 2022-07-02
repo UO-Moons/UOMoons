@@ -10,7 +10,7 @@ namespace Server.Mobiles
 			Name = "an ice snake";
 			Body = 52;
 			Hue = 0x480;
-			BaseSoundID = 0xDB;
+			BaseSoundId = 0xDB;
 
 			SetStr(42, 54);
 			SetDex(36, 45);

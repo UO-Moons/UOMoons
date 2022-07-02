@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Body = 189;
 
 			Name = "an orc brute";
-			BaseSoundID = 0x45A;
+			BaseSoundId = 0x45A;
 
 			SetStr(767, 945);
 			SetDex(66, 75);

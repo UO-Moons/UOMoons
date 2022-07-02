@@ -200,7 +200,7 @@ namespace Server.Misc
 
 			public TAutoSaveTimer(Mobile mobile, int count) : base(TimeSpan.Zero, TimeSpan.FromSeconds(1), count)
 			{
-				Priority = TimerPriority.TenMS;
+				Priority = TimerPriority.TenMs;
 				m_mobile = mobile;
 				m_pmobile = (PlayerMobile)mobile;
 				m_countmax = count;

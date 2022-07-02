@@ -30,7 +30,7 @@ namespace Server.Mobiles
 			Title = "the Stained";
 			Body = 0x103;
 
-			BaseSoundID = 589;
+			BaseSoundId = 589;
 
 			SetStr(1105, 1350);
 			SetDex(82, 160);

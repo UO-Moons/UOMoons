@@ -65,14 +65,12 @@ namespace Server.Items
 			return base.IsAccessibleTo(m);
 		}
 
-		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
-			if (IsSecure && !BaseHouse.CheckHold(m, this, item, message, checkItems, plusItems, plusWeight))
-			{
+			if (IsSecure && !BaseHouse.CheckHold(m, this, item, message, checkItems, checkWeight, plusItems, plusWeight))
 				return false;
-			}
 
-			return base.CheckHold(m, item, message, checkItems, plusItems, plusWeight);
+			return base.CheckHold(m, item, message, checkItems, checkWeight, plusItems, plusWeight);
 		}
 
 		public override bool CheckItemUse(Mobile from, Item item)
@@ -402,9 +400,9 @@ namespace Server.Items
 			Weight = 13.0;
 		}
 
-		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public override bool CheckHold(Mobile m, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
-			return base.CheckHold(m, item, false, checkItems, plusItems, plusWeight);
+			return base.CheckHold(m, item, false, checkItems, checkWeight, plusItems, plusWeight);
 		}
 
 		public override int DefaultMaxWeight => 1600;

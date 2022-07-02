@@ -33,10 +33,10 @@ namespace Server.Engines.Quests.Collector
 			AddItem(new JesterHat(0x4D2));
 			AddItem(new FullApron(0x4D2));
 
-			HairItemID = 0x203D; // Pony Tail
+			HairItemId = 0x203D; // Pony Tail
 			HairHue = 0x47D;
 
-			FacialHairItemID = 0x2040; // Goatee
+			FacialHairItemId = 0x2040; // Goatee
 			FacialHairHue = 0x47D;
 		}
 

@@ -269,10 +269,10 @@ namespace Server.Engines.XmlSpawner2
 									{
 										MultiTileEntry t = mcl.List[i];
 
-										int x = t.m_OffsetX + item.X;
-										int y = t.m_OffsetY + item.Y;
-										int z = t.m_OffsetZ + item.Z;
-										int itemID = t.m_ItemID & 0x3FFF;
+										int x = t.OffsetX + item.X;
+										int y = t.OffsetY + item.Y;
+										int z = t.OffsetZ + item.Z;
+										int itemID = t.ItemId & 0x3FFF;
 
 										if (x >= sx && x <= ex && y >= sy && y <= ey && (zmin == int.MinValue || (z >= zmin && z <= zmax)))
 										{
@@ -301,7 +301,7 @@ namespace Server.Engines.XmlSpawner2
 							{
 								if ((zmin == int.MinValue || (statics[j].Z >= zmin && statics[j].Z <= zmax)))
 								{
-									staticlist.Add(new TileEntry(statics[j].ID & 0x3FFF, x, y, statics[j].Z));
+									staticlist.Add(new TileEntry(statics[j].Id & 0x3FFF, x, y, statics[j].Z));
 								}
 							}
 						}

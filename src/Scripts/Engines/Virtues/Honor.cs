@@ -29,7 +29,7 @@ namespace Server
 		{
 			public InternalTarget() : base(12, false, TargetFlags.None)
 			{
-				CheckLOS = true;
+				CheckLos = true;
 			}
 
 			protected override void OnTarget(Mobile from, object targeted)

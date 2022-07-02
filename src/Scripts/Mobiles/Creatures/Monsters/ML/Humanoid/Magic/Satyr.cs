@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a satyr";
 			Body = 271;
-			BaseSoundID = 0x586;
+			BaseSoundId = 0x586;
 
 			SetStr(177, 195);
 			SetDex(251, 269);

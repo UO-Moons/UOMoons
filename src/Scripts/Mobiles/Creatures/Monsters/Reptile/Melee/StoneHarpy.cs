@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a stone harpy";
 			Body = 73;
-			BaseSoundID = 402;
+			BaseSoundId = 402;
 
 			SetStr(296, 320);
 			SetDex(86, 110);

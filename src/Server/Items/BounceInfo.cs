@@ -41,7 +41,7 @@ namespace Server
 
 				IEntity parent;
 
-				Serial serial = reader.ReadInt();
+				var serial = reader.ReadSerial();
 
 				if (serial.IsItem)
 					parent = World.FindItem(serial);
@@ -77,7 +77,7 @@ namespace Server
 				else if (info.m_Parent is Item item)
 					writer.Write(item);
 				else
-					writer.Write((Serial)0);
+					writer.Write(Serial.Zero);
 			}
 		}
 	}

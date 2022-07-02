@@ -13,7 +13,7 @@ namespace Server.Mobiles
 		{
 			Name = "a black solen warrior";
 			Body = 806;
-			BaseSoundID = 959;
+			BaseSoundId = 959;
 			Hue = 0x453;
 
 			SetStr(196, 220);

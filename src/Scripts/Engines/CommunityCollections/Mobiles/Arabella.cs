@@ -30,7 +30,7 @@ public class FoldedSteel : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83EA;
-		HairItemID = 0x2048;
+		HairItemId = 0x2048;
 		HairHue = 0x476;
 	}
 

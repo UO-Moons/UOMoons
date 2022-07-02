@@ -17,7 +17,7 @@ namespace Server.Mobiles
 		{
 			Name = m_Names[Utility.Random(m_Names.Length)];
 			Body = 86;
-			BaseSoundID = 634;
+			BaseSoundId = 634;
 
 			SetStr(417, 595);
 			SetDex(166, 175);

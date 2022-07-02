@@ -106,7 +106,7 @@ namespace Server.Spells.Necromancy
                 : base(TimeSpan.FromSeconds(0.75))
             {
                 m_Mobile = m;
-                Priority = TimerPriority.FiftyMS;
+                Priority = TimerPriority.FiftyMs;
             }
 
             protected override void OnTick()

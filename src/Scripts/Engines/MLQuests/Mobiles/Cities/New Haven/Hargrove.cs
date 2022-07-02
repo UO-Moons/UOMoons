@@ -30,7 +30,7 @@ public class Hargrove : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83FF;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x0;
 	}
 

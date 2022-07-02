@@ -75,7 +75,7 @@ namespace Server.Items
 
 			public SpawnTimer(Item item) : base(TimeSpan.FromSeconds(Utility.RandomMinMax(5, 10)))
 			{
-				Priority = TimerPriority.FiftyMS;
+				Priority = TimerPriority.FiftyMs;
 
 				m_Item = item;
 			}

@@ -9,7 +9,7 @@ namespace Server.Mobiles
 			Name = "a snake";
 			Body = 52;
 			Hue = Utility.RandomSnakeHue();
-			BaseSoundID = 0xDB;
+			BaseSoundId = 0xDB;
 
 			SetStr(22, 34);
 			SetDex(16, 25);

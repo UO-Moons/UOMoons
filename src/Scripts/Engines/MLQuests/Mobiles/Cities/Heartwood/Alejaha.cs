@@ -31,7 +31,7 @@ public class Alejaha : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8361;
-		HairItemID = 0x2FCD;
+		HairItemId = 0x2FCD;
 		HairHue = 0x852;
 	}
 

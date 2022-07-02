@@ -10,7 +10,7 @@ namespace Server.Mobiles
 			Name = "a crystal daemon";
 			Body = 0x310;
 			Hue = 0x3E8;
-			BaseSoundID = 0x47D;
+			BaseSoundId = 0x47D;
 
 			SetStr(140, 200);
 			SetDex(120, 150);

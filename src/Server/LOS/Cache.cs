@@ -1,148 +1,145 @@
 using System.Collections.Generic;
 
-namespace Server.Collections
+namespace Server.Collections;
+
+//--------------------------------------------------------------------------------
+//  Implements a basic MRU/LRU cache. Least recently used elements are expired from
+//  the cache after it reaches capacity. Hit() and Store() methods offer O(1)
+//  performance
+//--------------------------------------------------------------------------------
+public class Cache<T, K>
 {
-	//--------------------------------------------------------------------------------
-	//  Implements a basic MRU/LRU cache. Least recently used elements are expired from
-	//  the cache after it reaches capacity. Hit() and Store() methods offer O(1)
-	//  performance
-	//--------------------------------------------------------------------------------
-	public class Cache<T, K>
+	private readonly Dictionary<K, Dlist.Entry> _dict;
+	private readonly Dlist _dlist;
+
+	public int Nentries { get; private set; }
+	public int Size { get; }
+
+	public long Hits { get; private set; }
+	public long Misses { get; private set; }
+	public long Ejections { get; private set; }
+	public long Stores { get; private set; }
+
+	public Cache(int size)
 	{
-		private readonly Dictionary<K, Dlist.Entry> m_dict;
-		private readonly Dlist m_dlist;
+		Nentries = 0;
+		Size = size;
+		_dict = new Dictionary<K, Dlist.Entry>(size);
+		_dlist = new Dlist();
+	}
+	//----------------------------------------------------------------------------
+	//  Hit() -- search for a 'cache hit'
+	//----------------------------------------------------------------------------
+	public T Hit(K key)
+	{
+		//        if( !m_dict.ContainsKey( key ) )
+		//        {
+		//            m_misses++;
+		//            return default(T);
+		//        }
+		//
+		//        m_hits++;
+		//
+		//        Dlist.Entry hit = m_dict[key];
+		//
+		//        hit.Snip();
+		//
+		//        m_dlist.PushHead( hit );
+		//
+		//        return hit.m_data;
 
-		public int Nentries { get; private set; }
-		public int Size { get; }
 
-		public long Hits { get; private set; }
-		public long Misses { get; private set; }
-		public long Ejections { get; private set; }
-		public long Stores { get; private set; }
-
-		public Cache(int size)
+		if (_dict.TryGetValue(key, out Dlist.Entry hit))
 		{
-			Nentries = 0;
-			Size = size;
-			m_dict = new Dictionary<K, Dlist.Entry>(size);
-			m_dlist = new Dlist();
+			Hits++;
+			hit.Snip();
+			_dlist.PushHead(hit);
+			return hit.Data;
 		}
-		//----------------------------------------------------------------------------
-		//  Hit() -- search for a 'cache hit'
-		//----------------------------------------------------------------------------
-		public T Hit(K key)
+
+		Misses++;
+		return default;
+	}
+	//----------------------------------------------------------------------------
+	//  Store() -- store an item in the cache; expires old items
+	//----------------------------------------------------------------------------
+	public void Store(K key, T val)
+	{
+		Stores++;
+
+		if (Nentries + 1 > Size)
 		{
-			//        if( !m_dict.ContainsKey( key ) )
-			//        {
-			//            m_misses++;
-			//            return default(T);
-			//        }
-			//
-			//        m_hits++;
-			//
-			//        Dlist.Entry hit = m_dict[key];
-			//
-			//        hit.Snip();
-			//
-			//        m_dlist.PushHead( hit );
-			//
-			//        return hit.m_data;
+			Ejections++;
 
-
-			if (m_dict.TryGetValue(key, out Dlist.Entry hit))
-			{
-				Hits++;
-				hit.Snip();
-				m_dlist.PushHead(hit);
-				return hit.m_data;
-			}
-
-			Misses++;
-			return default;
+			Dlist.Entry toRemove = _dlist.PopTail();
+			//Console.WriteLine( "removing " + toRemove.m_key );
+			_dict.Remove(toRemove.Key);
 		}
-		//----------------------------------------------------------------------------
-		//  Store() -- store an item in the cache; expires old items
-		//----------------------------------------------------------------------------
-		public void Store(K key, T val)
+		else Nentries++;
+
+		Dlist.Entry entry = new(key, val);
+		_dlist.PushHead(entry);
+		_dict.Add(key, entry);
+	}
+	//----------------------------------------------------------------------------
+	//  Minimal implementation of a basic doubly-linked list that exposes its
+	//  internals in a fashion amenable to the LRU/MRU cache functionality
+	//----------------------------------------------------------------------------
+	internal class Dlist
+	{
+		private readonly Entry _sentinel;
+
+		public Dlist()
 		{
-			Stores++;
-
-			if (Nentries + 1 > Size)
-			{
-				Ejections++;
-
-				Dlist.Entry toRemove = m_dlist.PopTail();
-				//Console.WriteLine( "removing " + toRemove.m_key );
-				m_dict.Remove(toRemove.m_key);
-			}
-			else Nentries++;
-
-			Dlist.Entry entry = new(key, val);
-			m_dlist.PushHead(entry);
-			m_dict.Add(key, entry);
+			_sentinel = new Entry();
+			_sentinel.Next = _sentinel.Previous = _sentinel;
 		}
-		//----------------------------------------------------------------------------
-		//  Minimal implementation of a basic doubly-linked list that exposes its
-		//  internals in a fashion amenable to the LRU/MRU cache functionality
-		//----------------------------------------------------------------------------
-		internal class Dlist
+
+		public void PushHead(Entry entry)
 		{
-			private readonly Entry m_sentinel;
+			entry.Next = _sentinel.Next;
+			entry.Previous = _sentinel;
 
-			public Dlist()
+			_sentinel.Next.Previous = entry;
+			_sentinel.Next = entry;
+		}
+
+		public Entry PopTail()
+		{
+			Entry tail = _sentinel.Previous;
+
+			tail.Previous.Next = _sentinel;
+
+			_sentinel.Previous = tail.Previous;
+
+			return tail;
+		}
+
+		internal class Entry
+		{
+			public K Key;
+			public T Data;
+			public Entry Previous;
+			public Entry Next;
+
+			public Entry()
 			{
-				m_sentinel = new Entry();
-				m_sentinel.m_next = m_sentinel.m_previous = m_sentinel;
+				//    m_key = -1;
 			}
 
-			public void PushHead(Entry entry)
+			public Entry(K key, T data)
 			{
-				entry.m_next = m_sentinel.m_next;
-				entry.m_previous = m_sentinel;
-
-				m_sentinel.m_next.m_previous = entry;
-				m_sentinel.m_next = entry;
+				Key = key;
+				Data = data;
+				Next = Previous = null;
 			}
 
-			public Entry PopTail()
+			public void Snip()
 			{
-				Entry tail = m_sentinel.m_previous;
-
-				tail.m_previous.m_next = m_sentinel;
-
-				m_sentinel.m_previous = tail.m_previous;
-
-				return tail;
-			}
-
-			internal class Entry
-			{
-				public K m_key;
-				public T m_data;
-				public Entry m_previous;
-				public Entry m_next;
-
-				public Entry()
-				{
-					//    m_key = -1;
-				}
-
-				public Entry(K key, T data)
-				{
-					m_key = key;
-					m_data = data;
-					m_next = m_previous = null;
-				}
-
-				public void Snip()
-				{
-					m_previous.m_next = m_next;
-					m_next.m_previous = m_previous;
-				}
+				Previous.Next = Next;
+				Next.Previous = Previous;
 			}
 		}
 	}
-	//--------------------------------------------------------------------------------
-} // namespace Custom.Collections 
-  //--------------------------------------------------------------------------------
+}
 

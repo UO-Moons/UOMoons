@@ -36,7 +36,7 @@ public class Nillaen : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8367;
-		HairItemID = 0x2FCF;
+		HairItemId = 0x2FCF;
 		HairHue = 0x26B;
 	}
 

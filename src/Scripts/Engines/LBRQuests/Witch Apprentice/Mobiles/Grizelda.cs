@@ -34,7 +34,7 @@ namespace Server.Engines.Quests.Hag
 			AddItem(new WizardsHat(0x1));
 			AddItem(new GoldBracelet());
 
-			HairItemID = 0x203C;
+			HairItemId = 0x203C;
 
 			Item staff = new GnarledStaff
 			{

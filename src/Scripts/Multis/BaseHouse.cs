@@ -1265,11 +1265,11 @@ namespace Server.Multis
 			return list;
 		}
 
-		public static bool CheckHold(Mobile m, Container cont, Item item, bool message, bool checkItems, int plusItems, int plusWeight)
+		public static bool CheckHold(Mobile m, Container cont, Item item, bool message, bool checkItems, bool checkWeight, int plusItems, int plusWeight)
 		{
 			BaseHouse house = FindHouseAt(cont);
 
-			if (house == null || !house.IsAosRules)
+			if (house == null)
 				return true;
 
 			if (house.IsSecure(cont) && !house.CheckAosStorage(1 + item.TotalItems + plusItems))
@@ -3513,7 +3513,7 @@ namespace Server.Multis
 							}
 
 							Point3D relLocation = reader.ReadPoint3D();
-							IEntity entity = World.FindEntity(reader.ReadInt());
+							IEntity entity = World.FindEntity(reader.ReadSerial());
 
 							if (entity != null)
 							{
@@ -4780,7 +4780,7 @@ namespace Server.Multis
 
 		public LockdownTarget(bool release, BaseHouse house) : base(12, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_Release = release;
 			m_House = house;
@@ -4860,7 +4860,7 @@ namespace Server.Multis
 
 		public SecureTarget(bool release, BaseHouse house) : base(12, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_Release = release;
 			m_House = house;
@@ -4930,7 +4930,7 @@ namespace Server.Multis
 
 		public HouseKickTarget(BaseHouse house) : base(-1, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 		}
@@ -4958,7 +4958,7 @@ namespace Server.Multis
 
 		public HouseBanTarget(bool ban, BaseHouse house) : base(-1, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 			m_Banning = ban;
@@ -4989,7 +4989,7 @@ namespace Server.Multis
 
 		public HouseAccessTarget(BaseHouse house) : base(-1, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 		}
@@ -5013,7 +5013,7 @@ namespace Server.Multis
 
 		public CoOwnerTarget(bool add, BaseHouse house) : base(12, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 			m_Add = add;
@@ -5045,7 +5045,7 @@ namespace Server.Multis
 
 		public HouseFriendTarget(bool add, BaseHouse house) : base(12, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 			m_Add = add;
@@ -5076,7 +5076,7 @@ namespace Server.Multis
 
 		public HouseOwnerTarget(BaseHouse house) : base(12, false, TargetFlags.None)
 		{
-			CheckLOS = false;
+			CheckLos = false;
 
 			m_House = house;
 		}

@@ -367,9 +367,9 @@ public class GauntletSpawner : BaseItem
 		writer.Write(Creatures, false);
 
 		writer.Write(TypeName);
-		writer.WriteItem(Door);
-		writer.WriteItem(Addon);
-		writer.WriteItem(Sequence);
+		writer.Write(Door);
+		writer.Write(Addon);
+		writer.Write(Sequence);
 
 		writer.Write((int)_mState);
 	}
@@ -503,10 +503,10 @@ public class GauntletSpawner : BaseItem
 				item.Delete();
 		}
 
-		dealer.HairItemID = 0x2049; // Pig Tails
+		dealer.HairItemId = 0x2049; // Pig Tails
 		dealer.HairHue = 0x482;
 
-		dealer.FacialHairItemID = 0x203E;
+		dealer.FacialHairItemId = 0x203E;
 		dealer.FacialHairHue = 0x482;
 
 		dealer.AddItem(new FloppyHat(1));

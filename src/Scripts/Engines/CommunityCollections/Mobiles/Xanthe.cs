@@ -30,7 +30,7 @@ public class SongsOfNote : BaseCollectionMobile
 		Race = Race.Human;
 
 		Hue = 0x83F4;
-		HairItemID = 0x2049;
+		HairItemId = 0x2049;
 		HairHue = 0x460;
 	}
 

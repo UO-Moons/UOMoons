@@ -34,7 +34,7 @@ public class Lohn : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x8385;
-		HairItemID = 0x2FC2;
+		HairItemId = 0x2FC2;
 		HairHue = 0x26B;
 	}
 

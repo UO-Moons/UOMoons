@@ -564,7 +564,7 @@ public class CraftItem
 				for (var i = 0; i < tiles.Length; ++i)
 				{
 					int z = tiles[i].Z;
-					int id = tiles[i].ID;
+					int id = tiles[i].Id;
 
 					if (z + 16 > from.Z && from.Z + 16 > z && Find(id, itemIDs))
 					{

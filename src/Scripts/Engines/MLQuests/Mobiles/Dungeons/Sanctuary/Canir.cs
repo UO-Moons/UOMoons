@@ -32,7 +32,7 @@ public class Canir : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x876C;
-		HairItemID = 0x2FD0;
+		HairItemId = 0x2FD0;
 		HairHue = 0x33;
 	}
 

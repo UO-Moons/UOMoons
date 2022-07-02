@@ -359,7 +359,7 @@ namespace Server.Engines.Harvest
 
 						LandTile t = map.Tiles.GetLandTile(tx, ty);
 
-						if (t.Z != -5 || (t.ID is < 0xA8 or > 0xAB && t.ID is < 0x136 or > 0x137) ||
+						if (t.Z != -5 || (t.Id is < 0xA8 or > 0xAB && t.Id is < 0x136 or > 0x137) ||
 						    Spells.SpellHelper.CheckMulti(new Point3D(tx, ty, -5), map)) continue;
 						x = tx;
 						y = ty;

@@ -80,7 +80,7 @@ namespace Server.Items
 				book.DisplayTo(from);
 		}
 
-		private static void EventSink_CastSpellRequest(Mobile from, int spellID, Item spellbook)
+		private static void EventSink_CastSpellRequest(Mobile from, int spellID, ISpellbook spellbook)
 		{
 			if (!Multis.DesignContext.Check(from))
 				return; // They are customizing

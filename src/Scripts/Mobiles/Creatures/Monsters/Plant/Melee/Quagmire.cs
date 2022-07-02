@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a quagmire";
 			Body = 789;
-			BaseSoundID = 352;
+			BaseSoundId = 352;
 
 			SetStr(101, 130);
 			SetDex(66, 85);
@@ -66,8 +66,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == -1)
-				BaseSoundID = 352;
+			if (BaseSoundId == -1)
+				BaseSoundId = 352;
 		}
 	}
 }

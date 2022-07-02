@@ -12,7 +12,7 @@ namespace Server.Mobiles
 			Name = "an air elemental";
 			Body = 13;
 			Hue = 0x4001;
-			BaseSoundID = 655;
+			BaseSoundId = 655;
 
 			SetStr(200);
 			SetDex(200);
@@ -58,8 +58,8 @@ namespace Server.Mobiles
 			base.Deserialize(reader);
 			int version = reader.ReadInt();
 
-			if (BaseSoundID == 263)
-				BaseSoundID = 655;
+			if (BaseSoundId == 263)
+				BaseSoundId = 655;
 		}
 	}
 }

@@ -116,7 +116,7 @@ namespace Server.Gumps
 			Mobile from = ns.Mobile;
 			if (from == null)
 				return;
-			Mobile killer = World.FindMobile((Serial)pvSrc.ReadInt32());
+			Mobile killer = World.FindMobile(pvSrc.ReadSerial());
 			_ = pvSrc.ReadByte();
 			_ = pvSrc.ReadByte();
 			bool cancel = pvSrc.ReadByte() == 0;

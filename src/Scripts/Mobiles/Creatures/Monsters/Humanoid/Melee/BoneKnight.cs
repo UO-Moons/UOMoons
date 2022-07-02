@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a bone knight";
 			Body = 57;
-			BaseSoundID = 451;
+			BaseSoundId = 451;
 
 			SetStr(196, 250);
 			SetDex(76, 95);

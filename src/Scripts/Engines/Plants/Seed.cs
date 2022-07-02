@@ -179,7 +179,7 @@ namespace Server.Engines.Plants
 			public InternalTarget(Seed seed) : base(-1, false, TargetFlags.None)
 			{
 				m_Seed = seed;
-				CheckLOS = false;
+				CheckLos = false;
 			}
 
 			protected override void OnTarget(Mobile from, object targeted)

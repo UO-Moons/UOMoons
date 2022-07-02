@@ -30,7 +30,7 @@ public class Sadrah : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x8406;
-		HairItemID = 0x203D;
+		HairItemId = 0x203D;
 		HairHue = 0x901;
 	}
 

@@ -32,6 +32,7 @@ public enum ArmorMaterialType
 	Plate,
 	Hide,
 	Wood,
+	Stone,
 	Dragon
 }
 

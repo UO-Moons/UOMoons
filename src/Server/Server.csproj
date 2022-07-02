@@ -20,9 +20,6 @@
     <DefineConstants>UOMoons</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="Mobile\ResistanceMod.cs~RF290aef44.TMP" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="HashedWheelTimer" Version="1.0.3" />

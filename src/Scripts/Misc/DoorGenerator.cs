@@ -434,7 +434,7 @@ namespace Server
 			{
 				StaticTile tile = tiles[i];
 
-				if (tile.Z == z && IsEastFrame(tile.ID))
+				if (tile.Z == z && IsEastFrame(tile.Id))
 					return true;
 			}
 
@@ -449,7 +449,7 @@ namespace Server
 			{
 				StaticTile tile = tiles[i];
 
-				if (tile.Z == z && IsSouthFrame(tile.ID))
+				if (tile.Z == z && IsSouthFrame(tile.Id))
 					return true;
 			}
 
@@ -499,7 +499,7 @@ namespace Server
 					{
 						StaticTile tile = tiles[i];
 
-						int id = tile.ID;
+						int id = tile.Id;
 						int z = tile.Z;
 
 						if (IsWestFrame(id))

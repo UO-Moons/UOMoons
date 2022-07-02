@@ -36,7 +36,7 @@ public class Cillitha : MondainQuester
 		Race = Race.Elf;
 
 		Hue = 0x83E6;
-		HairItemID = 0x2FC2;
+		HairItemId = 0x2FC2;
 		HairHue = 0x8E;
 	}
 

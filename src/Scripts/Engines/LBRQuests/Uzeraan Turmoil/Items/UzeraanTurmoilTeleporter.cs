@@ -30,7 +30,7 @@ namespace Server.Engines.Quests.Haven
 					map = Map.Trammel;
 					return true;
 				}
-				else if (player.Profession != 5 // paladin
+				else if (player.Profession != Profession.Paladin // paladin
 					&& (qs.IsObjectiveInProgress(typeof(GetDaemonBoneObjective))
 					|| UzeraanTurmoilQuest.HasLostDaemonBone(player)))
 				{

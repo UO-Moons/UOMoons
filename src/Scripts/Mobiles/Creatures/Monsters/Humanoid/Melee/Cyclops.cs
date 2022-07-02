@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a cyclopean warrior";
 			Body = 75;
-			BaseSoundID = 604;
+			BaseSoundId = 604;
 
 			SetStr(336, 385);
 			SetDex(96, 115);

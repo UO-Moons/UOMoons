@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a greater mongbat";
 			Body = 39;
-			BaseSoundID = 422;
+			BaseSoundId = 422;
 
 			SetStr(56, 80);
 			SetDex(61, 80);

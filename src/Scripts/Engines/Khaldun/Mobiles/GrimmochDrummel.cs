@@ -17,7 +17,7 @@ namespace Server.Mobiles
 			Body = 0x190;
 			Name = "Grimmoch Drummel";
 
-			HairItemID = 0x204A;    //Krisna
+			HairItemId = 0x204A;    //Krisna
 
 			Bow bow = new()
 			{

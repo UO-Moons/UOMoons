@@ -9,7 +9,7 @@ namespace Server.Mobiles
 		{
 			Name = "a polar bear";
 			Body = 213;
-			BaseSoundID = 0xA3;
+			BaseSoundId = 0xA3;
 
 			SetStr(116, 140);
 			SetDex(81, 105);

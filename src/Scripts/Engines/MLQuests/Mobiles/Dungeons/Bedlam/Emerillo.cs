@@ -29,9 +29,9 @@ public class Emerillo : MondainQuester
 		Race = Race.Human;
 
 		Hue = 0x83F4;
-		HairItemID = 0x203C;
+		HairItemId = 0x203C;
 		HairHue = 0x454;
-		FacialHairItemID = 0x204C;
+		FacialHairItemId = 0x204C;
 		FacialHairHue = 0x454;
 	}
 

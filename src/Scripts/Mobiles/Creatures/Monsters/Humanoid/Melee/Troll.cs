@@ -8,7 +8,7 @@ namespace Server.Mobiles
 		{
 			Name = "a troll";
 			Body = Utility.RandomList(53, 54);
-			BaseSoundID = 461;
+			BaseSoundId = 461;
 
 			SetStr(176, 205);
 			SetDex(46, 65);

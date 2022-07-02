@@ -9,7 +9,7 @@ namespace Server.Mobiles
 			Name = "a dog";
 			Body = 0xD9;
 			Hue = Utility.RandomAnimalHue();
-			BaseSoundID = 0x85;
+			BaseSoundId = 0x85;
 
 			SetStr(27, 37);
 			SetDex(28, 43);

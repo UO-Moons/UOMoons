@@ -11,7 +11,7 @@ namespace Server.Mobiles
 		{
 			Name = "a sand vortex";
 			Body = 790;
-			BaseSoundID = 263;
+			BaseSoundId = 263;
 
 			SetStr(96, 120);
 			SetDex(171, 195);
@@ -79,7 +79,7 @@ namespace Server.Mobiles
 			{
 				m_Mobile = m;
 				m_From = from;
-				Priority = TimerPriority.TwoFiftyMS;
+				Priority = TimerPriority.TwoFiftyMs;
 			}
 
 			protected override void OnTick()

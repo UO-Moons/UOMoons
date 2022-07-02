@@ -1,82 +1,107 @@
 using Server.Items;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Server.Mobiles;
 
 public class GenericSellInfo : IShopSellInfo
 {
-	private readonly Dictionary<Type, int> _mTable = new();
-	private Type[] _mTypes;
+	private readonly Dictionary<Type, int> m_Table = new Dictionary<Type, int>();
 
-	public GenericSellInfo()
+	private Type[] m_Types;
+
+	public Type[] Types
 	{
-	}
-
-	public void Add(Type type, int price)
-	{
-		_mTable[type] = price;
-		_mTypes = null;
-	}
-
-	public int GetSellPriceFor(Item item)
-	{
-		_mTable.TryGetValue(item.GetType(), out int price);
-
-		if (item is BaseArmor)
+		get
 		{
-			BaseArmor armor = (BaseArmor)item;
-
-			price = armor.Quality switch
+			if (m_Types == null)
 			{
-				ItemQuality.Low => (int) (price * 0.60),
-				ItemQuality.Exceptional => (int) (price * 1.25),
-				_ => price
-			};
+				m_Types = new Type[m_Table.Keys.Count];
+				m_Table.Keys.CopyTo(m_Types, 0);
+			}
 
-			price += 100 * (int)armor.Durability;
+			return m_Types;
+		}
+	}
 
-			price += 100 * (int)armor.ProtectionLevel;
+	public virtual void Add(Type type, int price)
+	{
+		m_Table[type] = price;
+		m_Types = null;
+	}
+
+	public virtual int GetSellPriceFor(IEntity item)
+	{
+		return GetSellPriceFor(item, null);
+	}
+
+	public virtual int GetSellPriceFor(IEntity e, IVendor vendor)
+	{
+		Type itemType = e.GetType();
+
+		m_Table.TryGetValue(itemType, out int price);
+
+		if (vendor != null && BaseVendor.UseVendorEconomy)
+		{
+			IBuyItemInfo[] buyList = vendor.GetBuyInfo();
+			IBuyItemInfo buyInfo = buyList.FirstOrDefault(bii => bii.EconomyItem && bii.Type == itemType);
+
+			if (buyInfo != null)
+			{
+				int sold = buyInfo.TotalSold;
+
+				price = (int)(buyInfo.Price * .75);
+
+				return Math.Max(1, price);
+			}
+		}
+
+		if (e is BaseArmor armor)
+		{
+			if (armor.Quality == ItemQuality.Low)
+				price = (int)(price * 0.60);
+			else if (armor.Quality == ItemQuality.Exceptional)
+				price = (int)(price * 1.25);
+
+			price += 5 * armor.ArmorAttributes.DurabilityBonus;
 
 			if (price < 1)
 				price = 1;
 		}
-		else if (item is BaseWeapon)
+		else if (e is BaseWeapon weapon)
 		{
-			BaseWeapon weapon = (BaseWeapon)item;
+			if (weapon.Quality == ItemQuality.Low)
+				price = (int)(price * 0.60);
+			else if (weapon.Quality == ItemQuality.Exceptional)
+				price = (int)(price * 1.25);
 
-			price = weapon.Quality switch
-			{
-				ItemQuality.Low => (int) (price * 0.60),
-				ItemQuality.Exceptional => (int) (price * 1.25),
-				_ => price
-			};
+			price += 100 * weapon.WeaponAttributes.DurabilityBonus;
 
-			price += 100 * (int)weapon.DurabilityLevel;
-
-			price += 100 * (int)weapon.DamageLevel;
+			price += 10 * weapon.Attributes.WeaponDamage;
 
 			if (price < 1)
 				price = 1;
 		}
-		else if (item is BaseBeverage)
+		else if (e is BaseBeverage bev)
 		{
 			int price1 = price, price2 = price;
 
-			switch (item)
+			if (bev is Pitcher)
 			{
-				case Pitcher:
-					price1 = 3; price2 = 5;
-					break;
-				case BeverageBottle:
-					price1 = 3; price2 = 3;
-					break;
-				case Jug:
-					price1 = 6; price2 = 6;
-					break;
+				price1 = 3;
+				price2 = 5;
 			}
-
-			BaseBeverage bev = (BaseBeverage)item;
+			else if (bev is BeverageBottle)
+			{
+				price1 = 3;
+				price2 = 3;
+			}
+			else if (bev is Jug)
+			{
+				price1 = 6;
+				price2 = 6;
+			}
 
 			if (bev.IsEmpty || bev.Content == BeverageType.Milk)
 				price = price1;
@@ -87,46 +112,70 @@ public class GenericSellInfo : IShopSellInfo
 		return price;
 	}
 
-	public int GetBuyPriceFor(Item item)
+	public virtual int GetBuyPriceFor(IEntity item)
 	{
-		return (int)(1.90 * GetSellPriceFor(item));
+		return GetBuyPriceFor(item, null);
 	}
 
-	public Type[] Types
+	public virtual int GetBuyPriceFor(IEntity item, IVendor vendor)
 	{
-		get
+		return (int)(1.90 * GetSellPriceFor(item, vendor));
+	}
+
+	public virtual string GetNameFor(IEntity e)
+	{
+		if (e.Name != null)
+			return e.Name;
+
+		if (e is Item item)
+			return item.LabelNumber.ToString();
+
+		return e.GetType().Name;
+	}
+
+	public virtual bool IsSellable(IEntity e)
+	{
+		if (e is Item item && item.QuestItem)
+			return false;
+
+		//if (e.Hue != 0)
+		//    return false;
+
+		return IsInList(e.GetType());
+	}
+
+	public virtual bool IsResellable(IEntity e)
+	{
+		if (e is Item item && item.QuestItem)
+			return false;
+
+		//if (e.Hue != 0)
+		//    return false;
+
+		return IsInList(e.GetType());
+	}
+
+	public virtual bool IsInList(Type type)
+	{
+		return m_Table.ContainsKey(type);
+	}
+
+	public virtual void OnSold(Mobile seller, IVendor vendor, IEntity item, int amount)
+	{
+		Type itemType = item.GetType();
+
+		IBuyItemInfo[] buyList = vendor.GetBuyInfo();
+		IBuyItemInfo buyInfo = buyList.FirstOrDefault(bii => bii.EconomyItem && bii.Type == itemType);
+
+		if (buyInfo != null)
 		{
-			if (_mTypes != null) return _mTypes;
-			_mTypes = new Type[_mTable.Keys.Count];
-			_mTable.Keys.CopyTo(_mTypes, 0);
-
-			return _mTypes;
+			foreach (IBuyItemInfo bii in buyList)
+			{
+				if (bii.Type == itemType || (itemType == typeof(UncutCloth) && bii.Type == typeof(Cloth)) || (itemType == typeof(Cloth) && bii.Type == typeof(UncutCloth)))
+					bii.TotalSold += amount;
+			}
 		}
-	}
 
-	public string GetNameFor(Item item)
-	{
-		return item.Name ?? item.LabelNumber.ToString();
-	}
-
-	public bool IsSellable(Item item)
-	{
-		return !item.Nontransferable && IsInList(item.GetType());
-
-		//if ( item.Hue != 0 )
-		//return false;
-	}
-
-	public bool IsResellable(Item item)
-	{
-		return !item.Nontransferable && IsInList(item.GetType());
-
-		//if ( item.Hue != 0 )
-		//return false;
-	}
-
-	public bool IsInList(Type type)
-	{
-		return _mTable.ContainsKey(type);
+		EventSink.InvokeValidVendorSell(new ValidVendorSellEventArgs(seller, vendor, item, GetSellPriceFor(item, vendor)));
 	}
 }

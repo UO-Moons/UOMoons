@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a giant spider";
 			Body = 28;
-			BaseSoundID = 0x388;
+			BaseSoundId = 0x388;
 
 			SetStr(76, 100);
 			SetDex(76, 95);

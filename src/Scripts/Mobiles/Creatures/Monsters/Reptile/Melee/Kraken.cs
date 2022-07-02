@@ -10,7 +10,7 @@ namespace Server.Mobiles
 		{
 			Name = "a kraken";
 			Body = 77;
-			BaseSoundID = 353;
+			BaseSoundId = 353;
 
 			SetStr(756, 780);
 			SetDex(226, 245);

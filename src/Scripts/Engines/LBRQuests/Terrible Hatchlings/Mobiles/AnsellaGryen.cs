@@ -23,7 +23,7 @@ namespace Server.Engines.Quests.Zento
 
 		public override void InitOutfit()
 		{
-			HairItemID = 0x203B;
+			HairItemId = 0x203B;
 			HairHue = 0x1BB;
 
 			AddItem(new SamuraiTabi(0x8FD));
