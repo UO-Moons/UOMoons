@@ -47,10 +47,9 @@ namespace Server.Mobiles
 
 			Container pack = Backpack;
 
-			if (pack != null)
-				pack.Delete();
+			pack?.Delete();
 
-			pack = new StrongBackpack
+			pack = new PackAnimalsBackpack
 			{
 				Movable = false
 			};
@@ -138,19 +137,19 @@ namespace Server.Mobiles
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
 	public class PackAnimalBackpackEntry : ContextMenuEntry
 	{
-		private readonly BaseCreature m_Animal;
-		private readonly Mobile m_From;
+		private readonly BaseCreature _animal;
+		private readonly Mobile _from;
 
 		public PackAnimalBackpackEntry(BaseCreature animal, Mobile from) : base(6145, 3)
 		{
-			m_Animal = animal;
-			m_From = from;
+			_animal = animal;
+			_from = from;
 
 			if (animal.IsDeadPet)
 				Enabled = false;
@@ -158,7 +157,7 @@ namespace Server.Mobiles
 
 		public override void OnClick()
 		{
-			PackAnimal.TryPackOpen(m_Animal, m_From);
+			PackAnimal.TryPackOpen(_animal, _from);
 		}
 	}
 

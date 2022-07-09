@@ -1,20 +1,19 @@
 using Server.Gumps;
 
-namespace Server.Engines.TownHouses
+namespace Server.Engines.TownHouses;
+
+public class BackgroundPlus : GumpBackground
 {
-	public class BackgroundPlus : GumpBackground
+	//private bool Override { get; }
+
+	public BackgroundPlus(int x, int y, int width, int height, int back) : base(x, y, width, height, back)
 	{
-		private bool Override { get; set; }
+		//Override = true;
+	}
 
-		public BackgroundPlus(int x, int y, int width, int height, int back) : base(x, y, width, height, back)
-		{
-			Override = true;
-		}
-
-		public BackgroundPlus(int x, int y, int width, int height, int back, bool over)
-			: base(x, y, width, height, back)
-		{
-			Override = over;
-		}
+	public BackgroundPlus(int x, int y, int width, int height, int back, bool over)
+		: base(x, y, width, height, back)
+	{
+		//Override = over;
 	}
 }

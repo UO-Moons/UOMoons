@@ -1,78 +1,75 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Server.Spells.Eighth
+namespace Server.Spells.Eighth;
+
+public class EarthquakeSpell : MagerySpell
 {
-	public class EarthquakeSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Earthquake", "In Vas Por",
+		233,
+		9012,
+		false,
+		Reagent.Bloodmoss,
+		Reagent.Ginseng,
+		Reagent.MandrakeRoot,
+		Reagent.SulfurousAsh
+	);
+
+	public override SpellCircle Circle => SpellCircle.Eighth;
+	public override bool RequireTarget => false;
+
+	public EarthquakeSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Earthquake", "In Vas Por",
-				233,
-				9012,
-				false,
-				Reagent.Bloodmoss,
-				Reagent.Ginseng,
-				Reagent.MandrakeRoot,
-				Reagent.SulfurousAsh
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Eighth;
-		public override bool RequireTarget => false;
+	public override bool DelayedDamage => !Core.AOS;
 
-		public EarthquakeSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public override void OnCast()
+	{
+		if (SpellHelper.CheckTown(Caster, Caster) && CheckSequence())
 		{
-		}
+			List<Mobile> targets = new();
 
-		public override bool DelayedDamage => !Core.AOS;
+			Map map = Caster.Map;
 
-		public override void OnCast()
-		{
-			if (SpellHelper.CheckTown(Caster, Caster) && CheckSequence())
+			if (map != null) targets.AddRange(Caster.GetMobilesInRange(1 + (int) (Caster.Skills[SkillName.Magery].Value / 15.0)).Where(m => Caster != m && SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanBeHarmful(m, false) && (!Core.AOS || Caster.InLOS(m))));
+
+			Caster.PlaySound(0x220);
+
+			for (int i = 0; i < targets.Count; ++i)
 			{
-				List<Mobile> targets = new List<Mobile>();
+				Mobile m = targets[i];
 
-				Map map = Caster.Map;
+				int damage;
 
-				if (map != null)
-					foreach (Mobile m in Caster.GetMobilesInRange(1 + (int)(Caster.Skills[SkillName.Magery].Value / 15.0)))
-						if (Caster != m && SpellHelper.ValidIndirectTarget(Caster, m) && Caster.CanBeHarmful(m, false) && (!Core.AOS || Caster.InLOS(m)))
-							targets.Add(m);
-
-				Caster.PlaySound(0x220);
-
-				for (int i = 0; i < targets.Count; ++i)
+				if (Core.AOS)
 				{
-					Mobile m = targets[i];
+					damage = m.Hits / 2;
 
-					int damage;
-
-					if (Core.AOS)
+					if (!m.Player)
 					{
-						damage = m.Hits / 2;
-
-						if (!m.Player)
-						{
-							damage = Math.Max(Math.Min(damage, 100), 15);
-						}
-						damage += Utility.RandomMinMax(0, 15);
-
+						damage = Math.Max(Math.Min(damage, 100), 15);
 					}
-					else
-					{
-						damage = (m.Hits * 6) / 10;
+					damage += Utility.RandomMinMax(0, 15);
 
-						if (!m.Player && damage < 10)
-							damage = 10;
-						else if (damage > 75)
-							damage = 75;
-					}
-
-					Caster.DoHarmful(m);
-					SpellHelper.Damage(TimeSpan.Zero, m, Caster, damage, 100, 0, 0, 0, 0);
 				}
-			}
+				else
+				{
+					damage = (m.Hits * 6) / 10;
 
-			FinishSequence();
+					if (!m.Player && damage < 10)
+						damage = 10;
+					else if (damage > 75)
+						damage = 75;
+				}
+
+				Caster.DoHarmful(m);
+				SpellHelper.Damage(TimeSpan.Zero, m, Caster, damage, 100, 0, 0, 0, 0);
+			}
 		}
+
+		FinishSequence();
 	}
 }

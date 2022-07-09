@@ -1,3 +1,4 @@
+using System;
 using Server.Items;
 using Server.Mobiles;
 using Server.Network;
@@ -11,14 +12,19 @@ namespace Server.Gumps
 		VirtueShrine = 1,
 		Healer = 2,
 		Generic = 3,
+		SilverSapling = 102034,
+		GemOfSalvation = 84106,
 	}
 
 	public class ResurrectGump : Gump
 	{
-		private readonly Mobile m_Healer;
-		private readonly int m_Price;
-		private readonly bool m_FromSacrifice;
-		private readonly double m_HitsScalar;
+		private readonly Mobile _healer;
+		private readonly int _price;
+		private readonly bool _fromSacrifice;
+		private readonly double _hitsScalar;
+		private readonly ResurrectMessage _msg;
+
+		private readonly Action<Mobile> _callback;
 
 		public ResurrectGump(Mobile owner)
 			: this(owner, owner, ResurrectMessage.Generic, false)
@@ -26,7 +32,7 @@ namespace Server.Gumps
 		}
 
 		public ResurrectGump(Mobile owner, double hitsScalar)
-			: this(owner, owner, ResurrectMessage.Generic, false, hitsScalar)
+			: this(owner, owner, ResurrectMessage.Generic, false, hitsScalar, null)
 		{
 		}
 
@@ -51,16 +57,17 @@ namespace Server.Gumps
 		}
 
 		public ResurrectGump(Mobile owner, Mobile healer, ResurrectMessage msg, bool fromSacrifice)
-			: this(owner, healer, msg, fromSacrifice, 0.0)
+			: this(owner, healer, msg, fromSacrifice, 0.0, null)
 		{
 		}
 
-		public ResurrectGump(Mobile owner, Mobile healer, ResurrectMessage msg, bool fromSacrifice, double hitsScalar)
+		public ResurrectGump(Mobile owner, Mobile healer, ResurrectMessage msg, bool fromSacrifice, double hitsScalar, Action<Mobile> callback)
 			: base(100, 0)
 		{
-			m_Healer = healer;
-			m_FromSacrifice = fromSacrifice;
-			m_HitsScalar = hitsScalar;
+			_healer = healer;
+			_msg = msg;
+			_fromSacrifice = fromSacrifice;
+			_hitsScalar = hitsScalar;
 
 			AddPage(0);
 
@@ -83,8 +90,8 @@ namespace Server.Gumps
 		public ResurrectGump(Mobile owner, Mobile healer, int price)
 			: base(150, 50)
 		{
-			m_Healer = healer;
-			m_Price = price;
+			_healer = healer;
+			_price = price;
 
 			Closable = false;
 
@@ -142,7 +149,23 @@ namespace Server.Gumps
 
 			from.CloseGump(typeof(ResurrectGump));
 
-			if (info.ButtonID == 1 || info.ButtonID == 2)
+			if (ResurrectMessage.SilverSapling == _msg && 1 == info.ButtonID)
+			{
+				if (from is PlayerMobile pm && pm.Region.IsPartOf("Abyss"))
+				{
+					pm.Location = pm.SsSeedLocation;
+					pm.Map = pm.SsSeedMap;
+					if (null != pm.Corpse)
+					{
+						pm.Corpse.Location = pm.Location;
+						pm.Corpse.Map = pm.Map;
+					}
+					pm.Resurrect();
+				}
+				return;
+			}
+
+			if (info.ButtonID is 1 or 2)
 			{
 				if (from.Map == null || !from.Map.CanFit(from.Location, 16, false, false))
 				{
@@ -150,13 +173,13 @@ namespace Server.Gumps
 					return;
 				}
 
-				if (m_Price > 0)
+				if (_price > 0)
 				{
 					if (info.IsSwitched(1))
 					{
-						if (Banker.Withdraw(from, m_Price))
+						if (Banker.Withdraw(from, _price))
 						{
-							from.SendLocalizedMessage(1060398, m_Price.ToString()); // ~1_AMOUNT~ gold has been withdrawn from your bank box.
+							from.SendLocalizedMessage(1060398, _price.ToString()); // ~1_AMOUNT~ gold has been withdrawn from your bank box.
 							from.SendLocalizedMessage(1060022, Banker.GetBalance(from).ToString()); // You have ~1_AMOUNT~ gold in cash remaining in your bank box.
 						}
 						else
@@ -177,9 +200,9 @@ namespace Server.Gumps
 
 				from.Resurrect();
 
-				if (m_Healer != null && from != m_Healer)
+				if (_healer != null && from != _healer)
 				{
-					VirtueLevel level = VirtueHelper.GetLevel(m_Healer, VirtueName.Compassion);
+					VirtueLevel level = VirtueHelper.GetLevel(_healer, VirtueName.Compassion);
 
 					switch (level)
 					{
@@ -189,16 +212,16 @@ namespace Server.Gumps
 					}
 				}
 
-				if (m_FromSacrifice && from is PlayerMobile)
+				if (_fromSacrifice && from is PlayerMobile mobile)
 				{
-					((PlayerMobile)from).AvailableResurrects -= 1;
+					mobile.AvailableResurrects -= 1;
 
-					Container pack = from.Backpack;
-					Container corpse = from.Corpse;
+					Container pack = mobile.Backpack;
+					Container corpse = mobile.Corpse;
 
 					if (pack != null && corpse != null)
 					{
-						List<Item> items = new List<Item>(corpse.Items);
+						List<Item> items = new(corpse.Items);
 
 						for (int i = 0; i < items.Count; ++i)
 						{
@@ -219,12 +242,14 @@ namespace Server.Gumps
 
 				if (!Core.AOS && from.ShortTermMurders >= 5)
 				{
-					double loss = (100.0 - (4.0 + (from.ShortTermMurders / 5.0))) / 100.0; // 5 to 15% loss
+					double loss = (100.0 - (4.0 + from.ShortTermMurders / 5.0)) / 100.0; // 5 to 15% loss
 
-					if (loss < 0.85)
-						loss = 0.85;
-					else if (loss > 0.95)
-						loss = 0.95;
+					loss = loss switch
+					{
+						< 0.85 => 0.85,
+						> 0.95 => 0.95,
+						_ => loss
+					};
 
 					if (from.RawStr * loss > 10)
 						from.RawStr = (int)(from.RawStr * loss);
@@ -240,8 +265,10 @@ namespace Server.Gumps
 					}
 				}
 
-				if (from.Alive && m_HitsScalar > 0)
-					from.Hits = (int)(from.HitsMax * m_HitsScalar);
+				if (from.Alive && _hitsScalar > 0)
+					from.Hits = (int)(from.HitsMax * _hitsScalar);
+
+				_callback?.Invoke(from);
 			}
 		}
 	}

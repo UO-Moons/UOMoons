@@ -1,14 +1,13 @@
-namespace Server
+namespace Server;
+
+public enum SkillCat
 {
-    public enum SkillCat
-    {
-        None,
-        Miscellaneous,
-        Combat,
-        TradeSkills,
-        Magic,
-        Wilderness,
-        Thievery,
-        Bard
-    }
+	None,
+	Miscellaneous,
+	Combat,
+	TradeSkills,
+	Magic,
+	Wilderness,
+	Thievery,
+	Bard
 }

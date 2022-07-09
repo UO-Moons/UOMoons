@@ -26,10 +26,15 @@ public class SelectTitleGump : Gump
 
 		if (page > -1 && page < from.RewardTitles.Count)
 		{
-			if (from.RewardTitles[page] is int @int)
-				AddHtmlLocalized(20, 35, 230, 40, @int, 0x32, true, false);
-			else if (from.RewardTitles[page] is string @string)
-				AddHtml(20, 35, 230, 40, $"<BASEFONT COLOR=#{0x32:X6}>{@string}</BASEFONT>", true, false);
+			switch (from.RewardTitles[page])
+			{
+				case int @int:
+					AddHtmlLocalized(20, 35, 230, 40, @int, 0x32, true, false);
+					break;
+				case string @string:
+					AddHtml(20, 35, 230, 40, $"<BASEFONT COLOR=#{0x32:X6}>{@string}</BASEFONT>", true, false);
+					break;
+			}
 		}
 		else
 			AddHtmlLocalized(20, 35, 230, 40, 1073995, 0x32, true, false);

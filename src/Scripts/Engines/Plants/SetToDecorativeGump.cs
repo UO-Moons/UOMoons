@@ -79,17 +79,14 @@ namespace Server.Engines.Plants
 						{
 							m_Plant.Movable = true;
 
-							if (from.Backpack != null)
-								from.Backpack.TryDropItem(from, m_Plant, false);
+							from.Backpack?.TryDropItem(from, m_Plant, false);
 
-							if (m_Plant is RaisedGardenPlantItem)
+							if (m_Plant is GardenBedPlantItem gardenBedPlantItem)
 							{
-								RaisedGardenPlantItem rp = m_Plant as RaisedGardenPlantItem;
-
-								if (rp.Component != null)
+								if (gardenBedPlantItem.Component != null)
 								{
-									rp.Component.Plant = null;
-									rp.Component = null;
+									gardenBedPlantItem.Component.Plant = null;
+									gardenBedPlantItem.Component = null;
 								}
 							}
 						}

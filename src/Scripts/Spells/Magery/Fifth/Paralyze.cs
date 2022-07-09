@@ -3,120 +3,119 @@ using Server.Spells.Chivalry;
 using Server.Targeting;
 using System;
 
-namespace Server.Spells.Fifth
+namespace Server.Spells.Fifth;
+
+public class ParalyzeSpell : MagerySpell
 {
-	public class ParalyzeSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Paralyze", "An Ex Por",
+		218,
+		9012,
+		Reagent.Garlic,
+		Reagent.MandrakeRoot,
+		Reagent.SpidersSilk
+	);
+
+	public override SpellCircle Circle => SpellCircle.Fifth;
+	public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
+
+	public ParalyzeSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new(
-				"Paralyze", "An Ex Por",
-				218,
-				9012,
-				Reagent.Garlic,
-				Reagent.MandrakeRoot,
-				Reagent.SpidersSilk
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Fifth;
-		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
-
-		public ParalyzeSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public override void OnCast()
+	{
+		if (Precast)
 		{
+			Caster.Target = new InternalTarget(this);
 		}
-
-		public override void OnCast()
+		else
 		{
-			if (Precast)
+			if (SpellTarget is Mobile target)
+				Target(target);
+			else
+				FinishSequence();
+		}
+	}
+
+	public void Target(Mobile m)
+	{
+		if (!Caster.CanSee(m))
+		{
+			Caster.SendLocalizedMessage(500237); // Target can not be seen.
+		}
+		else if (Core.AOS && (m.Frozen || m.Paralyzed || m.Spell is {IsCasting: true} and not PaladinSpell))
+		{
+			Caster.SendLocalizedMessage(1061923); // The target is already frozen.
+		}
+		else if (CheckHSequence(m))
+		{
+			SpellHelper.Turn(Caster, m);
+
+			SpellHelper.CheckReflect((int)Circle, Caster, ref m);
+
+			double duration;
+
+			if (Core.AOS)
 			{
-				Caster.Target = new InternalTarget(this);
+				int secs = (int)(GetDamageSkill(Caster) / 10 - GetResistSkill(m) / 10);
+
+				if (!Core.SE)
+					secs += 2;
+
+				if (!m.Player)
+					secs *= 3;
+
+				if (secs < 0)
+					secs = 0;
+
+				duration = secs;
 			}
 			else
 			{
-				if (SpellTarget is Mobile target)
-					Target(target);
-				else
-					FinishSequence();
+				// Algorithm: ((20% of magery) + 7) seconds [- 50% if resisted]
+
+				duration = 7.0 + Caster.Skills[SkillName.Magery].Value * 0.2;
+
+				if (CheckResisted(m))
+					duration *= 0.75;
 			}
+
+			if (m is PlagueBeastLord lord)
+			{
+				lord.OnParalyzed(Caster);
+				duration = 120;
+			}
+
+			m.Paralyze(TimeSpan.FromSeconds(duration));
+
+			m.PlaySound(0x204);
+			m.FixedEffect(0x376A, 6, 1);
+
+			HarmfulSpell(m);
 		}
 
-		public void Target(Mobile m)
+		FinishSequence();
+	}
+
+	public class InternalTarget : Target
+	{
+		private readonly ParalyzeSpell _owner;
+
+		public InternalTarget(ParalyzeSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
 		{
-			if (!Caster.CanSee(m))
-			{
-				Caster.SendLocalizedMessage(500237); // Target can not be seen.
-			}
-			else if (Core.AOS && (m.Frozen || m.Paralyzed || (m.Spell != null && m.Spell.IsCasting && m.Spell is not PaladinSpell)))
-			{
-				Caster.SendLocalizedMessage(1061923); // The target is already frozen.
-			}
-			else if (CheckHSequence(m))
-			{
-				SpellHelper.Turn(Caster, m);
-
-				SpellHelper.CheckReflect((int)Circle, Caster, ref m);
-
-				double duration;
-
-				if (Core.AOS)
-				{
-					int secs = (int)((GetDamageSkill(Caster) / 10) - (GetResistSkill(m) / 10));
-
-					if (!Core.SE)
-						secs += 2;
-
-					if (!m.Player)
-						secs *= 3;
-
-					if (secs < 0)
-						secs = 0;
-
-					duration = secs;
-				}
-				else
-				{
-					// Algorithm: ((20% of magery) + 7) seconds [- 50% if resisted]
-
-					duration = 7.0 + (Caster.Skills[SkillName.Magery].Value * 0.2);
-
-					if (CheckResisted(m))
-						duration *= 0.75;
-				}
-
-				if (m is PlagueBeastLord lord)
-				{
-					lord.OnParalyzed(Caster);
-					duration = 120;
-				}
-
-				m.Paralyze(TimeSpan.FromSeconds(duration));
-
-				m.PlaySound(0x204);
-				m.FixedEffect(0x376A, 6, 1);
-
-				HarmfulSpell(m);
-			}
-
-			FinishSequence();
+			_owner = owner;
 		}
 
-		public class InternalTarget : Target
+		protected override void OnTarget(Mobile from, object o)
 		{
-			private readonly ParalyzeSpell m_Owner;
+			if (o is Mobile mobile)
+				_owner.Target(mobile);
+		}
 
-			public InternalTarget(ParalyzeSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
-			{
-				m_Owner = owner;
-			}
-
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile mobile)
-					m_Owner.Target(mobile);
-			}
-
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
+		protected override void OnTargetFinish(Mobile from)
+		{
+			_owner.FinishSequence();
 		}
 	}
 }

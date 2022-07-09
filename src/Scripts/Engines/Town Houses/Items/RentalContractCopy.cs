@@ -1,42 +1,41 @@
-namespace Server.Engines.TownHouses
+namespace Server.Engines.TownHouses;
+
+public sealed class RentalContractCopy : BaseItem
 {
-	public sealed class RentalContractCopy : BaseItem
+	private readonly RentalContract _cContract;
+
+	public RentalContractCopy(RentalContract contract)
 	{
-		private readonly RentalContract c_Contract;
+		Name = "rental contract copy";
+		ItemId = 0x14F0;
+		_cContract = contract;
+	}
 
-		public RentalContractCopy(RentalContract contract)
+	public override void OnDoubleClick(Mobile m)
+	{
+		if (_cContract == null || _cContract.Deleted)
 		{
-			Name = "rental contract copy";
-			ItemId = 0x14F0;
-			c_Contract = contract;
+			Delete();
+			return;
 		}
 
-		public override void OnDoubleClick(Mobile m)
-		{
-			if (c_Contract == null || c_Contract.Deleted)
-			{
-				Delete();
-				return;
-			}
+		_cContract.OnDoubleClick(m);
+	}
 
-			c_Contract.OnDoubleClick(m);
-		}
+	public RentalContractCopy(Serial serial) : base(serial)
+	{
+	}
 
-		public RentalContractCopy(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(1); // version
+	}
 
-			writer.Write(1); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

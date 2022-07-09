@@ -6,7 +6,7 @@ namespace Server.Ethics.Evil
 	{
 		public UnholySteed()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					30,
 					"Unholy Steed",
 					"Trubechs Yeliab",

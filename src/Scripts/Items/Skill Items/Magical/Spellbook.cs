@@ -253,12 +253,12 @@ namespace Server.Items
 
 		public static Spellbook FindEquippedSpellbook(Mobile from)
 		{
-			return (from.FindItemOnLayer(Layer.OneHanded) as Spellbook);
+			return from.FindItemOnLayer(Layer.OneHanded) as Spellbook;
 		}
 
 		public static bool ValidateSpellbook(Spellbook book, int spellID, SpellbookType type)
 		{
-			return (book.SpellbookType == type && (spellID == -1 || book.HasSpell(spellID)));
+			return book.SpellbookType == type && (spellID == -1 || book.HasSpell(spellID));
 		}
 
 		public override bool DisplayWeight => false;
@@ -388,7 +388,7 @@ namespace Server.Items
 		{
 			m_AosSkillBonuses = new AosSkillBonuses(this);
 
-			Weight = 3.0;
+			Weight = Core.AOS ? 0.0 : 3.0;
 			Layer = Layer.OneHanded;
 			LootType = LootType.Blessed;
 

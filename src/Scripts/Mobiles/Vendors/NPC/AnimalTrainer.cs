@@ -135,13 +135,17 @@ public class AnimalTrainer : BaseVendor
 		double vetern = from.Skills[SkillName.Veterinary].Value;
 		double sklsum = taming + anlore + vetern;
 
-		int max = sklsum switch
+		int max = from is PlayerMobile mobile ? mobile.RewardStableSlots : 0;
+
+		max += sklsum switch
 		{
 			>= 240.0 => 5,
 			>= 200.0 => 4,
 			>= 160.0 => 3,
 			_ => 2
 		};
+
+		max += 4;
 
 		if (taming >= 100.0)
 			max += (int)((taming - 90.0) / 10);

@@ -2,79 +2,77 @@ using Server.Items;
 using Server.Mobiles;
 using System;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public class EnGuardeQuest : BaseQuest
 {
-	public class EnGuardeQuest : BaseQuest
+	public override bool DoneOnce => true;
+
+	/* En Guarde! */
+	public override object Title => 1078186;
+
+	/* Head East out of town and go to Old Haven. Battle monster there until you have raised your Fecning skill to 50.
+    Well hello there, lad. Fighting with elegance and percision is far more enriching than slugging an enemy with a 
+    club or butchering an enemy with a sword. Learn the art of Fencing if you want to master combat and look good 
+    doing it! The key to being a successful fencer is to be the complement and not the opposition to your opponent's 
+    strength. Watch for your opponent to become off balance. Then finish him off with finesses and flair. There are 
+    some undead that need cleansing out in Old Haven towards the East. Head over there and slay them, but remember, 
+    do it with style! Come back to me once you have achived the rank of Apprentice Fencer, and i will reward you 
+    with a prize. */
+	public override object Description => 1078190;
+
+	/* I understand, lad. Being a hero isn't for eeryone. Run along, then. Come back to me if you change your mind. */
+	public override object Refuse => 1078191;
+
+	/* You're doing well so far, but you're not quite ready yet. Head back to Old Haven, to the East, and kill some 
+    more undead. */
+	public override object Uncomplete => 1078192;
+
+	/* Excellent! You are beginning to appreciate the art of Fencing. I told you fighting with elegance and precision 
+    is more enriching than fighting like an orge. Since you have returned victorious, please take this war fork and 
+    use it well. The war fork is a finesse weapon, and this one is magical! I call it "Recaro's Riposte". With it, 
+    you will be able to parry and counterstrike with ease! your enemies will bask in your greatness and glory! Good 
+    luck to you, lad, abd keep practicing! */
+	public override object Complete => 1078194;
+
+	public EnGuardeQuest()
 	{
-		public override bool DoneOnce => true;
+		AddObjective(new ApprenticeObjective(SkillName.Fencing, 50, "Old Haven Training", 1078188, 1078189));
 
-		/* En Guarde! */
-		public override object Title => 1078186;
+		// 1078188 You feel more dexterous and quick witted while practicing combat here. Your ability to raise your Fencing skill is enhanced in this area.
+		// 1078189 You feel less dexterous here. Your Fencing learning potential is no longer enhanced.
 
-		/* Head East out of town and go to Old Haven. Battle monster there until you have raised your Fecning skill to 50.
-        Well hello there, lad. Fighting with elegance and percision is far more enriching than slugging an enemy with a 
-        club or butchering an enemy with a sword. Learn the art of Fencing if you want to master combat and look good 
-        doing it! The key to being a successful fencer is to be the complement and not the opposition to your opponent's 
-        strength. Watch for your opponent to become off balance. Then finish him off with finesses and flair. There are 
-        some undead that need cleansing out in Old Haven towards the East. Head over there and slay them, but remember, 
-        do it with style! Come back to me once you have achived the rank of Apprentice Fencer, and i will reward you 
-        with a prize. */
-		public override object Description => 1078190;
+		AddReward(new BaseReward(typeof(RecarosRiposte), 1078195));
+	}
 
-		/* I understand, lad. Being a hero isn't for eeryone. Run along, then. Come back to me if you change your mind. */
-		public override object Refuse => 1078191;
-
-		/* You're doing well so far, but you're not quite ready yet. Head back to Old Haven, to the East, and kill some 
-        more undead. */
-		public override object Uncomplete => 1078192;
-
-		/* Excellent! You are beginning to appreciate the art of Fencing. I told you fighting with elegance and precision 
-        is more enriching than fighting like an orge. Since you have returned victorious, please take this war fork and 
-        use it well. The war fork is a finesse weapon, and this one is magical! I call it "Recaro's Riposte". With it, 
-        you will be able to parry and counterstrike with ease! your enemies will bask in your greatness and glory! Good 
-        luck to you, lad, abd keep practicing! */
-		public override object Complete => 1078194;
-
-		public EnGuardeQuest()
-			: base()
+	public override bool CanOffer()
+	{
+		PlayerMobile pm = Owner;
+		if (pm.AcceleratedStart > DateTime.UtcNow)
 		{
-			AddObjective(new ApprenticeObjective(SkillName.Fencing, 50, "Old Haven Training", 1078188, 1078189));
-
-			// 1078188 You feel more dexterous and quick witted while practicing combat here. Your ability to raise your Fencing skill is enhanced in this area.
-			// 1078189 You feel less dexterous here. Your Fencing learning potential is no longer enhanced.
-
-			AddReward(new BaseReward(typeof(RecarosRiposte), 1078195));
+			Owner.SendLocalizedMessage(1077951); // You are already under the effect of an accelerated skillgain scroll.
+			return false;
 		}
+		else
+			return Owner.Skills.Fencing.Base < 50;
+	}
 
-		public override bool CanOffer()
-		{
-			PlayerMobile pm = Owner;
-			if (pm.AcceleratedStart > DateTime.UtcNow)
-			{
-				Owner.SendLocalizedMessage(1077951); // You are already under the effect of an accelerated skillgain scroll.
-				return false;
-			}
-			else
-				return Owner.Skills.Fencing.Base < 50;
-		}
+	public override void OnCompleted()
+	{
+		Owner.SendLocalizedMessage(1078193, null, 0x23); // You have achieved the rank of Apprentice Fencer. Return to Recaro in New Haven to claim your reward.
+		Owner.PlaySound(CompleteSound);
+	}
 
-		public override void OnCompleted()
-		{
-			Owner.SendLocalizedMessage(1078193, null, 0x23); // You have achieved the rank of Apprentice Fencer. Return to Recaro in New Haven to claim your reward.
-			Owner.PlaySound(CompleteSound);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 	}
 }

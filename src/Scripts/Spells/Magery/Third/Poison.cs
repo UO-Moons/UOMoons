@@ -1,156 +1,152 @@
 using Server.Targeting;
 
-namespace Server.Spells.Third
+namespace Server.Spells.Third;
+
+public class PoisonSpell : MagerySpell
 {
-	public class PoisonSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Poison", "In Nox",
+		203,
+		9051,
+		Reagent.Nightshade
+	);
+
+	public override SpellCircle Circle => SpellCircle.Third;
+	public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
+
+	public PoisonSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new(
-				"Poison", "In Nox",
-				203,
-				9051,
-				Reagent.Nightshade
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Third;
-		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
-
-		public PoisonSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public override void OnCast()
+	{
+		if (Precast)
 		{
+			Caster.Target = new InternalTarget(this);
 		}
-
-		public override void OnCast()
+		else
 		{
-			if (Precast)
+			if (SpellTarget is Mobile target)
+				Target(target);
+			else
+				FinishSequence();
+		}
+	}
+
+	public void Target(Mobile m)
+	{
+		if (!Caster.CanSee(m))
+		{
+			Caster.SendLocalizedMessage(500237); // Target can not be seen.
+		}
+		else if (CheckHSequence(m))
+		{
+			SpellHelper.Turn(Caster, m);
+
+			SpellHelper.CheckReflect((int)Circle, Caster, ref m);
+
+			if (m.Spell != null)
+				m.Spell.OnCasterHurt();
+
+			m.Paralyzed = false;
+
+			if (CheckResisted(m))
 			{
-				Caster.Target = new InternalTarget(this);
+				m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
 			}
 			else
 			{
-				if (SpellTarget is Mobile target)
-					Target(target);
-				else
-					FinishSequence();
-			}
-		}
+				int level;
 
-		public void Target(Mobile m)
-		{
-			if (!Caster.CanSee(m))
-			{
-				Caster.SendLocalizedMessage(500237); // Target can not be seen.
-			}
-			else if (CheckHSequence(m))
-			{
-				SpellHelper.Turn(Caster, m);
-
-				SpellHelper.CheckReflect((int)Circle, Caster, ref m);
-
-				if (m.Spell != null)
-					m.Spell.OnCasterHurt();
-
-				m.Paralyzed = false;
-
-				if (CheckResisted(m))
+				if (Core.AOS)
 				{
-					m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
-				}
-				else
-				{
-					int level;
-
-					if (Core.AOS)
+					if (Caster.InRange(m, 2))
 					{
-						if (Caster.InRange(m, 2))
-						{
-							int total = (Caster.Skills.Magery.Fixed + Caster.Skills.Poisoning.Fixed) / 2;
+						int total = (Caster.Skills.Magery.Fixed + Caster.Skills.Poisoning.Fixed) / 2;
 
-							if (total >= 1000)
-								level = 3;
-							else if (total > 850)
-								level = 2;
-							else if (total > 650)
-								level = 1;
-							else
-								level = 0;
-						}
-						else
+						level = total switch
 						{
-							level = 0;
-						}
+							>= 1000 => 3,
+							> 850 => 2,
+							> 650 => 1,
+							_ => 0
+						};
 					}
 					else
 					{
-						//double total = Caster.Skills[SkillName.Magery].Value + Caster.Skills[SkillName.Poisoning].Value;
+						level = 0;
+					}
+				}
+				else
+				{
+					//double total = Caster.Skills[SkillName.Magery].Value + Caster.Skills[SkillName.Poisoning].Value;
 
-						#region Dueling
-						double total = Caster.Skills[SkillName.Magery].Value;
+					#region Dueling
+					double total = Caster.Skills[SkillName.Magery].Value;
 
-						if (Caster is Mobiles.PlayerMobile)
+					if (Caster is Mobiles.PlayerMobile pm)
+					{
+						if (pm.DuelContext is {Started: true, Finished: false} && !pm.DuelContext.Ruleset.GetOption("Skills", "Poisoning"))
 						{
-							Mobiles.PlayerMobile pm = (Mobiles.PlayerMobile)Caster;
-
-							if (pm.DuelContext != null && pm.DuelContext.Started && !pm.DuelContext.Finished && !pm.DuelContext.Ruleset.GetOption("Skills", "Poisoning"))
-							{
-							}
-							else
-							{
-								total += Caster.Skills[SkillName.Poisoning].Value;
-							}
 						}
 						else
 						{
 							total += Caster.Skills[SkillName.Poisoning].Value;
 						}
-						#endregion
-
-						double dist = Caster.GetDistanceToSqrt(m);
-
-						if (dist >= 3.0)
-							total -= (dist - 3.0) * 10.0;
-
-						if (total >= 200.0 && 1 > Utility.Random(10))
-							level = 3;
-						else if (total > (Core.AOS ? 170.1 : 170.0))
-							level = 2;
-						else if (total > (Core.AOS ? 130.1 : 130.0))
-							level = 1;
-						else
-							level = 0;
 					}
+					else
+					{
+						total += Caster.Skills[SkillName.Poisoning].Value;
+					}
+					#endregion
 
-					m.ApplyPoison(Caster, Poison.GetPoison(level));
+					double dist = Caster.GetDistanceToSqrt(m);
+
+					if (dist >= 3.0)
+						total -= (dist - 3.0) * 10.0;
+
+					if (total >= 200.0 && 1 > Utility.Random(10))
+						level = 3;
+					else if (total > (Core.AOS ? 170.1 : 170.0))
+						level = 2;
+					else if (total > (Core.AOS ? 130.1 : 130.0))
+						level = 1;
+					else
+						level = 0;
 				}
 
-				m.FixedParticles(0x374A, 10, 15, 5021, EffectLayer.Waist);
-				m.PlaySound(0x205);
-
-				HarmfulSpell(m);
+				m.ApplyPoison(Caster, Poison.GetPoison(level));
 			}
 
-			FinishSequence();
+			m.FixedParticles(0x374A, 10, 15, 5021, EffectLayer.Waist);
+			m.PlaySound(0x205);
+
+			HarmfulSpell(m);
 		}
 
-		private class InternalTarget : Target
+		FinishSequence();
+	}
+
+	private class InternalTarget : Target
+	{
+		private readonly PoisonSpell _owner;
+
+		public InternalTarget(PoisonSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
 		{
-			private readonly PoisonSpell m_Owner;
+			_owner = owner;
+		}
 
-			public InternalTarget(PoisonSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
+		protected override void OnTarget(Mobile from, object o)
+		{
+			if (o is Mobile mobile)
 			{
-				m_Owner = owner;
+				_owner.Target(mobile);
 			}
+		}
 
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile mobile)
-				{
-					m_Owner.Target(mobile);
-				}
-			}
-
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
+		protected override void OnTargetFinish(Mobile from)
+		{
+			_owner.FinishSequence();
 		}
 	}
 }

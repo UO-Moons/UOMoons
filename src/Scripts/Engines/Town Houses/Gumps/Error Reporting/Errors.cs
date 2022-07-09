@@ -3,68 +3,67 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Server.Engines.TownHouses
+namespace Server.Engines.TownHouses;
+
+public class Errors
 {
-	public class Errors
+	public static List<string> ErrorLog { get; } = new();
+	public static List<Mobile> Checked { get; } = new();
+
+	public static void Initialize()
 	{
-		public static List<string> ErrorLog { get; } = new();
-		public static List<Mobile> Checked { get; } = new();
+		VersionCommand.AddCommand("TownHouseErrors", AccessLevel.Counselor, OnErrors);
+		VersionCommand.AddCommand("the", AccessLevel.Counselor, OnErrors);
 
-		public static void Initialize()
+		EventSink.OnLogin += OnLogin;
+	}
+
+	private static void OnErrors(CommandInfo e)
+	{
+		if (string.IsNullOrEmpty(e.ArgString))
 		{
-			VersionCommand.AddCommand("TownHouseErrors", AccessLevel.Counselor, OnErrors);
-			VersionCommand.AddCommand("the", AccessLevel.Counselor, OnErrors);
-
-			EventSink.OnLogin += OnLogin;
+			_ = new ErrorsGump(e.Mobile);
 		}
-
-		private static void OnErrors(CommandInfo e)
+		else
 		{
-			if (string.IsNullOrEmpty(e.ArgString))
-			{
-				_ = new ErrorsGump(e.Mobile);
-			}
-			else
-			{
-				Report(e.ArgString + " - " + e.Mobile.Name);
-			}
+			Report(e.ArgString + " - " + e.Mobile.Name);
 		}
+	}
 
-		private static void OnLogin(Mobile m)
+	private static void OnLogin(Mobile m)
+	{
+		if (m.AccessLevel != AccessLevel.Player
+		    && ErrorLog.Count != 0
+		    && !Checked.Contains(m))
 		{
-			if (m.AccessLevel != AccessLevel.Player
-				&& ErrorLog.Count != 0
-				&& !Checked.Contains(m))
-			{
-				_ = new ErrorsNotifyGump(m);
-			}
+			_ = new ErrorsNotifyGump(m);
 		}
+	}
 
-		public static void Report(string error)
+	public static void Report(string error)
+	{
+		ErrorLog.Add($"<B>{DateTime.UtcNow}</B><BR>{error}<BR>");
+		Checked.Clear();
+		Notify();
+	}
+
+	private static void Notify()
+	{
+		foreach (NetState state in NetState.Instances.Where(state => state.Mobile != null).Where(state => state.Mobile.AccessLevel != AccessLevel.Player))
 		{
-			ErrorLog.Add($"<B>{DateTime.UtcNow}</B><BR>{error}<BR>");
-			Checked.Clear();
-			Notify();
+			Notify(state.Mobile);
 		}
+	}
 
-		private static void Notify()
+	private static void Notify(Mobile m)
+	{
+		if (m.HasGump(typeof(ErrorsGump)))
 		{
-			foreach (NetState state in NetState.Instances.Where(state => state.Mobile != null).Where(state => state.Mobile.AccessLevel != AccessLevel.Player))
-			{
-				Notify(state.Mobile);
-			}
+			_ = new ErrorsGump(m);
 		}
-
-		private static void Notify(Mobile m)
+		else
 		{
-			if (m.HasGump(typeof(ErrorsGump)))
-			{
-				_ = new ErrorsGump(m);
-			}
-			else
-			{
-				_ = new ErrorsNotifyGump(m);
-			}
+			_ = new ErrorsNotifyGump(m);
 		}
 	}
 }

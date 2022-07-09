@@ -47,10 +47,9 @@ namespace Server.Mobiles
 
 			Container pack = Backpack;
 
-			if (pack != null)
-				pack.Delete();
+			pack?.Delete();
 
-			pack = new StrongBackpack
+			pack = new PackAnimalsBackpack
 			{
 				Movable = false
 			};
@@ -137,7 +136,7 @@ namespace Server.Mobiles
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 }

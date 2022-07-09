@@ -1,59 +1,58 @@
-namespace Server.Engines.TownHouses
+namespace Server.Engines.TownHouses;
+
+public class RentalLicense : BaseItem
 {
-	public class RentalLicense : BaseItem
+	private Mobile _cOwner;
+
+	public Mobile Owner
 	{
-		private Mobile m_COwner;
-
-		public Mobile Owner
+		get => _cOwner;
+		set
 		{
-			get => m_COwner;
-			set
-			{
-				m_COwner = value;
-				InvalidateProperties();
-			}
+			_cOwner = value;
+			InvalidateProperties();
 		}
+	}
 
-		public RentalLicense() : base(0x14F0)
+	public RentalLicense() : base(0x14F0)
+	{
+	}
+
+	public override void GetProperties(ObjectPropertyList list)
+	{
+		if (_cOwner != null)
 		{
+			list.Add("a renter's license belonging to " + _cOwner.Name);
 		}
-
-		public override void GetProperties(ObjectPropertyList list)
+		else
 		{
-			if (m_COwner != null)
-			{
-				list.Add("a renter's license belonging to " + m_COwner.Name);
-			}
-			else
-			{
-				list.Add("a renter's license");
-			}
+			list.Add("a renter's license");
 		}
+	}
 
-		public override void OnDoubleClick(Mobile m)
-		{
-			m_COwner ??= m;
-		}
+	public override void OnDoubleClick(Mobile m)
+	{
+		_cOwner ??= m;
+	}
 
-		public RentalLicense(Serial serial) : base(serial)
-		{
-		}
+	public RentalLicense(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0);
+		writer.Write(0);
 
-			writer.Write(m_COwner);
-		}
+		writer.Write(_cOwner);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		_ = reader.ReadInt();
 
-			m_COwner = reader.ReadMobile();
-		}
+		_cOwner = reader.ReadMobile();
 	}
 }

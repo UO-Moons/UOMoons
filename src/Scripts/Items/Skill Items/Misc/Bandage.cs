@@ -110,7 +110,7 @@ namespace Server.Items
 
 				if (t != null)
 				{
-					Target.Cancel(from);
+					from.Target.Cancel(from);
 					from.Target = null;
 				}
 

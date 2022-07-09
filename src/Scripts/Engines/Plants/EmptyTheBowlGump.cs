@@ -5,14 +5,14 @@ namespace Server.Engines.Plants
 {
 	public class EmptyTheBowlGump : Gump
 	{
-		private readonly PlantItem m_Plant;
+		private readonly PlantItem _plant;
 
-		public bool IsOtherPlant => m_Plant != null && m_Plant is RaisedGardenPlantItem;
+		public bool IsOtherPlant => _plant is GardenBedPlantItem;
 
 		public EmptyTheBowlGump(PlantItem plant)
 			: base(20, 20)
 		{
-			m_Plant = plant;
+			_plant = plant;
 
 			DrawBackground();
 
@@ -39,18 +39,18 @@ namespace Server.Engines.Plants
 		{
 			Mobile from = sender.Mobile;
 
-			if (info.ButtonID == 0 || m_Plant.Deleted || m_Plant.PlantStatus >= PlantStatus.DecorativePlant)
+			if (info.ButtonID == 0 || _plant.Deleted || _plant.PlantStatus >= PlantStatus.DecorativePlant)
 				return;
 
-			if (info.ButtonID == 3 && !from.InRange(m_Plant.GetWorldLocation(), 3))
+			if (info.ButtonID == 3 && !from.InRange(_plant.GetWorldLocation(), 3))
 			{
 				from.LocalOverheadMessage(MessageType.Regular, 0x3E9, 500446); // That is too far away.
 				return;
 			}
 
-			if (!m_Plant.IsUsableBy(from))
+			if (!_plant.IsUsableBy(from))
 			{
-				m_Plant.LabelTo(from, 1061856); // You must have the item in your backpack or locked down in order to use it.
+				_plant.LabelTo(from, 1061856); // You must have the item in your backpack or locked down in order to use it.
 				return;
 			}
 
@@ -58,7 +58,7 @@ namespace Server.Engines.Plants
 			{
 				case 1: // Cancel
 					{
-						from.SendGump(new MainPlantGump(m_Plant));
+						from.SendGump(new MainPlantGump(_plant));
 
 						break;
 					}
@@ -66,7 +66,7 @@ namespace Server.Engines.Plants
 					{
 						from.Send(new DisplayHelpTopic(71, true)); // EMPTYING THE BOWL
 
-						from.SendGump(new EmptyTheBowlGump(m_Plant));
+						from.SendGump(new EmptyTheBowlGump(_plant));
 
 						break;
 					}
@@ -76,7 +76,7 @@ namespace Server.Engines.Plants
 
 						if (!IsOtherPlant)
 						{
-							if (m_Plant.RequiresUpkeep)
+							if (_plant.RequiresUpkeep)
 							{
 								bowl = new PlantBowl();
 
@@ -84,17 +84,17 @@ namespace Server.Engines.Plants
 								{
 									bowl.Delete();
 
-									m_Plant.LabelTo(from, 1053047); // You cannot empty a bowl with a full pack!
-									from.SendGump(new MainPlantGump(m_Plant));
+									_plant.LabelTo(from, 1053047); // You cannot empty a bowl with a full pack!
+									from.SendGump(new MainPlantGump(_plant));
 
 									break;
 								}
 							}
 						}
 
-						if (m_Plant.PlantStatus != PlantStatus.BowlOfDirt && m_Plant.PlantStatus < PlantStatus.Plant)
+						if (_plant.PlantStatus != PlantStatus.BowlOfDirt && _plant.PlantStatus < PlantStatus.Plant)
 						{
-							Seed seed = new(m_Plant.PlantType, m_Plant.PlantHue, m_Plant.ShowType);
+							Seed seed = new(_plant.PlantType, _plant.PlantHue, _plant.ShowType);
 
 							if (!from.PlaceInBackpack(seed))
 							{
@@ -105,14 +105,14 @@ namespace Server.Engines.Plants
 
 								seed.Delete();
 
-								m_Plant.LabelTo(from, 1053047); // You cannot empty a bowl with a full pack!
-								from.SendGump(new MainPlantGump(m_Plant));
+								_plant.LabelTo(from, 1053047); // You cannot empty a bowl with a full pack!
+								from.SendGump(new MainPlantGump(_plant));
 
 								break;
 							}
 						}
 
-						m_Plant.Delete();
+						_plant.Delete();
 
 						break;
 					}
@@ -136,7 +136,7 @@ namespace Server.Engines.Plants
 			{
 				AddItem(90, 100, 0x913);
 
-				if (m_Plant.PlantStatus != PlantStatus.BowlOfDirt && m_Plant.PlantStatus < PlantStatus.Plant)
+				if (_plant.PlantStatus != PlantStatus.BowlOfDirt && _plant.PlantStatus < PlantStatus.Plant)
 					AddItem(160, 105, 0xDCF); // Seed
 			}
 			else
@@ -144,7 +144,7 @@ namespace Server.Engines.Plants
 				AddItem(90, 100, 0x1602);
 				AddItem(160, 100, 0x15FD);
 
-				if (m_Plant.PlantStatus != PlantStatus.BowlOfDirt && m_Plant.PlantStatus < PlantStatus.Plant)
+				if (_plant.PlantStatus != PlantStatus.BowlOfDirt && _plant.PlantStatus < PlantStatus.Plant)
 					AddItem(156, 130, 0xDCF); // Seed
 			}
 

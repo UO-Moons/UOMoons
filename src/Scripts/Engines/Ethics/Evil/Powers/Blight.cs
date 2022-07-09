@@ -7,7 +7,7 @@ namespace Server.Ethics.Evil
 	{
 		public Blight()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					15,
 					"Blight",
 					"Velgo Ontawl",

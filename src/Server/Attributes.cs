@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Server;
@@ -105,6 +106,45 @@ public class CustomEnumAttribute : Attribute
 	public CustomEnumAttribute(string[] names)
 	{
 		Names = names;
+	}
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class DeleteConfirmAttribute : Attribute
+{
+	public string Message { get; set; }
+
+	public DeleteConfirmAttribute()
+		: this("Are you sure you wish to delete this item?")
+	{ }
+
+	public DeleteConfirmAttribute(string message)
+	{
+		Message = message;
+	}
+
+	public static bool Find<T>(out string message) where T : class
+	{
+		return Find(typeof(T), out message);
+	}
+
+	public static bool Find(object o, out string message)
+	{
+		return Find(o.GetType(), out message);
+	}
+
+	public static bool Find(Type t, out string message)
+	{
+		var attrs = t.GetCustomAttributes(typeof(DeleteConfirmAttribute), true);
+
+		if (attrs.Length > 0)
+		{
+			message = String.Join("\n", attrs.OfType<DeleteConfirmAttribute>().Select(a => a.Message));
+			return true;
+		}
+
+		message = String.Empty;
+		return false;
 	}
 }
 

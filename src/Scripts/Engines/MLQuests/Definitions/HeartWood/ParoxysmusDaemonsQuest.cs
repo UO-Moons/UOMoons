@@ -1,43 +1,28 @@
 using Server.Items;
 using Server.Mobiles;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public class ParoxysmusDaemonsQuest : BaseQuest
 {
-	public class ParoxysmusDaemonsQuest : BaseQuest
+	public ParoxysmusDaemonsQuest()
 	{
-		public ParoxysmusDaemonsQuest()
-			: base()
-		{
-			AddObjective(new SlayObjective(typeof(Daemon), "Daemons", 10, "Palace of Paroxysmus"));
+		AddObjective(new SlayObjective(typeof(Daemon), "Daemons", 10, "Palace of Paroxysmus"));
 
-			AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
-		}
+		AddReward(new BaseReward(typeof(LargeTreasureBag), 1072706));
+	}
 
-		/* Paroxysmus' Daemons */
-		public override object Title => 1073069;
-		/* The daemons that have congregated to worship Paroxysmus pose a tremendous danger. Will you enter 
-        the lair and see to their destruction? */
-		public override object Description => 1074695;
-		/* Well, okay. But if you decide you are up for it after all, c'mon back and see me. */
-		public override object Refuse => 1072270;
-		/* You're not quite done yet.  Get back to work! */
-		public override object Uncomplete => 1072271;
-		public override bool CanOffer()
-		{
-			return MondainsLegacy.PalaceOfParoxysmus;
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			_ = reader.ReadInt();
-		}
+	/* Paroxysmus' Daemons */
+	public override object Title => 1073069;
+	/* The daemons that have congregated to worship Paroxysmus pose a tremendous danger. Will you enter 
+    the lair and see to their destruction? */
+	public override object Description => 1074695;
+	/* Well, okay. But if you decide you are up for it after all, c'mon back and see me. */
+	public override object Refuse => 1072270;
+	/* You're not quite done yet.  Get back to work! */
+	public override object Uncomplete => 1072271;
+	public override bool CanOffer()
+	{
+		return MondainsLegacy.PalaceOfParoxysmus;
 	}
 }

@@ -15,7 +15,15 @@ namespace Server.Items
             Weight = 2.0;
         }
 
-        public GargishClothArmsArmor(Serial serial)
+        /* Create gargish constructor that can pass female item id to BaseArmor class */
+        [Constructable]
+        public GargishClothArmsArmor(int femaleItemId, int thisIsFemaleArmor)
+	        : base(femaleItemId)
+        {
+	        Weight = 2.0;
+        }
+
+public GargishClothArmsArmor(Serial serial)
             : base(serial)
         {
         }
@@ -25,9 +33,8 @@ namespace Server.Items
         public override int BaseColdResistance => 6;
         public override int BasePoisonResistance => 6;
         public override int BaseEnergyResistance => 6;
-        public override int InitMinHits => 40;
-        public override int InitMaxHits => 50;
-        public override int StrReq => 20;
+        public override int InitHits => Utility.RandomMinMax(40, 50);
+		public override int StrReq => 20;
 
         public override ArmorMaterialType MaterialType => ArmorMaterialType.Cloth;
         public override CraftResource DefaultResource => CraftResource.None;
@@ -41,27 +48,27 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
     public class FemaleGargishClothArmsArmor : GargishClothArmsArmor
     {
-        [Constructable]
-        public FemaleGargishClothArmsArmor() : this(0)
-        {
-        }
+	    [Constructable]
+	    public FemaleGargishClothArmsArmor() : this(0)
+	    {
+	    }
 
-        [Constructable]
-        public FemaleGargishClothArmsArmor(int hue)
-            : base(0x403)
-        {
-            Hue = hue;
-            Weight = 2.0;
-        }
+	    [Constructable]
+	    public FemaleGargishClothArmsArmor(int hue)
+		    : base(0x403, 1)
+	    {
+		    Hue = hue;
+		    Weight = 2.0;
+	    }
 
-        public FemaleGargishClothArmsArmor(Serial serial)
+		public FemaleGargishClothArmsArmor(Serial serial)
             : base(serial)
         {
         }
@@ -74,8 +81,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -95,7 +102,15 @@ namespace Server.Items
             Weight = 2.0;
         }
 
-        public GargishClothChestArmor(Serial serial)
+        /* Create gargish constructor that can pass female item id to BaseArmor class */
+        [Constructable]
+        public GargishClothChestArmor(int femaleItemId, int thisIsFemaleArmor)
+	        : base(femaleItemId)
+        {
+	        Weight = 2.0;
+        }
+
+		public GargishClothChestArmor(Serial serial)
             : base(serial)
         {
         }
@@ -121,8 +136,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -136,13 +151,13 @@ namespace Server.Items
 
         [Constructable]
         public FemaleGargishClothChestArmor(int hue)
-            : base(0x405)
+	        : base(0x405, 1)
         {
-            Hue = hue;
-            Weight = 2.0;
+	        Hue = hue;
+	        Weight = 2.0;
         }
 
-        public FemaleGargishClothChestArmor(Serial serial)
+		public FemaleGargishClothChestArmor(Serial serial)
             : base(serial)
         {
         }
@@ -155,8 +170,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -176,7 +191,15 @@ namespace Server.Items
             Weight = 2.0;
         }
 
-        public GargishClothLegsArmor(Serial serial)
+        /* Create gargish constructor that can pass female item id to BaseArmor class */
+        [Constructable]
+        public GargishClothLegsArmor(int femaleItemId, int thisIsFemaleArmor)
+	        : base(femaleItemId)
+        {
+	        Weight = 2.0;
+        }
+
+		public GargishClothLegsArmor(Serial serial)
             : base(serial)
         {
         }
@@ -202,8 +225,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -217,13 +240,13 @@ namespace Server.Items
 
         [Constructable]
         public FemaleGargishClothLegsArmor(int hue)
-            : base(0x409)
+	        : base(0x409, 1)
         {
-            Hue = hue;
-            Weight = 2.0;
+	        Hue = hue;
+	        Weight = 2.0;
         }
 
-        public FemaleGargishClothLegsArmor(Serial serial)
+		public FemaleGargishClothLegsArmor(Serial serial)
             : base(serial)
         {
         }
@@ -236,8 +259,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -257,7 +280,15 @@ namespace Server.Items
             Weight = 2.0;
         }
 
-        public GargishClothKiltArmor(Serial serial)
+        /* Create gargish constructor that can pass female item id to BaseArmor class */
+        [Constructable]
+        public GargishClothKiltArmor(int femaleItemId, int thisIsFemaleArmor)
+	        : base(femaleItemId)
+        {
+	        Weight = 2.0;
+        }
+
+		public GargishClothKiltArmor(Serial serial)
             : base(serial)
         {
         }
@@ -283,8 +314,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 
@@ -298,13 +329,13 @@ namespace Server.Items
 
         [Constructable]
         public FemaleGargishClothKiltArmor(int hue)
-            : base(0x407)
+	        : base(0x407, 1)
         {
-            Hue = hue;
-            Weight = 2.0;
+	        Hue = hue;
+	        Weight = 2.0;
         }
 
-        public FemaleGargishClothKiltArmor(Serial serial)
+		public FemaleGargishClothKiltArmor(Serial serial)
             : base(serial)
         {
         }
@@ -317,8 +348,8 @@ namespace Server.Items
 
         public override void Deserialize(GenericReader reader)
         {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
+	        base.Deserialize(reader);
+	        reader.ReadInt();
         }
     }
 }

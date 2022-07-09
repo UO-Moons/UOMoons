@@ -7,7 +7,7 @@ namespace Server.Ethics.Hero
 	{
 		public HolySense()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					0,
 					"Holy Sense",
 					"Drewrok Erstok",

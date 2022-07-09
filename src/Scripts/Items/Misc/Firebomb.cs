@@ -117,7 +117,7 @@ namespace Server.Items
 								ThrowTarget targ = m.Target as ThrowTarget;
 
 								if (targ != null && targ.Bomb == this)
-									Target.Cancel(m);
+									m.Target.Cancel(m);
 							}
 
 							m_Users.Clear();

@@ -1,106 +1,105 @@
 using Server.Targeting;
 
-namespace Server.Spells.Sixth
+namespace Server.Spells.Sixth;
+
+public class EnergyBoltSpell : MagerySpell
 {
-	public class EnergyBoltSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Energy Bolt", "Corp Por",
+		230,
+		9022,
+		Reagent.BlackPearl,
+		Reagent.Nightshade
+	);
+
+	public override SpellCircle Circle => SpellCircle.Sixth;
+	public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
+
+	public EnergyBoltSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new(
-				"Energy Bolt", "Corp Por",
-				230,
-				9022,
-				Reagent.BlackPearl,
-				Reagent.Nightshade
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Sixth;
-		public override TargetFlags SpellTargetFlags => TargetFlags.Harmful;
-
-		public EnergyBoltSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public override void OnCast()
+	{
+		if (Precast)
 		{
+			Caster.Target = new InternalTarget(this);
 		}
-
-		public override void OnCast()
+		else
 		{
-			if (Precast)
+			if (SpellTarget is Mobile target)
+				Target(target);
+			else
+				FinishSequence();
+		}
+	}
+
+	public override bool DelayedDamage => true;
+
+	public void Target(Mobile m)
+	{
+		if (!Caster.CanSee(m))
+		{
+			Caster.SendLocalizedMessage(500237); // Target can not be seen.
+		}
+		else if (CheckHSequence(m))
+		{
+			Mobile source = Caster;
+
+			SpellHelper.Turn(Caster, m);
+
+			SpellHelper.CheckReflect((int)Circle, ref source, ref m);
+
+			double damage;
+
+			if (Core.AOS)
 			{
-				Caster.Target = new InternalTarget(this);
+				damage = GetNewAosDamage(40, 1, 5, m);
 			}
 			else
 			{
-				if (SpellTarget is Mobile target)
-					Target(target);
-				else
-					FinishSequence();
-			}
-		}
+				damage = Utility.Random(24, 18);
 
-		public override bool DelayedDamage => true;
-
-		public void Target(Mobile m)
-		{
-			if (!Caster.CanSee(m))
-			{
-				Caster.SendLocalizedMessage(500237); // Target can not be seen.
-			}
-			else if (CheckHSequence(m))
-			{
-				Mobile source = Caster;
-
-				SpellHelper.Turn(Caster, m);
-
-				SpellHelper.CheckReflect((int)Circle, ref source, ref m);
-
-				double damage;
-
-				if (Core.AOS)
+				if (CheckResisted(m))
 				{
-					damage = GetNewAosDamage(40, 1, 5, m);
-				}
-				else
-				{
-					damage = Utility.Random(24, 18);
+					damage *= 0.75;
 
-					if (CheckResisted(m))
-					{
-						damage *= 0.75;
-
-						m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
-					}
-
-					// Scale damage based on evalint and resist
-					damage *= GetDamageScalar(m);
+					m.SendLocalizedMessage(501783); // You feel yourself resisting magical energy.
 				}
 
-				// Do the effects
-				source.MovingParticles(m, 0x379F, 7, 0, false, true, 3043, 4043, 0x211);
-				source.PlaySound(0x20A);
-
-				// Deal the damage
-				SpellHelper.Damage(this, m, damage, 0, 0, 0, 0, 100);
+				// Scale damage based on evalint and resist
+				damage *= GetDamageScalar(m);
 			}
 
-			FinishSequence();
+			// Do the effects
+			source.MovingParticles(m, 0x379F, 7, 0, false, true, 3043, 4043, 0x211);
+			source.PlaySound(0x20A);
+
+			// Deal the damage
+			SpellHelper.Damage(this, m, damage, 0, 0, 0, 0, 100);
 		}
 
-		private class InternalTarget : Target
+		FinishSequence();
+	}
+
+	private class InternalTarget : Target
+	{
+		private readonly EnergyBoltSpell _owner;
+
+		public InternalTarget(EnergyBoltSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
 		{
-			private readonly EnergyBoltSpell m_Owner;
+			_owner = owner;
+		}
 
-			public InternalTarget(EnergyBoltSpell owner) : base(owner.SpellRange, false, TargetFlags.Harmful)
-			{
-				m_Owner = owner;
-			}
+		protected override void OnTarget(Mobile from, object o)
+		{
+			if (o is Mobile mobile)
+				_owner.Target(mobile);
+		}
 
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is Mobile mobile)
-					m_Owner.Target(mobile);
-			}
-
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
+		protected override void OnTargetFinish(Mobile from)
+		{
+			_owner.FinishSequence();
 		}
 	}
 }

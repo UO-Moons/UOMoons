@@ -7,7 +7,7 @@ namespace Server.Ethics.Evil
 	{
 		public UnholySense()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					0,
 					"Unholy Sense",
 					"Drewrok Velgo",

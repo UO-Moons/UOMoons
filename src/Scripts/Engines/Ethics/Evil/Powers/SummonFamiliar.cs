@@ -7,7 +7,7 @@ namespace Server.Ethics.Evil
 	{
 		public SummonFamiliar()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					5,
 					"Summon Familiar",
 					"Trubechs Vingir",

@@ -4,7 +4,7 @@ namespace Server.Ethics.Evil
 	{
 		public VileBlade()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					10,
 					"Vile Blade",
 					"Velgo Reyam",

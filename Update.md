@@ -1,3 +1,16 @@
+# UO Moons Version 4.0.0.2
+
+1. Fixed Pigment Dye Colors.
+2. Fixed Gargish Cloth Armor not being created correctly for females when crafted.
+3. Added UO Store.
+4. Added Monster Stealing.
+5. Added All UO Store Items.
+6. Fixed Wind Dungeon Entrance to require 70.0 and not 71.5 skill.
+7. Fixed Regions Now have regions loaded though folder in Data/regions
+8. Added New Magincia System disabled by defualt.
+9. Refactored on going.
+10. Fixed Vendor Inventor Bugs
+
 # UO Moons Version 4.0.0.1
 
 1. Added Hashed Wheel Timer Check out readme for details.

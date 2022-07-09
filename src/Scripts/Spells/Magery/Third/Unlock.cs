@@ -2,96 +2,95 @@ using Server.Items;
 using Server.Network;
 using Server.Targeting;
 
-namespace Server.Spells.Third
+namespace Server.Spells.Third;
+
+public class UnlockSpell : MagerySpell
 {
-	public class UnlockSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Unlock Spell", "Ex Por",
+		215,
+		9001,
+		Reagent.Bloodmoss,
+		Reagent.SulfurousAsh
+	);
+
+	public override SpellCircle Circle => SpellCircle.Third;
+
+	public UnlockSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new(
-				"Unlock Spell", "Ex Por",
-				215,
-				9001,
-				Reagent.Bloodmoss,
-				Reagent.SulfurousAsh
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Third;
-
-		public UnlockSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public override void OnCast()
+	{
+		if (Precast)
 		{
+			Caster.Target = new InternalTarget(this);
 		}
-
-		public override void OnCast()
+		else
 		{
-			if (Precast)
-			{
-				Caster.Target = new InternalTarget(this);
-			}
+			if (SpellTarget is LockableContainer target)
+				Target(target);
 			else
-			{
-				if (SpellTarget is LockableContainer target)
-					Target(target);
-				else
-					FinishSequence();
-			}
+				FinishSequence();
 		}
+	}
 
-		public void Target(LockableContainer cont)
+	public void Target(LockableContainer cont)
+	{
+		if (cont is not null && cont is IPoint3D loc)
 		{
-			if (cont is not null && cont is IPoint3D loc)
+			if (CheckSequence())
 			{
-				if (CheckSequence())
+				SpellHelper.Turn(Caster, loc);
+
+				Effects.SendLocationParticles(EffectItem.Create(new Point3D(loc), Caster.Map, EffectItem.DefaultDuration), 0x376A, 9, 32, 5024);
+
+				Effects.PlaySound(loc, Caster.Map, 0x1FF);
+
+				if (Multis.BaseHouse.CheckSecured(cont))
+					Caster.SendLocalizedMessage(503098); // You cannot cast this on a secure item.
+				else if (!cont.Locked)
+					Caster.LocalOverheadMessage(MessageType.Regular, 0x3B2, 503101); // That did not need to be unlocked.
+				else if (cont.LockLevel == 0)
+					Caster.SendLocalizedMessage(501666); // You can't unlock that!
+				else
 				{
-					SpellHelper.Turn(Caster, loc);
+					int level = (int)(Caster.Skills[SkillName.Magery].Value * 0.8) - 4;
 
-					Effects.SendLocationParticles(EffectItem.Create(new Point3D(loc), Caster.Map, EffectItem.DefaultDuration), 0x376A, 9, 32, 5024);
-
-					Effects.PlaySound(loc, Caster.Map, 0x1FF);
-
-					if (Multis.BaseHouse.CheckSecured(cont))
-						Caster.SendLocalizedMessage(503098); // You cannot cast this on a secure item.
-					else if (!cont.Locked)
-						Caster.LocalOverheadMessage(MessageType.Regular, 0x3B2, 503101); // That did not need to be unlocked.
-					else if (cont.LockLevel == 0)
-						Caster.SendLocalizedMessage(501666); // You can't unlock that!
-					else
+					if (level >= cont.RequiredSkill && !(cont is TreasureMapChest {Level: > 2}))
 					{
-						int level = (int)(Caster.Skills[SkillName.Magery].Value * 0.8) - 4;
+						cont.Locked = false;
 
-						if (level >= cont.RequiredSkill && !(cont is TreasureMapChest chest && chest.Level > 2))
-						{
-							cont.Locked = false;
-
-							if (cont.LockLevel == -255)
-								cont.LockLevel = cont.RequiredSkill - 10;
-						}
-						else
-							Caster.LocalOverheadMessage(MessageType.Regular, 0x3B2, 503099); // My spell does not seem to have an effect on that lock.
+						if (cont.LockLevel == -255)
+							cont.LockLevel = cont.RequiredSkill - 10;
 					}
+					else
+						Caster.LocalOverheadMessage(MessageType.Regular, 0x3B2, 503099); // My spell does not seem to have an effect on that lock.
 				}
 			}
-
-			FinishSequence();
 		}
 
-		private class InternalTarget : Target
+		FinishSequence();
+	}
+
+	private class InternalTarget : Target
+	{
+		private readonly UnlockSpell _owner;
+
+		public InternalTarget(UnlockSpell owner) : base(owner.SpellRange, false, TargetFlags.None)
 		{
-			private readonly UnlockSpell m_Owner;
+			_owner = owner;
+		}
 
-			public InternalTarget(UnlockSpell owner) : base(owner.SpellRange, false, TargetFlags.None)
-			{
-				m_Owner = owner;
-			}
+		protected override void OnTarget(Mobile from, object o)
+		{
+			if (o is LockableContainer container)
+				_owner.Target(container);
+		}
 
-			protected override void OnTarget(Mobile from, object o)
-			{
-				if (o is LockableContainer container)
-					m_Owner.Target(container);
-			}
-
-			protected override void OnTargetFinish(Mobile from)
-			{
-				m_Owner.FinishSequence();
-			}
+		protected override void OnTargetFinish(Mobile from)
+		{
+			_owner.FinishSequence();
 		}
 	}
 }

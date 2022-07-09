@@ -1,40 +1,40 @@
 using Server.Gumps;
 
-namespace Server.Engines.TownHouses
+namespace Server.Engines.TownHouses;
+
+public class ButtonPlus : GumpButton
 {
-	public class ButtonPlus : GumpButton
+	private readonly object _cCallback;
+	private readonly object _cParam;
+
+	public string Name { get; }
+
+	public ButtonPlus(int x, int y, int normalId, int pressedId, int buttonId, string name, GumpCallback back)
+		: base(x, y, normalId, pressedId, buttonId, GumpButtonType.Reply, 0)
 	{
-		private readonly object c_Callback;
-		private readonly object c_Param;
+		Name = name;
+		_cCallback = back;
+		_cParam = "";
+	}
 
-		public string Name { get; }
+	public ButtonPlus(int x, int y, int normalID, int pressedId, int buttonId, string name, GumpStateCallback back,
+		object param) : base(x, y, normalID, pressedId, buttonId, GumpButtonType.Reply, 0)
+	{
+		Name = name;
+		_cCallback = back;
+		_cParam = param;
+	}
 
-		public ButtonPlus(int x, int y, int normalID, int pressedID, int buttonID, string name, GumpCallback back)
-			: base(x, y, normalID, pressedID, buttonID, GumpButtonType.Reply, 0)
+	public void Invoke()
+	{
+		switch (_cCallback)
 		{
-			Name = name;
-			c_Callback = back;
-			c_Param = "";
-		}
-
-		public ButtonPlus(int x, int y, int normalID, int pressedID, int buttonID, string name, GumpStateCallback back,
-			object param) : base(x, y, normalID, pressedID, buttonID, GumpButtonType.Reply, 0)
-		{
-			Name = name;
-			c_Callback = back;
-			c_Param = param;
-		}
-
-		public void Invoke()
-		{
-			if (c_Callback is GumpCallback callback)
-			{
+			case GumpCallback callback:
 				callback();
-			}
-			else if (c_Callback is GumpStateCallback callback1)
-			{
-				callback1(c_Param);
-			}
+				break;
+			case GumpStateCallback callback1:
+				callback1(_cParam);
+				break;
 		}
 	}
 }

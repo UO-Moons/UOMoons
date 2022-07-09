@@ -2,16 +2,16 @@ namespace Server.Ethics
 {
 	public abstract class Power
 	{
-		protected PowerDefinition m_Definition;
+		protected PowerDefinition _Definition;
 
-		public PowerDefinition Definition => m_Definition;
+		public PowerDefinition Definition => _Definition;
 
 		public virtual bool CheckInvoke(Player from)
 		{
 			if (!from.Mobile.CheckAlive())
 				return false;
 
-			if (from.Power < m_Definition.Power)
+			if (from.Power < _Definition.Power)
 			{
 				from.Mobile.LocalOverheadMessage(Server.Network.MessageType.Regular, 0x3B2, false, "You lack the power to invoke this ability.");
 				return false;
@@ -24,7 +24,7 @@ namespace Server.Ethics
 
 		public virtual void FinishInvoke(Player from)
 		{
-			from.Power -= m_Definition.Power;
+			from.Power -= _Definition.Power;
 		}
 	}
 }

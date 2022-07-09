@@ -83,7 +83,7 @@ namespace Server.Items
 			for (int i = 0; i < m_Users.Count; i++)
 			{
 				if (m_Users[i].Target is ThrowTarget targ && targ.Potion == this)
-					Target.Cancel(from);
+					from.Target.Cancel(from);
 			}
 
 			// Effects

@@ -68,15 +68,13 @@ namespace Server.Engines.Quests.Samurai
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
+			writer.WriteEncodedInt(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
+			reader.ReadEncodedInt();
 		}
 	}
 }

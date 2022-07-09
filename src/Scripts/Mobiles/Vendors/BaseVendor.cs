@@ -546,20 +546,21 @@ namespace Server.Mobiles
 						opls = new List<ObjectPropertyList>();
 					}
 
-					if (disp is Item)
+					if (disp is Item item)
 					{
-						opls.Add(((Item)disp).PropertyList);
+						opls.Add(item.PropertyList);
 					}
-					else if (disp is Mobile)
+					else if (disp is Mobile mobile)
 					{
-						opls.Add(((Mobile)disp).PropertyList);
+						opls.Add(mobile.PropertyList);
 					}
 				}
 			}
-
+			//decay inventory
+			DecayInventory();
 			List<Item> playerItems = cont.Items;
 
-			for (var i = playerItems.Count - 1; i >= 0; --i)
+			/*for (var i = playerItems.Count - 1; i >= 0; --i)
 			{
 				if (i >= playerItems.Count)
 					continue;
@@ -568,7 +569,7 @@ namespace Server.Mobiles
 
 				if (item.LastMoved + InventoryDecayTime <= DateTime.UtcNow)
 					item.Delete();
-			}
+			}*/
 
 			for (var i = 0; i < playerItems.Count; ++i)
 			{
@@ -715,6 +716,23 @@ namespace Server.Mobiles
 			}
 		}
 
+		public virtual void DecayInventory()
+		{
+			Container cont = BuyPack;
+			List<Item> playerItems = cont.Items;
+
+			for (var i = playerItems.Count - 1; i >= 0; --i)
+			{
+				if (i >= playerItems.Count)
+					continue;
+
+				Item item = playerItems[i];
+
+				if (item.LastMoved + InventoryDecayTime <= DateTime.UtcNow)
+					item.Delete();
+			}
+		}
+
 		public virtual void SendPacksTo(Mobile from)
 		{
 			Item pack = FindItemOnLayer(Layer.ShopBuy);
@@ -776,11 +794,33 @@ namespace Server.Mobiles
 			if (DateTime.UtcNow - LastRestock > RestockDelay)
 				Restock();// restocks the bank account too so must do it on sell also
 
+			/*Container cont = BuyPack;
+
+			List<Item> packItems = cont.Items;
+
+			for (int i = packItems.Count - 1; i >= 0; --i)
+			{
+				if (i >= packItems.Count)
+				{
+					continue;
+				}
+
+				Item item = packItems[i];
+
+				if (item.LastMoved + InventoryDecayTime <= DateTime.UtcNow)
+				{
+					item.Delete();
+				}
+			}*/
+			DecayInventory();
+
 			Container pack = from.Backpack;
 
 			bool noMoney = false;
 
-			if (pack == null) return;
+			if (pack == null)
+				return;
+
 			IShopSellInfo[] info = GetSellInfo();
 
 			Dictionary<Item, SellItemState> table = new();

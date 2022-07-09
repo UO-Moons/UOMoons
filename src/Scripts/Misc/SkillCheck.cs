@@ -336,11 +336,14 @@ namespace Server.Misc
 
 		public static void Gain(Mobile from, Skill skill)
 		{
-			Gain(from, skill, (int)(from.Region.SkillGain(from) * 10));
+			Gain(from, skill, 1);
 		}
 
 		public static void Gain(Mobile from, Skill skill, int toGain)
 		{
+			if (!from.Region.OnSkillGain(from, skill.SkillID, ref toGain) || toGain <= 0)
+				return;
+
 			if (from.Region.IsPartOf<Jail>())
 				return;
 

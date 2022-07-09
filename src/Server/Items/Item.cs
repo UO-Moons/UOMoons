@@ -2128,13 +2128,21 @@ namespace Server
 		public bool IsLockedDown
 		{
 			get => GetTempFlag(LockedDownFlag);
-			set { SetTempFlag(LockedDownFlag, value); InvalidateProperties(); }
+			set { SetTempFlag(LockedDownFlag, value); InvalidateProperties(); OnLockDownChange(); }
+		}
+
+		public virtual void OnLockDownChange()
+		{
 		}
 
 		public bool IsSecure
 		{
 			get => GetTempFlag(SecureFlag);
-			set { SetTempFlag(SecureFlag, value); InvalidateProperties(); }
+			set { SetTempFlag(SecureFlag, value); InvalidateProperties(); OnSecureChange(); }
+		}
+
+		public virtual void OnSecureChange()
+		{
 		}
 
 		public bool GetTempFlag(int flag)

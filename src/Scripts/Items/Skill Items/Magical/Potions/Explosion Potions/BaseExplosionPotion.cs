@@ -223,7 +223,7 @@ namespace Server.Items
 				Mobile m = Users[i];
 
 				if (m.Target is ThrowTarget targ && targ.Potion == this)
-					Target.Cancel(m);
+					m.Target.Cancel(m);
 			}
 
 			if (map == null)

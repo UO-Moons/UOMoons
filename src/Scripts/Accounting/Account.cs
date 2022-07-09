@@ -4,6 +4,7 @@ using Server.Misc;
 using Server.Mobiles;
 using Server.Network;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -230,11 +231,13 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// Account username. Case insensitive validation.
 	/// </summary>
+	[CommandProperty(AccessLevel.Administrator, true)]
 	public string Username { get; set; }
 
 	/// <summary>
 	/// Account email address.
 	/// </summary>
+	[CommandProperty(AccessLevel.Administrator, true)]
 	public string Email { get; set; }
 
 	/// <summary>
@@ -255,9 +258,8 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// Initial AccessLevel for new characters created on this account.
 	/// </summary>
-	public AccessLevel AccessLevel
-	{
-		get => _mAccessLevel;
+	[CommandProperty(AccessLevel.Administrator, AccessLevel.Owner)]
+	public AccessLevel AccessLevel { get => _mAccessLevel;
 		set => _mAccessLevel = value;
 	}
 
@@ -307,7 +309,11 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// The date and time of when this account was created.
 	/// </summary>
-	public DateTime Created { get; }
+	[CommandProperty(AccessLevel.Administrator, true)]
+	public DateTime Created { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator)]
+	public TimeSpan Age => DateTime.UtcNow - Created;
 
 	/// <summary>
 	/// Gets or sets the date and time when this account was last accessed.
@@ -539,6 +545,17 @@ public class Account : IAccount, IComparable, IComparable<Account>
 				break;
 			}
 		}
+	}
+
+	public string GetPassword()
+	{
+		return AccountHandler.ProtectPasswords switch
+		{
+			PasswordProtection.None => PlainPassword,
+			PasswordProtection.Crypt => CryptPassword,
+			PasswordProtection.NewCrypt => NewCryptPassword,
+			_ => null
+		};
 	}
 
 	public bool CheckPassword(string plainPassword)
@@ -1106,11 +1123,13 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// Gets the maximum amount of characters allowed to be created on this account. Values other than 1, 5, 6, or 7 are not supported by the client.
 	/// </summary>
-	public int Limit => (Core.SA ? 7 : Core.AOS ? 6 : 5);
+	[CommandProperty(AccessLevel.Administrator)]
+	public int Limit => Core.SA ? 7 : Core.AOS ? 6 : 5;
 
 	/// <summary>
 	/// Gets the maxmimum amount of characters that this account can hold.
 	/// </summary>
+	[CommandProperty(AccessLevel.Administrator)]
 	public int Length => _mMobiles.Length;
 
 	/// <summary>
@@ -1140,6 +1159,32 @@ public class Account : IAccount, IComparable, IComparable<Account>
 
 			if (_mMobiles[index] != null)
 				_mMobiles[index].Account = this;
+		}
+	}
+
+	IEnumerator IEnumerable.GetEnumerator()
+	{
+		for (int i = 0; i < Length; ++i)
+		{
+			Mobile m = this[i];
+
+			if (m != null)
+			{
+				yield return m;
+			}
+		}
+	}
+
+	IEnumerator<Mobile> IEnumerable<Mobile>.GetEnumerator()
+	{
+		for (int i = 0; i < Length; ++i)
+		{
+			Mobile m = this[i];
+
+			if (m != null)
+			{
+				yield return m;
+			}
 		}
 	}
 
@@ -1199,6 +1244,21 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	[CommandProperty(AccessLevel.Administrator)]
 	public int TotalPlat => (int)Math.Truncate(TotalCurrency);
+
+	public void SetCurrency(double amount)
+	{
+		TotalCurrency = Math.Max(0, amount);
+	}
+
+	public void SetGold(int amount)
+	{
+		SetCurrency(Math.Truncate(TotalCurrency) + amount / Math.Max(1.0, CurrencyThreshold));
+	}
+
+	public void SetPlat(int amount)
+	{
+		SetCurrency(amount + (TotalCurrency - Math.Truncate(TotalCurrency)));
+	}
 
 	/// <summary>
 	///     Attempts to deposit the given amount of Gold and Platinum into this account.
@@ -1400,6 +1460,138 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	{
 		GetGoldBalance(out gold, out totalGold);
 		GetPlatBalance(out plat, out totalPlat);
+	}
+
+	public bool HasGoldBalance(double amount)
+	{
+		long gold;
+
+		GetGoldBalance(out gold, out var totalGold);
+
+		return amount <= totalGold;
+	}
+
+	public bool HasPlatBalance(double amount)
+	{
+		long plat;
+
+		GetPlatBalance(out plat, out var totalPlat);
+
+		return amount <= totalPlat;
+	}
+	#endregion
+
+	#region Secure Account
+	public Dictionary<Mobile, int> SecureAccounts;
+
+	public static readonly int MaxSecureAmount = 100000000;
+
+	public int GetSecureAccountAmount(Mobile m)
+	{
+		for (int i = 0; i < Length; i++)
+		{
+			Mobile mob = _mMobiles[i];
+
+			if (mob == null)
+				continue;
+
+			if (mob == m)
+			{
+				if (SecureAccounts != null && SecureAccounts.ContainsKey(m))
+					return SecureAccounts[m];
+			}
+		}
+
+		return 0;
+	}
+
+	public bool DepositToSecure(Mobile m, int amount)
+	{
+		for (int i = 0; i < Length; i++)
+		{
+			Mobile mob = _mMobiles[i];
+
+			if (mob == null)
+				continue;
+
+			if (mob == m)
+			{
+				if (SecureAccounts == null)
+					SecureAccounts = new Dictionary<Mobile, int>();
+
+				if (!SecureAccounts.ContainsKey(m))
+					SecureAccounts[m] = Math.Min(MaxSecureAmount, amount);
+				else
+					SecureAccounts[m] = Math.Min(MaxSecureAmount, SecureAccounts[m] + amount);
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public bool WithdrawFromSecure(Mobile m, int amount)
+	{
+		for (int i = 0; i < Length; i++)
+		{
+			Mobile mob = _mMobiles[i];
+
+			if (mob == null)
+				continue;
+
+			if (m == mob)
+			{
+				if (SecureAccounts == null || !SecureAccounts.ContainsKey(m) || SecureAccounts[m] < amount)
+					return false;
+
+				SecureAccounts[m] -= amount;
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	#endregion
+
+	#region Sovereigns
+	/// <summary>
+	///     Sovereigns which can be used at the shard owners disposal. On EA, they are used for currency with the Ultima Store
+	/// </summary>
+	[CommandProperty(AccessLevel.Administrator, true)]
+	public int Sovereigns { get; private set; }
+
+	public void SetSovereigns(int amount)
+	{
+		Sovereigns = amount;
+	}
+
+	public bool DepositSovereigns(int amount)
+	{
+		if (amount <= 0)
+		{
+			return false;
+		}
+
+		Sovereigns += amount;
+		return true;
+	}
+
+	public bool WithdrawSovereigns(int amount)
+	{
+		if (amount <= 0)
+		{
+			return true;
+		}
+
+		if (amount > Sovereigns)
+		{
+			return false;
+		}
+
+		Sovereigns -= amount;
+		return true;
 	}
 	#endregion
 }

@@ -68,14 +68,7 @@ namespace Server.Engines.Plants
 			AddButton(48, 183, 0xD2, 0xD2, 11, GumpButtonType.Reply, 0); // Help
 			AddLabel(54, 183, 0x835, "?");
 
-			if (plant is RaisedGardenPlantItem)
-			{
-				AddItem(219, 180, 0x913);
-			}
-			else
-			{
-				AddItem(219, 180, 0x15FD);
-			}
+			AddItem(219, 180, plant is GardenBedPlantItem ? 0x913 : 0x15FD);
 
 			AddButton(232, 183, 0xD4, 0xD4, 12, GumpButtonType.Reply, 0); // Empty the bowl
 		}
@@ -85,7 +78,7 @@ namespace Server.Engines.Plants
 			if (from.Backpack == null)
 				return null;
 
-			Item[] items = from.Backpack.FindItemsByType(new Type[] { typeof(BasePotion), typeof(PotionKeg) });
+			Item[] items = from.Backpack.FindItemsByType(new[] { typeof(BasePotion), typeof(PotionKeg) });
 
 			foreach (Item item in items)
 			{

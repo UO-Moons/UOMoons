@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 
 namespace Server.Accounting;
 
@@ -27,6 +29,50 @@ public static class AccountGold
 	/// when they are added to a secure trade container.
 	/// </summary>
 	public static bool ConvertOnTrade = false;
+
+	public static double GetGoldTotal(Mobile m)
+	{
+		if (m == null)
+		{
+			return 0;
+		}
+
+		return GetGoldTotal(m.Account);
+	}
+
+	public static double GetGoldTotal(IGoldAccount a)
+	{
+		if (a == null)
+		{
+			return 0;
+		}
+
+		a.GetGoldBalance(out int gold, out var totalGold);
+
+		return totalGold;
+	}
+
+	public static double GetPlatTotal(Mobile m)
+	{
+		if (m == null)
+		{
+			return 0;
+		}
+
+		return GetPlatTotal(m.Account);
+	}
+
+	public static double GetPlatTotal(IGoldAccount a)
+	{
+		if (a == null)
+		{
+			return 0;
+		}
+
+		a.GetPlatBalance(out int plat, out var totalPlat);
+
+		return totalPlat;
+	}
 }
 
 public interface IGoldAccount
@@ -56,6 +102,12 @@ public interface IGoldAccount
 	/// </summary>
 	[CommandProperty(AccessLevel.Administrator)]
 	int TotalPlat { get; }
+
+	void SetCurrency(double amount);
+
+	void SetGold(int amount);
+
+	void SetPlat(int amount);
 
 	/// <summary>
 	/// Attempts to deposit the given amount of Gold and Platinum into this account.
@@ -180,20 +232,57 @@ public interface IGoldAccount
 	/// <param name="plat">Platinum value, Gold exclusive</param>
 	/// <param name="totalPlat">Platinum value, Gold inclusive</param>
 	void GetBalance(out long gold, out double totalGold, out long plat, out double totalPlat);
+
+	bool HasGoldBalance(double amount);
+	bool HasPlatBalance(double amount);
 }
 
-public interface IAccount : IGoldAccount, IComparable<IAccount>
+public interface IAccount : IGoldAccount, IComparable<IAccount>, IEnumerable<Mobile>
 {
+	[CommandProperty(AccessLevel.Administrator, true)]
 	string Username { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator, true)]
 	string Email { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator, AccessLevel.Owner)]
 	AccessLevel AccessLevel { get; set; }
 
+	[CommandProperty(AccessLevel.Administrator)]
 	int Length { get; }
+
+	[CommandProperty(AccessLevel.Administrator)]
 	int Limit { get; }
+
+	[CommandProperty(AccessLevel.Administrator)]
 	int Count { get; }
+
+	[CommandProperty(AccessLevel.Administrator, true)]
+	DateTime Created { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator, true)]
+	DateTime LastLogin { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator, true)]
+	IPAddress[] LoginIPs { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator)]
+	TimeSpan Age { get; }
+
+	[CommandProperty(AccessLevel.Administrator)]
+	TimeSpan TotalGameTime { get; }
+
+	[CommandProperty(AccessLevel.Administrator)]
+	bool Banned { get; set; }
+
+	[CommandProperty(AccessLevel.Administrator)]
+	bool Young { get; set; }
+
 	Mobile this[int index] { get; set; }
 
 	void Delete();
+
+	string GetPassword();
 	void SetPassword(string password);
 	bool CheckPassword(string password);
 }

@@ -7,7 +7,7 @@ namespace Server.Ethics.Hero
 	{
 		public Bless()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					15,
 					"Bless",
 					"Erstok Ontawl",

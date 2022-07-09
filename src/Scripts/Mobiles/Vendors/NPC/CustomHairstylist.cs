@@ -2,6 +2,7 @@ using Server.Gumps;
 using Server.Network;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Server.Items;
 
 namespace Server.Mobiles;
@@ -43,9 +44,37 @@ public class CustomHairstylist : BaseVendor
 			{ From, Vendor, Price, false, true, ChangeHairHueEntry.BrightEntries } )
 	};
 
+	private static readonly HairstylistBuyInfo[] m_SellListElf = {
+		new(
+			1018357,
+			50000,
+			false,
+			typeof(ChangeHairstyleGump),
+			new[] {From, Vendor, Price, false, ChangeHairstyleEntry.HairEntriesElf}),
+		new(
+			1018359,
+			50,
+			false,
+			typeof(ChangeHairHueGump),
+			new[] {From, Vendor, Price, true, true, ChangeHairHueEntry.RegularEntries}),
+		new(
+			1018360,
+			500000,
+			false,
+			typeof(ChangeHairHueGump),
+			new[] {From, Vendor, Price, true, true, ChangeHairHueEntry.BrightEntries})
+	};
+
 	public override void VendorBuy(Mobile from)
 	{
-		from.SendGump(new HairstylistBuyGump(from, this, MSellList));
+		if (from.Race == Race.Human)
+		{
+			from.SendGump(new HairstylistBuyGump(from, this, MSellList));
+		}
+		else if (from.Race == Race.Elf)
+		{
+			from.SendGump(new HairstylistBuyGump(from, this, m_SellListElf));
+		}
 	}
 
 	[Constructable]
@@ -90,13 +119,6 @@ public class CustomHairstylist : BaseVendor
 
 public class HairstylistBuyInfo
 {
-	public int Title { get; }
-	public string TitleString { get; }
-	public int Price { get; }
-	public bool FacialHair { get; }
-	public Type GumpType { get; }
-	public object[] GumpArgs { get; }
-
 	public HairstylistBuyInfo(int title, int price, bool facialHair, Type gumpType, object[] args)
 	{
 		Title = title;
@@ -114,38 +136,40 @@ public class HairstylistBuyInfo
 		GumpType = gumpType;
 		GumpArgs = args;
 	}
+
+	public int Title { get; }
+	public string TitleString { get; }
+	public int Price { get; }
+	public bool FacialHair { get; }
+	public Type GumpType { get; }
+	public object[] GumpArgs { get; }
 }
 
 public class HairstylistBuyGump : Gump
 {
-	private readonly Mobile _mFrom;
-	private readonly Mobile _mVendor;
-	private readonly HairstylistBuyInfo[] _mSellList;
+	private readonly Mobile _from;
+	private readonly Mobile _vendor;
+	private readonly HairstylistBuyInfo[] _sellList;
 
-	public HairstylistBuyGump(Mobile from, Mobile vendor, HairstylistBuyInfo[] sellList) : base(50, 50)
+	public HairstylistBuyGump(Mobile from, Mobile vendor, HairstylistBuyInfo[] sellList)
+		: base(50, 50)
 	{
-		_mFrom = from;
-		_mVendor = vendor;
-		_mSellList = sellList;
+		_from = from;
+		_vendor = vendor;
+		_sellList = sellList;
 
 		from.CloseGump(typeof(HairstylistBuyGump));
 		from.CloseGump(typeof(ChangeHairHueGump));
 		from.CloseGump(typeof(ChangeHairstyleGump));
 
-		bool isFemale = (from.Female || from.Body.IsFemale);
+		bool isFemale = from.Female || from.Body.IsFemale;
 
 		int balance = Banker.GetBalance(from);
-		int canAfford = 0;
-
-		for (var i = 0; i < sellList.Length; ++i)
-		{
-			if (balance >= sellList[i].Price && (!sellList[i].FacialHair || !isFemale))
-				++canAfford;
-		}
+		int canAfford = sellList.Count(t => balance >= t.Price && (!t.FacialHair || !isFemale));
 
 		AddPage(0);
 
-		AddBackground(50, 10, 450, 100 + (canAfford * 25), 2600);
+		AddBackground(50, 10, 450, 100 + canAfford * 25, 2600);
 
 		AddHtmlLocalized(100, 40, 350, 20, 1018356, false, false); // Choose your hairstyle change:
 
@@ -153,13 +177,19 @@ public class HairstylistBuyGump : Gump
 
 		for (int i = 0; i < sellList.Length; ++i)
 		{
-			if (balance < sellList[i].Price || (sellList[i].FacialHair && isFemale)) continue;
-			if (sellList[i].TitleString != null)
-				AddHtml(140, 75 + (index * 25), 300, 20, sellList[i].TitleString, false, false);
-			else
-				AddHtmlLocalized(140, 75 + (index * 25), 300, 20, sellList[i].Title, false, false);
+			if (balance >= sellList[i].Price && (!sellList[i].FacialHair || !isFemale))
+			{
+				if (sellList[i].TitleString != null)
+				{
+					AddHtml(140, 75 + index * 25, 300, 20, sellList[i].TitleString, false, false);
+				}
+				else
+				{
+					AddHtmlLocalized(140, 75 + index * 25, 300, 20, sellList[i].Title, false, false);
+				}
 
-			AddButton(100, 75 + (index++ * 25), 4005, 4007, 1 + i, GumpButtonType.Reply, 0);
+				AddButton(100, 75 + index++ * 25, 4005, 4007, 1 + i, GumpButtonType.Reply, 0);
+			}
 		}
 	}
 
@@ -167,58 +197,81 @@ public class HairstylistBuyGump : Gump
 	{
 		int index = info.ButtonID - 1;
 
-		if (index < 0 || index >= _mSellList.Length) return;
-		HairstylistBuyInfo buyInfo = _mSellList[index];
-
-		int balance = Banker.GetBalance(_mFrom);
-
-		bool isFemale = (_mFrom.Female || _mFrom.Body.IsFemale);
-
-		if (buyInfo.FacialHair && isFemale)
+		if (index >= 0 && index < _sellList.Length)
 		{
-			// You cannot place facial hair on a woman!
-			_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1010639, _mFrom.NetState);
-		}
-		else if (balance >= buyInfo.Price)
-		{
-			try
+			HairstylistBuyInfo buyInfo = _sellList[index];
+
+			int balance = Banker.GetBalance(_from);
+
+			bool isFemale = _from.Female || _from.Body.IsFemale;
+
+			if (buyInfo.FacialHair && isFemale)
 			{
-				object[] origArgs = buyInfo.GumpArgs;
-				object[] args = new object[origArgs.Length];
-
-				for (int i = 0; i < args.Length; ++i)
+				// You cannot place facial hair on a woman!
+				_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1010639, _from.NetState);
+			}
+			else if (balance >= buyInfo.Price)
+			{
+				try
 				{
-					if (origArgs[i] == CustomHairstylist.Price)
-						args[i] = _mSellList[index].Price;
-					else if (origArgs[i] == CustomHairstylist.From)
-						args[i] = _mFrom;
-					else if (origArgs[i] == CustomHairstylist.Vendor)
-						args[i] = _mVendor;
-					else
-						args[i] = origArgs[i];
+					object[] origArgs = buyInfo.GumpArgs;
+					object[] args = new object[origArgs.Length];
+
+					for (int i = 0; i < args.Length; ++i)
+					{
+						if (origArgs[i] == CustomHairstylist.Price)
+						{
+							args[i] = _sellList[index].Price;
+						}
+						else if (origArgs[i] == CustomHairstylist.From)
+						{
+							args[i] = _from;
+						}
+						else if (origArgs[i] == CustomHairstylist.Vendor)
+						{
+							args[i] = _vendor;
+						}
+						else
+						{
+							args[i] = origArgs[i];
+						}
+					}
+
+					Gump g = Activator.CreateInstance(buyInfo.GumpType, args) as Gump;
+
+					_from.SendGump(g);
 				}
-
-				Gump g = Activator.CreateInstance(buyInfo.GumpType, args) as Gump;
-
-				_mFrom.SendGump(g);
+				catch
+				{
+					// ignored
+				}
 			}
-			catch
+			else
 			{
-				// ignored
+				// You cannot afford my services for that style.
+				_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _from.NetState);
 			}
-		}
-		else
-		{
-			// You cannot afford my services for that style.
-			_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState);
 		}
 	}
 }
 
 public class ChangeHairHueEntry
 {
-	public string Name { get; }
-	public int[] Hues { get; }
+	public static readonly ChangeHairHueEntry[] BrightEntries = {
+			new("*****", 12, 10), new("*****", 32, 5),
+			new("*****", 38, 8), new("*****", 54, 3),
+			new("*****", 62, 10), new("*****", 81, 2),
+			new("*****", 89, 2), new("*****", 1153, 2)
+		};
+
+	public static readonly ChangeHairHueEntry[] RegularEntries = {
+			new("*****", 1602, 26), new("*****", 1628, 27),
+			new("*****", 1502, 32), new("*****", 1302, 32),
+			new("*****", 1402, 32), new("*****", 1202, 24),
+			new("*****", 2402, 29), new("*****", 2213, 6),
+			new("*****", 1102, 8), new("*****", 1110, 8),
+			new("*****", 1118, 16), new("*****", 1134, 16)
+		};
 
 	public ChangeHairHueEntry(string name, int[] hues)
 	{
@@ -232,54 +285,36 @@ public class ChangeHairHueEntry
 
 		Hues = new int[count];
 
-		for (var i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
+		{
 			Hues[i] = start + i;
+		}
 	}
 
-	public static readonly ChangeHairHueEntry[] BrightEntries = {
-		new( "*****", 12, 10 ),
-		new( "*****", 32, 5 ),
-		new( "*****", 38, 8 ),
-		new( "*****", 54, 3 ),
-		new( "*****", 62, 10 ),
-		new( "*****", 81, 2 ),
-		new( "*****", 89, 2 ),
-		new( "*****", 1153, 2 )
-	};
+	public string Name { get; }
 
-	public static readonly ChangeHairHueEntry[] RegularEntries = {
-		new( "*****", 1602, 26 ),
-		new( "*****", 1628, 27 ),
-		new( "*****", 1502, 32 ),
-		new( "*****", 1302, 32 ),
-		new( "*****", 1402, 32 ),
-		new( "*****", 1202, 24 ),
-		new( "*****", 2402, 29 ),
-		new( "*****", 2213, 6 ),
-		new( "*****", 1102, 8 ),
-		new( "*****", 1110, 8 ),
-		new( "*****", 1118, 16 ),
-		new( "*****", 1134, 16 )
-	};
+	public int[] Hues { get; }
 }
 
 public class ChangeHairHueGump : Gump
 {
-	private readonly Mobile _mFrom;
-	private readonly Mobile _mVendor;
-	private readonly int _mPrice;
-	private readonly bool _mHair;
-	private readonly bool _mFacialHair;
-	private readonly ChangeHairHueEntry[] _mEntries;
+	private readonly Mobile _from;
+	private readonly Mobile _vendor;
+	private readonly int _price;
+	private readonly bool _hair;
+	private readonly bool _facialHair;
+	private readonly ChangeHairHueEntry[] _entries;
 
-	public ChangeHairHueGump(Mobile from, Mobile vendor, int price, bool hair, bool facialHair, ChangeHairHueEntry[] entries) : base(50, 50)
+	public ChangeHairHueGump(
+		Mobile from, Mobile vendor, int price, bool hair, bool facialHair, ChangeHairHueEntry[] entries)
+		: base(50, 50)
 	{
-		_mFrom = from;
-		_mVendor = vendor;
-		_mPrice = price;
-		_mHair = hair;
-		_mFacialHair = facialHair;
-		_mEntries = entries;
+		_from = from;
+		_vendor = vendor;
+		_price = price;
+		_hair = hair;
+		_facialHair = facialHair;
+		_entries = entries;
 
 		from.CloseGump(typeof(HairstylistBuyGump));
 		from.CloseGump(typeof(ChangeHairHueGump));
@@ -295,15 +330,15 @@ public class ChangeHairHueGump : Gump
 		AddHtmlLocalized(150, 330, 220, 35, 1011014, false, false); // Dye my hair this color!
 		AddButton(380, 330, 4005, 4007, 1, GumpButtonType.Reply, 0);
 
-		for (var i = 0; i < entries.Length; ++i)
+		for (int i = 0; i < entries.Length; ++i)
 		{
 			ChangeHairHueEntry entry = entries[i];
 
-			AddLabel(130, 59 + (i * 22), entry.Hues[0] - 1, entry.Name);
-			AddButton(207, 60 + (i * 22), 5224, 5224, 0, GumpButtonType.Page, 1 + i);
+			AddLabel(130, 59 + i * 22, entry.Hues[0] - 1, entry.Name);
+			AddButton(207, 60 + i * 22, 5224, 5224, 0, GumpButtonType.Page, 1 + i);
 		}
 
-		for (var i = 0; i < entries.Length; ++i)
+		for (int i = 0; i < entries.Length; ++i)
 		{
 			ChangeHairHueEntry entry = entries[i];
 			int[] hues = entry.Hues;
@@ -311,10 +346,10 @@ public class ChangeHairHueGump : Gump
 
 			AddPage(1 + i);
 
-			for (var j = 0; j < hues.Length; ++j)
+			for (int j = 0; j < hues.Length; ++j)
 			{
-				AddLabel(278 + ((j / 16) * 80), 52 + ((j % 16) * 17), hues[j] - 1, name);
-				AddRadio(260 + ((j / 16) * 80), 52 + ((j % 16) * 17), 210, 211, false, (j * entries.Length) + i);
+				AddLabel(278 + j / 16 * 80, 52 + j % 16 * 17, hues[j] - 1, name);
+				AddRadio(260 + j / 16 * 80, 52 + j % 16 * 17, 210, 211, false, j * entries.Length + i);
 			}
 		}
 	}
@@ -327,227 +362,388 @@ public class ChangeHairHueGump : Gump
 
 			if (switches.Length > 0)
 			{
-				int index = switches[0] % _mEntries.Length;
-				int offset = switches[0] / _mEntries.Length;
+				int index = switches[0] % _entries.Length;
+				int offset = switches[0] / _entries.Length;
 
-				if (index < 0 || index >= _mEntries.Length) return;
-				if (offset >= 0 && offset < _mEntries[index].Hues.Length)
+				if (index >= 0 && index < _entries.Length)
 				{
-					if (_mHair && _mFrom.HairItemId > 0 || _mFacialHair && _mFrom.FacialHairItemId > 0)
+					if (offset >= 0 && offset < _entries[index].Hues.Length)
 					{
-						if (!Banker.Withdraw(_mFrom, _mPrice))
+						if (_hair && _from.HairItemId > 0 || _facialHair && _from.FacialHairItemId > 0)
 						{
-							_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState); // You cannot afford my services for that style.
-							return;
+							if (_price > 0 && !Banker.Withdraw(_from, _price))
+							{
+								_vendor?.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _from.NetState);
+								// You cannot afford my services for that style.
+
+								return;
+							}
+
+							int hue = _entries[index].Hues[offset];
+
+							if (_hair)
+							{
+								_from.HairHue = hue;
+							}
+
+							if (_facialHair)
+							{
+								_from.FacialHairHue = hue;
+							}
 						}
-
-						int hue = _mEntries[index].Hues[offset];
-
-						if (_mHair)
-							_mFrom.HairHue = hue;
-
-						if (_mFacialHair)
-							_mFrom.FacialHairHue = hue;
+						else
+						{
+							if (_vendor != null)
+							{
+								_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 502623, _from.NetState); // You have no hair to dye and you cannot use this.
+							}
+							else
+							{
+								_from.SendLocalizedMessage(502623);
+							}
+						}
 					}
-					else
-						_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 502623, _mFrom.NetState); // You have no hair to dye and you cannot use this.
 				}
 			}
 			else
 			{
-				// You decide not to change your hairstyle.
-				_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _mFrom.NetState);
+				if (_vendor != null)
+				{
+					_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _from.NetState); // You decide not to change your hairstyle.
+				}
+				else
+				{
+					_from.SendLocalizedMessage(1013009);
+				}
 			}
 		}
 		else
 		{
 			// You decide not to change your hairstyle.
-			_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _mFrom.NetState);
+			_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _from.NetState);
 		}
 	}
 }
 
 public class ChangeHairstyleEntry
 {
-	public int ItemId { get; }
-	public int GumpId { get; }
+	public static readonly ChangeHairstyleEntry[] HairEntries = {
+			new(50700, 70 - 137, 20 - 60, 0x203B),
+			new(60710, 193 - 260, 18 - 60, 0x2045),
+			new(50703, 316 - 383, 25 - 60, 0x2044),
+			new(60701, 70 - 137, 75 - 125, 0x203C),
+			new(60900, 193 - 260, 85 - 125, 0x2047),
+			new(60713, 320 - 383, 85 - 125, 0x204A),
+			new(60702, 70 - 137, 140 - 190, 0x203D),
+			new(1836, 173 - 260, 128 - 190, 0x2049),
+			new(1841, 60901, 315 - 383, 150 - 190, 0x2046, 0x2048),
+			new(0, 0, 0, 0)
+		};
+
+	public static readonly ChangeHairstyleEntry[] BeardEntries = {
+			new(50800, 120 - 187, 30 - 80, 0x2040),
+			new(50904, 243 - 310, 33 - 80, 0x204B),
+			new(50906, 120 - 187, 100 - 150, 0x204D),
+			new(50801, 243 - 310, 95 - 150, 0x203E),
+			new(50802, 120 - 187, 173 - 220, 0x203F),
+			new(50905, 243 - 310, 165 - 220, 0x204C),
+			new(50808, 120 - 187, 242 - 290, 0x2041), new(0, 0, 0, 0)
+		};
+
+	public static readonly ChangeHairstyleEntry[] HairEntriesElf = {
+			new( 0xEDF5, 0xC6E5, 70 - 137,   20 -  60,  0x2FC0, 0x2FC0 ),
+			new( 0xEDF6, 0xC6E6, 198 - 260,  18 -  60,  0x2FC1, 0x2FC1 ),
+			new( 0xEDF7, 0xC6E7, 316 - 383,  20 -  60,  0x2FC2, 0x2FC2 ),
+			new( 0xEDDC, 0xC6CC, 70 - 137,   80 - 125,  0x2FCE, 0x2FCE ),
+			new( 0xEDDD, 0xC6CD, 193 - 260,  85 - 125,  0x2FCF, 0x2FCF ),
+			new( 0xEDDF, 0xC6CF, 320 - 383,  85 - 125,  0x2FD1, 0x2FD1 ),
+			new( 0xEDDA, 0xC6E4, 70 - 137,   147 - 190, 0x2FCC, 0x2FBF ),
+			new( 0xEDDE, 0xC6CB, 196 - 260,  142 - 190, 0x2FD0, 0x2FCD ),
+			new( -1, -1, -1, -1 ),
+			new( 0, 0, 0, 0 )
+	};
+
+	public static readonly ChangeHairstyleEntry[] HairEntriesGargoyle = {
+			new( 0x7A0, 0x76C, 47 - 137,   12 -  60,  0x4261, 0x4258  ),
+			new( 0x7A1, 0x76D, 170 - 260,  12 -  60,  0x4262, 0x4259 ),
+			new( 0x79E, 0x773, 295 - 383,  12 -  60,  0x4273, 0x425A ),
+			new( 0x7A2, 0x76E, 50 - 137,   68 - 125,  0x4274, 0x425B ),
+			new( 0x79F, 0x774, 172 - 260,  70 - 125,  0x4275, 0x425C ),
+			new( 0x77C, 0x775, 295 - 383,  81 - 125,  0x42AA, 0x425D ),
+			new( 0x77D, 0x776, 47 - 137,   142 - 190, 0x42AB, 0x425E ),
+			new( 0x77E, 0x777, 172 - 260,  142 - 190, 0x42B1, 0x425F ),
+			new( -1, -1, -1, -1 ),
+			new( 0, 0, 0, 0 )
+	};
+
+	public static readonly ChangeHairstyleEntry[] BeardEntriesGargoyle = {
+			new( 0xC5E9, 120 - 187,  30 -  80, 0x42AD ),
+			new( 0x770,  220 - 310,  23 -  80, 0x42AE ),
+			new( 0xC5DA, 120 - 187, 100 - 150, 0x42AF ),
+			new( 0xC5D7, 243 - 310,  95 - 150, 0x42B0 ),
+			new( 0, 0, 0, 0 )
+	};
+
+	public int ItemIdMale { get; }
+	public int ItemIdFemale { get; }
+	public int GumpIdMale { get; }
+	public int GumpIdFemale { get; }
 	public int X { get; }
 	public int Y { get; }
 
 	public ChangeHairstyleEntry(int gumpId, int x, int y, int itemId)
+		: this(gumpId, gumpId, x, y, itemId, itemId)
 	{
-		GumpId = gumpId;
-		X = x;
-		Y = y;
-		ItemId = itemId;
 	}
 
-	public static readonly ChangeHairstyleEntry[] HairEntries = {
-		new( 50700,  70 - 137,  20 -  60, 0x203B ),
-		new( 60710, 193 - 260,  18 -  60, 0x2045 ),
-		new( 50703, 316 - 383,  25 -  60, 0x2044 ),
-		new( 60708,  70 - 137,  75 - 125, 0x203C ),
-		new( 60900, 193 - 260,  85 - 125, 0x2047 ),
-		new( 60713, 320 - 383,  85 - 125, 0x204A ),
-		new( 60702,  70 - 137, 140 - 190, 0x203D ),
-		new( 60707, 193 - 260, 140 - 190, 0x2049 ),
-		new( 60901, 315 - 383, 150 - 190, 0x2048 ),
-		new( 0, 0, 0, 0 )
-	};
-
-	public static readonly ChangeHairstyleEntry[] BeardEntries = {
-		new( 50800, 120 - 187,  30 -  80, 0x2040 ),
-		new( 50904, 243 - 310,  33 -  80, 0x204B ),
-		new( 50906, 120 - 187, 100 - 150, 0x204D ),
-		new( 50801, 243 - 310,  95 - 150, 0x203E ),
-		new( 50802, 120 - 187, 173 - 220, 0x203F ),
-		new( 50905, 243 - 310, 165 - 220, 0x204C ),
-		new( 50808, 120 - 187, 242 - 290, 0x2041 ),
-		new( 0, 0, 0, 0 )
-	};
+	public ChangeHairstyleEntry(int gumpIdFemale, int gumpIdMale, int x, int y, int itemIdFemale, int itemIdMale)
+	{
+		GumpIdMale = gumpIdMale;
+		GumpIdFemale = gumpIdFemale;
+		X = x;
+		Y = y;
+		ItemIdMale = itemIdMale;
+		ItemIdFemale = itemIdFemale;
+	}
 }
 
 public class ChangeHairstyleGump : Gump
 {
-	private readonly Mobile _mFrom;
-	private readonly Mobile _mVendor;
-	private readonly int _mPrice;
-	private readonly bool _mFacialHair;
-	private readonly ChangeHairstyleEntry[] _mEntries;
+	private readonly Mobile _from;
+	private readonly Mobile _vendor;
+	private readonly int _price;
+	private readonly bool _facialHair;
+	private readonly ChangeHairstyleEntry[] _entries;
 
-	public ChangeHairstyleGump(Mobile from, Mobile vendor, int price, bool facialHair, ChangeHairstyleEntry[] entries) : base(50, 50)
+	public bool Female;
+	public GenderChangeToken Token;
+
+	public ChangeHairstyleGump(Mobile from, Mobile vendor, int price, bool facialHair, ChangeHairstyleEntry[] entries)
+		: this(from, vendor, price, facialHair, entries, null)
 	{
-		_mFrom = from;
-		_mVendor = vendor;
-		_mPrice = price;
-		_mFacialHair = facialHair;
-		_mEntries = entries;
+	}
+
+	public ChangeHairstyleGump(Mobile from, Mobile vendor, int price, bool facialHair, ChangeHairstyleEntry[] entries, GenderChangeToken token)
+		: this(from.Female, from, vendor, price, facialHair, entries, token)
+	{
+	}
+
+	public ChangeHairstyleGump(bool female, Mobile from, Mobile vendor, int price, bool facialHair, ChangeHairstyleEntry[] entries, GenderChangeToken token)
+		: base(50, 50)
+	{
+		_from = from;
+		_vendor = vendor;
+		_price = price;
+		_facialHair = facialHair;
+		_entries = entries;
+		Female = female;
+
+		Token = token;
 
 		from.CloseGump(typeof(HairstylistBuyGump));
 		from.CloseGump(typeof(ChangeHairHueGump));
 		from.CloseGump(typeof(ChangeHairstyleGump));
 
-		int tableWidth = _mFacialHair ? 2 : 3;
-		int tableHeight = (entries.Length + tableWidth - (_mFacialHair ? 1 : 2)) / tableWidth;
-		int offsetWidth = 123;
-		int offsetHeight = _mFacialHair ? 70 : 65;
+		int tableWidth = _facialHair ? 2 : 3;
+		int tableHeight = (entries.Length + tableWidth - (_facialHair ? 1 : 2)) / tableWidth;
+		const int offsetWidth = 123;
+		int offsetHeight = _facialHair ? 70 : 65;
 
 		AddPage(0);
 
-		AddBackground(0, 0, 81 + tableWidth * offsetWidth, 105 + tableHeight * offsetHeight, 2600);
+		AddBackground(0, 0, 81 + tableWidth * offsetWidth, 145 + tableHeight * offsetHeight, 2600);
 
-		AddButton(45, 45 + tableHeight * offsetHeight, 4005, 4007, 1, GumpButtonType.Reply, 0);
-		AddHtmlLocalized(77, 45 + tableHeight * offsetHeight, 90, 35, 1006044, false, false); // Ok
+		AddButton(45, 90 + tableHeight * offsetHeight, 4005, 4007, 1, GumpButtonType.Reply, 0);
+		AddHtmlLocalized(77, 90 + tableHeight * offsetHeight, 90, 35, 1006044, false, false); // Ok
 
-		AddButton(81 + tableWidth * offsetWidth - 180, 45 + tableHeight * offsetHeight, 4005, 4007, 0, GumpButtonType.Reply, 0);
-		AddHtmlLocalized(81 + tableWidth * offsetWidth - 148, 45 + tableHeight * offsetHeight, 90, 35, 1006045, false, false); // Cancel
+		AddButton(
+			90 + tableWidth * offsetWidth - 180, 85 + tableHeight * offsetHeight, 4005, 4007, 0, GumpButtonType.Reply, 0);
+		AddHtmlLocalized(
+			90 + tableWidth * offsetWidth - 148, 85 + tableHeight * offsetHeight, 90, 35, 1006045, false, false); // Cancel
 
 		if (!facialHair)
+		{
 			AddHtmlLocalized(50, 15, 350, 20, 1018353, false, false); // <center>New Hairstyle</center>
+		}
 		else
+		{
 			AddHtmlLocalized(55, 15, 200, 20, 1018354, false, false); // <center>New Beard</center>
+		}
 
-		for (var i = 0; i < entries.Length; ++i)
+		for (int i = 0; i < entries.Length; ++i)
 		{
 			int xTable = i % tableWidth;
 			int yTable = i / tableWidth;
+			int gumpId = female ? entries[i].GumpIdFemale : entries[i].GumpIdMale;
 
-			if (entries[i].GumpId != 0)
+			if (gumpId == -1)
+				continue;
+
+			if (gumpId != 0)
 			{
 				AddRadio(40 + xTable * offsetWidth, 70 + yTable * offsetHeight, 208, 209, false, i);
 				AddBackground(87 + xTable * offsetWidth, 50 + yTable * offsetHeight, 50, 50, 2620);
-				AddImage(87 + xTable * offsetWidth + entries[i].X, 50 + yTable * offsetHeight + entries[i].Y, entries[i].GumpId);
+
+				int x = entries[i].X;
+				int y = entries[i].Y;
+
+				if (gumpId == 1841)
+				{
+					x -= 17;
+					y -= 17;
+				}
+
+				AddImage(87 + xTable * offsetWidth + x, 50 + yTable * offsetHeight + y, gumpId);
 			}
 			else if (!facialHair)
 			{
-				AddRadio(40 + (xTable + 1) * offsetWidth, 240, 208, 209, false, i);
-				AddHtmlLocalized(60 + ((xTable + 1) * offsetWidth), 240, 85, 35, 1011064, false, false); // Bald
+				AddRadio(40 + xTable * offsetWidth, 240, 208, 209, false, i);
+				AddHtmlLocalized(60 + xTable * offsetWidth, 240, 200, 40, 1011064, false, false); // Bald
 			}
 			else
 			{
 				AddRadio(40 + xTable * offsetWidth, 70 + yTable * offsetHeight, 208, 209, false, i);
-				AddHtmlLocalized(60 + xTable * offsetWidth, 70 + yTable * offsetHeight, 85, 35, 1011064, false, false); // Bald
+				//AddHtmlLocalized(60 + (xTable * offsetWidth), 70 + (yTable * offsetHeight), 85, 35, 1011064, false, false); // Bald
 			}
 		}
 	}
 
 	public override void OnResponse(NetState sender, RelayInfo info)
 	{
-		if (_mFacialHair && (_mFrom.Female || _mFrom.Body.IsFemale))
-			return;
-
-		if (_mFrom.Race == Race.Elf)
+		if (!_facialHair || !Female)
 		{
-			_mFrom.SendMessage("This isn't implemented for elves yet.  Sorry!");
-			return;
-		}
-
-		if (info.ButtonID == 1)
-		{
-			int[] switches = info.Switches;
-
-			if (switches.Length > 0)
+			if (info.ButtonID == 1)
 			{
-				int index = switches[0];
+				int[] switches = info.Switches;
 
-				if (index < 0 || index >= _mEntries.Length) return;
-				ChangeHairstyleEntry entry = _mEntries[index];
-
-				if (_mFrom is PlayerMobile mobile)
-					mobile.SetHairMods(-1, -1);
-
-				int hairId = _mFrom.HairItemId;
-				int facialHairId = _mFrom.FacialHairItemId;
-
-				if (entry.ItemId == 0)
+				if (switches.Length > 0)
 				{
-					if (_mFacialHair ? facialHairId == 0 : hairId == 0)
-						return;
+					int index = switches[0];
+					bool female = Female;
 
-					if (Banker.Withdraw(_mFrom, _mPrice))
+					if (index >= 0 && index < _entries.Length)
 					{
-						if (_mFacialHair)
-							_mFrom.FacialHairItemId = 0;
+						ChangeHairstyleEntry entry = _entries[index];
+
+						if (_from is PlayerMobile mobile)
+						{
+							mobile.SetHairMods(-1, -1);
+						}
+
+						int hairId = _from.HairItemId;
+						int facialHairId = _from.FacialHairItemId;
+						int itemId = female ? entry.ItemIdFemale : entry.ItemIdMale;
+
+						if (itemId == 0)
+						{
+							bool invalid = _facialHair ? facialHairId == 0 : hairId == 0;
+
+							if (!invalid)
+							{
+								if (Token != null)
+								{
+									Token.OnChangeHairstyle(_from, _facialHair, 0);
+									return;
+								}
+
+								if (Banker.Withdraw(_from, _price, true))
+								{
+									if (_facialHair)
+									{
+										_from.FacialHairItemId = 0;
+									}
+									else
+									{
+										_from.HairItemId = 0;
+									}
+								}
+								else
+								{
+									if (_vendor != null)
+									{
+										_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _from.NetState);
+										// You cannot afford my services for that style.
+									}
+									else
+									{
+										_from.SendLocalizedMessage(1042293);
+									}
+								}
+							}
+						}
 						else
-							_mFrom.HairItemId = 0;
+						{
+							bool invalid = _facialHair ? facialHairId > 0 && facialHairId == itemId : hairId > 0 && hairId == itemId;
+
+							if (!invalid)
+							{
+								if (_price <= 0 || Banker.Withdraw(_from, _price))
+								{
+									if (Token != null)
+									{
+										Token.OnChangeHairstyle(_from, _facialHair, itemId);
+										return;
+									}
+
+									if (_facialHair)
+									{
+										var old = _from.FacialHairItemId;
+
+										_from.FacialHairItemId = itemId;
+
+										if (old == 0)
+										{
+											_from.FacialHairHue = _from.HairHue;
+										}
+									}
+									else
+									{
+										_from.HairItemId = itemId;
+									}
+								}
+								else
+								{
+									if (_vendor != null)
+									{
+										_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _from.NetState);
+										// You cannot afford my services for that style.
+									}
+									else
+									{
+										_from.SendLocalizedMessage(1042293);
+									}
+								}
+							}
+						}
 					}
-					else
-						_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState); // You cannot afford my services for that style.
 				}
 				else
 				{
-					if (_mFacialHair)
+					if (_vendor != null)
 					{
-						if (facialHairId > 0 && facialHairId == entry.ItemId)
-							return;
+						// You decide not to change your hairstyle.
+						_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _from.NetState);
 					}
 					else
 					{
-						if (hairId > 0 && hairId == entry.ItemId)
-							return;
+						_from.SendLocalizedMessage(1013009); // You decide not to change your hairstyle. 
 					}
-
-					if (Banker.Withdraw(_mFrom, _mPrice))
-					{
-						if (_mFacialHair)
-							_mFrom.FacialHairItemId = entry.ItemId;
-						else
-							_mFrom.HairItemId = entry.ItemId;
-					}
-					else
-						_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1042293, _mFrom.NetState); // You cannot afford my services for that style.
 				}
 			}
 			else
 			{
-				// You decide not to change your hairstyle.
-				_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _mFrom.NetState);
+				if (_vendor != null)
+				{
+					// You decide not to change your hairstyle.
+					_vendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _from.NetState);
+				}
+				else
+				{
+					_from.SendLocalizedMessage(1013009); // You decide not to change your hairstyle. 
+				}
 			}
 		}
-		else
-		{
-			// You decide not to change your hairstyle.
-			_mVendor.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1013009, _mFrom.NetState);
-		}
+
+		Token?.OnFailedHairstyle(_from, _facialHair);
 	}
 }

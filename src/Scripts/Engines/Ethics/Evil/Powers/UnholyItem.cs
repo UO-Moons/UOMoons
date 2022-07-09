@@ -6,7 +6,7 @@ namespace Server.Ethics.Evil
 	{
 		public UnholyItem()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					5,
 					"Unholy Item",
 					"Vidda K'balc",

@@ -64,7 +64,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	//TODO: Find the pub 31 tweaks to the DispelDifficulty and apply them of course.
 	public virtual double DispelDifficulty => 0.0;  // at this skill level we dispel 50% chance
 	public virtual double DispelFocus => 20.0;  // at difficulty - focus we have 0%, at difficulty + focus we have 100%
-	public virtual bool DisplayWeight => Backpack is StrongBackpack;
+	public virtual bool DisplayWeight => Backpack is PackAnimalsBackpack;
 
 	public virtual double TeleportChance => 0.05;
 	public virtual bool AttacksFocus => false;
@@ -4457,7 +4457,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			if (Backpack.Items.Count > 0)
 			{
-				Backpack b = new CreatureBackpack(Name);
+				Backpack b = new BaseCreatureBackpack(Name);
 
 				List<Item> list = new(Backpack.Items);
 				foreach (Item item in list)

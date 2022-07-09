@@ -1,8 +1,133 @@
 using System;
 using System.Collections.Generic;
+using Server.Engines.Craft;
 
 namespace Server.Items
 {
+	public class FurnitureContainer : BaseContainer, IResource, IQuality
+	{
+		private Mobile _crafter;
+		private CraftResource _resource;
+		private ItemQuality _quality;
+		private bool _playerConstructed;
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public Mobile Crafter
+		{
+			get => _crafter;
+			set
+			{
+				_crafter = value;
+				InvalidateProperties();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public ItemQuality Quality
+		{
+			get => _quality;
+			set { _quality = value; InvalidateProperties(); }
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public CraftResource Resource
+		{
+			get => _resource;
+			set
+			{
+				_resource = value;
+				Hue = CraftResources.GetHue(_resource);
+				InvalidateProperties();
+			}
+		}
+
+		[CommandProperty(AccessLevel.GameMaster)]
+		public bool PlayerConstructed
+		{
+			get => _playerConstructed;
+			set
+			{
+				_playerConstructed = value;
+				InvalidateProperties();
+			}
+		}
+
+		public FurnitureContainer(int id) : base(id)
+		{
+		}
+
+		public override void AddCraftedProperties(ObjectPropertyList list)
+		{
+			if (_crafter != null)
+			{
+				list.Add(1050043, _crafter.Name); // crafted by ~1_NAME~
+			}
+
+			if (Quality == ItemQuality.Exceptional)
+			{
+				list.Add(1060636); // Exceptional
+			}
+
+			if (_resource > CraftResource.Iron)
+			{
+				list.Add(1114057, "#{0}", CraftResources.GetLocalizationNumber(_resource)); // ~1_val~
+			}
+		}
+
+		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
+		{
+			PlayerConstructed = true;
+
+			Quality = (ItemQuality)quality;
+
+			if (makersMark)
+			{
+				Crafter = from;
+			}
+
+			if (!craftItem.ForceNonExceptional)
+			{
+				typeRes ??= craftItem.Resources.GetAt(0).ItemType;
+
+				Resource = CraftResources.GetFromType(typeRes);
+			}
+
+			return quality;
+		}
+
+		public FurnitureContainer(Serial serial)
+			: base(serial)
+		{
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(0);
+
+			writer.Write(_playerConstructed);
+			writer.Write((int)_resource);
+			writer.Write((int)_quality);
+			writer.Write(_crafter);
+		}
+
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
+			int version = reader.ReadInt();
+
+			switch (version)
+			{
+				case 0:
+					_playerConstructed = reader.ReadBool();
+					_resource = (CraftResource)reader.ReadInt();
+					_quality = (ItemQuality)reader.ReadInt();
+					_crafter = reader.ReadMobile();
+					break;
+			}
+		}
+	}
+
 	[Furniture]
 	[Flipable(0x2815, 0x2816)]
 	public class TallCabinet : BaseContainer
@@ -26,7 +151,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -53,7 +178,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -81,7 +206,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -108,7 +233,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -135,7 +260,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -162,7 +287,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -189,7 +314,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -216,7 +341,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -243,7 +368,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -270,7 +395,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 
@@ -303,7 +428,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 
 			DynamicFurniture.Close(this);
 		}
@@ -338,7 +463,7 @@ namespace Server.Items
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 
 			DynamicFurniture.Close(this);
 		}
@@ -346,7 +471,7 @@ namespace Server.Items
 
 	public class DynamicFurniture
 	{
-		private static readonly Dictionary<Container, Timer> m_Table = new Dictionary<Container, Timer>();
+		private static readonly Dictionary<Container, Timer> m_Table = new();
 
 		public static bool Open(Container c, Mobile m)
 		{
@@ -359,19 +484,20 @@ namespace Server.Items
 				return false;
 			}
 
-			if (c is Armoire || c is FancyArmoire)
+			if (c is Armoire or FancyArmoire)
 			{
 				Timer t = new FurnitureTimer(c, m);
 				t.Start();
 				m_Table[c] = t;
 
-				switch (c.ItemId)
+				c.ItemId = c.ItemId switch
 				{
-					case 0xA4D: c.ItemId = 0xA4C; break;
-					case 0xA4F: c.ItemId = 0xA4E; break;
-					case 0xA51: c.ItemId = 0xA50; break;
-					case 0xA53: c.ItemId = 0xA52; break;
-				}
+					0xA4D => 0xA4C,
+					0xA4F => 0xA4E,
+					0xA51 => 0xA50,
+					0xA53 => 0xA52,
+					_ => c.ItemId
+				};
 			}
 
 			return true;
@@ -388,36 +514,37 @@ namespace Server.Items
 				m_Table.Remove(c);
 			}
 
-			if (c is Armoire || c is FancyArmoire)
+			if (c is Armoire or FancyArmoire)
 			{
-				switch (c.ItemId)
+				c.ItemId = c.ItemId switch
 				{
-					case 0xA4C: c.ItemId = 0xA4D; break;
-					case 0xA4E: c.ItemId = 0xA4F; break;
-					case 0xA50: c.ItemId = 0xA51; break;
-					case 0xA52: c.ItemId = 0xA53; break;
-				}
+					0xA4C => 0xA4D,
+					0xA4E => 0xA4F,
+					0xA50 => 0xA51,
+					0xA52 => 0xA53,
+					_ => c.ItemId
+				};
 			}
 		}
 	}
 
 	public class FurnitureTimer : Timer
 	{
-		private readonly Container m_Container;
-		private readonly Mobile m_Mobile;
+		private readonly Container _container;
+		private readonly Mobile _mobile;
 
 		public FurnitureTimer(Container c, Mobile m) : base(TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.5))
 		{
 			Priority = TimerPriority.TwoFiftyMs;
 
-			m_Container = c;
-			m_Mobile = m;
+			_container = c;
+			_mobile = m;
 		}
 
 		protected override void OnTick()
 		{
-			if (m_Mobile.Map != m_Container.Map || !m_Mobile.InRange(m_Container.GetWorldLocation(), 3))
-				DynamicFurniture.Close(m_Container);
+			if (_mobile.Map != _container.Map || !_mobile.InRange(_container.GetWorldLocation(), 3))
+				DynamicFurniture.Close(_container);
 		}
 	}
 }

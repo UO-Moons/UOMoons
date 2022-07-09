@@ -1,20 +1,19 @@
 using System;
 
-namespace Server.Engines
+namespace Server.Engines;
+
+public class MacroCheckTimer : Timer
 {
-	public class MacroCheckTimer : Timer
+	private readonly CheckPlayer _check;
+
+	public MacroCheckTimer(CheckPlayer check) : base(TimeSpan.FromMinutes(1))
 	{
-		private readonly CheckPlayer m_Check;
+		Priority = TimerPriority.FiveSeconds;
+		_check = check;
+	}
 
-		public MacroCheckTimer(CheckPlayer check) : base(TimeSpan.FromMinutes(1))
-		{
-			Priority = TimerPriority.FiveSeconds;
-			m_Check = check;
-		}
-
-		protected override void OnTick()
-		{
-			m_Check.TimeOut();
-		}
+	protected override void OnTick()
+	{
+		_check.TimeOut();
 	}
 }

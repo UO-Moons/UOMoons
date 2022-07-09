@@ -50,10 +50,9 @@ namespace Server.Mobiles
 
 			Container pack = Backpack;
 
-			if (pack != null)
-				pack.Delete();
+			pack?.Delete();
 
-			pack = new StrongBackpack
+			pack = new PackAnimalsBackpack
 			{
 				Movable = false
 			};
@@ -92,7 +91,7 @@ namespace Server.Mobiles
 		{
 		}
 
-		public override void OnHarmfulSpell(Mobile from, Spell spell)
+		public override void OnHarmfulSpell(Mobile from, Spell spell = null)
 		{
 			base.OnHarmfulSpell(from, spell);
 			if (!Controlled && ControlMaster == null)
@@ -172,7 +171,7 @@ namespace Server.Mobiles
 		{
 			base.Deserialize(reader);
 
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 }

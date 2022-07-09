@@ -1,87 +1,78 @@
 using System;
 
-namespace Server.Poker
+namespace Server.Poker;
+
+public class Card : IComparable
 {
-	public class Card : IComparable
+	public const int Red = 0x26;
+	public const int Black = 0x00;
+
+	public Suit Suit { get; }
+
+	public Rank Rank { get; }
+
+	public string Name => $"{Rank} of {Suit}".ToLower();
+	public string RankString => Rank.ToString().ToLower();
+
+	public Card(Suit suit, Rank rank)
 	{
-		public const int Red = 0x26;
-		public const int Black = 0x00;
+		Suit = suit;
+		Rank = rank;
+	}
 
-		private readonly Suit m_Suit;
-		private readonly Rank m_Rank;
-
-		public Suit Suit => m_Suit;
-        public Rank Rank => m_Rank;
-
-        public string Name => string.Format("{0} of {1}", m_Rank, m_Suit).ToLower();
-        public string RankString => m_Rank.ToString().ToLower();
-
-        public Card(Suit suit, Rank rank)
+	public string GetRankLetter()
+	{
+		if ((int)Rank < 11)
 		{
-			m_Suit = suit;
-			m_Rank = rank;
+			return ((int)Rank).ToString();
 		}
 
-		public string GetRankLetter()
+		return Rank switch
 		{
-			if ((int)m_Rank < 11)
-            {
-                return ((int)m_Rank).ToString();
-            }
+			Rank.Jack => "J",
+			Rank.Queen => "Q",
+			Rank.King => "K",
+			Rank.Ace => "A",
+			_ => "?"
+		};
+	}
 
-            switch (m_Rank)
-            {
-                case Rank.Jack: return "J";
-                case Rank.Queen: return "Q";
-                case Rank.King: return "K";
-                case Rank.Ace: return "A";
-            }
+	public int GetSuitColor() { return (int)Suit < 3 ? Red : Black; }
 
-            return "?";
-		}
-
-		public int GetSuitColor() { return (int)m_Suit < 3 ? Red : Black; }
-
-		public string GetSuitString()
+	public string GetSuitString()
+	{
+		return (int) Suit switch
 		{
-			switch ((int)m_Suit)
+			1 => "\u25C6",
+			2 => "\u2665",
+			3 => "\u2663",
+			4 => "\u2660",
+			_ => "?"
+		};
+	}
+
+	public override string ToString()
+	{
+		return $"{Rank} of {Suit}";
+	}
+
+	#region IComparable Members
+	public int CompareTo(object obj)
+	{
+		if (obj is Card card)
+		{
+			if (Rank < card.Rank)
 			{
-				case 1:
-					return "\u25C6";
-				case 2:
-					return "\u2665";
-				case 3:
-					return "\u2663";
-				case 4:
-					return "\u2660";
+				return 1;
 			}
 
-			return "?";
-		}
-
-		public override string ToString()
-		{
-			return string.Format("{0} of {1}", m_Rank, m_Suit);
-		}
-
-		#region IComparable Members
-        public int CompareTo(object obj)
-		{
-			if (obj is Card card)
+			if (Rank > card.Rank)
 			{
-                if (m_Rank < card.Rank)
-                {
-                    return 1;
-                }
-
-                if (m_Rank > card.Rank)
-                {
-                    return -1;
-                }
-            }
-
-			return 0;
+				return -1;
+			}
 		}
-        #endregion
+
+		return 0;
 	}
+	#endregion
 }

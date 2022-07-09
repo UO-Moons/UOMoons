@@ -21,13 +21,11 @@ namespace Server.Ethics
 
 			if (pm == null)
 			{
-				if (inherit && mob is BaseCreature)
+				if (inherit && mob is BaseCreature bc)
 				{
-					BaseCreature bc = mob as BaseCreature;
-
-					if (bc != null && bc.Controlled)
+					if (bc.Controlled)
 						pm = bc.ControlMaster as PlayerMobile;
-					else if (bc != null && bc.Summoned)
+					else if (bc.Summoned)
 						pm = bc.SummonMaster as PlayerMobile;
 				}
 
@@ -43,7 +41,7 @@ namespace Server.Ethics
 			return pl;
 		}
 
-		private DateTime m_Shield;
+		private DateTime _shield;
 
 		public Ethic Ethic { get; }
 		public Mobile Mobile { get; }
@@ -65,10 +63,10 @@ namespace Server.Ethics
 		{
 			get
 			{
-				if (m_Shield == DateTime.MinValue)
+				if (_shield == DateTime.MinValue)
 					return false;
 
-				if (DateTime.UtcNow < (m_Shield + TimeSpan.FromHours(1.0)))
+				if (DateTime.UtcNow < (_shield + TimeSpan.FromHours(1.0)))
 					return true;
 
 				FinishShield();
@@ -78,12 +76,12 @@ namespace Server.Ethics
 
 		public void BeginShield()
 		{
-			m_Shield = DateTime.UtcNow;
+			_shield = DateTime.UtcNow;
 		}
 
 		public void FinishShield()
 		{
-			m_Shield = DateTime.MinValue;
+			_shield = DateTime.MinValue;
 		}
 
 		public Player(Ethic ethic, Mobile mobile)
@@ -103,16 +101,16 @@ namespace Server.Ethics
 
 		public void Attach()
 		{
-			if (Mobile is PlayerMobile)
-				(Mobile as PlayerMobile).EthicPlayer = this;
+			if (Mobile is PlayerMobile mobile)
+				mobile.EthicPlayer = this;
 
 			Ethic.Players.Add(this);
 		}
 
 		public void Detach()
 		{
-			if (Mobile is PlayerMobile)
-				(Mobile as PlayerMobile).EthicPlayer = null;
+			if (Mobile is PlayerMobile mobile)
+				mobile.EthicPlayer = null;
 
 			Ethic.Players.Remove(this);
 		}
@@ -135,7 +133,7 @@ namespace Server.Ethics
 						Steed = reader.ReadMobile();
 						Familiar = reader.ReadMobile();
 
-						m_Shield = reader.ReadDeltaTime();
+						_shield = reader.ReadDeltaTime();
 
 						break;
 					}
@@ -154,7 +152,7 @@ namespace Server.Ethics
 			writer.Write(Steed);
 			writer.Write(Familiar);
 
-			writer.WriteDeltaTime(m_Shield);
+			writer.WriteDeltaTime(_shield);
 		}
 	}
 }

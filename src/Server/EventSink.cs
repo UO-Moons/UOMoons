@@ -523,14 +523,60 @@ public class ValidVendorSellEventArgs : EventArgs
 
 public class QuestGumpRequestArgs : EventArgs
 {
-	private readonly Mobile m_Mobile;
-
-	public Mobile Mobile => m_Mobile;
+	public Mobile Mobile { get; }
 
 	public QuestGumpRequestArgs(Mobile mobile)
 	{
-		m_Mobile = mobile;
+		Mobile = mobile;
 	}
+}
+
+public class CheckAccessItemEventArgs : EventArgs
+{
+	public Mobile Mobile { get; }
+	public Item Item { get; }
+
+	public bool Message { get; set; }
+	public bool Block { get; set; }
+
+	public CheckAccessItemEventArgs(Mobile m, Item item, bool message)
+	{
+		Mobile = m;
+		Item = item;
+		Message = message;
+	}
+}
+
+public class OnExitRegionEventArgs : EventArgs
+{
+	public OnExitRegionEventArgs(Mobile from, Region oldRegion, Region newRegion)
+	{
+		From = from;
+		OldRegion = oldRegion;
+		NewRegion = newRegion;
+	}
+
+	public Mobile From { get; }
+
+	public Region OldRegion { get; }
+
+	public Region NewRegion { get; }
+}
+
+public class OnEnterRegionEventArgs : EventArgs
+{
+	public OnEnterRegionEventArgs(Mobile from, Region oldRegion, Region newRegion)
+	{
+		From = from;
+		OldRegion = oldRegion;
+		NewRegion = newRegion;
+	}
+
+	public Mobile From { get; }
+
+	public Region OldRegion { get; }
+
+	public Region NewRegion { get; }
 }
 
 public static partial class EventSink
@@ -1064,6 +1110,18 @@ public static partial class EventSink
 		OnChangeRegion?.Invoke(m, oldRegion, newRegion);
 	}
 
+	public static event Action<OnExitRegionEventArgs> OnExitRegion;
+	public static void InvokeOnExitRegion(OnExitRegionEventArgs e)
+	{
+		OnExitRegion?.Invoke(e);
+	}
+
+	public static event Action<OnEnterRegionEventArgs> OnEnterRegion;
+	public static void InvokeOnEnterRegion(OnEnterRegionEventArgs e)
+	{
+		OnEnterRegion?.Invoke(e);
+	}
+
 	public static event Action<Mobile, StatType, int, int> OnStatGain;
 	public static void InvokeOnStatGainChange(Mobile from, StatType stat, int oldValue, int newValue)
 	{
@@ -1152,5 +1210,11 @@ public static partial class EventSink
 	public static void InvokeQuestGumpRequest(QuestGumpRequestArgs e)
 	{
 		QuestGumpRequest?.Invoke(e);
+	}
+
+	public static event Action<CheckAccessItemEventArgs> CheckAccessItem;
+	public static void InvokeCheckAccessItem(CheckAccessItemEventArgs e)
+	{
+		CheckAccessItem?.Invoke(e);
 	}
 }

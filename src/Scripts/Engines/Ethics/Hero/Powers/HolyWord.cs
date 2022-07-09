@@ -4,7 +4,7 @@ namespace Server.Ethics.Hero
 	{
 		public HolyWord()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					100,
 					"Holy Word",
 					"Erstok Oostrac",

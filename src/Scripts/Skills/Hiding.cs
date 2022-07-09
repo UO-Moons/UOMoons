@@ -24,7 +24,7 @@ public class Hiding
 
 		if (Core.ML && m.Target != null)
 		{
-			Targeting.Target.Cancel(m);
+			m.Target.Cancel(m);
 		}
 
 		double bonus = 0.0;

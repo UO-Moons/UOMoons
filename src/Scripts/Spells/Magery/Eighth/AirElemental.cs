@@ -1,54 +1,53 @@
 using Server.Mobiles;
 using System;
 
-namespace Server.Spells.Eighth
+namespace Server.Spells.Eighth;
+
+public class AirElementalSpell : MagerySpell
 {
-	public class AirElementalSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Air Elemental", "Kal Vas Xen Hur",
+		269,
+		9010,
+		false,
+		Reagent.Bloodmoss,
+		Reagent.MandrakeRoot,
+		Reagent.SpidersSilk
+	);
+
+	public override SpellCircle Circle => SpellCircle.Eighth;
+	public override bool RequireTarget => false;
+
+	public AirElementalSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Air Elemental", "Kal Vas Xen Hur",
-				269,
-				9010,
-				false,
-				Reagent.Bloodmoss,
-				Reagent.MandrakeRoot,
-				Reagent.SpidersSilk
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Eighth;
-		public override bool RequireTarget => false;
+	public override bool CheckCast()
+	{
+		if (!base.CheckCast())
+			return false;
 
-		public AirElementalSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+		if (Caster.Followers + 2 > Caster.FollowersMax)
 		{
+			Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
+			return false;
 		}
 
-		public override bool CheckCast()
+		return true;
+	}
+
+	public override void OnCast()
+	{
+		if (CheckSequence())
 		{
-			if (!base.CheckCast())
-				return false;
+			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5);
 
-			if ((Caster.Followers + 2) > Caster.FollowersMax)
-			{
-				Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
-				return false;
-			}
-
-			return true;
+			if (Core.AOS)
+				SpellHelper.Summon(new SummonedAirElemental(), Caster, 0x217, duration, false, false);
+			else
+				SpellHelper.Summon(new AirElemental(), Caster, 0x217, duration, false, false);
 		}
 
-		public override void OnCast()
-		{
-			if (CheckSequence())
-			{
-				TimeSpan duration = TimeSpan.FromSeconds((2 * Caster.Skills.Magery.Fixed) / 5);
-
-				if (Core.AOS)
-					SpellHelper.Summon(new SummonedAirElemental(), Caster, 0x217, duration, false, false);
-				else
-					SpellHelper.Summon(new AirElemental(), Caster, 0x217, duration, false, false);
-			}
-
-			FinishSequence();
-		}
+		FinishSequence();
 	}
 }

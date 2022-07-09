@@ -1830,15 +1830,21 @@ namespace Server
 				Regions.Remove(regName);
 		}
 
+		//public Region DefaultRegion
+		//{
+		//	get
+		//	{
+		//		if (DefaultRegion1 == null)
+		//			DefaultRegion1 = new Region(null, this, 0, Array.Empty<Rectangle3D>());
+
+		//		return DefaultRegion1;
+		//	}
+		//	set => DefaultRegion1 = value;
+		//}
+
 		public Region DefaultRegion
 		{
-			get
-			{
-				if (DefaultRegion1 == null)
-					DefaultRegion1 = new Region(null, this, 0, Array.Empty<Rectangle3D>());
-
-				return DefaultRegion1;
-			}
+			get => DefaultRegion1 ??= new Region(null, this, 0, Array.Empty<Rectangle3D>());
 			set => DefaultRegion1 = value;
 		}
 

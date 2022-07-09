@@ -6,7 +6,7 @@ namespace Server.Ethics.Hero
 	{
 		public HolyItem()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					5,
 					"Holy Item",
 					"Vidda K'balc",

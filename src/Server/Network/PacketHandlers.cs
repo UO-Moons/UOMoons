@@ -1127,119 +1127,114 @@ namespace Server.Network
 		public static void TargetResponse(NetState state, PacketReader pvSrc)
 		{
 			int type = pvSrc.ReadByte();
-			int targetID = pvSrc.ReadInt32();
+			var targetId = pvSrc.ReadInt32();
 			int flags = pvSrc.ReadByte();
-			Serial serial = pvSrc.ReadSerial();
-			int x = pvSrc.ReadInt16(), y = pvSrc.ReadInt16(), z = pvSrc.ReadInt16();
+			var serial = pvSrc.ReadSerial();
+			int x = pvSrc.ReadInt16();
+			int y = pvSrc.ReadInt16();
+			int z = pvSrc.ReadInt16();
 			int graphic = pvSrc.ReadUInt16();
 
-			if (targetID == unchecked((int)0xDEADBEEF))
+			if (targetId == unchecked((int)0xDEADBEEF))
+			{
 				return;
+			}
 
-			Mobile from = state.Mobile;
-
-			Target t = from.Target;
+			var from = state.Mobile;
+			var t = from.Target;
 
 			if (t != null)
 			{
-				TargetProfile prof = TargetProfile.Acquire(t.GetType());
+				var prof = TargetProfile.Acquire(t.GetType());
 
-				if (prof != null)
-				{
-					prof.Start();
-				}
+				prof?.Start();
 
 				try
 				{
+					from.ClearTarget();
+
 					if (x == -1 && y == -1 && !serial.IsValid)
 					{
-						// User pressed escape
 						t.Cancel(from, TargetCancelType.Canceled);
-					}
-					else if (Target.TargetIdValidation && t.TargetId != targetID)
-					{
-						// Sanity, prevent fake target
 						return;
 					}
-					else
+
+					if (t.TargetId != targetId)
 					{
-						object toTarget;
+						t.Cancel(from, TargetCancelType.Invalid);
+						return;
+					}
 
-						if (type == 1)
+					object toTarget;
+
+					if (type == 1)
+					{
+						if (graphic == 0)
 						{
-							if (graphic == 0)
-							{
-								toTarget = new LandTarget(new Point3D(x, y, z), from.Map);
-							}
-							else
-							{
-								Map map = from.Map;
-
-								if (map == null || map == Map.Internal)
-								{
-									t.Cancel(from, TargetCancelType.Canceled);
-									return;
-								}
-								else
-								{
-									StaticTile[] tiles = map.Tiles.GetStaticTiles(x, y, !t.DisallowMultis);
-
-									bool valid = false;
-									var hue = 0;
-
-									if (state.HighSeas)
-									{
-										ItemData id = TileData.ItemTable[graphic & TileData.MaxItemValue];
-										if (id.Surface)
-										{
-											z -= id.Height;
-										}
-									}
-
-									for (int i = 0; !valid && i < tiles.Length; ++i)
-									{
-										if (tiles[i].Z == z && tiles[i].Id == graphic)
-										{
-											valid = true;
-											hue = tiles[i].Hue;
-										}
-									}
-
-									if (!valid)
-									{
-										t.Cancel(from, TargetCancelType.Canceled);
-										return;
-									}
-									else
-									{
-										toTarget = new StaticTarget(new Point3D(x, y, z), graphic, hue);
-									}
-								}
-							}
-						}
-						else if (serial.IsMobile)
-						{
-							toTarget = World.FindMobile(serial);
-						}
-						else if (serial.IsItem)
-						{
-							toTarget = World.FindItem(serial);
+							toTarget = new LandTarget(new Point3D(x, y, z), from.Map);
 						}
 						else
 						{
-							t.Cancel(from, TargetCancelType.Canceled);
-							return;
-						}
+							var map = from.Map;
 
-						t.Invoke(from, toTarget);
+							if (map == null || map == Map.Internal)
+							{
+								t.Cancel(from, TargetCancelType.Invalid);
+								return;
+							}
+
+							var tiles = map.Tiles.GetStaticTiles(x, y, !t.DisallowMultis);
+
+							var valid = false;
+							var hue = 0;
+
+							if (state.HighSeas)
+							{
+								var id = TileData.ItemTable[graphic & TileData.MaxItemValue];
+
+								if (id.Surface && !id.Flags.HasFlag(TileFlag.Roof))
+								{
+									z -= id.Height;
+								}
+							}
+
+							for (var i = 0; !valid && i < tiles.Length; ++i)
+							{
+								if (tiles[i].Z == z && tiles[i].Id == graphic)
+								{
+									valid = true;
+									hue = tiles[i].Hue;
+								}
+							}
+
+							if (!valid)
+							{
+								t.Cancel(from, TargetCancelType.Invalid);
+								return;
+							}
+
+							toTarget = new StaticTarget(new Point3D(x, y, z), graphic, hue);
+						}
 					}
+					else if (serial.IsMobile)
+					{
+						toTarget = World.FindMobile(serial);
+					}
+					else if (serial.IsItem)
+					{
+						toTarget = World.FindItem(serial);
+					}
+					else
+					{
+						t.Cancel(from, TargetCancelType.Invalid);
+						return;
+					}
+
+					t.Invoke(from, toTarget);
 				}
 				finally
 				{
-					if (prof != null)
-					{
-						prof.Finish();
-					}
+					prof?.Finish();
 				}
 			}
 		}

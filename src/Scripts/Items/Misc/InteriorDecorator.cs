@@ -125,7 +125,7 @@ namespace Server.Items
 					sender.Mobile.Target = new InternalTarget(m_Decorator);
 				}
 				else
-					Target.Cancel(sender.Mobile);
+					sender.Mobile.Target.Cancel(sender.Mobile);
 			}
 		}
 

@@ -221,15 +221,19 @@ public static class Assembler
 
 	public static Type FindTypeByName(string name, bool ignoreCase)
 	{
+		if (string.IsNullOrWhiteSpace(name))
+		{
+			return null;
+		}
+
 		Type type = null;
 
-		if (string.IsNullOrWhiteSpace(name))
-			return null;
-
-		for (int i = 0; type == null && i < Assemblies.Length; ++i)
+		for (var i = 0; type == null && i < Assemblies.Length; ++i)
+		{
 			type = GetTypeCache(Assemblies[i]).GetTypeByName(name, ignoreCase);
+		}
 
-		return GetTypeCache(Core.Assembly).GetTypeByName(name, ignoreCase);
+		return type ?? GetTypeCache(Core.Assembly).GetTypeByName(name, ignoreCase);
 	}
 
 	public static IEnumerable<Type> FindTypesByName(string name)

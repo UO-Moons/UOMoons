@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Server.Engines.BulkOrders;
 using Server.Engines.ConPVP;
+using Server.Engines.UOStore;
 using Server.Guilds;
 using Server.Spells.First;
 using Server.Poker;
@@ -123,7 +124,138 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		}
 	}
 
+	[CommandProperty(AccessLevel.GameMaster)]
+	public AccountGoldProps AccountGold
+	{
+		get
+		{
+			if (_AccountGold == null)
+			{
+				_AccountGold = new AccountGoldProps(this);
+			}
+
+			return _AccountGold;
+		}
+		set
+		{
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int AccountSovereigns
+	{
+		get
+		{
+			if (Account is Account acct)
+			{
+				return acct.Sovereigns;
+			}
+
+			return 0;
+		}
+		set
+		{
+			if (Account is Account acct)
+			{
+				acct.SetSovereigns(value);
+			}
+		}
+	}
+
+	public bool DepositCurrency(double amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.DepositCurrency(amount);
+		}
+
+		return false;
+	}
+
+	public bool WithdrawCurrency(double amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.WithdrawCurrency(amount);
+		}
+
+		return false;
+	}
+
+	public bool DepositGold(int amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.DepositGold(amount);
+		}
+
+		return false;
+	}
+
+	public bool WithdrawGold(int amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.WithdrawGold(amount);
+		}
+
+		return false;
+	}
+
+	public bool DepositPlat(int amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.DepositPlat(amount);
+		}
+
+		return false;
+	}
+
+	public bool WithdrawPlat(int amount)
+	{
+		IGoldAccount acct = Account;
+
+		if (acct != null)
+		{
+			return acct.WithdrawPlat(amount);
+		}
+
+		return false;
+	}
+
+	public bool DepositSovereigns(int amount)
+	{
+		if (Account is Account acct)
+		{
+			return acct.DepositSovereigns(amount);
+		}
+
+		return false;
+	}
+
+	public bool WithdrawSovereigns(int amount)
+	{
+		if (Account is Account acct)
+		{
+			return acct.WithdrawSovereigns(amount);
+		}
+
+		return false;
+	}
+
 	#region privates section
+	private AccountGoldProps _AccountGold;
 	private bool _mIgnoreMobiles; // IgnoreMobiles should be moved to Server.Mobiles
 	private int _mNonAutoreinsuredItems; // number of items that could not be automatically reinsured because gold in bank was not enough
 	private Guilds.RankDefinition _mGuildRank;
@@ -162,6 +294,12 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 	#endregion
 
 	#region Getters & Setters
+	[CommandProperty(AccessLevel.GameMaster)]
+	public DateTime GemOfSalvationUse { get; set; }
+	[CommandProperty(AccessLevel.Administrator)]
+	public bool TempSquelched { get; set; }
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int RewardStableSlots { get; set; }
 	public SpeechLog SpeechLog { get; private set; }
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool DisplayChampionTitle { get => GetFlag(PlayerFlag.DisplayChampionTitle); set => SetFlag(PlayerFlag.DisplayChampionTitle, value); }
@@ -312,13 +450,13 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		get => _mDuelPlayer;
 		set
 		{
-			bool wasInTourny = DuelContext is { Finished: false, m_Tournament: { } };
+			bool wasInTourny = DuelContext is { Finished: false, _Tournament: { } };
 
 			_mDuelPlayer = value;
 
 			DuelContext = _mDuelPlayer?.Participant.Context;
 
-			bool isInTourny = DuelContext is { Finished: false, m_Tournament: { } };
+			bool isInTourny = DuelContext is { Finished: false, _Tournament: { } };
 
 			if (wasInTourny != isInTourny)
 				SendEverything();
@@ -1347,7 +1485,7 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 
 	public override void OnSubItemAdded(Item item)
 	{
-		if (AccessLevel < AccessLevel.GameMaster && item.IsChildOf(Backpack))
+		if (IsPlayer() && item.IsChildOf(Backpack))
 		{
 			int maxWeight = WeightOverloading.GetMaxWeight(this);
 			int curWeight = BodyWeight + TotalWeight;
@@ -1357,6 +1495,12 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		}
 
 		base.OnSubItemAdded(item);
+	}
+
+	public override void OnSubItemRemoved(Item item)
+	{
+		if (UltimaStore.HasPendingItem(this))
+			Timer.DelayCall(TimeSpan.FromSeconds(1.5), UltimaStore.CheckPendingItem, this);
 	}
 
 	public override bool CanBeHarmful(IDamageable damageable, bool message, bool ignoreOurBlessedness, bool ignorePeaceCheck)
@@ -2595,14 +2739,12 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		if (willKill && from is PlayerMobile pm)
 			Timer.DelayCall(TimeSpan.FromSeconds(10), pm.RecoverAmmo);
 
-		#region Mondain's Legacy
 		if (InvisibilityPotion.HasTimer(this))
 		{
 			InvisibilityPotion.Iterrupt(this);
 		}
-		#endregion
 
-		//UndertakersStaff.TryRemoveTimer(this);
+		UndertakersStaff.TryRemoveTimer(this);
 
 		base.OnDamage(amount, from, willKill);
 	}
@@ -3247,6 +3389,8 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		{
 			case 0:
 				{
+					GemOfSalvationUse = reader.ReadDateTime();
+					RewardStableSlots = reader.ReadInt();
 					LastLogin = reader.ReadDateTime();
 					NextBountyDecay = reader.ReadDateTime();
 					_mBounty = reader.ReadInt();
@@ -3489,6 +3633,8 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		base.Serialize(writer);
 
 		writer.Write(0); // version
+		writer.Write(GemOfSalvationUse);
+		writer.Write(RewardStableSlots);
 		writer.Write(LastLogin);
 		writer.Write(NextBountyDecay);
 		writer.Write(_mBounty);
@@ -3706,7 +3852,7 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		}
 
 		if (DuelContext == null || _mDuelPlayer == null || DuelContext.Finished ||
-		    DuelContext.m_Tournament == null || _mDuelPlayer.Eliminated) return base.CanSee(m);
+		    DuelContext._Tournament == null || _mDuelPlayer.Eliminated) return base.CanSee(m);
 		Mobile owner = m;
 
 		if (owner is BaseCreature bc)
@@ -4503,6 +4649,18 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		SpeechLog.Add(e.Mobile, e.Speech);
 	}
 
+	public override void OnSaid(SpeechEventArgs e)
+	{
+		if (TempSquelched)
+		{
+			SendLocalizedMessage(500168); // You can not say anything, you have been muted.
+			e.Blocked = true;
+		}
+		else
+		{
+			base.OnSaid(e);
+		}
+	}
 	#endregion
 
 	#region Champion Titles

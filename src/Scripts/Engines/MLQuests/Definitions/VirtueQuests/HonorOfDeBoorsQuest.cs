@@ -2,110 +2,109 @@ using Server.Items;
 using Server.Mobiles;
 using System;
 
-namespace Server.Engines.Quests
+namespace Server.Engines.Quests;
+
+public sealed class HonorOfDeBoorsQuest : BaseQuest
 {
-	public sealed class HonorOfDeBoorsQuest : BaseQuest
+	public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
+	public override Type NextQuest => typeof(JackTheVillainQuest);
+	public override bool DoneOnce => true;
+
+	/* The Honor of the De Boors */
+	public override object Title => 1075416;
+
+	/* I beg your pardon, but will you listen to my story? My family, the de Boors family, have been jewel traders
+	as far back as anyone can remember. Alas, by the time I was born, we had fallen on hard times.
+	To survive, I have had to sell much of my family’s property. Most of it was meaningless, but I regret that a
+	few years ago I made a terrible mistake. I pawned a shield bearing my family’s coat of arms to a loan shark.
+	That shield was borne into battle by Jaan de Boors, the founder of our house! It has no value to anyone, but
+	that blackguard won’t believe I have no money. He wants a fortune in jewels before he will return it.
+	Now I have learned that I am dying. Soon I will be gone, and my lineage with me. For the sake of what little
+	honor is left to me and my family name, I cannot bear to leave our ancestral shield in the hands of that villain.
+	Will you help me recover it? */
+	public override object Description => 1075417;
+
+	/* I know how much I am asking. Please, can you not help a dying man restore his family’s honor? */
+	public override object Refuse => 1075419;
+
+	/* Are you sure? You are very kind. Many of the monsters around here, when slain, are found to have jewels in their stomachs.
+	From innocents they have eaten, no doubt. */
+	public override object Uncomplete => 1075420;
+
+	/* You have done it! Bless you! I do appreciate this very much! Though, will you do me one last favor? */
+	public override object Complete => 1075421;
+
+	public HonorOfDeBoorsQuest()
 	{
-		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
-		public override Type NextQuest => typeof(JackTheVillainQuest);
-		public override bool DoneOnce => true;
+		AddObjective(new ObtainObjective(typeof(Diamond), "Diamonds", 10));
+		AddObjective(new ObtainObjective(typeof(Ruby), "Rubies", 10));
+		AddObjective(new ObtainObjective(typeof(Emerald), "Emeralds", 10));
 
-		/* The Honor of the De Boors */
-		public override object Title => 1075416;
+		AddReward(new BaseReward(1075418)); // Gather them quickly. Who knows how long Derek has to live?
+	}
+}
 
-		/* I beg your pardon, but will you listen to my story? My family, the de Boors family, have been jewel traders
-		as far back as anyone can remember. Alas, by the time I was born, we had fallen on hard times.
-		To survive, I have had to sell much of my family’s property. Most of it was meaningless, but I regret that a
-		few years ago I made a terrible mistake. I pawned a shield bearing my family’s coat of arms to a loan shark.
-		That shield was borne into battle by Jaan de Boors, the founder of our house! It has no value to anyone, but
-		that blackguard won’t believe I have no money. He wants a fortune in jewels before he will return it.
-		Now I have learned that I am dying. Soon I will be gone, and my lineage with me. For the sake of what little
-		honor is left to me and my family name, I cannot bear to leave our ancestral shield in the hands of that villain.
-		Will you help me recover it? */
-		public override object Description => 1075417;
+public sealed class JackTheVillainQuest : BaseQuest
+{
+	public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
+	public override Type NextQuest => typeof(SavedHonorQuest);
+	public override bool DoneOnce => true;
 
-		/* I know how much I am asking. Please, can you not help a dying man restore his family’s honor? */
-		public override object Refuse => 1075419;
+	/* Jack the Villain */
+	public override object Title => 1075422;
 
-		/* Are you sure? You are very kind. Many of the monsters around here, when slain, are found to have jewels in their stomachs.
-		From innocents they have eaten, no doubt. */
-		public override object Uncomplete => 1075420;
+	/*Will you take the jewels to the loan shark? I am not well enough to go myself, though it is not far. */
+	public override object Description => 1075423;
 
-		/* You have done it! Bless you! I do appreciate this very much! Though, will you do me one last favor? */
-		public override object Complete => 1075421;
+	/* Ah well. You have already helped me by gathering the jewels. I cannot complain. */
+	public override object Refuse => 1075425;
 
-		public HonorOfDeBoorsQuest()
-		{
-			AddObjective(new ObtainObjective(typeof(Diamond), "Diamonds", 10));
-			AddObjective(new ObtainObjective(typeof(Ruby), "Rubies", 10));
-			AddObjective(new ObtainObjective(typeof(Emerald), "Emeralds", 10));
+	/* The name of the villain is Jack, you will find him over by the port. */
+	public override object Uncomplete => 1075426;
 
-			AddReward(new BaseReward(1075418)); // Gather them quickly. Who knows how long Derek has to live?
-		}
+	/* What do you want? Oh, that jewel merchant wants his shield back, eh? */
+	public override object Complete => 1075427;
+
+	public JackTheVillainQuest()
+	{
+		AddObjective(new DeliverObjective(typeof(BagOfJewels), "Bag of Jewels", 1, typeof(JackLoanShark), "Jack the Loan Shark"));
+
+		AddReward(new BaseReward(1075424)); // Deliver the bag of jewels to the loan shark.
 	}
 
-	public sealed class JackTheVillainQuest : BaseQuest
+	public override void OnCompleted()
 	{
-		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
-		public override Type NextQuest => typeof(SavedHonorQuest);
-		public override bool DoneOnce => true;
-
-		/* Jack the Villain */
-		public override object Title => 1075422;
-
-		/*Will you take the jewels to the loan shark? I am not well enough to go myself, though it is not far. */
-		public override object Description => 1075423;
-
-		/* Ah well. You have already helped me by gathering the jewels. I cannot complain. */
-		public override object Refuse => 1075425;
-
-		/* The name of the villain is Jack, you will find him over by the port. */
-		public override object Uncomplete => 1075426;
-
-		/* What do you want? Oh, that jewel merchant wants his shield back, eh? */
-		public override object Complete => 1075427;
-
-		public JackTheVillainQuest()
-		{
-			AddObjective(new DeliverObjective(typeof(BagOfJewels), "Bag of Jewels", 1, typeof(JackLoanShark), "Jack the Loan Shark"));
-
-			AddReward(new BaseReward(1075424)); // Deliver the bag of jewels to the loan shark.
-		}
-
-		public override void OnCompleted()
-		{
-			Owner.PlaySound(CompleteSound);
-		}
+		Owner.PlaySound(CompleteSound);
 	}
+}
 
-	public sealed class SavedHonorQuest : BaseQuest
+public sealed class SavedHonorQuest : BaseQuest
+{
+	public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
+	public override bool DoneOnce => true;
+
+	/* Saved Honor */
+	public override object Title => 1075428;
+
+	/* That idiot! This beat up piece of junk isn’t worth more than three gold coins, four at most!
+     * Oh, well, a deal’s a deal! */
+	public override object Description => 1075429;
+
+	/* I don’t care what you do! */
+	public override object Refuse => 1075431;
+
+	/* Go away and never come back. */
+	public override object Uncomplete => 1075432;
+
+	/* My shield! My family’s honor! You have my gratitude. Please, take this goblet.
+     * It is small enough repayment for all you have done for me, but it is the only
+     * thing of my family’s that I have left. */
+	public override object Complete => 1075433;
+
+	public SavedHonorQuest()
 	{
-		public override QuestChain ChainId => QuestChain.HonorOfDeBoors;
-		public override bool DoneOnce => true;
+		AddObjective(new DeliverObjective(typeof(DeBoorShield), "Ancestral Shield", 1, typeof(DerekMerchant), "Derek the Merchant"));
 
-		/* Saved Honor */
-		public override object Title => 1075428;
-
-		/* That idiot! This beat up piece of junk isn’t worth more than three gold coins, four at most!
-         * Oh, well, a deal’s a deal! */
-		public override object Description => 1075429;
-
-		/* I don’t care what you do! */
-		public override object Refuse => 1075431;
-
-		/* Go away and never come back. */
-		public override object Uncomplete => 1075432;
-
-		/* My shield! My family’s honor! You have my gratitude. Please, take this goblet.
-         * It is small enough repayment for all you have done for me, but it is the only
-         * thing of my family’s that I have left. */
-		public override object Complete => 1075433;
-
-		public SavedHonorQuest()
-		{
-			AddObjective(new DeliverObjective(typeof(DeBoorShield), "Ancestral Shield", 1, typeof(DerekMerchant), "Derek the Merchant"));
-
-			AddReward(new BaseReward(typeof(GobletOfCelebration), 1075309)); // Goblet of Celebration
-		}
+		AddReward(new BaseReward(typeof(GobletOfCelebration), 1075309)); // Goblet of Celebration
 	}
 }

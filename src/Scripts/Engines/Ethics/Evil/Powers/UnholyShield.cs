@@ -4,7 +4,7 @@ namespace Server.Ethics.Evil
 	{
 		public UnholyShield()
 		{
-			m_Definition = new PowerDefinition(
+			_Definition = new PowerDefinition(
 					20,
 					"Unholy Shield",
 					"Velgo K'blac",

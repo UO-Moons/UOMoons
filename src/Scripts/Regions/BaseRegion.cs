@@ -467,23 +467,28 @@ public class BaseRegion : Region
 		return GetType().Name;
 	}
 
-	public BaseRegion(string name, Map map, int priority, params Rectangle2D[] area) : base(name, map, priority, area)
+	public BaseRegion(string name, Map map, int priority, params Rectangle2D[] area)
+		: base(name, map, priority, area)
 	{
 	}
 
-	public BaseRegion(string name, Map map, int priority, params Rectangle3D[] area) : base(name, map, priority, area)
+	public BaseRegion(string name, Map map, int priority, params Rectangle3D[] area)
+		: base(name, map, priority, area)
 	{
 	}
 
-	public BaseRegion(string name, Map map, Region parent, params Rectangle2D[] area) : base(name, map, parent, area)
+	public BaseRegion(string name, Map map, Region parent, params Rectangle2D[] area)
+		: base(name, map, parent, area)
 	{
 	}
 
-	public BaseRegion(string name, Map map, Region parent, params Rectangle3D[] area) : base(name, map, parent, area)
+	public BaseRegion(string name, Map map, Region parent, params Rectangle3D[] area)
+		: base(name, map, parent, area)
 	{
 	}
 
-	public BaseRegion(XmlElement xml, Map map, Region parent) : base(xml, map, parent)
+	public BaseRegion(XmlElement xml, Map map, Region parent)
+		: base(xml, map, parent)
 	{
 		ReadString(xml["rune"], "name", ref _mRuneName, false);
 
@@ -548,7 +553,7 @@ public class BaseRegion : Region
 		}
 	}
 
-	public virtual bool CheckTravel(Mobile traveler, Point3D p, Server.Spells.TravelCheckType type)
+	public virtual bool CheckTravel(Mobile traveler, Point3D p, Spells.TravelCheckType type)
 	{
 		return true;
 	}

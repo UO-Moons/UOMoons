@@ -1,59 +1,58 @@
 using Server.Mobiles;
 using System;
 
-namespace Server.Spells.Eighth
+namespace Server.Spells.Eighth;
+
+public class SummonDaemonSpell : MagerySpell
 {
-	public class SummonDaemonSpell : MagerySpell
+	private static readonly SpellInfo m_Info = new(
+		"Summon Daemon", "Kal Vas Xen Corp",
+		269,
+		9050,
+		false,
+		Reagent.Bloodmoss,
+		Reagent.MandrakeRoot,
+		Reagent.SpidersSilk,
+		Reagent.SulfurousAsh
+	);
+
+	public override SpellCircle Circle => SpellCircle.Eighth;
+	public override bool RequireTarget => false;
+
+	public SummonDaemonSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
 	{
-		private static readonly SpellInfo m_Info = new SpellInfo(
-				"Summon Daemon", "Kal Vas Xen Corp",
-				269,
-				9050,
-				false,
-				Reagent.Bloodmoss,
-				Reagent.MandrakeRoot,
-				Reagent.SpidersSilk,
-				Reagent.SulfurousAsh
-			);
+	}
 
-		public override SpellCircle Circle => SpellCircle.Eighth;
-		public override bool RequireTarget => false;
+	public override bool CheckCast()
+	{
+		if (!base.CheckCast())
+			return false;
 
-		public SummonDaemonSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+		if (Caster.Followers + (Core.SE ? 4 : 5) > Caster.FollowersMax)
 		{
+			Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
+			return false;
 		}
 
-		public override bool CheckCast()
-		{
-			if (!base.CheckCast())
-				return false;
+		return true;
+	}
 
-			if ((Caster.Followers + (Core.SE ? 4 : 5)) > Caster.FollowersMax)
+	public override void OnCast()
+	{
+		if (CheckSequence())
+		{
+			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5);
+
+			if (Core.AOS)  /* Why two diff daemons? TODO: solve this */
 			{
-				Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
-				return false;
+				BaseCreature daemon = new SummonedDaemon();
+				SpellHelper.Summon(daemon, Caster, 0x216, duration, false, false);
+				daemon.FixedParticles(0x3728, 8, 20, 5042, EffectLayer.Head);
 			}
-
-			return true;
+			else
+				SpellHelper.Summon(new Daemon(), Caster, 0x216, duration, false, false);
 		}
 
-		public override void OnCast()
-		{
-			if (CheckSequence())
-			{
-				TimeSpan duration = TimeSpan.FromSeconds((2 * Caster.Skills.Magery.Fixed) / 5);
-
-				if (Core.AOS)  /* Why two diff daemons? TODO: solve this */
-				{
-					BaseCreature m_Daemon = new SummonedDaemon();
-					SpellHelper.Summon(m_Daemon, Caster, 0x216, duration, false, false);
-					m_Daemon.FixedParticles(0x3728, 8, 20, 5042, EffectLayer.Head);
-				}
-				else
-					SpellHelper.Summon(new Daemon(), Caster, 0x216, duration, false, false);
-			}
-
-			FinishSequence();
-		}
+		FinishSequence();
 	}
 }

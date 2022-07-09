@@ -5,7 +5,9 @@ using Server.Mobiles;
 using Server.Prompts;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using Server.Network;
 
 namespace Server.Gumps;
 
@@ -134,11 +136,10 @@ public class CommunityCollectionGump : Gump
 		while (offset + next < 330 && _mIndex < _mCollection.Donations.Count)
 		{
 			CollectionItem item = _mCollection.Donations[_mIndex];
-			Type type = item.Type;
 
 			int height = Math.Max(item.Height, 20);
 
-			int amount = 0;
+			int amount;
 
 			/*if (item.Type == typeof(Gold) && acct != null)
                 amount = acct.TotalGold + m_Owner.Backpack.GetAmount(item.Type);
@@ -173,15 +174,15 @@ public class CommunityCollectionGump : Gump
 			AddItem(55 - item.X + _mMax / 2 - item.Width / 2, y, item.ItemId, item.Hue);
 			AddTooltip(item.Tooltip);
 
-			if (item.Points < 1 && item.Points > 0)
+			if (item.Points is < 1 and > 0)
 				AddLabel(65 + _mMax, offset + height / 2 - 10, 0x64, "1 per " + ((int)Math.Pow(item.Points, -1)).ToString());
 			else
-				AddLabel(65 + _mMax, offset + height / 2 - 10, 0x64, item.Points.ToString());
+				AddLabel(65 + _mMax, offset + height / 2 - 10, 0x64, item.Points.ToString(CultureInfo.InvariantCulture));
 
 			AddTooltip(item.Tooltip);
 
 			if (amount > 0)
-				AddLabel(235, offset + height / 2 - 5, 0xB1, amount.ToString("N0", System.Globalization.CultureInfo.GetCultureInfo("en-US")));
+				AddLabel(235, offset + height / 2 - 5, 0xB1, amount.ToString("N0", CultureInfo.GetCultureInfo("en-US")));
 
 			offset += 5 + height;
 			_mIndex += 1;
@@ -247,7 +248,7 @@ public class CommunityCollectionGump : Gump
 
 			AddItem(55 - item.X + _mMax / 2 - item.Width / 2, y, item.ItemId, points >= item.Points ? item.Hue : 0x3E9);
 			AddTooltip(item.Tooltip);
-			AddLabel(65 + _mMax, offset + height / 2 - 10, points >= item.Points ? 0x64 : 0x21, item.Points.ToString());
+			AddLabel(65 + _mMax, offset + height / 2 - 10, points >= item.Points ? 0x64 : 0x21, item.Points.ToString(CultureInfo.InvariantCulture));
 			AddTooltip(item.Tooltip);
 
 			offset += 5 + height;
@@ -316,7 +317,7 @@ public class CommunityCollectionGump : Gump
 		AddHtmlLocalized(210, 335, 60, 20, 1074256, 0x1, false, false); // More Hues
 	}
 
-	public override void OnResponse(Server.Network.NetState state, RelayInfo info)
+	public override void OnResponse(NetState state, RelayInfo info)
 	{
 		if (_mCollection == null || !_mOwner.InRange(_mLocation, 2))
 			return;
@@ -492,7 +493,7 @@ public class CommunityCollectionGump : Gump
 					{
 						var item = GetActual(items[i]);
 
-						if (item != null && !item.Deleted)
+						if (item is {Deleted: false})
 							count += item.Amount;
 					}
 
@@ -577,7 +578,7 @@ public class CommunityCollectionGump : Gump
 
 	public static bool CheckType(Item item, Type type, bool checkDerives)
 	{
-		if (item is CommodityDeed deed && deed.Commodity != null)
+		if (item is CommodityDeed {Commodity: { }} deed)
 		{
 			item = deed.Commodity;
 		}

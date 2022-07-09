@@ -311,6 +311,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Convo", "Convo", "{C4D1BA41
 		bin\Data\convo\yew.frg = bin\Data\convo\yew.frg
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Regions", "Regions", "{CEBE9713-9860-46BA-8CB1-06555ED7EB03}"
+	ProjectSection(SolutionItems) = preProject
+		bin\Data\Regions\Felucca.xml = bin\Data\Regions\Felucca.xml
+		bin\Data\Regions\Ilshenar.xml = bin\Data\Regions\Ilshenar.xml
+		bin\Data\Regions\Malas.xml = bin\Data\Regions\Malas.xml
+		bin\Data\Regions\TerMur.xml = bin\Data\Regions\TerMur.xml
+		bin\Data\Regions\Tokuno.xml = bin\Data\Regions\Tokuno.xml
+		bin\Data\Regions\Trammel.xml = bin\Data\Regions\Trammel.xml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -349,6 +359,7 @@ Global
 		{CA913F7A-0F1B-40F3-A6CC-18BF1025CC85} = {32793652-D0FF-423B-830A-244C83047B31}
 		{A5104E8F-5A41-4857-B549-BAAACB71B87F} = {35CB90F0-EFF2-403F-B4A3-A1469F3125ED}
 		{C4D1BA41-945B-4A32-9C7D-0893D95D47C1} = {863CB287-E2F8-49AC-8BF1-F416E8C6D3F7}
+		{CEBE9713-9860-46BA-8CB1-06555ED7EB03} = {863CB287-E2F8-49AC-8BF1-F416E8C6D3F7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A3C344D8-62B7-47BA-84CD-426CB4223E37}

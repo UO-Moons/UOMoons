@@ -57,7 +57,7 @@ namespace Server.Engines.Plants
 
 			if (m_AttachTo is GardenAddonComponent comp && m_Seed != null)
 			{
-				RaisedGardenPlantItem dirt = new(fertile);
+				GardenBedPlantItem dirt = new(fertile);
 				dirt.MoveToWorld(new Point3D(comp.X, comp.Y, comp.Z + 5), comp.Map);
 				dirt.Component = comp;
 				comp.Plant = dirt;

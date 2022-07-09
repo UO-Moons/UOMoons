@@ -1,6 +1,6 @@
 namespace Server.Items;
 
-public class ArmorOfFortune : StuddedChest
+public sealed class ArmorOfFortune : StuddedChest
 {
 	public override int LabelNumber => 1061098;  // Armor of Fortune
 	public override int ArtifactRarity => 11;
