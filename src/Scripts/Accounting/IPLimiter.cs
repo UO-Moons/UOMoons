@@ -1,28 +1,21 @@
 using Server.Network;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace Server.Misc;
 
 public class IpLimiter
 {
-	public static bool Enabled { get; set; } = Settings.Configuration.Get<bool>("Accounts", "IpLimiterEnabled");
-	public static bool SocketBlock { get; set; } = Settings.Configuration.Get<bool>("Accounts", "SocketBlock"); // true to block at connection, false to block at login request
-	public static int MaxAddresses { get; set; } = Settings.Configuration.Get<int>("Accounts", "AddressPerIP");
+	private static bool Enabled { get; } = Settings.Configuration.Get<bool>("Accounts", "IpLimiterEnabled");
+	public static bool SocketBlock { get; } = Settings.Configuration.Get<bool>("Accounts", "SocketBlock"); // true to block at connection, false to block at login request
+	private static int MaxAddresses { get; } = Settings.Configuration.Get<int>("Accounts", "AddressPerIP");
 
 	private static readonly IPAddress[] Exemptions = System.Array.Empty<IPAddress>();
 
 	public static bool IsExempt(IPAddress ip)
 	{
-		for (var i = 0; i < Exemptions.Length; i++)
-		{
-			if (ip.Equals(Exemptions[i]))
-			{
-				return true;
-			}
-		}
-
-		return false;
+		return Exemptions.Contains(ip);
 	}
 
 	public static bool Verify(IPAddress ourAddress)

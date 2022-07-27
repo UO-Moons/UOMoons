@@ -20,19 +20,19 @@ public class AccountAttackLimiter
 		PacketHandlers.RegisterThrottler(0xCF, Throttle_Callback);
 	}
 
-	public static bool Throttle_Callback(NetState ns)
+	private static bool Throttle_Callback(NetState ns)
 	{
 		InvalidAccountAccessLog accessLog = FindAccessLog(ns);
 
 		if (accessLog == null)
 			return true;
 
-		return DateTime.UtcNow >= (accessLog.LastAccessTime + ComputeThrottle(accessLog.Counts));
+		return DateTime.UtcNow >= accessLog.LastAccessTime + ComputeThrottle(accessLog.Counts);
 	}
 
 	private static readonly List<InvalidAccountAccessLog> MList = new();
 
-	public static InvalidAccountAccessLog FindAccessLog(NetState ns)
+	private static InvalidAccountAccessLog FindAccessLog(NetState ns)
 	{
 		if (ns == null)
 			return null;
@@ -82,7 +82,7 @@ public class AccountAttackLimiter
 		}
 	}
 
-	public static TimeSpan ComputeThrottle(int counts)
+	private static TimeSpan ComputeThrottle(int counts)
 	{
 		return counts switch
 		{
@@ -98,11 +98,11 @@ public class AccountAttackLimiter
 
 public class InvalidAccountAccessLog
 {
-	public IPAddress Address { get; set; }
-	public DateTime LastAccessTime { get; set; }
+	public IPAddress Address { get; }
+	public DateTime LastAccessTime { get; private set; }
 	public int Counts { get; set; }
 
-	public bool HasExpired => DateTime.UtcNow >= (LastAccessTime + TimeSpan.FromHours(1.0));
+	public bool HasExpired => DateTime.UtcNow >= LastAccessTime + TimeSpan.FromHours(1.0);
 
 	public void RefreshAccessTime()
 	{

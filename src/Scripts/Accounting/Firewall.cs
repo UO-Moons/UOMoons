@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 namespace Server;
@@ -12,7 +13,7 @@ public class Firewall
 		bool IsBlocked(IPAddress address);
 	}
 
-	public class IpFirewallEntry : IFirewallEntry
+	private class IpFirewallEntry : IFirewallEntry
 	{
 		private readonly IPAddress _mAddress;
 		public IpFirewallEntry(IPAddress address)
@@ -48,7 +49,7 @@ public class Firewall
 		}
 	}
 
-	public class CidrFirewallEntry : IFirewallEntry
+	private class CidrFirewallEntry : IFirewallEntry
 	{
 		private readonly IPAddress _mCidrPrefix;
 		private readonly int _mCidrLength;
@@ -105,7 +106,7 @@ public class Firewall
 		}
 	}
 
-	public class WildcardIpFirewallEntry : IFirewallEntry
+	private class WildcardIpFirewallEntry : IFirewallEntry
 	{
 		private readonly string _mEntry;
 		private bool _mValid = true;
@@ -165,7 +166,7 @@ public class Firewall
 
 	public static List<IFirewallEntry> List { get; }
 
-	public static IFirewallEntry ToFirewallEntry(object entry)
+	private static IFirewallEntry ToFirewallEntry(object entry)
 	{
 		return entry switch
 		{
@@ -225,7 +226,7 @@ public class Firewall
 		}
 	}
 
-	public static void Add(IFirewallEntry entry)
+	private static void Add(IFirewallEntry entry)
 	{
 		if (!List.Contains(entry))
 			List.Add(entry);
@@ -233,7 +234,7 @@ public class Firewall
 		Save();
 	}
 
-	public static void Add(string pattern)
+	private static void Add(string pattern)
 	{
 		IFirewallEntry entry = ToFirewallEntry(pattern);
 
@@ -253,9 +254,9 @@ public class Firewall
 		Save();
 	}
 
-	public static void Save()
+	private static void Save()
 	{
-		string path = "firewall.cfg";
+		const string path = "firewall.cfg";
 
 		using StreamWriter op = new(path);
 		for (var i = 0; i < List.Count; ++i)
@@ -264,12 +265,6 @@ public class Firewall
 
 	public static bool IsBlocked(IPAddress ip)
 	{
-		for (var i = 0; i < List.Count; i++)
-		{
-			if (List[i].IsBlocked(ip))
-				return true;
-		}
-
-		return false;
+		return List.Any(t => t.IsBlocked(ip));
 	}
 }

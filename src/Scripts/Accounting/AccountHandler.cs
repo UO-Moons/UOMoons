@@ -2,10 +2,10 @@ using Server.Accounting;
 using Server.Commands;
 using Server.Engines.Help;
 using Server.Network;
-using Server.Regions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 namespace Server.Misc;
@@ -79,12 +79,12 @@ public class AccountHandler
 		EventSink.GameLogin += EventSink_GameLogin;
 
 		if (PasswordCommandEnabled)
-			CommandSystem.Register("Password", AccessLevel.Player, new CommandEventHandler(Password_OnCommand));
+			CommandSystem.Register("Password", AccessLevel.Player, Password_OnCommand);
 	}
 
 	[Usage("Password <newPassword> <repeatPassword>")]
 	[Description("Changes the password of the commanding players account. Requires the same C-class IP address as the account's creator.")]
-	public static void Password_OnCommand(CommandEventArgs e)
+	private static void Password_OnCommand(CommandEventArgs e)
 	{
 		Mobile from = e.Mobile;
 
@@ -159,7 +159,8 @@ public class AccountHandler
 																		* Please check your Journal for messages every few minutes.
 																		*/
 
-					PageQueue.Enqueue(new PageEntry(from, string.Format("[Automated: Change Password]<br>Desired password: {0}<br>Current IP address: {1}<br>Account IP address: {2}", pass, ipAddress, accessList[0]), PageType.Account));
+					PageQueue.Enqueue(new PageEntry(from,
+						$"[Automated: Change Password]<br>Desired password: {pass}<br>Current IP address: {ipAddress}<br>Account IP address: {accessList[0]}", PageType.Account));
 				}
 
 			}
@@ -217,7 +218,7 @@ public class AccountHandler
 		}
 	}
 
-	public static bool CanCreate(IPAddress ip)
+	private static bool CanCreate(IPAddress ip)
 	{
 		if (!IpTable.ContainsKey(ip))
 			return true;
@@ -294,7 +295,7 @@ public class AccountHandler
 		return a;
 	}
 
-	public static void EventSink_AccountLogin(AccountLoginEventArgs e)
+	private static void EventSink_AccountLogin(AccountLoginEventArgs e)
 	{
 		if (!IpLimiter.SocketBlock && !IpLimiter.Verify(e.State.Address))
 		{
@@ -358,7 +359,7 @@ public class AccountHandler
 			AccountAttackLimiter.RegisterInvalidAccess(e.State);
 	}
 
-	public static void EventSink_GameLogin(GameLoginEventArgs e)
+	private static void EventSink_GameLogin(GameLoginEventArgs e)
 	{
 		if (!IpLimiter.SocketBlock && !IpLimiter.Verify(e.State.Address))
 		{
@@ -410,13 +411,6 @@ public class AccountHandler
 
 	public static bool CheckAccount(Mobile mobCheck, Mobile accCheck)
 	{
-		if (accCheck?.Account is not Account a) return false;
-		for (var i = 0; i < a.Length; ++i)
-		{
-			if (a[i] == mobCheck)
-				return true;
-		}
-
-		return false;
+		return accCheck?.Account is Account a && a.Any(t => t == mobCheck);
 	}
 }

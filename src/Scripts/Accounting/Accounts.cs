@@ -49,7 +49,7 @@ public class Accounts
 		return a;
 	}
 
-	public static void SetEmail(Account acc, string email)
+	private static void SetEmail(Account acc, string email)
 	{
 		if (acc.Email == "" || acc.Email != email)
 			acc.Email = email;
@@ -68,7 +68,7 @@ public class Accounts
 		return true;
 	}
 
-	public static void UnregisterEmail(string mail)
+	private static void UnregisterEmail(string mail)
 	{
 		if (!string.IsNullOrEmpty(mail))
 			MAccsByMail.Remove(mail);
@@ -89,7 +89,7 @@ public class Accounts
 		_mAccounts.Remove(username);
 	}
 
-	public static void OnWorldLoad()
+	private static void OnWorldLoad()
 	{
 		_mAccounts = new Dictionary<string, IAccount>(32, StringComparer.OrdinalIgnoreCase);
 
@@ -108,7 +108,7 @@ public class Accounts
 		{
 			try
 			{
-				Account acct = new(account);
+				Account unused = new(account);
 			}
 			catch
 			{
@@ -117,7 +117,7 @@ public class Accounts
 		}
 	}
 
-	public static void OnWorldSave()
+	private static void OnWorldSave()
 	{
 		if (!Directory.Exists("Saves/Accounts"))
 			Directory.CreateDirectory("Saves/Accounts");

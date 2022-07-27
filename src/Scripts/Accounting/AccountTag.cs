@@ -7,7 +7,7 @@ public class AccountTag
 	/// <summary>
 	/// Gets or sets the name of this tag.
 	/// </summary>
-	public string Name { get; set; }
+	public string Name { get; }
 
 	/// <summary>
 	/// Gets or sets the value of this tag.

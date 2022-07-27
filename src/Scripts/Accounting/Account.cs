@@ -35,8 +35,8 @@ public class YoungTimer : Timer
 public class Account : IAccount, IComparable, IComparable<Account>
 {
 	public static readonly TimeSpan YoungDuration = TimeSpan.FromHours(40.0);
-	public static readonly TimeSpan InactiveDuration = TimeSpan.FromDays(180.0);
-	public static readonly TimeSpan EmptyInactiveDuration = TimeSpan.FromDays(30.0);
+	private static readonly TimeSpan InactiveDuration = TimeSpan.FromDays(180.0);
+	private static readonly TimeSpan EmptyInactiveDuration = TimeSpan.FromDays(30.0);
 
 	public static void Configure()
 	{
@@ -243,17 +243,17 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// Account password. Plain text. Case sensitive validation. May be null.
 	/// </summary>
-	public string PlainPassword { get; set; }
+	public string PlainPassword { get; private set; }
 
 	/// <summary>
 	/// Account password. Hashed with MD5. May be null.
 	/// </summary>
-	public string CryptPassword { get; set; }
+	public string CryptPassword { get; private set; }
 
 	/// <summary>
 	/// Account username and password hashed with SHA1. May be null.
 	/// </summary>
-	public string NewCryptPassword { get; set; }
+	public string NewCryptPassword { get; private set; }
 
 	/// <summary>
 	/// Initial AccessLevel for new characters created on this account.
@@ -266,7 +266,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// <summary>
 	/// Internal bitfield of account flags. Consider using direct access properties (Banned, Young), or GetFlag/SetFlag methods
 	/// </summary>
-	public int Flags { get; set; }
+	private int Flags { get; set; }
 
 	/// <summary>
 	/// Gets or sets a flag indiciating if this account is banned.
@@ -281,7 +281,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 				return false;
 
 			if (!GetBanTags(out DateTime banTime, out TimeSpan banDuration)) return true;
-			if (banDuration == TimeSpan.MaxValue || DateTime.UtcNow < (banTime + banDuration)) return true;
+			if (banDuration == TimeSpan.MaxValue || DateTime.UtcNow < banTime + banDuration) return true;
 			SetUnspecifiedBan(null); // clear
 			Banned = false;
 			return false;
@@ -346,7 +346,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 		{
 			for (var i = 0; i < _mMobiles.Length; i++)
 			{
-				if (_mMobiles[i] is PlayerMobile m && m.NetState != null)
+				if (_mMobiles[i] is PlayerMobile { NetState: { } } m)
 					return _mTotalGameTime + (DateTime.UtcNow - m.SessionStart);
 			}
 
@@ -359,7 +359,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// Gets the value of a specific flag in the Flags bitfield.
 	/// </summary>
 	/// <param name="index">The zero-based flag index.</param>
-	public bool GetFlag(int index)
+	private bool GetFlag(int index)
 	{
 		return (Flags & (1 << index)) != 0;
 	}
@@ -369,10 +369,10 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="index">The zero-based flag index.</param>
 	/// <param name="value">The value to set.</param>
-	public void SetFlag(int index, bool value)
+	private void SetFlag(int index, bool value)
 	{
 		if (value)
-			Flags |= (1 << index);
+			Flags |= 1 << index;
 		else
 			Flags &= ~(1 << index);
 	}
@@ -484,14 +484,14 @@ public class Account : IAccount, IComparable, IComparable<Account>
 			banDuration = TimeSpan.Zero;
 		}
 
-		return (banTime != DateTime.MinValue && banDuration != TimeSpan.Zero);
+		return banTime != DateTime.MinValue && banDuration != TimeSpan.Zero;
 	}
 
 	private static MD5 _mMd5HashProvider;
 	private static SHA1 _mSha1HashProvider;
 	private static byte[] _mHashBuffer;
 
-	public static string HashMd5(string phrase)
+	private static string HashMd5(string phrase)
 	{
 		_mMd5HashProvider ??= MD5.Create();
 
@@ -503,7 +503,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 		return BitConverter.ToString(hashed);
 	}
 
-	public static string HashSha1(string phrase)
+	private static string HashSha1(string phrase)
 	{
 		_mSha1HashProvider ??= SHA1.Create();
 
@@ -593,7 +593,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 
 		for (var i = 0; i < _mMobiles.Length; i++)
 		{
-			if (_mMobiles[i] is not PlayerMobile m || !m.Young) continue;
+			if (_mMobiles[i] is not PlayerMobile { Young: true } m) continue;
 			m.Young = false;
 
 			if (m.NetState == null) continue;
@@ -721,12 +721,11 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="node">The XmlElement from which to deserialize.</param>
 	/// <returns>String list. Value will never be null.</returns>
-	public static string[] LoadAccessCheck(XmlElement node)
+	private static string[] LoadAccessCheck(XmlElement node)
 	{
-		string[] stringList;
 		XmlElement accessCheck = node["accessCheck"];
 
-		stringList = accessCheck != null ? (from XmlElement ip in accessCheck.GetElementsByTagName("ip") select Utility.GetText(ip, null) into text where text != null select text).ToArray() : Array.Empty<string>();
+		var stringList = accessCheck != null ? (from XmlElement ip in accessCheck.GetElementsByTagName("ip") select Utility.GetText(ip, null) into text where text != null select text).ToArray() : Array.Empty<string>();
 
 		return stringList;
 	}
@@ -736,7 +735,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="node">The XmlElement from which to deserialize.</param>
 	/// <returns>Address list. Value will never be null.</returns>
-	public static IPAddress[] LoadAddressList(XmlElement node)
+	private static IPAddress[] LoadAddressList(XmlElement node)
 	{
 		IPAddress[] list;
 		XmlElement addressList = node["addressList"];
@@ -777,7 +776,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="node">The XmlElement instance from which to deserialize.</param>
 	/// <returns>Mobile list. Value will never be null.</returns>
-	public static Mobile[] LoadMobiles(XmlElement node)
+	private static Mobile[] LoadMobiles(XmlElement node)
 	{
 		Mobile[] list = new Mobile[7];
 		XmlElement chars = node["chars"];
@@ -813,7 +812,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="node">The XmlElement from which to deserialize.</param>
 	/// <returns>Comment list. Value will never be null.</returns>
-	public static List<AccountComment> LoadComments(XmlElement node)
+	private static List<AccountComment> LoadComments(XmlElement node)
 	{
 		List<AccountComment> list = null;
 		XmlElement comments = node["comments"];
@@ -840,7 +839,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	/// </summary>
 	/// <param name="node">The XmlElement from which to deserialize.</param>
 	/// <returns>Tag list. Value will never be null.</returns>
-	public static List<AccountTag> LoadTags(XmlElement node)
+	private static List<AccountTag> LoadTags(XmlElement node)
 	{
 		XmlElement tags = node["tags"];
 
@@ -869,7 +868,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 		return ns != null && HasAccess(ns.Address);
 	}
 
-	public bool HasAccess(IPAddress ipAddress)
+	private bool HasAccess(IPAddress ipAddress)
 	{
 		AccessLevel level = AccountHandler.LockdownLevel;
 
@@ -896,7 +895,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 				return false;
 		}
 
-		bool accessAllowed = (IpRestrictions.Length == 0 || IpLimiter.IsExempt(ipAddress));
+		bool accessAllowed = IpRestrictions.Length == 0 || IpLimiter.IsExempt(ipAddress);
 
 		for (var i = 0; !accessAllowed && i < IpRestrictions.Length; ++i)
 			accessAllowed = Utility.IPMatch(IpRestrictions[i], ipAddress);
@@ -916,7 +915,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 		}
 	}
 
-	public void LogAccess(IPAddress ipAddress)
+	private void LogAccess(IPAddress ipAddress)
 	{
 		if (IpLimiter.IsExempt(ipAddress))
 			return;
@@ -956,7 +955,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 		return ns != null && CheckAccess(ns.Address);
 	}
 
-	public bool CheckAccess(IPAddress ipAddress)
+	private bool CheckAccess(IPAddress ipAddress)
 	{
 		bool hasAccess = HasAccess(ipAddress);
 
@@ -1054,7 +1053,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 			xml.WriteEndElement();
 		}
 
-		if (_mTags != null && _mTags.Count > 0)
+		if (_mTags is { Count: > 0 })
 		{
 			xml.WriteStartElement("tags");
 
@@ -1217,7 +1216,7 @@ public class Account : IAccount, IComparable, IComparable<Account>
 	///     By default, when 1,000,000,000 Gold is accumulated, it will transform
 	///     into 1 Platinum.
 	/// </summary>
-	public static int CurrencyThreshold { get; set; } = AccountGold.CurrencyThreshold;
+	public static int CurrencyThreshold { get; } = AccountGold.CurrencyThreshold;
 
 	/// <summary>
 	///     This amount represents the total amount of currency owned by the player.
@@ -1464,27 +1463,24 @@ public class Account : IAccount, IComparable, IComparable<Account>
 
 	public bool HasGoldBalance(double amount)
 	{
-		long gold;
-
-		GetGoldBalance(out gold, out var totalGold);
+		GetGoldBalance(out long _, out var totalGold);
 
 		return amount <= totalGold;
 	}
 
 	public bool HasPlatBalance(double amount)
 	{
-		long plat;
-
-		GetPlatBalance(out plat, out var totalPlat);
+		GetPlatBalance(out long _, out var totalPlat);
 
 		return amount <= totalPlat;
 	}
 	#endregion
 
 	#region Secure Account
-	public Dictionary<Mobile, int> SecureAccounts;
 
-	public static readonly int MaxSecureAmount = 100000000;
+	private Dictionary<Mobile, int> m_SecureAccounts;
+
+	private const int MaxSecureAmount = 100000000;
 
 	public int GetSecureAccountAmount(Mobile m)
 	{
@@ -1495,11 +1491,11 @@ public class Account : IAccount, IComparable, IComparable<Account>
 			if (mob == null)
 				continue;
 
-			if (mob == m)
-			{
-				if (SecureAccounts != null && SecureAccounts.ContainsKey(m))
-					return SecureAccounts[m];
-			}
+			if (mob != m)
+				continue;
+
+			if (m_SecureAccounts != null && m_SecureAccounts.ContainsKey(m))
+				return m_SecureAccounts[m];
 		}
 
 		return 0;
@@ -1514,18 +1510,17 @@ public class Account : IAccount, IComparable, IComparable<Account>
 			if (mob == null)
 				continue;
 
-			if (mob == m)
-			{
-				if (SecureAccounts == null)
-					SecureAccounts = new Dictionary<Mobile, int>();
+			if (mob != m)
+				continue;
 
-				if (!SecureAccounts.ContainsKey(m))
-					SecureAccounts[m] = Math.Min(MaxSecureAmount, amount);
-				else
-					SecureAccounts[m] = Math.Min(MaxSecureAmount, SecureAccounts[m] + amount);
+			m_SecureAccounts ??= new Dictionary<Mobile, int>();
 
-				return true;
-			}
+			if (!m_SecureAccounts.ContainsKey(m))
+				m_SecureAccounts[m] = Math.Min(MaxSecureAmount, amount);
+			else
+				m_SecureAccounts[m] = Math.Min(MaxSecureAmount, m_SecureAccounts[m] + amount);
+
+			return true;
 		}
 
 		return false;
@@ -1540,15 +1535,15 @@ public class Account : IAccount, IComparable, IComparable<Account>
 			if (mob == null)
 				continue;
 
-			if (m == mob)
-			{
-				if (SecureAccounts == null || !SecureAccounts.ContainsKey(m) || SecureAccounts[m] < amount)
-					return false;
+			if (m != mob)
+				continue;
 
-				SecureAccounts[m] -= amount;
+			if (m_SecureAccounts == null || !m_SecureAccounts.ContainsKey(m) || m_SecureAccounts[m] < amount)
+				return false;
 
-				return true;
-			}
+			m_SecureAccounts[m] -= amount;
+
+			return true;
 		}
 
 		return false;
