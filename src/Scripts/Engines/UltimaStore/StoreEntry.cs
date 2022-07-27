@@ -13,7 +13,7 @@ public class StoreEntry
 	public int Hue { get; }
 	public int Price { get; }
 	public StoreCategory Category { get; }
-	public Func<Mobile, StoreEntry, Item> Constructor { get; }
+	private Func<Mobile, StoreEntry, Item> Constructor { get; }
 
 	public int Cost => (int)Math.Ceiling(Price * Configuration.CostMultiplier);
 

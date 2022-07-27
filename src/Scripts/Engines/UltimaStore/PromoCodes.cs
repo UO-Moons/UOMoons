@@ -9,11 +9,11 @@ namespace Server.Engines.UOStore;
 
 public static class PromoCodes
 {
-	public static readonly string FilePath = Path.Combine(Core.BaseDirectory, "Saves", "Misc", "PromoCodes.bin");
+	private static readonly string FilePath = Path.Combine(Core.BaseDirectory, "Saves", "Misc", "PromoCodes.bin");
 
-	public static Dictionary<string, PromoCodeHandler> Codes { get; } = new(StringComparer.InvariantCultureIgnoreCase);
+	private static Dictionary<string, PromoCodeHandler> Codes { get; } = new(StringComparer.InvariantCultureIgnoreCase);
 
-	public static Dictionary<string, HashSet<IAccount>> Redeemed { get; } = new(StringComparer.InvariantCultureIgnoreCase);
+	private static Dictionary<string, HashSet<IAccount>> Redeemed { get; } = new(StringComparer.InvariantCultureIgnoreCase);
 
 	public static void Configure()
 	{

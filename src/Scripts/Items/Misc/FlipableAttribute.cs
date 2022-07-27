@@ -3,110 +3,104 @@ using Server.Targeting;
 using System;
 using System.Reflection;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class FlipCommandHandlers
 {
-	public class FlipCommandHandlers
+	public static void Initialize()
 	{
-		public static void Initialize()
-		{
-			CommandSystem.Register("Flip", AccessLevel.GameMaster, new CommandEventHandler(Flip_OnCommand));
-		}
-
-		[Usage("Flip")]
-		[Description("Turns an item.")]
-		public static void Flip_OnCommand(CommandEventArgs e)
-		{
-			e.Mobile.Target = new FlipTarget();
-		}
-
-		private class FlipTarget : Target
-		{
-			public FlipTarget()
-				: base(-1, false, TargetFlags.None)
-			{
-			}
-
-			protected override void OnTarget(Mobile from, object targeted)
-			{
-				if (targeted is Item)
-				{
-					Item item = (Item)targeted;
-
-					if (item.Movable == false && from.AccessLevel == AccessLevel.Player)
-						return;
-
-					Type type = targeted.GetType();
-
-					FlipableAttribute[] AttributeArray = (FlipableAttribute[])type.GetCustomAttributes(typeof(FlipableAttribute), false);
-
-					if (AttributeArray.Length == 0)
-					{
-						return;
-					}
-
-					FlipableAttribute fa = AttributeArray[0];
-
-					fa.Flip((Item)targeted);
-				}
-			}
-		}
+		CommandSystem.Register("Flip", AccessLevel.GameMaster, Flip_OnCommand);
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
-	public class DynamicFlipingAttribute : Attribute
+	[Usage("Flip")]
+	[Description("Turns an item.")]
+	private static void Flip_OnCommand(CommandEventArgs e)
 	{
-		public DynamicFlipingAttribute()
-		{
-		}
+		e.Mobile.Target = new FlipTarget();
 	}
 
-	[AttributeUsage(AttributeTargets.Class)]
-	public class FlipableAttribute : Attribute
+	private class FlipTarget : Target
 	{
-		public int[] ItemIDs { get; }
-
-		public FlipableAttribute()
-			: this(null)
+		public FlipTarget()
+			: base(-1, false, TargetFlags.None)
 		{
 		}
 
-		public FlipableAttribute(params int[] itemIDs)
+		protected override void OnTarget(Mobile from, object targeted)
 		{
-			ItemIDs = itemIDs;
+			if (targeted is not Item item)
+				return;
+
+			if (item.Movable == false && from.AccessLevel == AccessLevel.Player)
+				return;
+
+			Type type = item.GetType();
+
+			FlipableAttribute[] attributeArray = (FlipableAttribute[])type.GetCustomAttributes(typeof(FlipableAttribute), false);
+
+			if (attributeArray.Length == 0)
+			{
+				return;
+			}
+
+			FlipableAttribute fa = attributeArray[0];
+
+			fa.Flip(item);
 		}
+	}
+}
 
-		public virtual void Flip(Item item)
+[AttributeUsage(AttributeTargets.Class)]
+public class DynamicFlipingAttribute : Attribute
+{
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class FlipableAttribute : Attribute
+{
+	public int[] ItemIDs { get; }
+
+	public FlipableAttribute()
+		: this(null)
+	{
+	}
+
+	public FlipableAttribute(params int[] itemIDs)
+	{
+		ItemIDs = itemIDs;
+	}
+
+	public void Flip(Item item)
+	{
+		if (ItemIDs == null)
 		{
-			if (ItemIDs == null)
+			try
 			{
-				try
-				{
-					MethodInfo flipMethod = item.GetType().GetMethod("Flip", Type.EmptyTypes);
-					if (flipMethod != null)
-						flipMethod.Invoke(item, new object[0]);
-				}
-				catch
-				{
-				}
-
+				MethodInfo flipMethod = item.GetType().GetMethod("Flip", Type.EmptyTypes);
+				if (flipMethod != null)
+					flipMethod.Invoke(item, Array.Empty<object>());
 			}
-			else
+			catch
 			{
-				int index = 0;
-				for (int i = 0; i < ItemIDs.Length; i++)
-				{
-					if (item.ItemId == ItemIDs[i])
-					{
-						index = i + 1;
-						break;
-					}
-				}
-
-				if (index > ItemIDs.Length - 1)
-					index = 0;
-
-				item.ItemId = ItemIDs[index];
+				// ignored
 			}
+		}
+		else
+		{
+			int index = 0;
+			for (int i = 0; i < ItemIDs.Length; i++)
+			{
+				if (item.ItemId == ItemIDs[i])
+				{
+					index = i + 1;
+					break;
+				}
+			}
+
+			if (index > ItemIDs.Length - 1)
+				index = 0;
+
+			item.ItemId = ItemIDs[index];
 		}
 	}
 }

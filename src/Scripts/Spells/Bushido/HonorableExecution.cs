@@ -36,7 +36,6 @@ public class HonorableExecution : SamuraiMove
 	{
 		double bushido = attacker.Skills[SkillName.Bushido].Value;
 
-		// TODO: 20 -> Perfection
 		return 1.0 + bushido * 20 / 10000;
 	}
 
@@ -102,7 +101,7 @@ public class HonorableExecution : SamuraiMove
 		CheckGain(attacker);
 	}
 
-	public void EndEffect(object state)
+	private static void EndEffect(object state)
 	{
 		HonorableExecutionInfo info = (HonorableExecutionInfo)state;
 

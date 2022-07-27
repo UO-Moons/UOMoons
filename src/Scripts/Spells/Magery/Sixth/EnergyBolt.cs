@@ -36,7 +36,7 @@ public class EnergyBoltSpell : MagerySpell
 
 	public override bool DelayedDamage => true;
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

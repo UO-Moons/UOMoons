@@ -109,7 +109,7 @@ public static class MondainQuestData
 			FilePath,
 			reader =>
 			{
-				int version = reader.ReadInt();
+				reader.ReadInt();
 
 				int count = reader.ReadInt();
 				for (var i = 0; i < count; i++)

@@ -47,18 +47,18 @@ public class MindBlastSpell : MagerySpell
 		Mobile defender = (Mobile)states[2];
 		int damage = (int)states[3];
 
-		if (caster.HarmfulCheck(defender))
-		{
-			SpellHelper.Damage(this, target, Utility.RandomMinMax(damage, damage + 4), 0, 0, 100, 0, 0);
+		if (!caster.HarmfulCheck(defender))
+			return;
 
-			target.FixedParticles(0x374A, 10, 15, 5038, 1181, 2, EffectLayer.Head);
-			target.PlaySound(0x213);
-		}
+		SpellHelper.Damage(this, target, Utility.RandomMinMax(damage, damage + 4), 0, 0, 100, 0, 0);
+
+		target.FixedParticles(0x374A, 10, 15, 5038, 1181, 2, EffectLayer.Head);
+		target.PlaySound(0x213);
 	}
 
 	public override bool DelayedDamage => !Core.AOS;
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

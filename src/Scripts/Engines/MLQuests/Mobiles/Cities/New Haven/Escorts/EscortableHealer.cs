@@ -14,7 +14,7 @@ public class EscortableHealer : TownEscortable
 	{
 		Title = "the wandering healer";
 
-		AI = AIType.AI_Mage;
+		Ai = AIType.AI_Mage;
 		ActiveSpeed = 0.2;
 		PassiveSpeed = 0.8;
 		RangePerception = BaseCreature.DefaultRangePerception;

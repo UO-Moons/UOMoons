@@ -38,7 +38,7 @@ public class DeathStrike : NinjaMove
 		double chance;
 		bool isRanged = attacker.Weapon is BaseRanged;
 
-		if (ninjitsu < 100) //This formula is an approximation from OSI data.  TODO: find correct formula
+		if (ninjitsu < 100) //This formula is an approximation from OSI data.
 			chance = 30 + (ninjitsu - 85) * 2.2;
 		else
 			chance = 63 + (ninjitsu - 100) * 1.1;
@@ -76,8 +76,10 @@ public class DeathStrike : NinjaMove
 		defender.FixedParticles(0x374A, 1, 17, 0x26BC, EffectLayer.Waist);
 		attacker.PlaySound(attacker.Female ? 0x50D : 0x50E);
 
-		info = new DeathStrikeInfo(defender, attacker, damageBonus, isRanged);
-		info.Timer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerStateCallback(ProcessDeathStrike), defender);
+		info = new DeathStrikeInfo(defender, attacker, damageBonus, isRanged)
+		{
+			Timer = Timer.DelayCall(TimeSpan.FromSeconds(5.0), new TimerStateCallback(ProcessDeathStrike), defender)
+		};
 
 		m_Table[defender] = info;
 
@@ -91,9 +93,7 @@ public class DeathStrike : NinjaMove
 	{
 		Mobile defender = (Mobile)state;
 
-		DeathStrikeInfo info = m_Table[defender] as DeathStrikeInfo;
-
-		if (info == null)	//sanity
+		if (m_Table[defender] is not DeathStrikeInfo info)	//sanity
 			return;
 
 		int damage;
@@ -161,7 +161,7 @@ public class DeathStrike : NinjaMove
 		}
 	}
 
-	public static void EventSink_Movement(MovementEventArgs e)
+	private static void EventSink_Movement(MovementEventArgs e)
 	{
 		AddStep(e.Mobile);
 	}

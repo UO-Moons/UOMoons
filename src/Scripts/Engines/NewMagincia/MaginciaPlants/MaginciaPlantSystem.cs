@@ -7,12 +7,12 @@ namespace Server.Engines.Plants;
 
 public class MaginciaPlantSystem : BaseItem
 {
-	public static readonly bool Enabled = true;
-	public static readonly int PlantDelay = 4;
-	public Dictionary<Mobile, DateTime> PlantDelayTable { get; } = new();
+	public const bool Enabled = true;
+	private const int PlantDelay = 4;
+	private Dictionary<Mobile, DateTime> PlantDelayTable { get; } = new();
 
-	public static MaginciaPlantSystem FelInstance { get; private set; }
-	public static MaginciaPlantSystem TramInstance { get; private set; }
+	private static MaginciaPlantSystem FelInstance { get; set; }
+	private static MaginciaPlantSystem TramInstance { get; set; }
 
 	public static void Initialize()
 	{
@@ -23,44 +23,39 @@ public class MaginciaPlantSystem : BaseItem
 				FelInstance = new MaginciaPlantSystem();
 				FelInstance.MoveToWorld(new Point3D(3715, 2049, 5), Map.Felucca);
 			}
-			if (TramInstance == null)
-			{
-				TramInstance = new MaginciaPlantSystem();
-				TramInstance.MoveToWorld(new Point3D(3715, 2049, 5), Map.Trammel);
-			}
+
+			if (TramInstance != null) return;
+			TramInstance = new MaginciaPlantSystem();
+			TramInstance.MoveToWorld(new Point3D(3715, 2049, 5), Map.Trammel);
 		}
 	}
 
-	public MaginciaPlantSystem()
+	private MaginciaPlantSystem()
 		: base(3240)
 	{
 		Movable = false;
 	}
 
-	public bool CheckPlantDelay(Mobile from)
+	private bool CheckPlantDelay(Mobile from)
 	{
-		if (PlantDelayTable.ContainsKey(from))
-		{
-			if (PlantDelayTable[from] > DateTime.UtcNow)
-			{
-				TimeSpan left = PlantDelayTable[from] - DateTime.UtcNow;
+		if (!PlantDelayTable.ContainsKey(from)) return true;
+		if (PlantDelayTable[from] <= DateTime.UtcNow) return true;
+		TimeSpan left = PlantDelayTable[from] - DateTime.UtcNow;
 
-				// Time remaining to plant on the Isle of Magincia again: ~1_val~ days ~2_val~ hours ~3_val~ minutes.
-				from.SendLocalizedMessage(1150459, string.Format("{0}\t{1}\t{2}", left.Days.ToString(), left.Hours.ToString(), left.Minutes.ToString()));
-				return false;
-			}
-		}
+		// Time remaining to plant on the Isle of Magincia again: ~1_val~ days ~2_val~ hours ~3_val~ minutes.
+		from.SendLocalizedMessage(1150459,
+			$"{left.Days.ToString()}\t{left.Hours.ToString()}\t{left.Minutes.ToString()}");
+		return false;
 
-		return true;
 	}
 
-	public void OnPlantDelete(Mobile from)
+	private void OnPlantDelete(Mobile from)
 	{
 		if (PlantDelayTable.ContainsKey(from))
 			PlantDelayTable.Remove(from);
 	}
 
-	public void OnPlantPlanted(Mobile from)
+	private void OnPlantPlanted(Mobile from)
 	{
 		if (from.AccessLevel == AccessLevel.Player)
 			PlantDelayTable[from] = DateTime.UtcNow + TimeSpan.FromDays(PlantDelay);
@@ -135,16 +130,13 @@ public class MaginciaPlantSystem : BaseItem
 		else if (map == Map.Felucca)
 			system = FelInstance;
 
-		if (system == null)
-		{
-			from.SendLocalizedMessage(1150457); // The ground here is not good for gardening.
-			return false;
-		}
+		if (system != null) return system.CheckPlantDelay(from);
+		from.SendLocalizedMessage(1150457); // The ground here is not good for gardening.
+		return false;
 
-		return system.CheckPlantDelay(from);
 	}
 
-	public static bool IsValidLocation(Point3D p)
+	private static bool IsValidLocation(Point3D p)
 	{
 		/*foreach (Rectangle2D rec in m_MagGrowBounds)
 		{
@@ -193,15 +185,9 @@ public class MaginciaPlantSystem : BaseItem
 		new(3679, 2018, 70, 28)
 	};
 
-	public void DefragPlantDelayTable()
+	private void DefragPlantDelayTable()
 	{
-		List<Mobile> toRemove = new List<Mobile>();
-
-		foreach (KeyValuePair<Mobile, DateTime> kvp in PlantDelayTable)
-		{
-			if (kvp.Value < DateTime.UtcNow)
-				toRemove.Add(kvp.Key);
-		}
+		List<Mobile> toRemove = (from kvp in PlantDelayTable where kvp.Value < DateTime.UtcNow select kvp.Key).ToList();
 
 		foreach (Mobile m in toRemove)
 			PlantDelayTable.Remove(m);

@@ -57,21 +57,20 @@ namespace Server.Items
                 {
                     BaseObjective objective = quest.Objectives[j];
 
-                    if (objective is ApprenticeObjective)
-                    {
-                        from.SendMessage("You are already under the effect of an enhanced skillgain quest.");
-                        return false;
-                    }
+                    if (objective is not ApprenticeObjective)
+	                    continue;
+
+                    from.SendMessage("You are already under the effect of an enhanced skillgain quest.");
+                    return false;
                 }
             }
 
-            if (pm.AcceleratedStart > DateTime.UtcNow)
-            {
-                from.SendLocalizedMessage(1077951); // You are already under the effect of an accelerated skillgain scroll.
-                return false;
-            }
+            if (pm.AcceleratedStart <= DateTime.UtcNow)
+	            return true;
 
-            return true;
+            from.SendLocalizedMessage(1077951); // You are already under the effect of an accelerated skillgain scroll.
+            return false;
+
         }
 
         public override void Use(Mobile from)
@@ -115,7 +114,7 @@ namespace Server.Items
             AlacrityEnd((Mobile)state);
         }
 
-        public static bool AlacrityEnd(Mobile m)
+        private static void AlacrityEnd(Mobile m)
         {
             m_Table.Remove(m);
 
@@ -124,8 +123,6 @@ namespace Server.Items
             BuffInfo.RemoveBuff(m, BuffIcon.ArcaneEmpowerment);
 
             m.SendLocalizedMessage(1077957);// The intense energy dissipates. You are no longer under the effects of an accelerated skillgain scroll.
-
-            return true;
         }
 
         public static ScrollOfAlacrity CreateRandom()
@@ -137,7 +134,7 @@ namespace Server.Items
         {
             base.Serialize(writer);
 
-            writer.Write(0); // version
+            writer.Write(0);
         }
 
         public override void Deserialize(GenericReader reader)

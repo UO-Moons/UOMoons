@@ -12,17 +12,43 @@ public class AnimalLore
 		SkillInfo.Table[(int)SkillName.AnimalLore].Callback = OnUse;
 	}
 
-	public static TimeSpan OnUse(Mobile m)
+	private static TimeSpan OnUse(Mobile m)
 	{
-		m.Target = new InternalTarget();
-
-		m.SendLocalizedMessage(500328); // What animal should I look at?
-
+		//if (m.HasGump(typeof(NewAnimalLoreGump)))
+		//{
+		//	m.SendLocalizedMessage(500118); // You must wait a few moments to use another skill.
+		//}
+		//else
+		//{
+			m.Target = new InternalTarget();
+			m.SendLocalizedMessage(500328); // What animal should I look at?
+		//}
 		return TimeSpan.FromSeconds(1.0);
 	}
 
 	private class InternalTarget : Target
 	{
+		/*private static void SendGump(Mobile from, BaseCreature c)
+		{
+			from.CheckTargetSkill(SkillName.AnimalLore, c, 0.0, 120.0);
+
+			if (from is PlayerMobile)
+			{
+				Timer.DelayCall(TimeSpan.FromSeconds(1), () =>
+				{
+					BaseGump.SendGump(new NewAnimalLoreGump((PlayerMobile)from, c));
+				});
+			}
+		}
+
+		private static void Check(Mobile from, BaseCreature c, double min)
+		{
+			if (from.CheckTargetSkill(SkillName.AnimalLore, c, min, 120.0))
+				SendGump(from, c);
+			else
+				from.SendLocalizedMessage(500334); // You can't think of anything you know offhand.
+		}*/
+
 		public InternalTarget() : base(8, false, TargetFlags.None)
 		{
 		}
@@ -39,29 +65,69 @@ public class AnimalLore
 				{
 					if (c.Body.IsAnimal || c.Body.IsMonster || c.Body.IsSea)
 					{
-						switch (c.Controlled)
+						/*if (Core.SA)
 						{
-							case false when from.Skills[SkillName.AnimalLore].Value < 100.0:
-								from.SendLocalizedMessage(1049674); // At your skill level, you can only lore tamed creatures.
-								break;
-							case false when !c.Tamable && from.Skills[SkillName.AnimalLore].Value < 110.0:
-								from.SendLocalizedMessage(1049675); // At your skill level, you can only lore tamed or tameable creatures.
-								break;
-							default:
+							double skill = from.Skills[SkillName.AnimalLore].Value;
+							switch (skill)
 							{
-								if (!from.CheckTargetSkill(SkillName.AnimalLore, c, 0.0, 120.0))
+								case < 100.0 when c.Controlled:
+									SendGump(from, c);
+									break;
+								case < 100.0:
+									from.SendLocalizedMessage(
+										1049674); // At your skill level, you can only lore tamed creatures.
+									break;
+								case < 110.0 when c.Controlled:
+									SendGump(from, c);
+									break;
+								case < 110.0 when c.Tamable:
+									Check(from, c, 80.0);
+									break;
+								case < 110.0:
+									from.SendLocalizedMessage(
+										1049675); // At your skill level, you can only lore tamed or tameable creatures.
+									break;
+								default:
 								{
-									from.SendLocalizedMessage(500334); // You can't think of anything you know offhand.
+									if (c.Controlled)
+										SendGump(from, c);
+									else if (c.Tamable)
+										Check(from, c, 80.0);
+									else
+										Check(from, c, 100.0);
+									break;
 								}
-								else
-								{
-									from.CloseGump(typeof(AnimalLoreGump));
-									from.SendGump(new AnimalLoreGump(c));
-								}
-
-								break;
 							}
 						}
+						else
+						{*/
+							switch (c.Controlled)
+							{
+								case false when from.Skills[SkillName.AnimalLore].Value < 100.0:
+									from.SendLocalizedMessage(
+										1049674); // At your skill level, you can only lore tamed creatures.
+									break;
+								case false when !c.Tamable && from.Skills[SkillName.AnimalLore].Value < 110.0:
+									from.SendLocalizedMessage(
+										1049675); // At your skill level, you can only lore tamed or tameable creatures.
+									break;
+								default:
+								{
+									if (!from.CheckTargetSkill(SkillName.AnimalLore, c, 0.0, 120.0))
+									{
+										from.SendLocalizedMessage(
+											500334); // You can't think of anything you know offhand.
+									}
+									else
+									{
+										from.CloseGump(typeof(AnimalLoreGump));
+										from.SendGump(new AnimalLoreGump(c));
+									}
+
+									break;
+								}
+							}
+						//}
 					}
 					else
 					{

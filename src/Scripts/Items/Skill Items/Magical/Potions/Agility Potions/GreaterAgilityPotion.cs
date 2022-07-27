@@ -1,32 +1,31 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class GreaterAgilityPotion : BaseAgilityPotion
 {
-	public class GreaterAgilityPotion : BaseAgilityPotion
+	public override int DexOffset => 20;
+	public override TimeSpan Duration => TimeSpan.FromMinutes(2.0);
+
+	[Constructable]
+	public GreaterAgilityPotion() : base(PotionEffect.AgilityGreater)
 	{
-		public override int DexOffset => 20;
-		public override TimeSpan Duration => TimeSpan.FromMinutes(2.0);
+	}
 
-		[Constructable]
-		public GreaterAgilityPotion() : base(PotionEffect.AgilityGreater)
-		{
-		}
+	public GreaterAgilityPotion(Serial serial) : base(serial)
+	{
+	}
 
-		public GreaterAgilityPotion(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

@@ -5,7 +5,7 @@ public abstract class BaseDecorationArtifact : BaseItem
 	public abstract int ArtifactRarity { get; }
 	public override bool ForceShowProperties => true;
 
-	public BaseDecorationArtifact(int itemID) : base(itemID)
+	public BaseDecorationArtifact(int itemId) : base(itemId)
 	{
 		Weight = 10.0;
 	}
@@ -38,7 +38,7 @@ public abstract class BaseDecorationContainerArtifact : BaseContainer
 	public abstract int ArtifactRarity { get; }
 	public override bool ForceShowProperties => true;
 
-	public BaseDecorationContainerArtifact(int itemID) : base(itemID)
+	public BaseDecorationContainerArtifact(int itemId) : base(itemId)
 	{
 		Weight = 10.0;
 	}

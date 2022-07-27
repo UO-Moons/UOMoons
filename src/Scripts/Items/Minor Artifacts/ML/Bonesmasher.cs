@@ -1,40 +1,39 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class Bonesmasher : DiamondMace
 {
-	public class Bonesmasher : DiamondMace
+	public override int LabelNumber => 1075030;  // Bonesmasher
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public Bonesmasher()
 	{
-		public override int LabelNumber => 1075030;  // Bonesmasher
+		ItemId = 0x2D30;
+		Hue = 0x482;
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+		SkillBonuses.SetValues(0, SkillName.Macing, 10.0);
 
-		[Constructable]
-		public Bonesmasher()
-		{
-			ItemId = 0x2D30;
-			Hue = 0x482;
+		WeaponAttributes.HitLeechMana = 40;
+		WeaponAttributes.SelfRepair = 2;
+	}
 
-			SkillBonuses.SetValues(0, SkillName.Macing, 10.0);
+	public Bonesmasher(Serial serial) : base(serial)
+	{
+	}
 
-			WeaponAttributes.HitLeechMana = 40;
-			WeaponAttributes.SelfRepair = 2;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public Bonesmasher(Serial serial) : base(serial)
-		{
-		}
+		writer.WriteEncodedInt(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

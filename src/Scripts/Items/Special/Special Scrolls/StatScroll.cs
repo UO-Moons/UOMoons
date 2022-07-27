@@ -14,7 +14,7 @@ namespace Server.Items
 			{
 				int level = ((int)Value - 230) / 5;
 
-				if (level >= 0 && level <= 4 && Value % 5 == 0)
+				if (level is >= 0 and <= 4 && Value % 5 == 0)
 					return 1049458 + level; /* Wonderous Scroll (+5 Maximum Stats): OR
 											* Exalted Scroll (+10 Maximum Stats): OR
 											* Mythical Scroll (+15 Maximum Stats): OR
@@ -25,7 +25,8 @@ namespace Server.Items
 			}
 		}
 
-		public override string DefaultTitle => string.Format("<basefont color=#FFFFFF>Power Scroll ({0}{1} Maximum Stats):</basefont>", ((int)Value - 225) >= 0 ? "+" : "", (int)Value - 225);
+		public override string DefaultTitle =>
+			$"<basefont color=#FFFFFF>Power Scroll ({((int)Value - 225 >= 0 ? "+" : "")}{(int)Value - 225} Maximum Stats):</basefont>";
 
 		public StatCapScroll() : this(105)
 		{
@@ -45,7 +46,7 @@ namespace Server.Items
 		{
 			int level = ((int)Value - 230) / 5;
 
-			if (level >= 0 && level <= 4 && (int)Value % 5 == 0)
+			if (level is >= 0 and <= 4 && (int)Value % 5 == 0)
 				list.Add(1049463 + level, "#1049476");  /* a wonderous scroll of ~1_type~ (+5 Maximum Stats) OR
 															* an exalted scroll of ~1_type~ (+10 Maximum Stats) OR
 															* a mythical scroll of ~1_type~ (+15 Maximum Stats) OR
@@ -59,10 +60,10 @@ namespace Server.Items
 		{
 			int level = ((int)Value - 230) / 5;
 
-			if (level >= 0 && level <= 4 && (int)Value % 5 == 0)
-				base.LabelTo(from, 1049463 + level, "#1049476");
+			if (level is >= 0 and <= 4 && (int)Value % 5 == 0)
+				LabelTo(from, 1049463 + level, "#1049476");
 			else
-				base.LabelTo(from, "a scroll of power ({0}{1} Maximum Stats)", (Value - 225) >= 0 ? "+" : "", Value - 225);
+				LabelTo(from, "a scroll of power ({0}{1} Maximum Stats)", (Value - 225) >= 0 ? "+" : "", Value - 225);
 		}
 
 		public override bool CanUse(Mobile from)
@@ -72,16 +73,18 @@ namespace Server.Items
 
 			int newValue = (int)Value;
 
-			if (from is PlayerMobile mobile && mobile.HasStatReward)
+			if (from is PlayerMobile { HasStatReward: true })
 				newValue += 5;
 
-			if (from.StatCap >= newValue)
-			{
-				from.SendLocalizedMessage(1049510); // Your stats are too high for this power scroll.
-				return false;
-			}
+			if (from is PlayerMobile { HasValiantStatReward: true })
+				newValue += 5;
 
-			return true;
+			if (from.StatCap < newValue)
+				return true;
+
+			from.SendLocalizedMessage(1049510); // Your stats are too high for this power scroll.
+			return false;
+
 		}
 
 		public override void Use(Mobile from)
@@ -91,10 +94,19 @@ namespace Server.Items
 
 			from.SendLocalizedMessage(1049512); // You feel a surge of magic as the scroll enhances your powers!
 
-			if (from is PlayerMobile && ((PlayerMobile)from).HasStatReward)
-				from.StatCap = (int)Value + 5;
-			else
-				from.StatCap = (int)Value;
+			int value = (int)Value;
+
+			if (from is PlayerMobile { HasStatReward: true })
+			{
+				value += 5;
+			}
+
+			if (from is PlayerMobile { HasValiantStatReward: true })
+			{
+				value += 5;
+			}
+
+			from.StatCap = value;
 
 			Effects.SendLocationParticles(EffectItem.Create(from.Location, from.Map, EffectItem.DefaultDuration), 0, 0, 0, 0, 0, 5060, 0);
 			Effects.PlaySound(from.Location, from.Map, 0x243);
@@ -111,15 +123,13 @@ namespace Server.Items
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
+			writer.Write(0);
 		}
 
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 }

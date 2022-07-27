@@ -175,7 +175,7 @@ namespace Server.Mobiles
 			if (Array.IndexOf(Maps, m) == -1)
 				return false;
 
-			if (bc is BaseChampion || bc is Harrower || bc is BaseVendor || bc is BaseEscortable || bc is Clone || bc.IsParagon)
+			if (bc is BaseChampion || bc is Harrower || bc is BaseVendor || bc is BaseEscortable || bc is MirrorImageClone || bc.IsParagon)
 				return false;
 
 			int fame = bc.Fame;

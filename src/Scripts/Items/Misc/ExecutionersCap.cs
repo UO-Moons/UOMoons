@@ -1,29 +1,28 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class ExecutionersCap : BaseItem
 {
-	public class ExecutionersCap : BaseItem
+	[Constructable]
+	public ExecutionersCap() : base(0xF83)
 	{
-		[Constructable]
-		public ExecutionersCap() : base(0xF83)
-		{
-			Weight = 1.0;
-		}
+		Weight = 1.0;
+	}
 
-		public ExecutionersCap(Serial serial) : base(serial)
-		{
-		}
+	public ExecutionersCap(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0);
-		}
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

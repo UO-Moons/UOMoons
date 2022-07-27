@@ -167,6 +167,34 @@ namespace Server.Items
 			}
 		}
 
+		public static void DoCurse(Mobile attacker, Mobile defender)
+		{
+			attacker.SendLocalizedMessage(1113717); // You have hit your target with a curse effect.
+			defender.SendLocalizedMessage(1113718); // You have been hit with a curse effect.
+
+			defender.FixedParticles(0x374A, 10, 15, 5028, EffectLayer.Waist);
+			defender.PlaySound(0x1EA);
+			TimeSpan duration = TimeSpan.FromSeconds(30);
+
+			defender.AddStatMod(
+				new StatMod(StatType.Str, string.Format("[Magic] {0} Curse", StatType.Str), -10, duration));
+			defender.AddStatMod(
+				new StatMod(StatType.Dex, string.Format("[Magic] {0} Curse", StatType.Dex), -10, duration));
+			defender.AddStatMod(
+				new StatMod(StatType.Int, string.Format("[Magic] {0} Curse", StatType.Int), -10, duration));
+
+			int percentage = -10; //(int)(SpellHelper.GetOffsetScalar(Caster, m, true) * 100);
+			string args = string.Format("{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}", percentage, percentage, percentage, 10, 10, 10, 10);
+
+			Spells.Fourth.CurseSpell.AddEffect(defender, duration, 10, 10, 10);
+			BuffInfo.AddBuff(defender, new BuffInfo(BuffIcon.Curse, 1075835, 1075836, duration, defender, args));
+
+			if (attacker.Weapon is BaseWeapon wep && wep.ProcessingMultipleHits)
+			{
+				wep.BlockHitEffects = true;
+			}
+		}
+
 		public static void DoLowerAttack(Mobile from, Mobile defender)
 		{
 			if (HitLower.ApplyAttack(defender))

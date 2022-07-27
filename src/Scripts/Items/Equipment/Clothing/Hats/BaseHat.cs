@@ -53,7 +53,7 @@ public abstract class BaseHat : BaseClothing, IShipwreckedItem
 		Quality = ItemQuality.Normal;
 
 		if (Quality == ItemQuality.Exceptional)
-			DistributeBonuses((tool is BaseRunicTool ? 6 : (Core.SE ? 15 : 14)));   //BLAME OSI. (We can't confirm it's an OSI bug yet.)
+			DistributeBonuses(from, tool is BaseRunicTool ? 6 : Core.SE ? 15 : 14);
 
 		return base.OnCraft(quality, makersMark, from, craftSystem, typeRes, tool, craftItem, resHue);
 	}

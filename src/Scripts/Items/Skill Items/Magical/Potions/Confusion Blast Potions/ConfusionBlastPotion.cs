@@ -1,32 +1,31 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class ConfusionBlastPotion : BaseConfusionBlastPotion
 {
-	public class ConfusionBlastPotion : BaseConfusionBlastPotion
+	public override int Radius => 5;
+
+	public override int LabelNumber => 1072105;  // a Confusion Blast potion
+
+	[Constructable]
+	public ConfusionBlastPotion() : base(PotionEffect.ConfusionBlast)
 	{
-		public override int Radius => 5;
+	}
 
-		public override int LabelNumber => 1072105;  // a Confusion Blast potion
+	public ConfusionBlastPotion(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public ConfusionBlastPotion() : base(PotionEffect.ConfusionBlast)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public ConfusionBlastPotion(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		int version = reader.ReadInt();
 	}
 }

@@ -1,53 +1,49 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class LocalizedSign : Sign
 {
-	public class LocalizedSign : Sign
+	private int m_LabelNumber;
+
+	public override int LabelNumber => m_LabelNumber;
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int Number { get => m_LabelNumber; set { m_LabelNumber = value; InvalidateProperties(); } }
+
+	[Constructable]
+	public LocalizedSign(SignType type, SignFacing facing, int labelNumber) : base(0xB95 + 2 * (int)type + (int)facing)
 	{
-		private int m_LabelNumber;
+		m_LabelNumber = labelNumber;
+	}
 
-		public override int LabelNumber => m_LabelNumber;
+	[Constructable]
+	public LocalizedSign(int itemId, int labelNumber) : base(itemId)
+	{
+		m_LabelNumber = labelNumber;
+	}
 
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int Number { get => m_LabelNumber; set { m_LabelNumber = value; InvalidateProperties(); } }
+	public LocalizedSign(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public LocalizedSign(SignType type, SignFacing facing, int labelNumber) : base((0xB95 + (2 * (int)type)) + (int)facing)
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+
+		writer.Write(m_LabelNumber);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		int version = reader.ReadInt();
+
+		m_LabelNumber = version switch
 		{
-			m_LabelNumber = labelNumber;
-		}
-
-		[Constructable]
-		public LocalizedSign(int itemID, int labelNumber) : base(itemID)
-		{
-			m_LabelNumber = labelNumber;
-		}
-
-		public LocalizedSign(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-
-			writer.Write(m_LabelNumber);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			switch (version)
-			{
-				case 0:
-					{
-						m_LabelNumber = reader.ReadInt();
-						break;
-					}
-			}
-		}
+			0 => reader.ReadInt(),
+			_ => m_LabelNumber
+		};
 	}
 }

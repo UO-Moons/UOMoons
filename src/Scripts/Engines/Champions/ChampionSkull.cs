@@ -6,13 +6,13 @@ namespace Server.Items;
 
 public sealed class ChampionSkull : BaseItem
 {
-	public static readonly ChampionSkullType[] Types = //
+	private static readonly ChampionSkullType[] Types = //
 		Enum.GetValues(typeof(ChampionSkullType))
 			.Cast<ChampionSkullType>()
 			.Where(o => o != ChampionSkullType.None)
 			.ToArray();
 
-	public static ChampionSkullType RandomType => Types[Utility.Random(Types.Length)];
+	private static ChampionSkullType RandomType => Types[Utility.Random(Types.Length)];
 
 	private ChampionSkullType m_Type;
 

@@ -60,30 +60,32 @@ public class BaseReward
 
 	public static void ApplyMods(Item item)
 	{
-		if (item == null) return;
-		//if (Core.SA && RandomItemGenerator.Enabled)
-		//{
-		//    RunicReforging.GenerateRandomItem(item, 0, 10, 850);
-		//}
-		//else
-		//{
-		int attributeCount = Utility.RandomMinMax(1, 5);
-		switch (item)
+		if (item == null)
+			return;
+
+		if (Core.SA && RandomItemGenerator.Enabled)
 		{
-			case BaseJewel jewel:
-				BaseRunicTool.ApplyAttributesTo(jewel, false, 0, attributeCount, 10, 100);
-				break;
-			case BaseWeapon weapon:
-				BaseRunicTool.ApplyAttributesTo(weapon, false, 0, attributeCount, 10, 100);
-				break;
-			default:
+		    RunicReforging.GenerateRandomItem(item, 0, 10, 850);
+		}
+		else
+		{
+			int attributeCount = Utility.RandomMinMax(1, 5);
+			switch (item)
 			{
-				if (item is BaseArmor armor)
-					BaseRunicTool.ApplyAttributesTo(armor, false, 0, attributeCount, 10, 100);
-				break;
+				case BaseJewel jewel:
+					BaseRunicTool.ApplyAttributesTo(jewel, false, 0, attributeCount, 10, 100);
+					break;
+				case BaseWeapon weapon:
+					BaseRunicTool.ApplyAttributesTo(weapon, false, 0, attributeCount, 10, 100);
+					break;
+				default:
+				{
+					if (item is BaseArmor armor)
+						BaseRunicTool.ApplyAttributesTo(armor, false, 0, attributeCount, 10, 100);
+					break;
+				}
 			}
 		}
-		// }
 	}
 
 	public static Item Jewlery()

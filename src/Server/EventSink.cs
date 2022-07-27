@@ -579,6 +579,40 @@ public class OnEnterRegionEventArgs : EventArgs
 	public Region NewRegion { get; }
 }
 
+public class TargetedSpellEventArgs : EventArgs
+{
+	private readonly Mobile m_Mobile;
+	private readonly IEntity m_Target;
+	private readonly short m_SpellID;
+
+	public Mobile Mobile => m_Mobile;
+	public IEntity Target => m_Target;
+	public short SpellID => m_SpellID;
+
+	public TargetedSpellEventArgs(Mobile m, IEntity target, short spellID)
+	{
+		m_Mobile = m;
+		m_Target = target;
+		m_SpellID = spellID;
+	}
+}
+
+public class OnConsumeEventArgs : EventArgs
+{
+	public OnConsumeEventArgs(Mobile consumer, Item consumed, int quantity = 1)
+	{
+		Consumer = consumer;
+		Consumed = consumed;
+		Quantity = quantity;
+	}
+
+	private Mobile Consumer { get; }
+
+	private Item Consumed { get; }
+
+	private int Quantity { get; }
+}
+
 public static partial class EventSink
 {
 	//Server
@@ -829,6 +863,11 @@ public static partial class EventSink
 	{
 		ContainerDroppedTo?.Invoke(e);
 	}
+	public static event Action<OnConsumeEventArgs> OnConsume;
+	public static void InvokeOnConsume(OnConsumeEventArgs e)
+	{
+		OnConsume?.Invoke(e);
+	}
 
 	//Skill
 	public static event Action<Mobile, IEntity, int> OnTargetedSkillUse;
@@ -872,6 +911,12 @@ public static partial class EventSink
 	public static void InvokeCastSpellRequest(Mobile m, int spellId, ISpellbook book)
 	{
 		OnCastSpellRequest?.Invoke(m, spellId, book);
+	}
+
+	public static event Action<TargetedSpellEventArgs> TargetedSpell;
+	public static void InvokeTargetedSpell(TargetedSpellEventArgs e)
+	{
+		TargetedSpell?.Invoke(e);
 	}
 
 	//Guild

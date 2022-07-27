@@ -16,7 +16,7 @@ public class JewelryBoxGump : Gump
 
 	private const int LabelColor = 0x7FFF;
 
-	public bool CheckFilter(Item item)
+	private bool CheckFilter(Item item)
 	{
 		JewelryBoxFilter f = _mBox.Filter;
 
@@ -51,12 +51,12 @@ public class JewelryBoxGump : Gump
 		return false;
 	}
 
-	public static int GetPageCount(int count)
+	private static int GetPageCount(int count)
 	{
 		return (count + 49) / 50;
 	}
 
-	public int GetIndexForPage(int page)
+	private int GetIndexForPage(int page)
 	{
 		int index = 0;
 
@@ -66,7 +66,7 @@ public class JewelryBoxGump : Gump
 		return index;
 	}
 
-	public int GetCountForIndex(int index)
+	private int GetCountForIndex(int index)
 	{
 		int slots = 0;
 		int count = 0;
@@ -77,7 +77,7 @@ public class JewelryBoxGump : Gump
 
 			if (CheckFilter(recipe))
 			{
-				var add = 1;
+				const int add = 1;
 
 				if (slots + add > 50)
 					break;
@@ -91,12 +91,7 @@ public class JewelryBoxGump : Gump
 		return count;
 	}
 
-	public JewelryBoxGump(Mobile from, JewelryBox box)
-		: this(from, box, 0)
-	{
-	}
-
-	public JewelryBoxGump(Mobile from, JewelryBox box, int page)
+	public JewelryBoxGump(Mobile from, JewelryBox box, int page = 0)
 		: base(100, 100)
 	{
 		from.CloseGump(typeof(JewelryBoxGump));

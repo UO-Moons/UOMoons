@@ -12,7 +12,7 @@ using Server.Targeting;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
+    public sealed partial class CoreAi : BaseAI
 	{
         private DateTime m_NextCastTime;
         private DateTime m_NextHealTime;
@@ -21,7 +21,7 @@ namespace Server.Mobiles
         private DateTime m_NextPetCommand;
 
         #region canuse
-        public virtual bool IsSmart
+        public bool IsSmart
         {
             get
             {
@@ -29,7 +29,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseBard
+        public bool CanUseBard
         {
             get
             {
@@ -37,7 +37,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseBushido
+        public bool CanUseBushido
         {
             get
             {
@@ -45,7 +45,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseChivalry
+        public bool CanUseChivalry
         {
             get
             {
@@ -53,7 +53,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseMagery
+        public bool CanUseMagery
         {
             get
             {
@@ -61,7 +61,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseNecromancy
+        public bool CanUseNecromancy
         {
             get
             {
@@ -69,7 +69,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseNinjitsu
+        public bool CanUseNinjitsu
         {
             get
             {
@@ -77,7 +77,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseSpellweaving
+        public bool CanUseSpellweaving
         {
             get
             {
@@ -85,7 +85,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool CanUseMystic
+        public bool CanUseMystic
         {
             get
             {
@@ -93,7 +93,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool SwapWeapons
+        public bool SwapWeapons
         {
             get
             {
@@ -101,7 +101,7 @@ namespace Server.Mobiles
             }
         }
 
-        public virtual bool Melees
+        public bool Melees
         {
             get
             {
@@ -128,7 +128,7 @@ namespace Server.Mobiles
                 }
             }
         }
-        public virtual bool ForceMelee
+        public bool ForceMelee
         {
             get
             {
@@ -137,7 +137,7 @@ namespace Server.Mobiles
         }
         #endregion
 
-        public CoreAI(BaseCreature m)
+        public CoreAi(BaseCreature m)
             : base(m)
         {
         }

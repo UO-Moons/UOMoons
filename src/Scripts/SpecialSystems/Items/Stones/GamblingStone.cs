@@ -1,57 +1,60 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class GamblingStone : BaseItem
 {
-	public class GamblingStone : BaseItem
+	private int m_GamblePot = 2500;
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int GamblePot
 	{
-		private int m_GamblePot = 2500;
-
-		[CommandProperty(AccessLevel.GameMaster)]
-		public int GamblePot
+		get => m_GamblePot;
+		set
 		{
-			get => m_GamblePot;
-			set
+			m_GamblePot = value;
+			InvalidateProperties();
+		}
+	}
+
+	public override string DefaultName => "a gambling stone";
+
+	[Constructable]
+	public GamblingStone()
+		: base(0xED4)
+	{
+		Movable = false;
+		Hue = 0x56;
+	}
+
+	public override void GetProperties(ObjectPropertyList list)
+	{
+		base.GetProperties(list);
+
+		list.Add("Jackpot: {0}gp", m_GamblePot);
+	}
+
+	public override void OnSingleClick(Mobile from)
+	{
+		base.OnSingleClick(from);
+		LabelTo(from, "Jackpot: {0}gp", m_GamblePot);
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		Container pack = from.Backpack;
+
+		if (pack != null && pack.ConsumeTotal(typeof(Gold), 250))
+		{
+			m_GamblePot += 150;
+			InvalidateProperties();
+
+			int roll = Utility.Random(1200);
+
+			switch (roll)
 			{
-				m_GamblePot = value;
-				InvalidateProperties();
-			}
-		}
-
-		public override string DefaultName => "a gambling stone";
-
-		[Constructable]
-		public GamblingStone()
-			: base(0xED4)
-		{
-			Movable = false;
-			Hue = 0x56;
-		}
-
-		public override void GetProperties(ObjectPropertyList list)
-		{
-			base.GetProperties(list);
-
-			list.Add("Jackpot: {0}gp", m_GamblePot);
-		}
-
-		public override void OnSingleClick(Mobile from)
-		{
-			base.OnSingleClick(from);
-			base.LabelTo(from, "Jackpot: {0}gp", m_GamblePot);
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			Container pack = from.Backpack;
-
-			if (pack != null && pack.ConsumeTotal(typeof(Gold), 250))
-			{
-				m_GamblePot += 150;
-				InvalidateProperties();
-
-				int roll = Utility.Random(1200);
-
-				if (roll == 0) // Jackpot
+				// Jackpot
+				case 0:
 				{
-					int maxCheck = 1000000;
+					const int maxCheck = 1000000;
 
 					from.SendMessage(0x35, "You win the {0}gp jackpot!", m_GamblePot);
 
@@ -65,62 +68,57 @@ namespace Server.Items
 					from.AddToBackpack(new BankCheck(m_GamblePot));
 
 					m_GamblePot = 2500;
+					break;
 				}
-				else if (roll <= 20) // Chance for a regbag
-				{
+				// Chance for a regbag
+				case <= 20:
 					from.SendMessage(0x35, "You win a bag of reagents!");
 					from.AddToBackpack(new BagOfReagents(50));
-				}
-				else if (roll <= 40) // Chance for gold
-				{
+					break;
+				// Chance for gold
+				case <= 40:
 					from.SendMessage(0x35, "You win 1500gp!");
 					from.AddToBackpack(new BankCheck(1500));
-				}
-				else if (roll <= 100) // Another chance for gold
-				{
+					break;
+				// Another chance for gold
+				case <= 100:
 					from.SendMessage(0x35, "You win 1000gp!");
 					from.AddToBackpack(new BankCheck(1000));
-				}
-				else // Loser!
-				{
+					break;
+				// Loser!
+				default:
 					from.SendMessage(0x22, "You lose!");
-				}
-			}
-			else
-			{
-				from.SendMessage(0x22, "You need at least 250gp in your backpack to use this.");
+					break;
 			}
 		}
-
-		public GamblingStone(Serial serial)
-			: base(serial)
+		else
 		{
+			from.SendMessage(0x22, "You need at least 250gp in your backpack to use this.");
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
+	public GamblingStone(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+		writer.Write(m_GamblePot);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		int version = reader.ReadInt();
+
+		m_GamblePot = version switch
 		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write(m_GamblePot);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			switch (version)
-			{
-				case 0:
-					{
-						m_GamblePot = reader.ReadInt();
-
-						break;
-					}
-			}
-		}
+			0 => reader.ReadInt(),
+			_ => m_GamblePot
+		};
 	}
 }

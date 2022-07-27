@@ -46,7 +46,7 @@ public class BaseChain
 
 	static BaseChain()
 	{
-		Chains = Core.ML ? new Type[21][] : new Type[30][];
+		Chains = Core.ML ? new Type[21][] : Core.SA ? new Type[22][] : new Type[30][];		
 
 		Chains[(int)QuestChain.None] = Array.Empty<Type>();
 		if (Core.ML)
@@ -70,22 +70,25 @@ public class BaseChain
 			Chains[(int)QuestChain.KingVernixQuests] = new Type[] { };
 			Chains[(int)QuestChain.DoughtyWarriors] = new[] { typeof(DoughtyWarriorsQuest), typeof(DoughtyWarriors2Quest), typeof(DoughtyWarriors3Quest) };
 			Chains[(int)QuestChain.HonorOfDeBoors] = new[] { typeof(HonorOfDeBoorsQuest), typeof(JackTheVillainQuest), typeof(SavedHonorQuest) };
-			//Chains[(int)QuestChain.LaifemTheWeaver] = new Type[] { typeof(ShearingKnowledgeQuest), typeof(WeavingFriendshipsQuest), typeof(NewSpinQuest), };
 			Chains[(int)QuestChain.CloakOfHumility] = new[] { typeof(TheQuestionsQuest), typeof(CommunityServiceMuseumQuest), typeof(CommunityServiceZooQuest), typeof(CommunityServiceLibraryQuest), typeof(WhosMostHumbleQuest) };
 		}
 
-		if(Core.SA)
+		if (Core.SA)
 		{
-			/*Chains[(int)QuestChain.ValleyOfOne] = new Type[] { typeof(TimeIsOfTheEssenceQuest), typeof(UnitingTheTribesQuest) };
-			Chains[(int)QuestChain.MyrmidexAlliance] = new Type[] { typeof(TheZealotryOfZipactriotlQuest), typeof(DestructionOfZipactriotlQuest) };
-			Chains[(int)QuestChain.EodonianAlliance] = new Type[] { typeof(ExterminatingTheInfestationQuest), typeof(InsecticideAndRegicideQuest) };
-			Chains[(int)QuestChain.FlintTheQuartermaster] = new Type[] { typeof(ThievesBeAfootQuest), typeof(BibliophileQuest) };
-			Chains[(int)QuestChain.AnimalTraining] = new Type[] { typeof(TamingPetQuest), typeof(UsingAnimalLoreQuest), typeof(LeadingIntoBattleQuest), typeof(TeachingSomethingNewQuest) };
-			Chains[(int)QuestChain.PaladinsOfTrinsic] = new Type[] { typeof(PaladinsOfTrinsic), typeof(PaladinsOfTrinsic2) };
-			Chains[(int)QuestChain.RightingWrong] = new Type[] { typeof(RightingWrongQuest2), typeof(RightingWrongQuest3), typeof(RightingWrongQuest4) };
-			Chains[(int)QuestChain.Ritual] = new Type[] { typeof(ScalesOfADreamSerpentQuest), typeof(TearsOfASoulbinderQuest), typeof(PristineCrystalLotusQuest) };
-			SA AND UP Qeests*/
+			Chains[(int)QuestChain.FlintTheQuartermaster] =new[] { typeof(ThievesBeAfootQuest), typeof(BibliophileQuest) };
 		}
+
+		//if (Core.TOL)
+		//{
+
+			//Chains[(int)QuestChain.ValleyOfOne] = new Type[] { typeof(TimeIsOfTheEssenceQuest), typeof(UnitingTheTribesQuest) };
+			//Chains[(int)QuestChain.MyrmidexAlliance] = new Type[] { typeof(TheZealotryOfZipactriotlQuest), typeof(DestructionOfZipactriotlQuest) };
+			//Chains[(int)QuestChain.EodonianAlliance] = new Type[] { typeof(ExterminatingTheInfestationQuest), typeof(InsecticideAndRegicideQuest) };
+			//Chains[(int)QuestChain.AnimalTraining] = new Type[] { typeof(TamingPetQuest), typeof(UsingAnimalLoreQuest), typeof(LeadingIntoBattleQuest), typeof(TeachingSomethingNewQuest) };
+			//Chains[(int)QuestChain.PaladinsOfTrinsic] = new Type[] { typeof(PaladinsOfTrinsic), typeof(PaladinsOfTrinsic2) };
+			//Chains[(int)QuestChain.RightingWrong] = new Type[] { typeof(RightingWrongQuest2), typeof(RightingWrongQuest3), typeof(RightingWrongQuest4) };
+			//Chains[(int)QuestChain.Ritual] = new Type[] { typeof(ScalesOfADreamSerpentQuest), typeof(TearsOfASoulbinderQuest), typeof(PristineCrystalLotusQuest) };
+		//}
 	}
 
 	public Type CurrentQuest { get; set; }

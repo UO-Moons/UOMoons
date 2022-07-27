@@ -8,20 +8,20 @@ public class HealingStone : BaseItem
 	private Timer _timer;
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public Mobile Caster { get; private set; }
+	private Mobile Caster { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int LifeForce { get => _lifeForce;
+	private int LifeForce { get => _lifeForce;
 		set { _lifeForce = value; InvalidateProperties(); } }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int MaxLifeForce { get; private set; }
+	private int MaxLifeForce { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int MaxHeal { get; private set; }
+	private int MaxHeal { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int MaxHealTotal { get; private set; }
+	private int MaxHealTotal { get; set; }
 
 	public override bool Nontransferable => true;
 
@@ -118,16 +118,16 @@ public class HealingStone : BaseItem
 			from.SendLocalizedMessage(1095172); // You must wait a few seconds before using another Healing Stone.
 	}
 
-	public void OnTick()
+	private void OnTick()
 	{
-		if (MaxHeal < MaxHealTotal)
-		{
-			int maxToHeal = MaxHealTotal - MaxHeal;
-			MaxHeal += Math.Min(maxToHeal, MaxHealTotal / 15);
+		if (MaxHeal >= MaxHealTotal)
+			return;
 
-			if (MaxHeal > MaxHealTotal)
-				MaxHeal = MaxHealTotal;
-		}
+		int maxToHeal = MaxHealTotal - MaxHeal;
+		MaxHeal += Math.Min(maxToHeal, MaxHealTotal / 15);
+
+		if (MaxHeal > MaxHealTotal)
+			MaxHeal = MaxHealTotal;
 	}
 
 	private class InternalTimer : Timer

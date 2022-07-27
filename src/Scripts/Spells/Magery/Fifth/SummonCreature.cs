@@ -23,8 +23,7 @@ public class SummonCreatureSpell : MagerySpell
 
 	// NOTE: Creature list based on 1hr of summon/release on OSI.
 
-	private static readonly Type[] m_Types = new[]
-	{
+	private static readonly Type[] m_Types = {
 		typeof( PolarBear ),
 		typeof( GrizzlyBear ),
 		typeof( BlackBear ),
@@ -50,13 +49,12 @@ public class SummonCreatureSpell : MagerySpell
 		if (!base.CheckCast())
 			return false;
 
-		if ((Caster.Followers + 2) > Caster.FollowersMax)
-		{
-			Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
-			return false;
-		}
+		if (Caster.Followers + 2 <= Caster.FollowersMax)
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
+		return false;
+
 	}
 
 	public override void OnCast()
@@ -69,7 +67,7 @@ public class SummonCreatureSpell : MagerySpell
 
 				//creature.ControlSlots = 2;
 
-				var duration = Core.AOS ? TimeSpan.FromSeconds((2 * Caster.Skills.Magery.Fixed) / 5) : TimeSpan.FromSeconds(4.0 * Caster.Skills[SkillName.Magery].Value);
+				var duration = Core.AOS ? TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5.0) : TimeSpan.FromSeconds(4.0 * Caster.Skills[SkillName.Magery].Value);
 
 				SpellHelper.Summon(creature, Caster, 0x215, duration, false, false);
 			}

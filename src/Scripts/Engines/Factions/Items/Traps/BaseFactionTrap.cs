@@ -50,7 +50,7 @@ namespace Server.Factions
 			}
 		}
 
-		public override void OnTrigger(Mobile from)
+		protected override void OnTrigger(Mobile from)
 		{
 			if (!IsEnemy(from))
 				return;

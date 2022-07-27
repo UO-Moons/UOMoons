@@ -46,7 +46,7 @@ public class StrengthSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

@@ -80,7 +80,7 @@ public class ChampionSkullPlatform : BaseAddon
 		Clear(_mDeath);
 	}
 
-	public static void Clear(ChampionSkullBrazier brazier)
+	private static void Clear(ChampionSkullBrazier brazier)
 	{
 		if (brazier == null)
 			return;
@@ -90,7 +90,7 @@ public class ChampionSkullPlatform : BaseAddon
 		brazier.Skull?.Delete();
 	}
 
-	public static bool Validate(ChampionSkullBrazier brazier)
+	private static bool Validate(ChampionSkullBrazier brazier)
 	{
 		return brazier?.Skull != null && !brazier.Skull.Deleted;
 	}

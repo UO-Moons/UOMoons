@@ -13,7 +13,7 @@ namespace Server.Mobiles
 			Name = "Grobu";
 			Hue = 0x455;
 
-			AI = AIType.AI_Melee;
+			Ai = AIType.AI_Melee;
 			FightMode = FightMode.Closest;
 
 			SetStr(192, 210);

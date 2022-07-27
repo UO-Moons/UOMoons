@@ -18,7 +18,7 @@ public class BaseEscort : MondainQuester
 
 	public BaseEscort()
 	{
-		AI = AIType.AI_Melee;
+		Ai = AIType.AI_Melee;
 		FightMode = FightMode.Aggressor;
 		RangePerception = 22;
 		RangeFight = 1;

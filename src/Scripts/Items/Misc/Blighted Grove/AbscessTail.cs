@@ -1,33 +1,31 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class AbscessTail : BaseItem
 {
-	public class AbscessTail : BaseItem
+	public override int LabelNumber => 1074231;  // Abscess' Tail
+
+	[Constructable]
+	public AbscessTail() : base(0x1A9D)
 	{
-		public override int LabelNumber => 1074231;  // Abscess' Tail
+		LootType = LootType.Blessed;
+		Hue = 0x51D; // TODO check
+	}
 
-		[Constructable]
-		public AbscessTail() : base(0x1A9D)
-		{
-			LootType = LootType.Blessed;
-			Hue = 0x51D; // TODO check
-		}
+	public AbscessTail(Serial serial) : base(serial)
+	{
+	}
 
-		public AbscessTail(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

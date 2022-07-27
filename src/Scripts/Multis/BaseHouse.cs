@@ -1685,7 +1685,7 @@ namespace Server.Multis
 
 		public BaseDoor AddEastDoor(bool wood, int x, int y, int z)
 		{
-			BaseDoor door = MakeDoor(wood, DoorFacing.SouthCW);
+			BaseDoor door = MakeDoor(wood, DoorFacing.SouthCw);
 
 			AddDoor(door, x, y, z);
 
@@ -1699,7 +1699,7 @@ namespace Server.Multis
 
 		public BaseDoor AddSouthDoor(bool wood, int x, int y, int z)
 		{
-			BaseDoor door = MakeDoor(wood, DoorFacing.WestCW);
+			BaseDoor door = MakeDoor(wood, DoorFacing.WestCw);
 
 			AddDoor(door, x, y, z);
 
@@ -1713,7 +1713,7 @@ namespace Server.Multis
 
 		public BaseDoor AddEastDoor(bool wood, int x, int y, int z, uint k)
 		{
-			BaseDoor door = MakeDoor(wood, DoorFacing.SouthCW);
+			BaseDoor door = MakeDoor(wood, DoorFacing.SouthCw);
 
 			door.Locked = true;
 			door.KeyValue = k;
@@ -1730,7 +1730,7 @@ namespace Server.Multis
 
 		public BaseDoor AddSouthDoor(bool wood, int x, int y, int z, uint k)
 		{
-			BaseDoor door = MakeDoor(wood, DoorFacing.WestCW);
+			BaseDoor door = MakeDoor(wood, DoorFacing.WestCw);
 
 			door.Locked = true;
 			door.KeyValue = k;
@@ -1747,8 +1747,8 @@ namespace Server.Multis
 
 		public BaseDoor[] AddSouthDoors(bool wood, int x, int y, int z, uint k)
 		{
-			BaseDoor westDoor = MakeDoor(wood, DoorFacing.WestCW);
-			BaseDoor eastDoor = MakeDoor(wood, DoorFacing.EastCCW);
+			BaseDoor westDoor = MakeDoor(wood, DoorFacing.WestCw);
+			BaseDoor eastDoor = MakeDoor(wood, DoorFacing.EastCcw);
 
 			westDoor.Locked = true;
 			eastDoor.Locked = true;
@@ -1768,8 +1768,8 @@ namespace Server.Multis
 		protected static void ConvertDoor(BaseDoor door, int closedID, bool invert)
 		{
 			door.ItemId = closedID;
-			door.ClosedID = closedID;
-			door.OpenedID = closedID + 1;
+			door.ClosedId = closedID;
+			door.OpenedId = closedID + 1;
 		}
 
 		protected BaseDoor AddDoor(int itemID, int xOffset, int yOffset, int zOffset)
@@ -1853,13 +1853,13 @@ namespace Server.Multis
 			else if (itemID >= 0x241F && itemID < 0x2421)
 			{
 				//DoorFacing facing = (DoorFacing)(((itemID - 0x241F) / 2) % 8);
-				door = new GenericHouseDoor(DoorFacing.NorthCCW, 0x2415, -1, -1);
+				door = new GenericHouseDoor(DoorFacing.NorthCcw, 0x2415, -1, -1);
 			}
 			else if (itemID >= 0x2423 && itemID < 0x2425)
 			{
 				//DoorFacing facing = (DoorFacing)(((itemID - 0x241F) / 2) % 8);
 				//This one and the above one are 'special' cases, ie: OSI had the ItemID pattern discombobulated for these
-				door = new GenericHouseDoor(DoorFacing.WestCW, 0x2423, -1, -1);
+				door = new GenericHouseDoor(DoorFacing.WestCw, 0x2423, -1, -1);
 			}
 			else if (itemID >= 0x2A05 && itemID < 0x2A1D)
 			{
@@ -1871,16 +1871,16 @@ namespace Server.Multis
 			}
 			else if (itemID == 0x2D46)
 			{
-				door = new GenericHouseDoor(DoorFacing.NorthCW, 0x2D46, 0xEA, 0xF1, false);
+				door = new GenericHouseDoor(DoorFacing.NorthCw, 0x2D46, 0xEA, 0xF1, false);
 			}
 			else if (itemID == 0x2D48 || itemID == 0x2FE2)
 			{
-				door = new GenericHouseDoor(DoorFacing.SouthCCW, itemID, 0xEA, 0xF1, false);
+				door = new GenericHouseDoor(DoorFacing.SouthCcw, itemID, 0xEA, 0xF1, false);
 			}
 			else if (itemID >= 0x2D63 && itemID < 0x2D70)
 			{
 				int mod = (itemID - 0x2D63) / 2 % 2;
-				DoorFacing facing = ((mod == 0) ? DoorFacing.SouthCCW : DoorFacing.WestCCW);
+				DoorFacing facing = ((mod == 0) ? DoorFacing.SouthCcw : DoorFacing.WestCcw);
 
 				int type = (itemID - 0x2D63) / 4;
 
@@ -1888,7 +1888,7 @@ namespace Server.Multis
 			}
 			else if (itemID == 0x2FE4 || itemID == 0x31AE)
 			{
-				door = new GenericHouseDoor(DoorFacing.WestCCW, itemID, 0xEA, 0xF1, false);
+				door = new GenericHouseDoor(DoorFacing.WestCcw, itemID, 0xEA, 0xF1, false);
 			}
 			else if (itemID >= 0x319C && itemID < 0x31AE)
 			{
@@ -1901,11 +1901,11 @@ namespace Server.Multis
 
 				if (itemID == 0x31AA || itemID == 0x31A8)
 				{
-					facing = ((mod == 0) ? DoorFacing.NorthCW : DoorFacing.EastCW);
+					facing = ((mod == 0) ? DoorFacing.NorthCw : DoorFacing.EastCw);
 				}
 				else
 				{
-					facing = ((mod == 0) ? DoorFacing.EastCW : DoorFacing.NorthCW);
+					facing = ((mod == 0) ? DoorFacing.EastCw : DoorFacing.NorthCw);
 				}
 
 				int type = (itemID - 0x319C) / 4;
@@ -2044,8 +2044,8 @@ namespace Server.Multis
 
 		public BaseDoor[] AddSouthDoors(bool wood, int x, int y, int z, bool inv)
 		{
-			BaseDoor westDoor = MakeDoor(wood, inv ? DoorFacing.WestCCW : DoorFacing.WestCW);
-			BaseDoor eastDoor = MakeDoor(wood, inv ? DoorFacing.EastCW : DoorFacing.EastCCW);
+			BaseDoor westDoor = MakeDoor(wood, inv ? DoorFacing.WestCcw : DoorFacing.WestCw);
+			BaseDoor eastDoor = MakeDoor(wood, inv ? DoorFacing.EastCw : DoorFacing.EastCcw);
 
 			westDoor.Link = eastDoor;
 			eastDoor.Link = westDoor;

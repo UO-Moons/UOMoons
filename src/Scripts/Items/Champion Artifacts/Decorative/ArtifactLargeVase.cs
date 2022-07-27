@@ -20,6 +20,6 @@ public class ArtifactLargeVase : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 }

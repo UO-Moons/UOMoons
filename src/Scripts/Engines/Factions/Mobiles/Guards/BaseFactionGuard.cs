@@ -44,7 +44,7 @@ namespace Server.Factions
 
 		public abstract GuardAI GuardAI { get; }
 
-		protected override BaseAI ForcedAI => new FactionGuardAI(this);
+		protected override BaseAI ForcedAi => new FactionGuardAI(this);
 
 		public override TimeSpan ReacquireDelay => TimeSpan.FromSeconds(2.0);
 

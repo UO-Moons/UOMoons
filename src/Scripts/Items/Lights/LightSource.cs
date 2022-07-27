@@ -1,28 +1,27 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class LightSource : BaseItem
 {
-	public class LightSource : BaseItem
+	[Constructable]
+	public LightSource() : base(0x1647)
 	{
-		[Constructable]
-		public LightSource() : base(0x1647)
-		{
-			Layer = Layer.TwoHanded;
-			Movable = false;
-		}
+		Layer = Layer.TwoHanded;
+		Movable = false;
+	}
 
-		public LightSource(Serial serial) : base(serial)
-		{
-		}
+	public LightSource(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

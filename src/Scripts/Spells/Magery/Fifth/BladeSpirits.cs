@@ -36,13 +36,12 @@ public class BladeSpiritsSpell : MagerySpell
 		if (!base.CheckCast())
 			return false;
 
-		if (Caster.Followers + (Core.SE ? 2 : 1) > Caster.FollowersMax)
-		{
-			Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
-			return false;
-		}
+		if (Caster.Followers + (Core.SE ? 2 : 1) <= Caster.FollowersMax)
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
+		return false;
+
 	}
 
 	public override void OnCast()
@@ -60,7 +59,7 @@ public class BladeSpiritsSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (p is not null)
 		{

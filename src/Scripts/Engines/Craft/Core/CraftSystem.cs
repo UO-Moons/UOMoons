@@ -34,6 +34,38 @@ public abstract class CraftSystem
 
 	private readonly Dictionary<Mobile, CraftContext> _mContextTable = new();
 
+	#region Static Methods
+	public static CraftSystem GetSystem(Type type, bool subClass = false)
+	{
+		CraftSystem sys = null;
+
+		for (int i = 0; i < Systems.Count; i++)
+		{
+			var system = Systems[i];
+
+			if (system.CraftItems == null)
+			{
+				continue;
+			}
+
+			CraftItem crItem = system.CraftItems.SearchFor(type);
+
+			if (crItem == null && subClass)
+			{
+				crItem = system.CraftItems.SearchForSubclass(type);
+			}
+
+			if (crItem != null)
+			{
+				sys = system;
+				break;
+			}
+		}
+
+		return sys;
+	}
+	#endregion
+
 	public abstract double GetChanceAtMin(CraftItem item);
 
 	public virtual bool RetainsColorFrom(CraftItem item, Type type)

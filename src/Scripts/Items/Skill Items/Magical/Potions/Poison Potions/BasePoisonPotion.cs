@@ -1,47 +1,46 @@
-namespace Server.Items
+namespace Server.Items;
+
+public abstract class BasePoisonPotion : BasePotion
 {
-	public abstract class BasePoisonPotion : BasePotion
+	public abstract Poison Poison { get; }
+
+	public abstract double MinPoisoningSkill { get; }
+	public abstract double MaxPoisoningSkill { get; }
+
+	public BasePoisonPotion(PotionEffect effect) : base(0xF0A, effect)
 	{
-		public abstract Poison Poison { get; }
+	}
 
-		public abstract double MinPoisoningSkill { get; }
-		public abstract double MaxPoisoningSkill { get; }
+	public BasePoisonPotion(Serial serial) : base(serial)
+	{
+	}
 
-		public BasePoisonPotion(PotionEffect effect) : base(0xF0A, effect)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public BasePoisonPotion(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
+		reader.ReadInt();
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public void DoPoison(Mobile from)
+	{
+		from.ApplyPoison(from, Poison);
+	}
 
-			reader.ReadInt();
-		}
+	public override void Drink(Mobile from)
+	{
+		DoPoison(from);
 
-		public void DoPoison(Mobile from)
-		{
-			from.ApplyPoison(from, Poison);
-		}
+		PlayDrinkEffect(from);
 
-		public override void Drink(Mobile from)
-		{
-			DoPoison(from);
-
-			PlayDrinkEffect(from);
-
-			if (!Engines.ConPVP.DuelContext.IsFreeConsume(from))
-				Consume();
-		}
+		if (!Engines.ConPVP.DuelContext.IsFreeConsume(from))
+			Consume();
 	}
 }

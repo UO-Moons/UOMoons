@@ -37,7 +37,7 @@ public interface IComunityCollection
 	long PreviousTier { get; }
 	long StartTier { get; set; }
 	long NextTier { get; set; }
-	long DailyDecay { get; set; }
+	long DailyDecay { get; }
 	int Tier { get; }
 	int MaxTier { get; }
 	List<CollectionItem> Donations { get; }

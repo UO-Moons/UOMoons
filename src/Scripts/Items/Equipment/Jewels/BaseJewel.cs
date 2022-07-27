@@ -2,24 +2,70 @@ using Server.Engines.Craft;
 using Server.Engines.XmlSpawner2;
 using Server.Factions;
 using System;
+using Server.Accounting;
+using Server.Misc;
 
 namespace Server.Items;
 
-public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFactionItem, IResource, ISetItem
+public abstract class BaseJewel : BaseEquipment, ISetItem, IWearableDurability, IScissorable, ICraftable, IFactionItem, IResource, ITalismanProtection, IArtifact, ICombatEquipment
 {
 	private static readonly bool UseNewHits = true;
 	private int m_MaxHitPoints;
 	private int m_HitPoints;
 	private AosElementAttributes m_AosResistances;
 	private AosSkillBonuses m_AosSkillBonuses;
+	private SAAbsorptionAttributes m_SAAbsorptionAttributes;
+	private NegativeAttributes m_NegativeAttributes;
 	private TalismanAttribute m_TalismanProtection;
 	private GemType m_GemType;
+	private ItemPower m_ItemPower;
+	private ReforgedPrefix m_ReforgedPrefix;
+	private ReforgedSuffix m_ReforgedSuffix;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public TalismanAttribute Protection
 	{
 		get => m_TalismanProtection;
 		set { m_TalismanProtection = value; InvalidateProperties(); }
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public SAAbsorptionAttributes AbsorptionAttributes
+	{
+		get => m_SAAbsorptionAttributes;
+		set
+		{
+		}
+	}
+
+	[CommandProperty(AccessLevel.Player)]
+	public NegativeAttributes NegativeAttributes
+	{
+		get => m_NegativeAttributes;
+		set
+		{
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public ReforgedPrefix ReforgedPrefix
+	{
+		get => m_ReforgedPrefix;
+		set { m_ReforgedPrefix = value; InvalidateProperties(); }
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public ReforgedSuffix ReforgedSuffix
+	{
+		get => m_ReforgedSuffix;
+		set { m_ReforgedSuffix = value; InvalidateProperties(); }
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public ItemPower ItemPower
+	{
+		get => m_ItemPower;
+		set { m_ItemPower = value; InvalidateProperties(); }
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
@@ -107,6 +153,8 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 			jewel.m_TalismanProtection = new TalismanAttribute(m_TalismanProtection);
 			jewel.m_SetAttributes = new AosAttributes(newItem, m_SetAttributes);
 			jewel.m_SetSkillBonuses = new AosSkillBonuses(newItem, m_SetSkillBonuses);
+			jewel.m_SAAbsorptionAttributes = new SAAbsorptionAttributes(newItem, m_SAAbsorptionAttributes);
+			jewel.m_NegativeAttributes = new NegativeAttributes(newItem, m_NegativeAttributes);
 		}
 	}
 
@@ -119,6 +167,8 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		m_AosSkillBonuses = new AosSkillBonuses(this);
 		m_SetAttributes = new AosAttributes(this);
 		m_SetSkillBonuses = new AosSkillBonuses(this);
+		m_SAAbsorptionAttributes = new SAAbsorptionAttributes(this);
+		m_NegativeAttributes = new NegativeAttributes(this);
 		m_TalismanProtection = new TalismanAttribute();
 		base.Resource = DefaultResource;
 		m_GemType = GemType.None;
@@ -129,6 +179,104 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		else
 			m_HitPoints = m_MaxHitPoints = Utility.RandomMinMax(InitMinHits, InitMaxHits);
 	}
+
+	#region Stygian Abyss
+	public override bool CanEquip(Mobile from)
+	{
+		//if (BlessedBy != null && BlessedBy != from)
+		//{
+		//	from.SendLocalizedMessage(1075277); // That item is blessed by another player.
+		//	return false;
+		//}
+
+		if (from.IsPlayer())
+		{
+			if (Owner != null && Owner != from)
+			{
+				from.SendLocalizedMessage(501023); // You must be the owner to use this item.
+				return false;
+			}
+
+			if (this is IAccountRestricted { Account: { } } restricted)
+			{
+				if (from.Account is not Account acct || acct.Username != restricted.Account)
+				{
+					from.SendLocalizedMessage(1071296); // This item is Account Bound and your character is not bound to it. You cannot use this item.
+					return false;
+				}
+			}
+
+			//if (IsVvVItem && !Engines.VvV.ViceVsVirtueSystem.IsVvV(from))
+			//{
+			//	from.SendLocalizedMessage(1155496); // This item can only be used by VvV participants!
+			//	return false;
+			//}
+		}
+
+		if (from.IsPlayer() && !RaceDefinitions.ValidateEquipment(from, this))
+		{
+			return false;
+		}
+
+		return base.CanEquip(from);
+	}
+
+	public virtual int OnHit(BaseWeapon weap, int damageTaken)
+	{
+		if (TimesImbued == 0 && m_MaxHitPoints == 0)
+			return damageTaken;
+
+		//Sanity check in-case some one has a bad state Jewel.
+		if (TimesImbued >= 1 && m_MaxHitPoints == 0)
+			return damageTaken;
+
+		double chance = NegativeAttributes.Antique > 0 ? 80 : 25;
+
+		if (chance >= Utility.Random(100)) // 25% chance to lower durability
+		{
+			int wear = 1;
+
+			if (m_HitPoints >= wear)
+			{
+				HitPoints -= wear;
+				wear = 0;
+			}
+			else
+			{
+				wear -= HitPoints;
+				HitPoints = 0;
+			}
+
+			if (wear > 0)
+			{
+				if (m_MaxHitPoints > wear)
+				{
+					MaxHitPoints -= wear;
+
+					if (Parent is Mobile mobile)
+						mobile.LocalOverheadMessage(Network.MessageType.Regular, 0x3B2, 1061121); // Your equipment is severely damaged.
+				}
+				else
+				{
+					Delete();
+				}
+			}
+		}
+
+		return damageTaken;
+	}
+
+	public virtual void UnscaleDurability()
+	{
+	}
+
+	public virtual void ScaleDurability()
+	{
+	}
+
+	public override bool CanFortify => IsImbued == false && NegativeAttributes.Antique < 4;
+	public override bool CanRepair => m_NegativeAttributes.NoRepair == 0;
+	#endregion
 
 	public override void OnAdded(IEntity parent)
 	{
@@ -214,6 +362,38 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 	{
 	}
 
+	public override void AddNameProperty(ObjectPropertyList list)
+	{
+		if (m_ReforgedPrefix != ReforgedPrefix.None || m_ReforgedSuffix != ReforgedSuffix.None)
+		{
+			if (m_ReforgedPrefix != ReforgedPrefix.None)
+			{
+				int prefix = RunicReforging.GetPrefixName(m_ReforgedPrefix);
+
+				if (m_ReforgedSuffix == ReforgedSuffix.None)
+					list.Add(1151757, $"#{prefix}\t{GetNameString()}"); // ~1_PREFIX~ ~2_ITEM~
+				else
+					list.Add(1151756,
+						$"#{prefix}\t{GetNameString()}\t#{RunicReforging.GetSuffixName(m_ReforgedSuffix)}"); // ~1_PREFIX~ ~2_ITEM~ of ~3_SUFFIX~
+			}
+			else if (m_ReforgedSuffix != ReforgedSuffix.None)
+			{
+				RunicReforging.AddSuffixName(list, m_ReforgedSuffix, GetNameString());
+			}
+		}
+		else
+		{
+			base.AddNameProperty(list);
+		}
+	}
+
+	private string GetNameString()
+	{
+		string name = Name ?? $"#{LabelNumber}";
+
+		return name;
+	}
+
 	public override void AddCraftedProperties(ObjectPropertyList list)
 	{
 		if (OwnerName != null)
@@ -230,6 +410,9 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		{
 			list.Add(1063341); // exceptional
 		}
+
+		if (IsImbued)
+			list.Add(1080418); // (Imbued)
 	}
 
 	public override void AddWeightProperty(ObjectPropertyList list)
@@ -264,20 +447,19 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		}
 		#endregion
 
+		m_NegativeAttributes.GetProperties(list, this);
 		m_AosSkillBonuses.GetProperties(list);
 
 		int prop;
 
-		#region Stygian Abyss
-		if (RequiredRace == Race.Elf)
+		if (RaceDefinitions.GetRequiredRace(this) == Race.Elf)
 		{
 			list.Add(1075086); // Elves Only
 		}
-		else if (RequiredRace == Race.Gargoyle)
+		else if (RaceDefinitions.GetRequiredRace(this) == Race.Gargoyle)
 		{
 			list.Add(1111709); // Gargoyles Only
 		}
-		#endregion
 
 		if ((prop = ArtifactRarity) > 0)
 		{
@@ -288,6 +470,42 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		{
 			list.Add(1072387, "{0}\t{1}", m_TalismanProtection.Name != null ? m_TalismanProtection.Name.ToString() : "Unknown", m_TalismanProtection.Amount); // ~1_NAME~ Protection: +~2_val~%
 		}
+
+		if ((prop = m_SAAbsorptionAttributes.EaterFire) != 0)
+			list.Add(1113593, prop.ToString()); // Fire Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.EaterCold) != 0)
+			list.Add(1113594, prop.ToString()); // Cold Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.EaterPoison) != 0)
+			list.Add(1113595, prop.ToString()); // Poison Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.EaterEnergy) != 0)
+			list.Add(1113596, prop.ToString()); // Energy Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.EaterKinetic) != 0)
+			list.Add(1113597, prop.ToString()); // Kinetic Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.EaterDamage) != 0)
+			list.Add(1113598, prop.ToString()); // Damage Eater ~1_Val~%
+
+		if ((prop = m_SAAbsorptionAttributes.ResonanceFire) != 0)
+			list.Add(1113691, prop.ToString()); // Fire Resonance ~1_val~%
+
+		if ((prop = m_SAAbsorptionAttributes.ResonanceCold) != 0)
+			list.Add(1113692, prop.ToString()); // Cold Resonance ~1_val~%
+
+		if ((prop = m_SAAbsorptionAttributes.ResonancePoison) != 0)
+			list.Add(1113693, prop.ToString()); // Poison Resonance ~1_val~%
+
+		if ((prop = m_SAAbsorptionAttributes.ResonanceEnergy) != 0)
+			list.Add(1113694, prop.ToString()); // Energy Resonance ~1_val~%
+
+		if ((prop = m_SAAbsorptionAttributes.ResonanceKinetic) != 0)
+			list.Add(1113695, prop.ToString()); // Kinetic Resonance ~1_val~%
+
+		if ((prop = m_SAAbsorptionAttributes.CastingFocus) != 0)
+			list.Add(1113696, prop.ToString()); // Casting Focus ~1_val~%
 
 		if (Attributes.SpellChanneling != 0)
 		{
@@ -418,15 +636,26 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 			list.Add(1060639, "{0}\t{1}", m_HitPoints, m_MaxHitPoints); // durability ~1_val~ / ~2_val~
 		}
 
-		if (Core.ML && IsSetItem && !m_SetEquipped)
-		{
-			list.Add(1072378); // <br>Only when full set is present:				
-			SetHelper.GetSetProperties(list, this);
-		}
+		if (!Core.ML || !IsSetItem || m_SetEquipped)
+			return;
+
+		list.Add(1072378); // <br>Only when full set is present:				
+		SetHelper.GetSetProperties(list, this);
 	}
 
 	public override void AddItemPowerProperties(ObjectPropertyList list)
 	{
+		switch (m_ItemPower)
+		{
+			case ItemPower.None:
+				return;
+			case <= ItemPower.LegendaryArtifact:
+				list.Add(1151488 + ((int)m_ItemPower - 1));
+				break;
+			default:
+				list.Add(1152281 + ((int)m_ItemPower - 9));
+				break;
+		}
 	}
 
 	public virtual void OnGemTypeChange(GemType old)
@@ -450,11 +679,25 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		};
 	}
 
+	public override bool DropToWorld(Mobile from, Point3D p)
+	{
+		bool drop = base.DropToWorld(from, p);
+
+		//EnchantedHotItemSocket.CheckDrop(from, this);
+
+		return drop;
+	}
+
 	public override void Serialize(GenericWriter writer)
 	{
 		base.Serialize(writer);
 
 		writer.Write(0); // version
+		m_SAAbsorptionAttributes.Serialize(writer);
+		m_NegativeAttributes.Serialize(writer);
+		writer.Write((int)m_ReforgedPrefix);
+		writer.Write((int)m_ReforgedSuffix);
+		writer.Write((int)m_ItemPower);
 		writer.Write(m_SetPhysicalBonus);
 		writer.Write(m_SetFireBonus);
 		writer.Write(m_SetColdBonus);
@@ -480,6 +723,11 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 		{
 			case 0:
 				{
+					m_SAAbsorptionAttributes = new SAAbsorptionAttributes(this, reader);
+					m_NegativeAttributes = new NegativeAttributes(this, reader);
+					m_ReforgedPrefix = (ReforgedPrefix)reader.ReadInt();
+					m_ReforgedSuffix = (ReforgedSuffix)reader.ReadInt();
+					m_ItemPower = (ItemPower)reader.ReadInt();
 					m_SetPhysicalBonus = reader.ReadInt();
 					m_SetFireBonus = reader.ReadInt();
 					m_SetColdBonus = reader.ReadInt();
@@ -525,22 +773,10 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 				}
 		}
 
-		if (m_TalismanProtection == null)
-		{
-			m_TalismanProtection = new TalismanAttribute();
-		}
-
-		#region Mondain's Legacy Sets
-		if (m_SetAttributes == null)
-		{
-			m_SetAttributes = new AosAttributes(this);
-		}
-
-		if (m_SetSkillBonuses == null)
-		{
-			m_SetSkillBonuses = new AosSkillBonuses(this);
-		}
-		#endregion
+		m_SetAttributes ??= new AosAttributes(this);
+		m_SetSkillBonuses ??= new AosSkillBonuses(this);
+		m_NegativeAttributes ??= new NegativeAttributes(this);
+		m_TalismanProtection ??= new TalismanAttribute();
 	}
 
 	public bool Scissor(Mobile from, Scissors scissors)
@@ -567,11 +803,12 @@ public abstract class BaseJewel : BaseEquipment, IScissorable, ICraftable, IFact
 			{
 				Item res = (Item)Activator.CreateInstance(CraftResources.GetInfo(Resource).ResourceTypes[0]);
 
-				ScissorHelper(from, res, PlayerConstructed ? (item.Resources.GetAt(0).Amount / 2) : 1);
+				ScissorHelper(from, res, PlayerConstructed ? item.Resources.GetAt(0).Amount / 2 : 1);
 				return true;
 			}
 			catch
 			{
+				// ignored
 			}
 		}
 

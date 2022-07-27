@@ -8,36 +8,35 @@ namespace Server.Accounting
 {
 	public class WebAccounting
 	{
-
-		public enum Status
+		private enum Status
 		{
 			Void = 0,
 			Pending = 1,
 			Active = 2,
-			PWChanged = 3,
+			PwChanged = 3,
 			EmailChanged = 4,
 			Delete = 5
 		}
 
-		private static int QueryCount = 0;
-		public static readonly bool Enabled = Settings.Configuration.Get("WebAccount", "Enabled", false);
-		public static readonly bool UpdateOnWorldSave = true;
-		public static readonly bool UpdateOnWorldLoad = true;
+		private static int _queryCount;
+		private static readonly bool Enabled = Settings.Configuration.Get("WebAccount", "Enabled", false);
+		private static readonly bool UpdateOnWorldSave = true;
+		private static readonly bool UpdateOnWorldLoad = true;
 
 		private static readonly string DatabaseDriver = "{MySQL ODBC 3.51 Driver}";
 		private static readonly string DatabaseServer = Settings.Configuration.Get<string>("WebAccount", "DatabaseServer", null);//Server IP of the database
 		private static readonly string DatabaseName = Settings.Configuration.Get<string>("WebAccount", "DatabaseName", null);//Name of the database
 		private static readonly string DatabaseTable = Settings.Configuration.Get<string>("WebAccount", "DatabaseTable", null);//Name of the table storing accounts
-		private static readonly string DatabaseUserID = Settings.Configuration.Get<string>("WebAccount", "DatabaseUserID", null);//Username for the database
+		private static readonly string m_DatabaseUserId = Settings.Configuration.Get<string>("WebAccount", "DatabaseUserID", null);//Username for the database
 		private static readonly string DatabasePassword = Settings.Configuration.Get<string>("WebAccount", "DatabasePassword", null);//Username password
-		private static readonly string ConnectionString = $"DRIVER={DatabaseDriver};SERVER={DatabaseServer};DATABASE={DatabaseName};UID={DatabaseUserID};PASSWORD={DatabasePassword};";
+		private static readonly string ConnectionString = $"DRIVER={DatabaseDriver};SERVER={DatabaseServer};DATABASE={DatabaseName};UID={m_DatabaseUserId};PASSWORD={DatabasePassword};";
 
-		static bool Synchronizing = false;
+		static bool _synchronizing;
 
 		public static void Initialize()
 		{
 			SynchronizeDatabase();
-			CommandSystem.Register("AccSync", AccessLevel.Administrator, new CommandEventHandler(Sync_OnCommand));
+			CommandSystem.Register("AccSync", AccessLevel.Administrator, Sync_OnCommand);
 
 			if (UpdateOnWorldLoad)
 			{
@@ -50,21 +49,21 @@ namespace Server.Accounting
 			}
 			else
 			{
-				Timer.DelayCall(TimeSpan.FromMinutes(10.0), TimeSpan.FromMinutes(10.0), new TimerCallback(SynchronizeDatabase));
+				Timer.DelayCall(TimeSpan.FromMinutes(10.0), TimeSpan.FromMinutes(10.0), SynchronizeDatabase);
 			}
 		}
 
-		public static void OnSaved()
+		private static void OnSaved()
 		{
-			if (Synchronizing)
+			if (_synchronizing)
 				return;
 
 			SynchronizeDatabase();
 		}
 
-		public static void OnLoaded()
+		private static void OnLoaded()
 		{
-			if (Synchronizing)
+			if (_synchronizing)
 				return;
 
 			SynchronizeDatabase();
@@ -72,9 +71,9 @@ namespace Server.Accounting
 
 		[Usage("AccSync")]
 		[Description("Synchronizes the Accounts Database")]
-		public static void Sync_OnCommand(CommandEventArgs e)
+		private static void Sync_OnCommand(CommandEventArgs e)
 		{
-			if (Synchronizing)
+			if (_synchronizing)
 				return;
 
 			Mobile from = e.Mobile;
@@ -83,21 +82,21 @@ namespace Server.Accounting
 			from.SendMessage("Done Synchronizing Database!");
 		}
 
-		public static void CreateAccountsFromDB()
+		private static void CreateAccountsFromDb()
 		{
 			//Console.WriteLine( "Getting New Accounts..." );
 			try
 			{
-				ArrayList ToCreateFromDB = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toCreateFromDb = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name,password,email FROM {DatabaseTable} WHERE state='{(int)Status.Pending}'";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name,password,email FROM {DatabaseTable} WHERE state='{(int)Status.Pending}'";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
@@ -106,45 +105,32 @@ namespace Server.Accounting
 					string email = reader.GetString(2);
 
 					if (Accounts.GetAccount(username) == null)
-						ToCreateFromDB.Add(Accounts.AddAccount(username, password, email));
+						toCreateFromDb.Add(Accounts.AddAccount(username, password, email));
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToCreateFromDB)
+				foreach (Account a in toCreateFromDb)
 				{
-					int ALevel = 0;
+					int aLevel = a.AccessLevel switch
+					{
+						AccessLevel.Player => 1,
+						AccessLevel.Counselor => 2,
+						AccessLevel.GameMaster => 3,
+						AccessLevel.Seer => 4,
+						AccessLevel.Administrator => 6,
+						_ => 0
+					};
 
-					if (a.AccessLevel == AccessLevel.Player)
-					{
-						ALevel = 1;
-					}
-					else if (a.AccessLevel == AccessLevel.Counselor)
-					{
-						ALevel = 2;
-					}
-					else if (a.AccessLevel == AccessLevel.GameMaster)
-					{
-						ALevel = 3;
-					}
-					else if (a.AccessLevel == AccessLevel.Seer)
-					{
-						ALevel = 4;
-					}
-					else if (a.AccessLevel == AccessLevel.Administrator)
-					{
-						ALevel = 6;
-					}
+					_queryCount += 1;
 
-					QueryCount += 1;
-
-					Command.CommandText = $"UPDATE {DatabaseTable} SET email='{a.Email}',password='{a.CryptPassword}',state='{(int)Status.Active}',access='{ALevel}' WHERE name='{a.Username}'";
-					Command.ExecuteNonQuery();
+					command.CommandText = $"UPDATE {DatabaseTable} SET email='{a.Email}',password='{a.CryptPassword}',state='{(int)Status.Active}',access='{aLevel}' WHERE name='{a.Username}'";
+					command.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} In-Game Accounts Created] ", ToCreateFromDB.Count);
+				Console.WriteLine("[{0} In-Game Accounts Created] ", toCreateFromDb.Count);
 			}
 			catch (Exception e)
 			{
@@ -154,80 +140,64 @@ namespace Server.Accounting
 		}
 
 
-		public static void CreateAccountsFromUO()
+		private static void CreateAccountsFromUo()
 		{
 			//Console.WriteLine( "Exporting New Accounts..." );
 			try
 			{
-				ArrayList ToCreateFromUO = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toCreateFromUo = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name FROM {DatabaseTable}";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name FROM {DatabaseTable}";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
 					string username = reader.GetString(0);
 
-					Account toCheck = Accounts.GetAccount(username) as Account;
-
-					if (toCheck == null)
-						ToCreateFromUO.Add(toCheck);
+					if (Accounts.GetAccount(username) is not Account)
+						toCreateFromUo.Add(null);
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToCreateFromUO)
+				foreach (Account a in toCreateFromUo)
 				{
-					int ALevel = 0;
-
-					if (a.AccessLevel == AccessLevel.Player)
+					int aLevel = a.AccessLevel switch
 					{
-						ALevel = 1;
-					}
-					else if (a.AccessLevel == AccessLevel.Counselor)
-					{
-						ALevel = 2;
-					}
-					else if (a.AccessLevel == AccessLevel.GameMaster)
-					{
-						ALevel = 3;
-					}
-					else if (a.AccessLevel == AccessLevel.Seer)
-					{
-						ALevel = 4;
-					}
-					else if (a.AccessLevel == AccessLevel.Administrator)
-					{
-						ALevel = 6;
-					}
+						AccessLevel.Player => 1,
+						AccessLevel.Counselor => 2,
+						AccessLevel.GameMaster => 3,
+						AccessLevel.Seer => 4,
+						AccessLevel.Administrator => 6,
+						_ => 0
+					};
 
-					PasswordProtection PWMode = AccountHandler.ProtectPasswords;
-					string Password = "";
+					PasswordProtection pwMode = AccountHandler.ProtectPasswords;
 
-					switch (PWMode)
+					string password = pwMode switch
 					{
-						case PasswordProtection.None: { Password = a.PlainPassword; } break;
-						case PasswordProtection.Crypt: { Password = a.CryptPassword; } break;
-						default: { Password = a.NewCryptPassword; } break;
-					}
+						PasswordProtection.None => a.PlainPassword,
+						PasswordProtection.Crypt => a.CryptPassword,
+						_ => a.NewCryptPassword
+					};
 
-					QueryCount += 1;
+					_queryCount += 1;
 
-					MySqlCommand InsertCommand = Connection.CreateCommand();
+					MySqlCommand insertCommand = connection.CreateCommand();
 
-					InsertCommand.CommandText = $"INSERT INTO {DatabaseTable} (name,password,email,access,timestamp,state) VALUES( '{a.Username}', '{Password}', '{a.Email}', '{ALevel}', '{ToUnixTimestamp(a.Created)}', '{(int)Status.Active}')";
-					InsertCommand.ExecuteNonQuery();
+					insertCommand.CommandText = $"INSERT INTO {DatabaseTable} (name,password,email,access,timestamp,state) VALUES( '{a.Username}', '{password}', '{a.Email}', '{aLevel}', '{ToUnixTimestamp(a.Created)}', '{(int)Status.Active}')";
+					insertCommand.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} Database Accounts Added] ", ToCreateFromUO.Count);
+				Console.WriteLine("[{0} Database Accounts Added] ", toCreateFromUo.Count);
 			}
 			catch (Exception e)
 			{
@@ -236,141 +206,137 @@ namespace Server.Accounting
 			}
 		}
 
-		public static void UpdateUOPasswords()
+		private static void UpdateUoPasswords()
 		{
 			//Console.WriteLine( "Getting New Passwords..." );
 			try
 			{
-				ArrayList ToUpdatePWFromDB = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toUpdatePwFromDb = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name,password FROM {DatabaseTable} WHERE state='{(int)Status.PWChanged}'";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name,password FROM {DatabaseTable} WHERE state='{(int)Status.PwChanged}'";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
 					string username = reader.GetString(0);
 					string password = reader.GetString(1);
 
-					if (Accounts.GetAccount(username) is Account AtoUpdate)
+					if (Accounts.GetAccount(username) is not Account atoUpdate) continue;
+					PasswordProtection pwMode = AccountHandler.ProtectPasswords;
+					string passwords;
+
+					switch (pwMode)
 					{
-						PasswordProtection PWMode = AccountHandler.ProtectPasswords;
-						string Password = "";
-
-						switch (PWMode)
-						{
-							case PasswordProtection.None: { Password = AtoUpdate.PlainPassword; } break;
-							case PasswordProtection.Crypt: { Password = AtoUpdate.CryptPassword; } break;
-							default: { Password = AtoUpdate.NewCryptPassword; } break;
-						}
-
-						if (Password == null || Password == "" || Password != password)
-						{
-							AtoUpdate.SetPassword(password);
-							ToUpdatePWFromDB.Add(AtoUpdate);
-						}
+						case PasswordProtection.None: { passwords = atoUpdate.PlainPassword; } break;
+						case PasswordProtection.Crypt: { passwords = atoUpdate.CryptPassword; } break;
+						default: { passwords = atoUpdate.NewCryptPassword; } break;
 					}
+
+					if (!string.IsNullOrEmpty(passwords) && passwords == password) continue;
+					atoUpdate.SetPassword(password);
+					toUpdatePwFromDb.Add(atoUpdate);
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToUpdatePWFromDB)
+				foreach (Account a in toUpdatePwFromDb)
 				{
-					PasswordProtection PWModeU = AccountHandler.ProtectPasswords;
-					string PasswordU = "";
+					PasswordProtection pwModeU = AccountHandler.ProtectPasswords;
+					string passwordU;
 
-					switch (PWModeU)
+					switch (pwModeU)
 					{
-						case PasswordProtection.None: { PasswordU = a.PlainPassword; } break;
-						case PasswordProtection.Crypt: { PasswordU = a.CryptPassword; } break;
-						default: { PasswordU = a.NewCryptPassword; } break;
+						case PasswordProtection.None: { passwordU = a.PlainPassword; } break;
+						case PasswordProtection.Crypt: { passwordU = a.CryptPassword; } break;
+						default: { passwordU = a.NewCryptPassword; } break;
 					}
 
-					QueryCount += 1;
+					_queryCount += 1;
 
-					Command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',password='{PasswordU}' WHERE name='{a.Username}'";
-					Command.ExecuteNonQuery();
+					command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',password='{passwordU}' WHERE name='{a.Username}'";
+					command.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} In-game Passwords Changed] ", ToUpdatePWFromDB.Count);
+				Console.WriteLine("[{0} In-game Passwords Changed] ", toUpdatePwFromDb.Count);
 			}
-			catch (System.Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine("[In-Game Password Change] Error...");
 				Console.WriteLine(e);
 			}
 		}
 
-		public static void UpdateDBPasswords()
+		private static void UpdateDbPasswords()
 		{
 			//Console.WriteLine( "Exporting New Passwords..." );
 			try
 			{
-				ArrayList ToUpdatePWFromUO = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toUpdatePwFromUo = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name,password FROM {DatabaseTable} WHERE state='{(int)Status.Active}'";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name,password FROM {DatabaseTable} WHERE state='{(int)Status.Active}'";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
 					string username = reader.GetString(0);
 					string password = reader.GetString(1);
 
-					if (Accounts.GetAccount(username) is Account AtoUpdate)
+					if (Accounts.GetAccount(username) is Account atoUpdate)
 					{
-						PasswordProtection PWMode = AccountHandler.ProtectPasswords;
-						string Password = "";
+						PasswordProtection pwMode = AccountHandler.ProtectPasswords;
+						string passwords;
 
-						switch (PWMode)
+						switch (pwMode)
 						{
-							case PasswordProtection.None: { Password = AtoUpdate.PlainPassword; } break;
-							case PasswordProtection.Crypt: { Password = AtoUpdate.CryptPassword; } break;
-							default: { Password = AtoUpdate.NewCryptPassword; } break;
+							case PasswordProtection.None: { passwords = atoUpdate.PlainPassword; } break;
+							case PasswordProtection.Crypt: { passwords = atoUpdate.CryptPassword; } break;
+							default: { passwords = atoUpdate.NewCryptPassword; } break;
 						}
 
-						if (Password == null || Password == "" || Password != password)
+						if (string.IsNullOrEmpty(passwords) || passwords != password)
 						{
-							ToUpdatePWFromUO.Add(AtoUpdate);
+							toUpdatePwFromUo.Add(atoUpdate);
 						}
 					}
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToUpdatePWFromUO)
+				foreach (Account a in toUpdatePwFromUo)
 				{
-					PasswordProtection PWModeU = AccountHandler.ProtectPasswords;
-					string PasswordU = "";
+					PasswordProtection pwModeU = AccountHandler.ProtectPasswords;
+					string passwordU;
 
-					switch (PWModeU)
+					switch (pwModeU)
 					{
-						case PasswordProtection.None: { PasswordU = a.PlainPassword; } break;
-						case PasswordProtection.Crypt: { PasswordU = a.CryptPassword; } break;
-						default: { PasswordU = a.NewCryptPassword; } break;
+						case PasswordProtection.None: { passwordU = a.PlainPassword; } break;
+						case PasswordProtection.Crypt: { passwordU = a.CryptPassword; } break;
+						default: { passwordU = a.NewCryptPassword; } break;
 					}
 
-					QueryCount += 1;
+					_queryCount += 1;
 
-					Command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',password='{PasswordU}' WHERE name='{a.Username}'";
-					Command.ExecuteNonQuery();
+					command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',password='{passwordU}' WHERE name='{a.Username}'";
+					command.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} Database Passwords Changed] ", ToUpdatePWFromUO.Count);
+				Console.WriteLine("[{0} Database Passwords Changed] ", toUpdatePwFromUo.Count);
 			}
 			catch (Exception e)
 			{
@@ -380,22 +346,21 @@ namespace Server.Accounting
 		}
 
 
-
-		public static void UpdateUOEmails()
+		private static void UpdateUoEmails()
 		{
 			//Console.WriteLine( "Getting New Emails..." );
 			try
 			{
-				ArrayList ToUpdateEmailFromDB = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toUpdateEmailFromDb = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name,email FROM {DatabaseTable} WHERE state='{(int)Status.EmailChanged}'";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name,email FROM {DatabaseTable} WHERE state='{(int)Status.EmailChanged}'";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
@@ -403,72 +368,72 @@ namespace Server.Accounting
 					string email = reader.GetString(1);
 
 
-					if (Accounts.GetAccount(username) is Account AtoUpdate && (AtoUpdate.Email == null || AtoUpdate.Email == "" || AtoUpdate.Email != email))
+					if (Accounts.GetAccount(username) is Account atoUpdate && (string.IsNullOrEmpty(atoUpdate.Email) || atoUpdate.Email != email))
 					{
-						AtoUpdate.Email = email;
-						ToUpdateEmailFromDB.Add(AtoUpdate);
+						atoUpdate.Email = email;
+						toUpdateEmailFromDb.Add(atoUpdate);
 					}
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToUpdateEmailFromDB)
+				foreach (Account a in toUpdateEmailFromDb)
 				{
-					QueryCount += 1;
+					_queryCount += 1;
 
-					Command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',email='{a.Email}' WHERE name='{a.Username}'";
-					Command.ExecuteNonQuery();
+					command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',email='{a.Email}' WHERE name='{a.Username}'";
+					command.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} In-Game Emails Changed] ", ToUpdateEmailFromDB.Count);
+				Console.WriteLine("[{0} In-Game Emails Changed] ", toUpdateEmailFromDb.Count);
 			}
-			catch (System.Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine("[In-Game Email Change] Error...");
 				Console.WriteLine(e);
 			}
 		}
 
-		public static void UpdateDBEmails()
+		private static void UpdateDbEmails()
 		{
 			//Console.WriteLine( "Exporting New Emails..." );
 			try
 			{
-				ArrayList ToUpdateEmailFromUO = new();
-				MySqlConnection Connection = new(ConnectionString);
+				ArrayList toUpdateEmailFromUo = new();
+				MySqlConnection connection = new(ConnectionString);
 
-				Connection.Open();
-				MySqlCommand Command = Connection.CreateCommand();
+				connection.Open();
+				MySqlCommand command = connection.CreateCommand();
 
-				Command.CommandText = $"SELECT name,email FROM {DatabaseTable} WHERE state='{(int)Status.Active}'";
-				MySqlDataReader reader = Command.ExecuteReader();
+				command.CommandText = $"SELECT name,email FROM {DatabaseTable} WHERE state='{(int)Status.Active}'";
+				MySqlDataReader reader = command.ExecuteReader();
 
-				QueryCount += 1;
+				_queryCount += 1;
 
 				while (reader.Read())
 				{
 					string username = reader.GetString(0);
 					string email = reader.GetString(1);
 
-					if (Accounts.GetAccount(username) is Account AtoUpdate && (AtoUpdate.Email == null || AtoUpdate.Email == "" || AtoUpdate.Email != email))
-						ToUpdateEmailFromUO.Add(AtoUpdate);
+					if (Accounts.GetAccount(username) is Account atoUpdate && (string.IsNullOrEmpty(atoUpdate.Email) || atoUpdate.Email != email))
+						toUpdateEmailFromUo.Add(atoUpdate);
 				}
 				reader.Close();
 
 				//Console.WriteLine( "Updating Database..." );
-				foreach (Account a in ToUpdateEmailFromUO)
+				foreach (Account a in toUpdateEmailFromUo)
 				{
-					QueryCount += 1;
+					_queryCount += 1;
 
-					Command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',email='{a.Email}' WHERE name='{a.Username}'";
-					Command.ExecuteNonQuery();
+					command.CommandText = $"UPDATE {DatabaseTable} SET state='{(int)Status.Active}',email='{a.Email}' WHERE name='{a.Username}'";
+					command.ExecuteNonQuery();
 				}
 
-				Connection.Close();
+				connection.Close();
 
-				Console.WriteLine("[{0} Database Emails Changed] ", ToUpdateEmailFromUO.Count);
+				Console.WriteLine("[{0} Database Emails Changed] ", toUpdateEmailFromUo.Count);
 			}
 			catch (Exception e)
 			{
@@ -477,34 +442,34 @@ namespace Server.Accounting
 			}
 		}
 
-		public static void SynchronizeDatabase()
+		private static void SynchronizeDatabase()
 		{
-			if (Synchronizing || !Enabled)
+			if (_synchronizing || !Enabled)
 				return;
 
-			Synchronizing = true;
+			_synchronizing = true;
 
 			Console.WriteLine("Accounting System...");
 
-			CreateAccountsFromDB();
-			CreateAccountsFromUO();
+			CreateAccountsFromDb();
+			CreateAccountsFromUo();
 
-			UpdateUOEmails();
-			UpdateDBEmails();
+			UpdateUoEmails();
+			UpdateDbEmails();
 
-			UpdateUOPasswords();
-			UpdateDBPasswords();
+			UpdateUoPasswords();
+			UpdateDbPasswords();
 
-			Console.WriteLine($"[Executed {QueryCount} Database Queries]");
+			Console.WriteLine($"[Executed {_queryCount} Database Queries]");
 
-			QueryCount = 0;
+			_queryCount = 0;
 
 			World.Save();
 
-			Synchronizing = false;
+			_synchronizing = false;
 		}
 
-		static double ToUnixTimestamp(DateTime date)
+		private static double ToUnixTimestamp(DateTime date)
 		{
 			DateTime origin = new(1970, 1, 1, 0, 0, 0, 0);
 			TimeSpan diff = date - origin;

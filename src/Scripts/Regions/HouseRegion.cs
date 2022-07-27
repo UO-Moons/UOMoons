@@ -30,7 +30,7 @@ public class HouseRegion : BaseRegion
 		EventSink.OnLogin += OnLogin;
 	}
 
-	public static void OnLogin(Mobile m)
+	private static void OnLogin(Mobile m)
 	{
 		BaseHouse house = BaseHouse.FindHouseAt(m);
 
@@ -58,15 +58,10 @@ public class HouseRegion : BaseRegion
 
 	public override bool CanSee(Mobile m, IEntity e)
 	{
-		if (e is Item item && ((m.PublicHouseContent && House.Public) ||
-		                       House.IsInside(m) ||
-		                       ExcludeItem(item) ||
-		                       (item.RootParent != null && m.CanSee(item.RootParent))))
-		{
-			return true;
-		}
-
-		return false;
+		return e is Item item && ((m.PublicHouseContent && House.Public) ||
+		                          House.IsInside(m) ||
+		                          ExcludeItem(item) ||
+		                          (item.RootParent != null && m.CanSee(item.RootParent)));
 	}
 
 	private bool ExcludeItem(Item item)
@@ -74,24 +69,21 @@ public class HouseRegion : BaseRegion
 		return IsStairArea(item) || m_ItemTypes.Any(t => t == item.GetType() || item.GetType().IsSubclassOf(t));
 	}
 
-	private static Type[] m_ItemTypes = new Type[]
-	{
+	private static readonly Type[] m_ItemTypes = {
 		typeof(BaseHouse),  typeof(HouseTeleporter),
 		typeof(BaseDoor),   typeof(Static),
 		typeof(HouseSign)
 	};
 
-	public bool IsStairArea(Item item)
+	private bool IsStairArea(Item item)
 	{
 		return item.Y >= House.Sign.Y;
 	}
 
 	public override bool SendInaccessibleMessage(Item item, Mobile from)
 	{
-		if (item is Container)
-			item.SendLocalizedMessageTo(from, 501647); // That is secure.
-		else
-			item.SendLocalizedMessageTo(from, 1061637); // You are not allowed to access this.
+		// That is secure.// You are not allowed to access this.
+		item.SendLocalizedMessageTo(from, item is Container ? 501647 : 1061637);
 
 		return true;
 	}
@@ -111,35 +103,41 @@ public class HouseRegion : BaseRegion
 
 		_mRecursion = true;
 
-		if (m is BaseCreature && ((BaseCreature)m).NoHouseRestrictions)
+		switch (m)
 		{
-		}
-		else if (m is BaseCreature && ((BaseCreature)m).IsHouseSummonable && !(BaseCreature.Summoning || House.IsInside(oldLocation, 16)))
-		{
-		}
-		else if ((House.Public || !House.IsAosRules) && House.IsBanned(m) && House.IsInside(m))
-		{
-			m.Location = House.BanLocation;
+			case BaseCreature { NoHouseRestrictions: true }:
+				break;
+			case BaseCreature { IsHouseSummonable: true } when !(BaseCreature.Summoning || House.IsInside(oldLocation, 16)):
+				break;
+			default:
+			{
+				if ((House.Public || !House.IsAosRules) && House.IsBanned(m) && House.IsInside(m))
+				{
+					m.Location = House.BanLocation;
 
-			if (!Core.SE)
-				m.SendLocalizedMessage(501284); // You may not enter.
-		}
-		else if (House.IsAosRules && !House.Public && !House.HasAccess(m) && House.IsInside(m))
-		{
-			m.Location = House.BanLocation;
+					if (!Core.SE)
+						m.SendLocalizedMessage(501284); // You may not enter.
+				}
+				else if (House.IsAosRules && !House.Public && !House.HasAccess(m) && House.IsInside(m))
+				{
+					m.Location = House.BanLocation;
 
-			if (!Core.SE)
-				m.SendLocalizedMessage(501284); // You may not enter.
-		}
-		else if (House.IsCombatRestricted(m) && House.IsInside(m) && !House.IsInside(oldLocation, 16))
-		{
-			m.Location = House.BanLocation;
-			m.SendLocalizedMessage(1061637); // You are not allowed to access this.
-		}
-		else if (House is HouseFoundation foundation)
-		{
-			if (foundation.Customizer != null && foundation.Customizer != m && foundation.IsInside(m))
-				m.Location = foundation.BanLocation;
+					if (!Core.SE)
+						m.SendLocalizedMessage(501284); // You may not enter.
+				}
+				else if (House.IsCombatRestricted(m) && House.IsInside(m) && !House.IsInside(oldLocation, 16))
+				{
+					m.Location = House.BanLocation;
+					m.SendLocalizedMessage(1061637); // You are not allowed to access this.
+				}
+				else if (House is HouseFoundation foundation)
+				{
+					if (foundation.Customizer != null && foundation.Customizer != m && foundation.IsInside(m))
+						m.Location = foundation.BanLocation;
+				}
+
+				break;
+			}
 		}
 
 		if (House.InternalizedVendors.Count > 0 && House.IsInside(m) && !House.IsInside(oldLocation, 16) && House.IsOwner(m) && m.Alive && !m.HasGump(typeof(NoticeGump)))
@@ -161,46 +159,53 @@ public class HouseRegion : BaseRegion
 		if (!base.OnMoveInto(from, d, newLocation, oldLocation))
 			return false;
 
-		if (from is BaseCreature {NoHouseRestrictions: true})
+		switch (from)
 		{
-		}
-		else if (from is BaseCreature {Controlled: false}) // Untamed creatures cannot enter public houses
-		{
-			return false;
-		}
-		else if (from is BaseCreature {IsHouseSummonable: true} && !(BaseCreature.Summoning || House.IsInside(oldLocation, 16)))
-		{
-			return false;
-		}
-		else if (from is BaseCreature {Controlled: false} && House.IsAosRules && !House.Public)
-		{
-			return false;
-		}
-		else if ((House.Public || !House.IsAosRules) && House.IsBanned(from) && House.IsInside(newLocation, 16))
-		{
-			from.Location = House.BanLocation;
-
-			if (!Core.SE)
-				from.SendLocalizedMessage(501284); // You may not enter.
-
-			return false;
-		}
-		else if (House.IsAosRules && !House.Public && !House.HasAccess(from) && House.IsInside(newLocation, 16))
-		{
-			if (!Core.SE)
-				from.SendLocalizedMessage(501284); // You may not enter.
-
-			return false;
-		}
-		else if (House.IsCombatRestricted(from) && !House.IsInside(oldLocation, 16) && House.IsInside(newLocation, 16))
-		{
-			from.SendLocalizedMessage(1061637); // You are not allowed to access this.
-			return false;
-		}
-		else if (House is HouseFoundation foundation)
-		{
-			if (foundation.Customizer != null && foundation.Customizer != from && foundation.IsInside(newLocation, 16))
+			case BaseCreature {NoHouseRestrictions: true}:
+				break;
+			// Untamed creatures cannot enter public houses
+			case BaseCreature {Controlled: false}:
+			case BaseCreature {IsHouseSummonable: true} when !(BaseCreature.Summoning || House.IsInside(oldLocation, 16)):
 				return false;
+			default:
+			{
+				if (from is BaseCreature {Controlled: false} && House.IsAosRules && !House.Public)
+				{
+					return false;
+				}
+
+				if ((House.Public || !House.IsAosRules) && House.IsBanned(from) && House.IsInside(newLocation, 16))
+				{
+					from.Location = House.BanLocation;
+
+					if (!Core.SE)
+						from.SendLocalizedMessage(501284); // You may not enter.
+
+					return false;
+				}
+
+				if (House.IsAosRules && !House.Public && !House.HasAccess(from) && House.IsInside(newLocation, 16))
+				{
+					if (!Core.SE)
+						from.SendLocalizedMessage(501284); // You may not enter.
+
+					return false;
+				}
+
+				if (House.IsCombatRestricted(from) && !House.IsInside(oldLocation, 16) && House.IsInside(newLocation, 16))
+				{
+					from.SendLocalizedMessage(1061637); // You are not allowed to access this.
+					return false;
+				}
+
+				if (House is HouseFoundation foundation)
+				{
+					if (foundation.Customizer != null && foundation.Customizer != from && foundation.IsInside(newLocation, 16))
+						return false;
+				}
+
+				break;
+			}
 		}
 
 		if (House.InternalizedVendors.Count > 0 && House.IsInside(from) && !House.IsInside(oldLocation, 16) && House.IsOwner(from) && from.Alive && !from.HasGump(typeof(NoticeGump)))
@@ -221,26 +226,24 @@ public class HouseRegion : BaseRegion
 	{
 		if ((House.IsLockedDown(item) || House.IsSecure(item)) && House.IsInside(item))
 			return false;
-		else
-			return base.OnDecay(item);
+		return base.OnDecay(item);
 	}
 
 	public override TimeSpan GetLogoutDelay(Mobile m)
 	{
-		if (House.IsFriend(m) && House.IsInside(m))
+		if (!House.IsFriend(m) || !House.IsInside(m))
+			return base.GetLogoutDelay(m);
+
+		for (int i = 0; i < m.Aggressed.Count; ++i)
 		{
-			for (int i = 0; i < m.Aggressed.Count; ++i)
-			{
-				AggressorInfo info = m.Aggressed[i];
+			AggressorInfo info = m.Aggressed[i];
 
-				if (info.Defender.Player && DateTime.UtcNow - info.LastCombatTime < BaseMobile.CombatHeatDelay)
-					return base.GetLogoutDelay(m);
-			}
-
-			return TimeSpan.Zero;
+			if (info.Defender.Player && DateTime.UtcNow - info.LastCombatTime < BaseMobile.CombatHeatDelay)
+				return base.GetLogoutDelay(m);
 		}
 
-		return base.GetLogoutDelay(m);
+		return TimeSpan.Zero;
+
 	}
 
 	public override void OnSpeech(SpeechEventArgs e)
@@ -398,16 +401,16 @@ public class HouseRegion : BaseRegion
 
 	public override bool OnDoubleClick(Mobile from, object o)
 	{
-		if (o is Container item)
-		{
-			SecureAccessResult res = House.CheckSecureAccess(from, item);
+		if (o is not Container item)
+			return base.OnDoubleClick(from, o);
 
-			switch (res)
-			{
-				case SecureAccessResult.Insecure: break;
-				case SecureAccessResult.Accessible: return true;
-				case SecureAccessResult.Inaccessible: item.SendLocalizedMessageTo(from, 1010563); return false;
-			}
+		SecureAccessResult res = House.CheckSecureAccess(from, item);
+
+		switch (res)
+		{
+			case SecureAccessResult.Insecure: break;
+			case SecureAccessResult.Accessible: return true;
+			case SecureAccessResult.Inaccessible: item.SendLocalizedMessageTo(from, 1010563); return false;
 		}
 
 		return base.OnDoubleClick(from, o);
@@ -415,13 +418,13 @@ public class HouseRegion : BaseRegion
 
 	public override bool OnSingleClick(Mobile from, object o)
 	{
-		if (o is Item item)
-		{
-			if (House.IsLockedDown(item))
-				item.LabelTo(from, 501643); // [locked down]
-			else if (House.IsSecure(item))
-				item.LabelTo(from, 501644); // [locked down & secure]
-		}
+		if (o is not Item item)
+			return base.OnSingleClick(from, o);
+
+		if (House.IsLockedDown(item))
+			item.LabelTo(from, 501643); // [locked down]
+		else if (House.IsSecure(item))
+			item.LabelTo(from, 501644); // [locked down & secure]
 
 		return base.OnSingleClick(from, o);
 	}

@@ -14,8 +14,8 @@ namespace Server.Multis
 		{
 			BaseDoor west, east;
 
-			AddItem(west = new LightWoodGate(DoorFacing.WestCW), -4, 4, 7);
-			AddItem(east = new LightWoodGate(DoorFacing.EastCCW), -3, 4, 7);
+			AddItem(west = new LightWoodGate(DoorFacing.WestCw), -4, 4, 7);
+			AddItem(east = new LightWoodGate(DoorFacing.EastCcw), -3, 4, 7);
 
 			west.Link = east;
 			east.Link = west;

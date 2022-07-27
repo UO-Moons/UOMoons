@@ -13,9 +13,10 @@ namespace Server.Items
 			set { m_Fisher = value; InvalidateProperties(); }
 		}
 
-		public void Carve(Mobile from, Item item)
+		public bool Carve(Mobile from, Item item)
 		{
 			base.ScissorHelper(from, new RawFishSteak(), Math.Max(16, (int)Weight) / 4, false);
+			return true;
 		}
 
 		public override int LabelNumber => 1041112;  // a big fish

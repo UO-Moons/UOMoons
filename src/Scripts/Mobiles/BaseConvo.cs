@@ -637,12 +637,12 @@ public class BaseConvo : BaseCreature
 	private const int GreetingFragment = 2;
 	private const int BritanniaFragment = 1;
 	private const int DefaultFragment = 0;
-	public static bool Enabled => Settings.Configuration.Get<bool>("Mobiles", "NpcSpeech");
+	private static bool Enabled => Settings.Configuration.Get<bool>("Mobiles", "NpcSpeech");
 	private static readonly Hashtable MFrg = new();
 
 	private static Fragment LoadFrg(string name)
 	{
-		name = Path.Combine(Path.Combine(Core.BaseDirectory, "Data/convo"), name);
+		name = Path.Combine(Path.Combine(Core.BaseDirectory, "Data/Convo"), name);
 		return !File.Exists(name) ? null : new Fragment(new FileStrBuff(name));
 
 		//Console.WriteLine( "Loading convo fragment: {0}", name );
@@ -650,17 +650,17 @@ public class BaseConvo : BaseCreature
 
 	public static void Configure()
 	{
-		Console.Write("Loading convo fragments... ");
+		Console.Write("Loading Convo Fragments... ");
 
 		MFrg[DefaultFragment] = LoadFrg("bdefault.frg");
 		MFrg[BritanniaFragment] = LoadFrg("britanni.frg");
 		MFrg[GreetingFragment] = LoadFrg("greetings.frg");
 		MFrg[EndFragment] = LoadFrg("convbye.frg");
 
-		for (int i = ((int)RegionFragment._Offset) + 1; i < (int)RegionFragment._End; i++)
+		for (int i = (int)RegionFragment._Offset + 1; i < (int)RegionFragment._End; i++)
 			MFrg[i] = LoadFrg($"{(RegionFragment)i}.frg");
 
-		for (int i = ((int)JobFragment._Offset) + 1; i < (int)JobFragment._End; i++)
+		for (int i = (int)JobFragment._Offset + 1; i < (int)JobFragment._End; i++)
 			MFrg[i] = LoadFrg($"{(JobFragment)i}.frg");
 
 		Console.WriteLine("Done.");

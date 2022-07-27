@@ -190,7 +190,7 @@ namespace Server.Items
 
 		public static bool IsMageryCreature(BaseCreature bc)
 		{
-			return (bc != null && bc.AI == AIType.AI_Mage && bc.Skills[SkillName.Magery].Base > 5.0);
+			return (bc != null && bc.Ai == AIType.AI_Mage && bc.Skills[SkillName.Magery].Base > 5.0);
 		}
 
 		public static bool IsFireBreathingCreature(BaseCreature bc)

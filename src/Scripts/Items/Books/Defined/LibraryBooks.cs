@@ -3,7 +3,7 @@ namespace Server.Items;
 #region A Grammar of Orcish
 public class GrammarOfOrcish : BaseBook
 {
-	public static readonly BookContent Content = new		(
+	private static readonly BookContent Content = new		(
 			"A Grammar of Orcish", "Yorick of Yew",
 			new BookPageInfo
 			(
@@ -288,7 +288,7 @@ public class GrammarOfOrcish : BaseBook
 #region A Politic Call to Anarchy
 public class CallToAnarchy : BaseBook
 {
-	public static readonly BookContent Content = new
+	private static readonly BookContent Content = new
 		(
 			"A Politic Call to Anarchy", "Lord Blackthorn",
 			new BookPageInfo
@@ -481,7 +481,7 @@ public class CallToAnarchy : BaseBook
 #region A Primer on Arms and Weapons
 public class ArmsAndWeaponsPrimer : BaseBook
 {
-	public static readonly BookContent Content = new
+	private static readonly BookContent Content = new
 		(
 			"A Primer on Arms and Weapons", "Martin",
 			new BookPageInfo

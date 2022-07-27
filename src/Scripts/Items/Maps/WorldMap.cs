@@ -18,10 +18,12 @@ public class WorldMap : MapItem
 		int x20 = (int)(skillValue * 20);
 		int size = 25 + (int)(skillValue * 6.6);
 
-		if (size < 200)
-			size = 200;
-		else if (size > 400)
-			size = 400;
+		size = size switch
+		{
+			< 200 => 200,
+			> 400 => 400,
+			_ => size
+		};
 
 		SetDisplay(1344 - x20, 1600 - x20, 1472 + x20, 1728 + x20, size, size);
 	}
@@ -39,6 +41,6 @@ public class WorldMap : MapItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 }

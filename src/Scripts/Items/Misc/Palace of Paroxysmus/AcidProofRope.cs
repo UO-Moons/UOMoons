@@ -1,32 +1,30 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class AcidProofRope : BaseItem
 {
-	public class AcidProofRope : BaseItem
+	public override int LabelNumber => 1074886;  // Acid Proof Rope
+
+	[Constructable]
+	public AcidProofRope() : base(0x20D)
 	{
-		public override int LabelNumber => 1074886;  // Acid Proof Rope
+		Hue = 0x3D1; // TODO check
+	}
 
-		[Constructable]
-		public AcidProofRope() : base(0x20D)
-		{
-			Hue = 0x3D1; // TODO check
-		}
+	public AcidProofRope(Serial serial) : base(serial)
+	{
+	}
 
-		public AcidProofRope(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

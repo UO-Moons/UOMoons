@@ -193,7 +193,7 @@ namespace Server.Mobiles
 			return false;
 		}
 
-		public virtual void Carve(Mobile from, Item item)
+		public virtual bool Carve(Mobile from, Item item)
 		{
 			if (OpenedBy == null && IsAccessibleTo(from))
 			{
@@ -222,6 +222,8 @@ namespace Server.Mobiles
 				from.LocalOverheadMessage(MessageType.Regular, 0x21, 1071904); // * You slice through the plague beast's amorphous tissue *
 				Timer.DelayCall<Mobile>(TimeSpan.Zero, new TimerStateCallback<Mobile>(pack.Open), from);
 			}
+
+			return true;
 		}
 
 		public virtual bool Scissor(Mobile from, Scissors scissors)

@@ -1,43 +1,42 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class FleshRipper : AssassinSpike
 {
-	public class FleshRipper : AssassinSpike
+	public override int LabelNumber => 1075045;  // Flesh Ripper
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public FleshRipper()
 	{
-		public override int LabelNumber => 1075045;  // Flesh Ripper
+		Hue = 0x341;
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+		SkillBonuses.SetValues(0, SkillName.Anatomy, 10.0);
 
-		[Constructable]
-		public FleshRipper()
-		{
-			Hue = 0x341;
+		Attributes.BonusStr = 5;
+		Attributes.AttackChance = 15;
+		Attributes.WeaponSpeed = 40;
 
-			SkillBonuses.SetValues(0, SkillName.Anatomy, 10.0);
+		WeaponAttributes.UseBestSkill = 1;
+		// TODO: Mage Slayer
+	}
 
-			Attributes.BonusStr = 5;
-			Attributes.AttackChance = 15;
-			Attributes.WeaponSpeed = 40;
+	public FleshRipper(Serial serial) : base(serial)
+	{
+	}
 
-			WeaponAttributes.UseBestSkill = 1;
-			// TODO: Mage Slayer
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public FleshRipper(Serial serial) : base(serial)
-		{
-		}
+		writer.WriteEncodedInt(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

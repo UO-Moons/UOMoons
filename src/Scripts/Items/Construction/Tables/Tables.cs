@@ -1,157 +1,144 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Furniture]
+public class ElegantLowTable : BaseItem
 {
-
-	[Furniture]
-	public class ElegantLowTable : BaseItem
+	[Constructable]
+	public ElegantLowTable() : base(0x2819)
 	{
-		[Constructable]
-		public ElegantLowTable() : base(0x2819)
-		{
-			Weight = 1.0;
-		}
-
-		public ElegantLowTable(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-		}
+		Weight = 1.0;
 	}
 
-	[Furniture]
-	public class PlainLowTable : BaseItem
+	public ElegantLowTable(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public PlainLowTable() : base(0x281A)
-		{
-			Weight = 1.0;
-		}
-
-		public PlainLowTable(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-		}
 	}
 
-	[Furniture]
-	[Flipable(0xB90, 0xB7D)]
-	public class LargeTable : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public LargeTable() : base(0xB90)
-		{
-			Weight = 1.0;
-		}
+		base.Serialize(writer);
 
-		public LargeTable(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 4.0)
-				Weight = 1.0;
-		}
+		writer.Write(0);
 	}
 
-	[Furniture]
-	[Flipable(0xB35, 0xB34)]
-	public class Nightstand : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public Nightstand() : base(0xB35)
-		{
-			Weight = 1.0;
-		}
+		base.Deserialize(reader);
 
-		public Nightstand(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 4.0)
-				Weight = 1.0;
-		}
+[Furniture]
+public class PlainLowTable : BaseItem
+{
+	[Constructable]
+	public PlainLowTable() : base(0x281A)
+	{
+		Weight = 1.0;
 	}
 
-	[Furniture]
-	[Flipable(0xB8F, 0xB7C)]
-	public class YewWoodTable : BaseItem
+	public PlainLowTable(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public YewWoodTable() : base(0xB8F)
-		{
-			Weight = 1.0;
-		}
+	}
 
-		public YewWoodTable(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0);
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+		reader.ReadInt();
+	}
+}
 
-			int version = reader.ReadInt();
+[Furniture]
+[Flipable(0xB90, 0xB7D)]
+public class LargeTable : BaseItem
+{
+	[Constructable]
+	public LargeTable() : base(0xB90)
+	{
+		Weight = 1.0;
+	}
 
-			if (Weight == 4.0)
-				Weight = 1.0;
-		}
+	public LargeTable(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[Furniture]
+[Flipable(0xB35, 0xB34)]
+public class Nightstand : BaseItem
+{
+	[Constructable]
+	public Nightstand() : base(0xB35)
+	{
+		Weight = 1.0;
+	}
+
+	public Nightstand(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[Furniture]
+[Flipable(0xB8F, 0xB7C)]
+public class YewWoodTable : BaseItem
+{
+	[Constructable]
+	public YewWoodTable() : base(0xB8F)
+	{
+		Weight = 1.0;
+	}
+
+	public YewWoodTable(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

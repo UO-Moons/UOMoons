@@ -2,7 +2,7 @@ namespace Server.Regions;
 
 public class SpawnPersistence : BaseItem
 {
-	public static SpawnPersistence Instance { get; private set; }
+	private static SpawnPersistence Instance { get; set; }
 
 	public static void EnsureExistence()
 	{

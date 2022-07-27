@@ -5,7 +5,7 @@ namespace Server.Items;
 [Flipable(0xF50, 0xF4F)]
 public class Crossbow : BaseRanged
 {
-	public override int EffectID => 0x1BFE;
+	public override int EffectId => 0x1BFE;
 	public override Type AmmoType => typeof(CrossBowBolt);
 	public override Item Ammo => new CrossBowBolt();
 	public override WeaponAbility PrimaryAbility => WeaponAbility.ConcussionBlow;

@@ -1,28 +1,27 @@
-namespace Server.Items
+namespace Server.Items;
+
+public abstract class BaseSign : BaseItem
 {
-	public abstract class BaseSign : BaseItem
+	public BaseSign(int dispId) : base(dispId)
 	{
-		public BaseSign(int dispID) : base(dispID)
-		{
-			Movable = false;
-		}
+		Movable = false;
+	}
 
-		public BaseSign(Serial serial) : base(serial)
-		{
-		}
+	public BaseSign(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0);
-		}
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

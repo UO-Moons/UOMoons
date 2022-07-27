@@ -7,215 +7,203 @@ using Server.Multis;
 using Server.Regions;
 using Server.Mobiles;
 
-namespace Server.Spells.Spellweaving
+namespace Server.Spells.Spellweaving;
+
+public class WildfireSpell : ArcanistSpell
 {
-    public class WildfireSpell : ArcanistSpell
-    {
-        private static readonly SpellInfo m_Info = new SpellInfo(
-            "Wildfire", "Haelyn",
-            -1,
-            false);
-        public WildfireSpell(Mobile caster, Item scroll)
-            : base(caster, scroll, m_Info)
-        {
-        }
+	private static readonly SpellInfo m_Info = new(
+		"Wildfire", "Haelyn",
+		-1,
+		false);
+	public WildfireSpell(Mobile caster, Item scroll)
+		: base(caster, scroll, m_Info)
+	{
+	}
 
-        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(2.5);
-        public override double RequiredSkill => 66.0;
-        public override int RequiredMana => 50;
-        public override void OnCast()
-        {
-            Caster.Target = new InternalTarget(this);
-        }
+	public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(2.5);
+	public override double RequiredSkill => 66.0;
+	public override int RequiredMana => 50;
+	public override void OnCast()
+	{
+		Caster.Target = new InternalTarget(this);
+	}
 
-        public void Target(Point3D p)
-        {
-            if (!Caster.CanSee(p))
-            {
-                Caster.SendLocalizedMessage(500237); // Target can not be seen.
-            }
-            else if (CheckSequence())
-            {
-                int level = GetFocusLevel(Caster);
-                double skill = Caster.Skills[CastSkill].Value;
+	private void Target(Point3D p)
+	{
+		if (!Caster.CanSee(p))
+		{
+			Caster.SendLocalizedMessage(500237); // Target can not be seen.
+		}
+		else if (CheckSequence())
+		{
+			int level = GetFocusLevel(Caster);
+			double skill = Caster.Skills[CastSkill].Value;
 
-                int tiles = 5 + level;
-                int damage = 10 + (int)Math.Max(1, (skill / 24)) + level;
-                int duration = (int)Math.Max(1, skill / 24) + level;
+			int tiles = 5 + level;
+			int damage = 10 + (int)Math.Max(1, (skill / 24)) + level;
+			int duration = (int)Math.Max(1, skill / 24) + level;
 
-                for (int x = p.X - tiles; x <= p.X + tiles; x += tiles)
-                {
-                    for (int y = p.Y - tiles; y <= p.Y + tiles; y += tiles)
-                    {
-                        if (p.X == x && p.Y == y)
-                            continue;
+			for (int x = p.X - tiles; x <= p.X + tiles; x += tiles)
+			{
+				for (int y = p.Y - tiles; y <= p.Y + tiles; y += tiles)
+				{
+					if (p.X == x && p.Y == y)
+						continue;
 
-                        Point3D p3d = new Point3D(x, y, Caster.Map.GetAverageZ(x, y));
+					Point3D p3d = new(x, y, Caster.Map.GetAverageZ(x, y));
 
-                        if (CanFitFire(p3d, Caster))
-                            new FireItem(duration).MoveToWorld(p3d, Caster.Map);
-                    }
-                }
+					if (CanFitFire(p3d, Caster))
+						new FireItem(duration).MoveToWorld(p3d, Caster.Map);
+				}
+			}
 
-                Effects.PlaySound(p, Caster.Map, 0x5CF);
+			Effects.PlaySound(p, Caster.Map, 0x5CF);
 
-                //NegativeAttributes.OnCombatAction(Caster);
+			NegativeAttributes.OnCombatAction(Caster);
 
-                new InternalTimer(this, Caster, p, damage, tiles, duration).Start();
-            }
+			new InternalTimer(this, Caster, p, damage, tiles, duration).Start();
+		}
 
-            FinishSequence();
-        }
+		FinishSequence();
+	}
 
-        private bool CanFitFire(Point3D p, Mobile caster)
-        {
-            if (!Caster.Map.CanFit(p, 12, true, false))
-                return false;
-            if (BaseHouse.FindHouseAt(p, caster.Map, 20) != null)
-                return false;
-            foreach (RegionRect r in caster.Map.GetSector(p).RegionRects)
-            {
-                if (!r.Contains(p))
-                    continue;
-                GuardedRegion reg = (GuardedRegion)Region.Find(p, caster.Map).GetRegion(typeof(GuardedRegion));
-                if (reg != null && !reg.Disabled)
-                    return false;
-            }
-            return true;
-        }
+	private bool CanFitFire(Point3D p, Mobile caster)
+	{
+		if (!Caster.Map.CanFit(p, 12, true, false))
+			return false;
 
-        private static Dictionary<Mobile, long> m_Table = new Dictionary<Mobile, long>();
-        public static Dictionary<Mobile, long> Table => m_Table;
+		return BaseHouse.FindHouseAt(p, caster.Map, 20) == null && (from r in caster.Map.GetSector(p).RegionRects where r.Contains(p) select (GuardedRegion)Region.Find(p, caster.Map).GetRegion(typeof(GuardedRegion))).All(reg => reg == null || reg.Disabled);
+	}
 
-        public static void DefragTable()
-        {
-            List<Mobile> mobiles = new List<Mobile>(m_Table.Keys);
+	private static Dictionary<Mobile, long> Table { get; } = new();
 
-            foreach (Mobile m in mobiles)
-            {
-                if (Core.TickCount - m_Table[m] >= 0)
-                    m_Table.Remove(m);
-            }
+	private static void DefragTable()
+	{
+		List<Mobile> mobiles = new(Table.Keys);
 
-            ColUtility.Free(mobiles);
-        }
+		foreach (var m in mobiles.Where(m => Core.TickCount - Table[m] >= 0))
+		{
+			Table.Remove(m);
+		}
 
-        public class InternalTarget : Target
-        {
-            private readonly WildfireSpell m_Owner;
-            public InternalTarget(WildfireSpell owner)
-                : base(12, true, TargetFlags.None)
-            {
-                m_Owner = owner;
-            }
+		ColUtility.Free(mobiles);
+	}
 
-            protected override void OnTarget(Mobile m, object o)
-            {
-                if (o is IPoint3D)
-                {
-                    m_Owner.Target(new Point3D((IPoint3D)o));
-                }
-            }
+	public class InternalTarget : Target
+	{
+		private readonly WildfireSpell m_Owner;
+		public InternalTarget(WildfireSpell owner)
+			: base(12, true, TargetFlags.None)
+		{
+			m_Owner = owner;
+		}
 
-            protected override void OnTargetFinish(Mobile m)
-            {
-                m_Owner.FinishSequence();
-            }
-        }
+		protected override void OnTarget(Mobile m, object o)
+		{
+			if (o is IPoint3D point3D)
+			{
+				m_Owner.Target(new Point3D(point3D));
+			}
+		}
 
-        public class InternalTimer : Timer
-        {
-            private readonly Spell m_Spell;
-            private readonly Mobile m_Owner;
-            private readonly Point3D m_Location;
-            private readonly int m_Damage;
-            private readonly int m_Range;
-            private int m_LifeSpan;
-            private Map m_Map;
+		protected override void OnTargetFinish(Mobile m)
+		{
+			m_Owner.FinishSequence();
+		}
+	}
 
-            public InternalTimer(Spell spell, Mobile owner, Point3D location, int damage, int range, int duration)
-                : base(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), duration)
-            {
-                m_Spell = spell;
-                m_Owner = owner;
-                m_Location = location;
-                m_Damage = damage;
-                m_Range = range;
-                m_LifeSpan = duration;
-                m_Map = owner.Map;
-            }
+	private class InternalTimer : Timer
+	{
+		private readonly Spell m_Spell;
+		private readonly Mobile m_Owner;
+		private readonly Point3D m_Location;
+		private readonly int m_Damage;
+		private readonly int m_Range;
+		private int m_LifeSpan;
+		private readonly Map m_Map;
 
-            protected override void OnTick()
-            {
-                if (m_Owner == null || m_Map == null || m_Map == Map.Internal)
-                    return;
+		public InternalTimer(Spell spell, Mobile owner, Point3D location, int damage, int range, int duration)
+			: base(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), duration)
+		{
+			m_Spell = spell;
+			m_Owner = owner;
+			m_Location = location;
+			m_Damage = damage;
+			m_Range = range;
+			m_LifeSpan = duration;
+			m_Map = owner.Map;
+		}
 
-                m_LifeSpan -= 1;
-                var targets = GetTargets().Where(m => BaseHouse.FindHouseAt(m.Location, m.Map, 20) == null).ToList();
-                int count = targets.Count;
+		protected override void OnTick()
+		{
+			if (m_Owner == null || m_Map == null || m_Map == Map.Internal)
+				return;
 
-                foreach (Mobile m in targets)
-                {
-                    m_Owner.DoHarmful(m);
+			m_LifeSpan -= 1;
+			var targets = GetTargets().Where(m => BaseHouse.FindHouseAt(m.Location, m.Map, 20) == null).ToList();
+			int count = targets.Count;
 
-                    if (m_Map.CanFit(m.Location, 12, true, false))
-                        new FireItem(m_LifeSpan).MoveToWorld(m.Location, m_Map);
+			foreach (Mobile m in targets)
+			{
+				m_Owner.DoHarmful(m);
 
-                    Effects.PlaySound(m.Location, m_Map, 0x5CF);
-                    double sdiBonus = (double)AosAttributes.GetValue(m_Owner, AosAttribute.SpellDamage) / 100;
+				if (m_Map.CanFit(m.Location, 12, true, false))
+					new FireItem(m_LifeSpan).MoveToWorld(m.Location, m_Map);
 
-                    if (m is PlayerMobile && sdiBonus > .15)
-                        sdiBonus = .15;
+				Effects.PlaySound(m.Location, m_Map, 0x5CF);
+				double sdiBonus = (double)AosAttributes.GetValue(m_Owner, AosAttribute.SpellDamage) / 100;
 
-                    int damage = m_Damage + (int)(m_Damage * sdiBonus);
+				if (m is PlayerMobile && sdiBonus > .15)
+					sdiBonus = .15;
 
-                    if (count > 1)
-                        damage /= Math.Min(3, count);
+				int damage = m_Damage + (int)(m_Damage * sdiBonus);
 
-                    AOS.Damage(m, m_Owner, damage, 0, 100, 0, 0, 0, 0, 0, DamageType.SpellAOE);
-                    WildfireSpell.Table[m] = Core.TickCount + 1000;
-                }
+				if (count > 1)
+					damage /= Math.Min(3, count);
 
-                ColUtility.Free(targets);
-            }
+				AOS.Damage(m, m_Owner, damage, 0, 100, 0, 0, 0, 0, 0, DamageType.SpellAOE);
+				Table[m] = Core.TickCount + 1000;
+			}
 
-            private IEnumerable<Mobile> GetTargets()
-            {
-                WildfireSpell.DefragTable();
+			ColUtility.Free(targets);
+		}
 
-                return m_Spell.AcquireIndirectTargets(m_Location, m_Range).OfType<Mobile>().Where(m => !m_Table.ContainsKey(m));
-            }
-        }
+		private IEnumerable<Mobile> GetTargets()
+		{
+			DefragTable();
 
-        public class FireItem : Item
-        {
-            public FireItem(int duration)
-                : base(Utility.RandomBool() ? 0x398C : 0x3996)
-            {
-                Movable = false;
-                Timer.DelayCall(TimeSpan.FromSeconds(duration), new TimerCallback(Delete));
-            }
+			return m_Spell.AcquireIndirectTargets(m_Location, m_Range).OfType<Mobile>().Where(m => !Table.ContainsKey(m));
+		}
+	}
 
-            public FireItem(Serial serial)
-                : base(serial)
-            {
-            }
+	private class FireItem : Item
+	{
+		public FireItem(int duration)
+			: base(Utility.RandomBool() ? 0x398C : 0x3996)
+		{
+			Movable = false;
+			Timer.DelayCall(TimeSpan.FromSeconds(duration), Delete);
+		}
 
-            public override void Serialize(GenericWriter writer)
-            {
-                base.Serialize(writer);
+		public FireItem(Serial serial)
+			: base(serial)
+		{
+		}
 
-                writer.Write(0); // version
-            }
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
 
-            public override void Deserialize(GenericReader reader)
-            {
-                base.Deserialize(reader);
+			writer.Write(0);
+		}
 
-                int version = reader.ReadInt();
+		public override void Deserialize(GenericReader reader)
+		{
+			base.Deserialize(reader);
 
-                Delete();
-            }
-        }
-    }
+			reader.ReadInt();
+
+			Delete();
+		}
+	}
 }

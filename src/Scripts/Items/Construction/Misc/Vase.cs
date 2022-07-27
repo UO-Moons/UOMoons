@@ -1,83 +1,82 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class Vase : BaseItem
 {
-	public class Vase : BaseItem
+	[Constructable]
+	public Vase() : base(0xB46)
 	{
-		[Constructable]
-		public Vase() : base(0xB46)
-		{
-			Weight = 10;
-		}
-
-		public Vase(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		Weight = 10;
 	}
 
-	public class LargeVase : BaseItem
+	public Vase(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public LargeVase() : base(0xB45)
-		{
-			Weight = 15;
-		}
-
-		public LargeVase(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class SmallUrn : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public SmallUrn() : base(0x241C)
-		{
-			Weight = 20.0;
-		}
+		base.Serialize(writer);
 
-		public SmallUrn(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0);
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class LargeVase : BaseItem
+{
+	[Constructable]
+	public LargeVase() : base(0xB45)
+	{
+		Weight = 15;
+	}
 
-			int version = reader.ReadInt();
-		}
+	public LargeVase(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class SmallUrn : BaseItem
+{
+	[Constructable]
+	public SmallUrn() : base(0x241C)
+	{
+		Weight = 20.0;
+	}
+
+	public SmallUrn(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

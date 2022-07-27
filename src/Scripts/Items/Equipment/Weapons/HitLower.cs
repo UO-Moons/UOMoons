@@ -1,95 +1,142 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
+using Server.Mobiles;
 
-namespace Server.Items
+namespace Server.Items;
+
+public static class HitLower
 {
-	public class HitLower
+	private static readonly TimeSpan AttackEffectDuration = TimeSpan.FromSeconds(10.0);
+	private static readonly TimeSpan DefenseEffectDuration = TimeSpan.FromSeconds(8.0);
+	private static readonly Dictionary<Mobile, AttackTimer> m_AttackTable = new();
+	private static readonly Dictionary<Mobile, DefenseTimer> m_DefenseTable = new();
+
+	public static bool IsUnderAttackEffect(Mobile m)
 	{
-		public static readonly TimeSpan AttackEffectDuration = TimeSpan.FromSeconds(10.0);
-		public static readonly TimeSpan DefenseEffectDuration = TimeSpan.FromSeconds(8.0);
+		return m_AttackTable.ContainsKey(m);
+	}
 
-		private static readonly Hashtable m_AttackTable = new Hashtable();
+	public static bool ApplyAttack(Mobile m)
+	{
+		if (IsUnderAttackEffect(m))
+			return false;
 
-		public static bool IsUnderAttackEffect(Mobile m)
-		{
-			return m_AttackTable.Contains(m);
-		}
+		m_AttackTable[m] = new AttackTimer(m);
+		BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.HitLowerAttack, 1151315, 1151314, AttackEffectDuration, m, "25"));
+		m.SendLocalizedMessage(1062319); // Your attack chance has been reduced!
 
-		public static bool ApplyAttack(Mobile m)
-		{
-			if (IsUnderAttackEffect(m))
-				return false;
+		m.Delta(MobileDelta.WeaponDamage);
 
-			m_AttackTable[m] = new AttackTimer(m);
-			m.SendLocalizedMessage(1062319); // Your attack chance has been reduced!
-			return true;
-		}
+		return true;
+	}
 
-		private static void RemoveAttack(Mobile m)
+	private static void RemoveAttack(Mobile m)
+	{
+		if (m_AttackTable.ContainsKey(m))
 		{
 			m_AttackTable.Remove(m);
 			m.SendLocalizedMessage(1062320); // Your attack chance has returned to normal.
 		}
+	}
 
-		private class AttackTimer : Timer
+	private class AttackTimer : Timer
+	{
+		private readonly Mobile m_Player;
+
+		public AttackTimer(Mobile player)
+			: base(AttackEffectDuration)
 		{
-			private readonly Mobile m_Player;
+			m_Player = player;
 
-			public AttackTimer(Mobile player) : base(AttackEffectDuration)
+			Priority = TimerPriority.TwoFiftyMs;
+
+			Start();
+		}
+
+		protected override void OnTick()
+		{
+			RemoveAttack(m_Player);
+		}
+	}
+
+	public static bool IsUnderDefenseEffect(Mobile m)
+	{
+		return m_DefenseTable.ContainsKey(m);
+	}
+
+	public static bool ApplyDefense(Mobile m)
+	{
+		if (m_DefenseTable.ContainsKey(m))
+		{
+			DefenseTimer timer = m_DefenseTable[m];
+
+			if (timer != null)
 			{
-				m_Player = player;
-
-				Priority = TimerPriority.TwoFiftyMs;
-
-				Start();
-			}
-
-			protected override void OnTick()
-			{
-				RemoveAttack(m_Player);
+				timer.Stop();
+				timer.DefenseMalus = 0;
 			}
 		}
 
-		private static readonly Hashtable m_DefenseTable = new Hashtable();
+		int malus;
 
-		public static bool IsUnderDefenseEffect(Mobile m)
-		{
-			return m_DefenseTable.Contains(m);
-		}
+		//if (m is PlayerMobile)
+		//{
+			//malus = 45 + BaseArmor.GetRefinedDefenseChance(m);
+			//malus -= (int)(malus * .35);
+		//}
+		//else
+		//{
+			malus = 25;
+		//}
 
-		public static bool ApplyDefense(Mobile m)
-		{
-			if (IsUnderDefenseEffect(m))
-				return false;
+		m_DefenseTable[m] = new DefenseTimer(m, malus);
+		BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.HitLowerDefense, 1151313, 1151286, DefenseEffectDuration, m, malus.ToString()));
+		m.SendLocalizedMessage(1062318); // Your defense chance has been reduced!
 
-			m_DefenseTable[m] = new DefenseTimer(m);
-			m.SendLocalizedMessage(1062318); // Your defense chance has been reduced!
-			return true;
-		}
+		m.Delta(MobileDelta.WeaponDamage);
 
-		private static void RemoveDefense(Mobile m)
+		return true;
+	}
+
+	private static void RemoveDefense(Mobile m)
+	{
+		if (m_DefenseTable.ContainsKey(m))
 		{
 			m_DefenseTable.Remove(m);
 			m.SendLocalizedMessage(1062321); // Your defense chance has returned to normal.
+
+			m.Delta(MobileDelta.WeaponDamage);
+		}
+	}
+
+	public static int GetDefenseMalus(Mobile m)
+	{
+		if (m_DefenseTable.ContainsKey(m))
+		{
+			return m_DefenseTable[m].DefenseMalus;
 		}
 
-		private class DefenseTimer : Timer
+		return 0;
+	}
+
+	private class DefenseTimer : Timer
+	{
+		private readonly Mobile m_Player;
+		public int DefenseMalus { get; set; }
+
+		public DefenseTimer(Mobile player, int malus)
+			: base(DefenseEffectDuration)
 		{
-			private readonly Mobile m_Player;
+			m_Player = player;
+			DefenseMalus = malus;
 
-			public DefenseTimer(Mobile player) : base(DefenseEffectDuration)
-			{
-				m_Player = player;
+			Priority = TimerPriority.TwoFiftyMs;
+			Start();
+		}
 
-				Priority = TimerPriority.TwoFiftyMs;
-
-				Start();
-			}
-
-			protected override void OnTick()
-			{
-				RemoveDefense(m_Player);
-			}
+		protected override void OnTick()
+		{
+			RemoveDefense(m_Player);
 		}
 	}
 }

@@ -92,7 +92,7 @@ public class CollectionTitle : CollectionItem
 		Title = title;
 	}
 
-	public object Title { get; }
+	private object Title { get; }
 
 	public override void OnGiveReward(PlayerMobile to, Item item, IComunityCollection collection, int hue)
 	{
@@ -123,7 +123,7 @@ public class CollectionTreasureMap : CollectionItem
 		Level = level;
 	}
 
-	public int Level { get; }
+	private int Level { get; }
 
 	public override bool Validate(PlayerMobile from, Item item)
 	{
@@ -139,7 +139,7 @@ public class CollectionSpellbook : CollectionItem
 		SpellbookType = type;
 	}
 
-	public SpellbookType SpellbookType { get; }
+	private SpellbookType SpellbookType { get; }
 
 	public override bool Validate(PlayerMobile from, Item item)
 	{

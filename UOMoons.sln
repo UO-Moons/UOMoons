@@ -23,12 +23,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Data", "Data", "{863CB287-E
 		bin\Data\names.xml = bin\Data\names.xml
 		bin\Data\objects.xml = bin\Data\objects.xml
 		bin\Data\pageresponse.cfg = bin\Data\pageresponse.cfg
-		bin\Data\Regions.xml = bin\Data\Regions.xml
 		bin\Data\shrink.cfg = bin\Data\shrink.cfg
 		bin\Data\signs.cfg = bin\Data\signs.cfg
 		bin\Data\SpawnDefinitions.xml = bin\Data\SpawnDefinitions.xml
 		bin\Data\TravelRestrictions.xml = bin\Data\TravelRestrictions.xml
 		bin\Data\treasure.cfg = bin\Data\treasure.cfg
+		bin\Data\Update.md = bin\Data\Update.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Locations", "Locations", "{3B72F13A-08A1-40A1-B4C9-78FEAA9C12FC}"
@@ -314,6 +314,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Regions", "Regions", "{CEBE9713-9860-46BA-8CB1-06555ED7EB03}"
 	ProjectSection(SolutionItems) = preProject
 		bin\Data\Regions\Felucca.xml = bin\Data\Regions\Felucca.xml
+		bin\Data\Regions\Felucca_Dungeons.xml = bin\Data\Regions\Felucca_Dungeons.xml
 		bin\Data\Regions\Ilshenar.xml = bin\Data\Regions\Ilshenar.xml
 		bin\Data\Regions\Malas.xml = bin\Data\Regions\Malas.xml
 		bin\Data\Regions\TerMur.xml = bin\Data\Regions\TerMur.xml

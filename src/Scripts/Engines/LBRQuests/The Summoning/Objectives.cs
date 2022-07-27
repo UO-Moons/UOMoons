@@ -131,7 +131,7 @@ namespace Server.Engines.Quests.Doom
 					{
 						DamageStore ds = lootingRights[i];
 
-						if (ds.m_HasRight && ds.m_Mobile == from)
+						if (ds.HasRight && ds.Mobile == from)
 						{
 							hasRights = true;
 							break;

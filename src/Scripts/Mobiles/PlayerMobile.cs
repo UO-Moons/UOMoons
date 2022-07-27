@@ -127,18 +127,8 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 	[CommandProperty(AccessLevel.GameMaster)]
 	public AccountGoldProps AccountGold
 	{
-		get
-		{
-			if (_AccountGold == null)
-			{
-				_AccountGold = new AccountGoldProps(this);
-			}
-
-			return _AccountGold;
-		}
-		set
-		{
-		}
+		get => _AccountGold ??= new AccountGoldProps(this);
+		set => _AccountGold = value;
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
@@ -166,72 +156,42 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.DepositCurrency(amount);
-		}
-
-		return false;
+		return acct != null && acct.DepositCurrency(amount);
 	}
 
 	public bool WithdrawCurrency(double amount)
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.WithdrawCurrency(amount);
-		}
-
-		return false;
+		return acct != null && acct.WithdrawCurrency(amount);
 	}
 
 	public bool DepositGold(int amount)
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.DepositGold(amount);
-		}
-
-		return false;
+		return acct != null && acct.DepositGold(amount);
 	}
 
 	public bool WithdrawGold(int amount)
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.WithdrawGold(amount);
-		}
-
-		return false;
+		return acct != null && acct.WithdrawGold(amount);
 	}
 
 	public bool DepositPlat(int amount)
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.DepositPlat(amount);
-		}
-
-		return false;
+		return acct != null && acct.DepositPlat(amount);
 	}
 
 	public bool WithdrawPlat(int amount)
 	{
 		IGoldAccount acct = Account;
 
-		if (acct != null)
-		{
-			return acct.WithdrawPlat(amount);
-		}
-
-		return false;
+		return acct != null && acct.WithdrawPlat(amount);
 	}
 
 	public bool DepositSovereigns(int amount)
@@ -294,6 +254,7 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 	#endregion
 
 	#region Getters & Setters
+	public bool UseSummoningRite { get; set; }
 	[CommandProperty(AccessLevel.GameMaster)]
 	public DateTime GemOfSalvationUse { get; set; }
 	[CommandProperty(AccessLevel.Administrator)]
@@ -326,6 +287,15 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 	public List<Mobile> VisibilityList { get; }
 	public List<Mobile> PermaFlags { get; private set; }
 	public override int Luck => AosAttributes.GetValue(this, AosAttribute.Luck);
+	public int RealLuck
+	{
+		get
+		{
+			int facetBonus = Map == Map.Felucca ? RandomItemGenerator.FeluccaLuckBonus : 0;
+
+			return Luck + FountainOfFortune.GetLuckBonus(this) + facetBonus;
+		}
+	}
 	public SkillName Learning { get; set; } = (SkillName)(-1);
 	public List<Mobile> RecentlyReported { get; set; }
 	public DateTime LastMacroCheck { get; set; }
@@ -579,6 +549,10 @@ public class PlayerMobile : BaseMobile, IHonorTarget
 		get => GetFlag(PlayerFlag.HasStatReward);
 		set => SetFlag(PlayerFlag.HasStatReward, value);
 	}
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool HasValiantStatReward { get => GetFlag(PlayerFlag.HasValiantStatReward); set => SetFlag(PlayerFlag.HasValiantStatReward, value); }
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool AbyssEntry { get => GetFlag(PlayerFlag.AbyssEntry); set => SetFlag(PlayerFlag.AbyssEntry, value); }
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool RefuseTrades
 	{

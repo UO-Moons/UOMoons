@@ -48,7 +48,7 @@ public class InvisibilitySpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{
@@ -121,7 +121,7 @@ public class InvisibilitySpell : MagerySpell
 		}
 	}
 
-	public class InternalTarget : Target
+	private class InternalTarget : Target
 	{
 		private readonly InvisibilitySpell _owner;
 

@@ -1,42 +1,41 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class PolarBearMask : BearMask
 {
-	public class PolarBearMask : BearMask
+	public override int LabelNumber => 1070637;
+
+	public override int BasePhysicalResistance => 15;
+	public override int BaseColdResistance => 21;
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public PolarBearMask()
 	{
-		public override int LabelNumber => 1070637;
+		Hue = 0x481;
 
-		public override int BasePhysicalResistance => 15;
-		public override int BaseColdResistance => 21;
+		ClothingAttributes.SelfRepair = 3;
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+		Attributes.RegenHits = 2;
+		Attributes.NightSight = 1;
+	}
 
-		[Constructable]
-		public PolarBearMask()
-		{
-			Hue = 0x481;
+	public PolarBearMask(Serial serial) : base(serial)
+	{
+	}
 
-			ClothingAttributes.SelfRepair = 3;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			Attributes.RegenHits = 2;
-			Attributes.NightSight = 1;
-		}
+		writer.Write(0);
+	}
 
-		public PolarBearMask(Serial serial) : base(serial)
-		{
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

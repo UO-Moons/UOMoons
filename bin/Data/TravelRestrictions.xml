@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <TravelRestrictions>
   <Region Name="FeluccaT2A" Delegate="IsFeluccaT2A">
     <RecallFrom>false</RecallFrom>
@@ -162,7 +162,7 @@
     <TeleportFrom>false</TeleportFrom>
     <TeleportTo>false</TeleportTo>
   </Region>
-  <Region Name="MLDungeon" Delegate="IsMLDungeon">
+  <Region Name="MLDungeon" Delegate="IsMlDungeon">
     <RecallFrom>false</RecallFrom>
     <RecallTo>false</RecallTo>
     <GateFrom>false</GateFrom>
@@ -171,7 +171,7 @@
     <TeleportFrom>true</TeleportFrom>
     <TeleportTo>false</TeleportTo>
   </Region>
-  <Region Name="SADungeon" Delegate="IsSADungeon">
+  <Region Name="SADungeon" Delegate="IsSaDungeon">
     <RecallFrom>true</RecallFrom>
     <RecallTo>false</RecallTo>
     <GateFrom>false</GateFrom>
@@ -198,7 +198,7 @@
     <TeleportFrom>false</TeleportFrom>
     <TeleportTo>false</TeleportTo>
   </Region>
-  <Region Name="SAEntrance" Delegate="IsSAEntrance">
+  <Region Name="SAEntrance" Delegate="IsSaEntrance">
     <RecallFrom>false</RecallFrom>
     <RecallTo>false</RecallTo>
     <GateFrom>false</GateFrom>

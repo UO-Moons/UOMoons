@@ -28,7 +28,7 @@ public class HairRestylingDeed : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 
 	public override void OnDoubleClick(Mobile from)
@@ -66,11 +66,11 @@ public class HairRestylingDeed : BaseItem
 
 			for (int i = 1; i < racialData.Length; i++)
 			{
-				AddHtmlLocalized(_layoutArray[i][2], _layoutArray[i][3], (i == 1) ? 125 : 80, (i == 1) ? 70 : 35, (m_From.Female) ? racialData[i][0] : racialData[i][1], false, false);
+				AddHtmlLocalized(_layoutArray[i][2], _layoutArray[i][3], i == 1 ? 125 : 80, i == 1 ? 70 : 35, m_From.Female ? racialData[i][0] : racialData[i][1], false, false);
 				if (_layoutArray[i][4] != 0)
 				{
 					AddBackground(_layoutArray[i][0], _layoutArray[i][1], 50, 50, 0xA3C);
-					AddImage(_layoutArray[i][4], _layoutArray[i][5], (m_From.Female) ? racialData[i][4] : racialData[i][5]);
+					AddImage(_layoutArray[i][4], _layoutArray[i][5], m_From.Female ? racialData[i][4] : racialData[i][5]);
 				}
 				AddButton(_layoutArray[i][6], _layoutArray[i][7], 0xFA5, 0xFA7, i, GumpButtonType.Reply, 0);
 			}
@@ -87,11 +87,11 @@ public class HairRestylingDeed : BaseItem
 			if (info.ButtonID is < 1 or > 10)
 				return;
 
-			int[][] racialData = (m_From.Race == Race.Human) ? _humanArray : _elvenArray;
+			int[][] racialData = m_From.Race == Race.Human ? _humanArray : _elvenArray;
 
 			if (m_From is not PlayerMobile pm) return;
 			pm.SetHairMods(-1, -1); // clear any hairmods (disguise kit, incognito)
-			m_From.HairItemId = (m_From.Female) ? racialData[info.ButtonID][2] : racialData[info.ButtonID][3];
+			m_From.HairItemId = m_From.Female ? racialData[info.ButtonID][2] : racialData[info.ButtonID][3];
 			m_Deed.Delete();
 		}
 

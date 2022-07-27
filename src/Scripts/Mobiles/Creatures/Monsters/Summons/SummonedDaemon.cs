@@ -39,7 +39,7 @@ namespace Server.Mobiles
 			ControlSlots = Core.SE ? 4 : 5;
 		}
 
-		public override Poison PoisonImmune => Poison.Regular;  // TODO: Immune to poison?
+		public override Poison PoisonImmune => Poison.Regular;
 		public override bool CanFly => true;
 
 		public SummonedDaemon(Serial serial) : base(serial)
@@ -55,7 +55,7 @@ namespace Server.Mobiles
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-			int version = reader.ReadInt();
+			reader.ReadInt();
 		}
 	}
 }

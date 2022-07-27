@@ -62,19 +62,17 @@ public class FocusAttack : NinjaMove
 
 	public override void OnUse(Mobile from)
 	{
-		if (from.Weapon is BaseWeapon wep)
-		{
-			wep.FocusWeilder = from;
-			wep.InvalidateProperties();
-		}
+		if (from.Weapon is not BaseWeapon wep)
+			return;
+		wep.FocusWeilder = from;
+		wep.InvalidateProperties();
 	}
 
 	public override void OnClearMove(Mobile from)
 	{
-		if (from.Weapon is BaseWeapon {FocusWeilder: { }} wep)
-		{
-			wep.FocusWeilder = null;
-			wep.InvalidateProperties();
-		}
+		if (from.Weapon is not BaseWeapon { FocusWeilder: { } } wep)
+			return;
+		wep.FocusWeilder = null;
+		wep.InvalidateProperties();
 	}
 }

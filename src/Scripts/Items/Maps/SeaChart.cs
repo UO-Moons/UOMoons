@@ -20,10 +20,12 @@ public class SeaChart : MapItem
 
 		int size = 24 + (int)(skillValue * 3.3);
 
-		if (size < 200)
-			size = 200;
-		else if (size > 400)
-			size = 400;
+		size = size switch
+		{
+			< 200 => 200,
+			> 400 => 400,
+			_ => size
+		};
 
 		SetDisplay(from.X - dist, from.Y - dist, from.X + dist, from.Y + dist, size, size);
 	}
@@ -41,6 +43,6 @@ public class SeaChart : MapItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 }

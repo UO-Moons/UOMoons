@@ -49,7 +49,7 @@ public class ResurrectionSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (m != null)
 		{

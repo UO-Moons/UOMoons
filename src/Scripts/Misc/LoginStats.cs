@@ -25,7 +25,7 @@ namespace Server.Misc
 				mobileCount, mobileCount == 1 ? "" : "s");
 
 			#region CheckName
-			if (m.Name == CharacterCreation.GENERIC_NAME || !CharacterCreation.CheckDupe(m, m.Name))
+			if (m.Name == CharacterCreation.GenericName || !CharacterCreation.CheckDupe(m, m.Name))
 			{
 				m.CantWalk = true;
 				m.SendGump(new NameChangeGump(m));

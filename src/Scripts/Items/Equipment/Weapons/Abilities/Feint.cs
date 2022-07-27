@@ -10,11 +10,7 @@ namespace Server.Items
 	/// </summary>
 	public class Feint : WeaponAbility
 	{
-		public static Dictionary<Mobile, FeintTimer> Registry { get; } = new Dictionary<Mobile, FeintTimer>();
-
-		public Feint()
-		{
-		}
+		public static Dictionary<Mobile, FeintTimer> Registry { get; } = new();
 
 		public override int BaseMana => 30;
 
@@ -59,7 +55,7 @@ namespace Server.Items
 			t.Start();
 			Registry.Add(defender, t);
 
-			string args = string.Format("{0}\t{1}", defender.Name, bonus);
+			string args = $"{defender.Name}\t{bonus}";
 			BuffInfo.AddBuff(attacker, new BuffInfo(BuffIcon.Feint, 1151308, 1151307, TimeSpan.FromSeconds(6), attacker, args));
 		}
 

@@ -40,7 +40,7 @@ public class ParalyzeFieldSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -57,23 +57,12 @@ public class ParalyzeFieldSpell : MagerySpell
 			int rx = (dx - dy) * 44;
 			int ry = (dx + dy) * 44;
 
-			bool eastToWest;
-
-			switch (rx)
+			bool eastToWest = rx switch
 			{
-				case >= 0 when ry >= 0:
-					eastToWest = false;
-					break;
-				case >= 0:
-					eastToWest = true;
-					break;
-				default:
-				{
-					eastToWest = ry >= 0;
-
-					break;
-				}
-			}
+				>= 0 when ry >= 0 => false,
+				>= 0 => true,
+				_ => ry >= 0
+			};
 
 			Effects.PlaySound(p, Caster.Map, 0x20B);
 			int itemId = eastToWest ? 0x3967 : 0x3979;

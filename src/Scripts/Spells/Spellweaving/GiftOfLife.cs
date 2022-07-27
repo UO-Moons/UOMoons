@@ -5,224 +5,219 @@ using Server.Items;
 using Server.Mobiles;
 using Server.Targeting;
 
-namespace Server.Spells.Spellweaving
+namespace Server.Spells.Spellweaving;
+
+public class GiftOfLifeSpell : ArcanistSpell
 {
-    public class GiftOfLifeSpell : ArcanistSpell
-    {
-        private static readonly SpellInfo m_Info = new SpellInfo(
-            "Gift of Life", "Illorae",
-            -1);
+	private static readonly SpellInfo m_Info = new(
+		"Gift of Life", "Illorae",
+		-1);
 
-        private static readonly Dictionary<Mobile, ExpireTimer> m_Table = new Dictionary<Mobile, ExpireTimer>();
+	private static readonly Dictionary<Mobile, ExpireTimer> m_Table = new();
 
-        public GiftOfLifeSpell(Mobile caster, Item scroll)
-            : base(caster, scroll, m_Info)
-        {
-        }
+	public GiftOfLifeSpell(Mobile caster, Item scroll)
+		: base(caster, scroll, m_Info)
+	{
+	}
 
-        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(4.0);
-        public override double RequiredSkill => 38.0;
-        public override int RequiredMana => 70;
-        public double HitsScalar => ((Caster.Skills.Spellweaving.Value / 2.4) + FocusLevel) / 100;
-        public static void Initialize()
-        {
-            EventSink.OnMobileDeath += EventSink_HandleDeath;
-            EventSink.OnLogin += Login;
-        }
+	public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(4.0);
+	public override double RequiredSkill => 38.0;
+	public override int RequiredMana => 70;
+	private double HitsScalar => (Caster.Skills.Spellweaving.Value / 2.4 + FocusLevel) / 100;
+	public static void Initialize()
+	{
+		EventSink.OnMobileDeath += EventSink_HandleDeath;
+		EventSink.OnLogin += Login;
+	}
 
-        public static void EventSink_HandleDeath(Mobile m, Mobile killer, Container cont)
+	private static void EventSink_HandleDeath(Mobile m, Mobile killer, Container cont)
+	{
+		HandleDeath(m);
+	}
+
+	public static void HandleDeath(Mobile m)
+	{
+		if (m_Table.ContainsKey(m))
+			Timer.DelayCall(TimeSpan.FromSeconds(Utility.RandomMinMax(2, 4)), HandleDeath_OnCallback, m);
+	}
+
+	private static void Login(Mobile m)
+	{
+		if (!m_Table.ContainsKey(m))
+			return;
+
+		var timer = m_Table[m];
+
+		if (timer.EndTime > DateTime.UtcNow)
 		{
-            HandleDeath(m);
-        }
+			BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.GiftOfLife, 1031615, 1075807, timer.EndTime - DateTime.UtcNow, m, null, true));
+		}
+	}
 
-        public static void HandleDeath(Mobile m)
-        {
-            if (m_Table.ContainsKey(m))
-                Timer.DelayCall<Mobile>(TimeSpan.FromSeconds(Utility.RandomMinMax(2, 4)), new TimerStateCallback<Mobile>(HandleDeath_OnCallback), m);
-        }
+	public static void OnLogin(Mobile m)
+	{
+		if (m == null || m.Alive || m_Table[m] == null)
+			return;
 
-        public static void Login(Mobile m)
-        {
-            if (m_Table.ContainsKey(m))
-            {
-                var timer = m_Table[m];
+		HandleDeath_OnCallback(m);
+	}
 
-                if (timer.EndTime > DateTime.UtcNow)
-                {
-                    BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.GiftOfLife, 1031615, 1075807, timer.EndTime - DateTime.UtcNow, m, null, true));
-                }
-            }
-        }
+	public override void OnCast()
+	{
+		Caster.Target = new InternalTarget(this);
+	}
 
-        public static void OnLogin(Mobile m)
-        {
-            if (m == null || m.Alive || m_Table[m] == null)
-                return;
+	private void Target(Mobile m)
+	{
+		BaseCreature bc = m as BaseCreature;
 
-            HandleDeath_OnCallback(m);
-        }
+		if (!Caster.CanSee(m))
+		{
+			Caster.SendLocalizedMessage(500237); // Target can not be seen.
+		}
+		else if (m.IsDeadBondedPet || !m.Alive)
+		{
+			// As per Osi: Nothing happens.
+		}
+		else if (m != Caster && (bc == null || !bc.IsBonded || bc.ControlMaster != Caster))
+		{
+			Caster.SendLocalizedMessage(1072077); // You may only cast this spell on yourself or a bonded pet.
+		}
+		else if (m_Table.ContainsKey(m))
+		{
+			Caster.SendLocalizedMessage(501775); // This spell is already in effect.
+		}
+		else if (CheckBSequence(m))
+		{
+			if (Caster == m)
+			{
+				Caster.SendLocalizedMessage(1074774); // You weave powerful magic, protecting yourself from death.
+			}
+			else
+			{
+				Caster.SendLocalizedMessage(1074775); // You weave powerful magic, protecting your pet from death.
+				SpellHelper.Turn(Caster, m);
+			}
 
-        public override void OnCast()
-        {
-            Caster.Target = new InternalTarget(this);
-        }
+			m.PlaySound(0x244);
+			m.FixedParticles(0x3709, 1, 30, 0x26ED, 5, 2, EffectLayer.Waist);
+			m.FixedParticles(0x376A, 1, 30, 0x251E, 5, 3, EffectLayer.Waist);
 
-        public void Target(Mobile m)
-        {
-            BaseCreature bc = m as BaseCreature;
+			double skill = Caster.Skills[SkillName.Spellweaving].Value;
 
-            if (!Caster.CanSee(m))
-            {
-                Caster.SendLocalizedMessage(500237); // Target can not be seen.
-            }
-            else if (m.IsDeadBondedPet || !m.Alive)
-            {
-                // As per Osi: Nothing happens.
-            }
-            else if (m != Caster && (bc == null || !bc.IsBonded || bc.ControlMaster != Caster))
-            {
-                Caster.SendLocalizedMessage(1072077); // You may only cast this spell on yourself or a bonded pet.
-            }
-            else if (m_Table.ContainsKey(m))
-            {
-                Caster.SendLocalizedMessage(501775); // This spell is already in effect.
-            }
-            else if (CheckBSequence(m))
-            {
-                if (Caster == m)
-                {
-                    Caster.SendLocalizedMessage(1074774); // You weave powerful magic, protecting yourself from death.
-                }
-                else
-                {
-                    Caster.SendLocalizedMessage(1074775); // You weave powerful magic, protecting your pet from death.
-                    SpellHelper.Turn(Caster, m);
-                }
+			TimeSpan duration = TimeSpan.FromMinutes((int)(skill / 24) * 2 + FocusLevel);
 
-                m.PlaySound(0x244);
-                m.FixedParticles(0x3709, 1, 30, 0x26ED, 5, 2, EffectLayer.Waist);
-                m.FixedParticles(0x376A, 1, 30, 0x251E, 5, 3, EffectLayer.Waist);
+			ExpireTimer t = new(m, duration, this);
+			t.Start();
 
-                double skill = Caster.Skills[SkillName.Spellweaving].Value;
+			m_Table[m] = t;
 
-                TimeSpan duration = TimeSpan.FromMinutes(((int)(skill / 24)) * 2 + FocusLevel);
+			BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.GiftOfLife, 1031615, 1075807, duration, m, null, true));
+		}
 
-                ExpireTimer t = new ExpireTimer(m, duration, this);
-                t.Start();
+		FinishSequence();
+	}
 
-                m_Table[m] = t;
+	private static void HandleDeath_OnCallback(Mobile m)
+	{
+		if (m_Table.TryGetValue(m, out var timer))
+		{
+			double hitsScalar = timer.Spell.HitsScalar;
 
-                BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.GiftOfLife, 1031615, 1075807, duration, m, null, true));
-            }
+			if (m is BaseCreature { IsDeadBondedPet: true } pet)
+			{
+				Mobile master = pet.GetMaster();
 
-            FinishSequence();
-        }
+				if (master is { NetState: { } } && master.InUpdateRange(pet))
+				{
+					master.CloseGump(typeof(PetResurrectGump));
+					master.SendGump(new PetResurrectGump(master, pet, hitsScalar));
+				}
+				else
+				{
+					List<Mobile> friends = pet.Friends;
 
-        private static void HandleDeath_OnCallback(Mobile m)
-        {
-            ExpireTimer timer;
+					for (int i = 0; friends != null && i < friends.Count; i++)
+					{
+						Mobile friend = friends[i];
 
-            if (m_Table.TryGetValue(m, out timer))
-            {
-                double hitsScalar = timer.Spell.HitsScalar;
+						if (friend.NetState == null || !friend.InUpdateRange(pet))
+							continue;
 
-                if (m is BaseCreature && m.IsDeadBondedPet)
-                {
-                    BaseCreature pet = (BaseCreature)m;
-                    Mobile master = pet.GetMaster();
+						friend.CloseGump(typeof(PetResurrectGump));
+						friend.SendGump(new PetResurrectGump(friend, pet));
+						break;
+					}
+				}
+			}
+			else
+			{
+				m.CloseGump(typeof(ResurrectGump));
+				m.SendGump(new ResurrectGump(m, hitsScalar));
+			}
 
-                    if (master != null && master.NetState != null && master.InUpdateRange(pet))
-                    {
-                        master.CloseGump(typeof(PetResurrectGump));
-                        master.SendGump(new PetResurrectGump(master, pet, hitsScalar));
-                    }
-                    else
-                    {
-                        List<Mobile> friends = pet.Friends;
+			timer.DoExpire();
+		}
+	}
 
-                        for (int i = 0; friends != null && i < friends.Count; i++)
-                        {
-                            Mobile friend = friends[i];
+	private class InternalTarget : Target
+	{
+		private readonly GiftOfLifeSpell m_Owner;
 
-                            if (friend.NetState != null && friend.InUpdateRange(pet))
-                            {
-                                friend.CloseGump(typeof(PetResurrectGump));
-                                friend.SendGump(new PetResurrectGump(friend, pet));
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    m.CloseGump(typeof(ResurrectGump));
-                    m.SendGump(new ResurrectGump(m, hitsScalar));
-                }
+		public InternalTarget(GiftOfLifeSpell owner)
+			: base(10, false, TargetFlags.Beneficial)
+		{
+			m_Owner = owner;
+		}
 
-                //Per OSI, buff is removed when gump sent, irregardless of online status or acceptence
-                timer.DoExpire();
-            }
-        }
+		protected override void OnTarget(Mobile m, object o)
+		{
+			if (o is Mobile mobile)
+			{
+				m_Owner.Target(mobile);
+			}
+			else
+			{
+				m.SendLocalizedMessage(1072077); // You may only cast this spell on yourself or a bonded pet.
+			}
+		}
 
-        public class InternalTarget : Target
-        {
-            private readonly GiftOfLifeSpell m_Owner;
+		protected override void OnTargetFinish(Mobile m)
+		{
+			m_Owner.FinishSequence();
+		}
+	}
 
-            public InternalTarget(GiftOfLifeSpell owner)
-                : base(10, false, TargetFlags.Beneficial)
-            {
-                m_Owner = owner;
-            }
+	private class ExpireTimer : Timer
+	{
+		private readonly Mobile m_Mobile;
 
-            protected override void OnTarget(Mobile m, object o)
-            {
-                if (o is Mobile)
-                {
-                    m_Owner.Target((Mobile)o);
-                }
-                else
-                {
-                    m.SendLocalizedMessage(1072077); // You may only cast this spell on yourself or a bonded pet.
-                }
-            }
+		public DateTime EndTime { get; }
 
-            protected override void OnTargetFinish(Mobile m)
-            {
-                m_Owner.FinishSequence();
-            }
-        }
+		public ExpireTimer(Mobile m, TimeSpan delay, GiftOfLifeSpell spell)
+			: base(delay)
+		{
+			m_Mobile = m;
+			Spell = spell;
 
-        private class ExpireTimer : Timer
-        {
-            private readonly Mobile m_Mobile;
-            private readonly GiftOfLifeSpell m_Spell;
+			EndTime = DateTime.UtcNow + delay;
+		}
 
-            public DateTime EndTime { get; private set; }
+		public GiftOfLifeSpell Spell { get; }
 
-            public ExpireTimer(Mobile m, TimeSpan delay, GiftOfLifeSpell spell)
-                : base(delay)
-            {
-                m_Mobile = m;
-                m_Spell = spell;
+		public void DoExpire()
+		{
+			Stop();
 
-                EndTime = DateTime.UtcNow + delay;
-            }
+			m_Mobile.SendLocalizedMessage(1074776); // You are no longer protected with Gift of Life.
+			m_Table.Remove(m_Mobile);
 
-            public GiftOfLifeSpell Spell => m_Spell;
-            public void DoExpire()
-            {
-                Stop();
+			BuffInfo.RemoveBuff(m_Mobile, BuffIcon.GiftOfLife);
+		}
 
-                m_Mobile.SendLocalizedMessage(1074776); // You are no longer protected with Gift of Life.
-                m_Table.Remove(m_Mobile);
-
-                BuffInfo.RemoveBuff(m_Mobile, BuffIcon.GiftOfLife);
-            }
-
-            protected override void OnTick()
-            {
-                DoExpire();
-            }
-        }
-    }
+		protected override void OnTick()
+		{
+			DoExpire();
+		}
+	}
 }

@@ -1,40 +1,39 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class FarmableCabbage : FarmableCrop
 {
-	public class FarmableCabbage : FarmableCrop
+	private static int GetCropId() => 3254;
+	public override int GetPickedId() => 3254;
+
+	public override Item GetCropObject()
 	{
-		public static int GetCropID() => 3254;
-		public override int GetPickedID() => 3254;
-
-		public override Item GetCropObject()
+		Cabbage cabbage = new()
 		{
-			Cabbage cabbage = new()
-			{
-				ItemId = Utility.Random(3195, 2)
-			};
+			ItemId = Utility.Random(3195, 2)
+		};
 
-			return cabbage;
-		}
+		return cabbage;
+	}
 
-		[Constructable]
-		public FarmableCabbage() : base(GetCropID())
-		{
-		}
+	[Constructable]
+	public FarmableCabbage() : base(GetCropId())
+	{
+	}
 
-		public FarmableCabbage(Serial serial) : base(serial)
-		{
-		}
+	public FarmableCabbage(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.WriteEncodedInt(0);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.WriteEncodedInt(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

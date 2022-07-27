@@ -1,33 +1,27 @@
 using Server.Items;
 using Server.Spells;
 using Server.Spells.Chivalry;
-using Server.Spells.Necromancy;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
-	{
-        public void ChivalryPower()
+    public sealed partial class CoreAi
+    {
+	    private void ChivalryPower()
         {
             if (Utility.Random(100) > 30)
             {
                 Spell spell = GetPaladinSpell();
-                if (spell != null)
-                {
-                    spell.Cast();
-                }
+                spell?.Cast();
             }
             else
             {
                 UseWeaponStrike();
             }
-
-            return;
         }
 
-        public Spell GetPaladinSpell()
+	    private Spell GetPaladinSpell()
         {
-            if (CheckForRemoveCurse() == true && Utility.RandomDouble() > 0.25)
+            if (CheckForRemoveCurse() && Utility.RandomDouble() > 0.25)
             {
                 if (m_Mobile.Debug)
                 {
@@ -39,47 +33,52 @@ namespace Server.Mobiles
 
             int whichone = Utility.RandomMinMax(1, 4);
 
-            if (whichone == 4 && m_Mobile.Skills[SkillName.Chivalry].Value >= 55.0 && m_Mobile.Mana >= 10)
+            switch (whichone)
             {
-                if (m_Mobile.Debug)
-                {
-                    m_Mobile.Say(1154, "Casting Holy Light");
-                }
+	            case 4 when m_Mobile.Skills[SkillName.Chivalry].Value >= 55.0 && m_Mobile.Mana >= 10:
+	            {
+		            if (m_Mobile.Debug)
+		            {
+			            m_Mobile.Say(1154, "Casting Holy Light");
+		            }
 
-                return new HolyLightSpell(m_Mobile, null);
-            }
-            else if (whichone >= 3 && CheckForDispelEvil())
-            {
-                if (m_Mobile.Debug)
-                {
-                    m_Mobile.Say(1154, "Casting Dispel Evil");
-                }
+		            return new HolyLightSpell(m_Mobile, null);
+	            }
+	            case >= 3 when CheckForDispelEvil():
+	            {
+		            if (m_Mobile.Debug)
+		            {
+			            m_Mobile.Say(1154, "Casting Dispel Evil");
+		            }
 
-                return new DispelEvilSpell(m_Mobile, null);
-            }
-            else if (whichone >= 2 && !(DivineFurySpell.UnderEffect(m_Mobile)) && m_Mobile.Skills[SkillName.Chivalry].Value >= 35.0)
-            {
-                if (m_Mobile.Debug)
-                {
-                    m_Mobile.Say(1154, "Casting Divine Fury");
-                }
+		            return new DispelEvilSpell(m_Mobile, null);
+	            }
+	            case >= 2 when !(DivineFurySpell.UnderEffect(m_Mobile)) && m_Mobile.Skills[SkillName.Chivalry].Value >= 35.0:
+	            {
+		            if (m_Mobile.Debug)
+		            {
+			            m_Mobile.Say(1154, "Casting Divine Fury");
+		            }
 
-                return new DivineFurySpell(m_Mobile, null);
-            }
-            else if (CheckForConsecrateWeapon())
-            {
-                if (m_Mobile.Debug)
-                {
-                    m_Mobile.Say(1154, "Casting Consecrate Weapon");
-                }
+		            return new DivineFurySpell(m_Mobile, null);
+	            }
+	            default:
+	            {
+		            if (!CheckForConsecrateWeapon())
+			            return null;
 
-                return new ConsecrateWeaponSpell(m_Mobile, null);
+		            if (m_Mobile.Debug)
+		            {
+			            m_Mobile.Say(1154, "Casting Consecrate Weapon");
+		            }
+
+		            return new ConsecrateWeaponSpell(m_Mobile, null);
+
+	            }
             }
-            else
-                return null;
         }
 
-        public bool CheckForConsecrateWeapon()
+	    private bool CheckForConsecrateWeapon()
         {
             if (m_Mobile.Debug)
             {
@@ -91,19 +90,10 @@ namespace Server.Mobiles
                 return false;
             }
 
-            BaseWeapon weapon = m_Mobile.Weapon as BaseWeapon;
-
-            if (weapon.ConsecratedContext != null)// && weapon.ConsecratedContext)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return m_Mobile.Weapon is BaseWeapon { ConsecratedContext: { } };
         }
 
-        public bool CheckForDispelEvil()
+	    private bool CheckForDispelEvil()
         {
             if (m_Mobile.Debug)
             {
@@ -121,26 +111,29 @@ namespace Server.Mobiles
             {
                 if (m != null)
                 {
-                    if (m is BaseCreature && ((BaseCreature)m).Summoned && !((BaseCreature)m).IsAnimatedDead)
-                    {
-                        cast = true;
-                    }
-                    else if (m is BaseCreature && !((BaseCreature)m).Controlled && ((BaseCreature)m).Karma < 0)
-                    {
-                        cast = true;
-                    }
-                    else if (TransformationSpellHelper.CheckCast(m, null))
-                    {
-                        cast = true;
-                    }
+	                switch (m)
+	                {
+		                case BaseCreature { Summoned: true, IsAnimatedDead: false }:
+		                case BaseCreature { Controlled: false, Karma: < 0 }:
+			                cast = true;
+			                break;
+		                default:
+		                {
+			                if (TransformationSpellHelper.CheckCast(m, null))
+			                {
+				                cast = true;
+			                }
+
+			                break;
+		                }
+	                }
                 }
-                continue;
             }
 
             return cast;
         }
 
-        public bool CheckForRemoveCurse()
+	    private bool CheckForRemoveCurse()
         {
             if (m_Mobile.Debug)
             {
@@ -152,21 +145,10 @@ namespace Server.Mobiles
                 return false;
             }
 
-            StatMod mod;
+            var mod = (m_Mobile.GetStatMod("[Magic] Str Offset") ?? m_Mobile.GetStatMod("[Magic] Dex Offset")) ??
+                      m_Mobile.GetStatMod("[Magic] Int Offset");
 
-            mod = m_Mobile.GetStatMod("[Magic] Str Offset");
-
-            if (mod == null)
-            {
-                mod = m_Mobile.GetStatMod("[Magic] Dex Offset");
-            }
-
-            if (mod == null)
-            {
-                mod = m_Mobile.GetStatMod("[Magic] Int Offset");
-            }
-
-            if (mod != null && mod.Offset < 0)
+            if (mod is { Offset: < 0 })
             {
                 return true;
             }
@@ -179,12 +161,7 @@ namespace Server.Mobiles
             }
 
             //There is no way to know if they are under blood oath or strangle without editing the spells so we just check for necro skills instead.
-            if (foe.Skills[SkillName.Necromancy].Value > 20.0 && Utility.RandomDouble() > 0.6)
-            {
-                return true;
-            }
-
-            return false;
+            return foe.Skills[SkillName.Necromancy].Value > 20.0 && Utility.RandomDouble() > 0.6;
         }
     }
 }

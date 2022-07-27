@@ -1,6 +1,5 @@
 using System;
-using Server;
-using Server.Targeting;
+using Server.Mobiles;
 
 namespace Server.Spells.Mysticism
 {
@@ -13,12 +12,12 @@ namespace Server.Spells.Mysticism
 
         public abstract SpellCircle Circle { get; }
 
-        private static int[] m_ManaTable = new int[] { 4, 6, 9, 11, 14, 20, 40, 50 };
+        private static readonly int[] m_ManaTable = { 4, 6, 9, 11, 14, 20, 40, 50 };
 
         public override TimeSpan CastDelayBase => TimeSpan.FromMilliseconds(((4 + (int)Circle) * CastDelaySecondsPerTick) * 1000);
         public override double CastDelayFastScalar => 1.0;
 
-        public double ChanceOffset => Caster is Server.Mobiles.PlayerMobile ? 20.0 : 30.0;
+        private double ChanceOffset => Caster is PlayerMobile ? 20.0 : 30.0;
         private const double ChanceLength = 100.0 / 7.0;
 
         public override void GetCastSkills(out double min, out double max)
@@ -36,15 +35,7 @@ namespace Server.Spells.Mysticism
 
         public override SkillName CastSkill => SkillName.Mysticism;
 
-        public override SkillName DamageSkill
-        {
-            get
-            {
-                if (Caster.Skills[SkillName.Imbuing].Value >= Caster.Skills[SkillName.Focus].Value)
-                    return SkillName.Imbuing;
-                return SkillName.Focus;
-            }
-        }
+        public override SkillName DamageSkill => Caster.Skills[SkillName.Imbuing].Value >= Caster.Skills[SkillName.Focus].Value ? SkillName.Imbuing : SkillName.Focus;
 
         public override void SendCastEffect()
         {
@@ -62,27 +53,18 @@ namespace Server.Spells.Mysticism
 
         public override TimeSpan GetCastRecovery()
         {
-            if (Scroll is SpellStone)
-                return TimeSpan.Zero;
-
-            return base.GetCastRecovery();
+	        return Scroll is SpellStone ? TimeSpan.Zero : base.GetCastRecovery();
         }
 
         public override TimeSpan GetCastDelay()
         {
-            if (Scroll is SpellStone)
-                return TimeSpan.Zero;
-
-            return base.GetCastDelay();
+	        return Scroll is SpellStone ? TimeSpan.Zero : base.GetCastDelay();
         }
 
-        public override bool CheckCast()
-        {
-            if (!base.CheckCast())
-                return false;
-
-            return true;
-        }
+        //public override bool CheckCast()
+        //{
+	    //    return base.CheckCast();
+        //}
 
         public virtual bool CheckResisted(Mobile target)
         {
@@ -90,11 +72,13 @@ namespace Server.Spells.Mysticism
 
             n /= 100.0;
 
-            if (n <= 0.0)
-                return false;
-
-            if (n >= 1.0)
-                return true;
+            switch (n)
+            {
+	            case <= 0.0:
+		            return false;
+	            case >= 1.0:
+		            return true;
+            }
 
             int circle = Math.Max(5, 1 + (int)Circle);
 

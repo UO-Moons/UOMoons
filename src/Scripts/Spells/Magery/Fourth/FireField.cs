@@ -41,7 +41,7 @@ public class FireFieldSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -70,14 +70,7 @@ public class FireFieldSpell : MagerySpell
 					break;
 				default:
 				{
-					if (ry >= 0)
-					{
-						eastToWest = true;
-					}
-					else
-					{
-						eastToWest = false;
-					}
+					eastToWest = ry >= 0;
 
 					break;
 				}
@@ -87,7 +80,7 @@ public class FireFieldSpell : MagerySpell
 
 			int itemId = eastToWest ? 0x398C : 0x3996;
 
-			var duration = Core.AOS ? TimeSpan.FromSeconds((15 + Caster.Skills.Magery.Fixed / 5) / 4) : TimeSpan.FromSeconds(4.0 + Caster.Skills[SkillName.Magery].Value * 0.5);
+			var duration = Core.AOS ? TimeSpan.FromSeconds((15 + Caster.Skills.Magery.Fixed / 5.0) / 4) : TimeSpan.FromSeconds(4.0 + Caster.Skills[SkillName.Magery].Value * 0.5);
 
 			Point3D pnt = new(p);
 
@@ -132,7 +125,7 @@ public class FireFieldSpell : MagerySpell
 		{
 		}
 
-		public FireFieldItem(int itemId, Point3D loc, Mobile caster, Map map, TimeSpan duration, int damage)
+		private FireFieldItem(int itemId, Point3D loc, Mobile caster, Map map, TimeSpan duration, int damage)
 			: base(itemId)
 		{
 			bool canFit = SpellHelper.AdjustField(ref loc, map, 12, false);

@@ -14,7 +14,7 @@ namespace Server.Mobiles
 			Name = "Swoop";
 			Hue = 0xE0;
 
-			AI = AIType.AI_Melee;
+			Ai = AIType.AI_Melee;
 
 			SetStr(100, 150);
 			SetDex(400, 500);

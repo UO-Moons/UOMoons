@@ -2760,7 +2760,7 @@ namespace Server.Mobiles
 			{
 				m_Timer.Stop();
 
-				if (m_Mobile.Spawner is SpawnEntry se && se.ReturnOnDeactivate && !m_Mobile.Controlled)
+				if (m_Mobile.Spawner is SpawnEntry se && SpawnEntry.ReturnOnDeactivate && !m_Mobile.Controlled)
 				{
 					if (se.HomeLocation == Point3D.Zero)
 					{

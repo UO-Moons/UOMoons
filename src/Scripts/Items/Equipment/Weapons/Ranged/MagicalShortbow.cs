@@ -5,7 +5,7 @@ namespace Server.Items
 	[Flipable(0x2D2B, 0x2D1F)]
 	public class MagicalShortbow : BaseRanged
 	{
-		public override int EffectID => 0xF42;
+		public override int EffectId => 0xF42;
 		public override Type AmmoType => typeof(Arrow);
 		public override Item Ammo => new Arrow();
 

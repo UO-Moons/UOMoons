@@ -277,7 +277,7 @@ namespace Server.Engines.Quests
 		public override int LabelNumber => 1075777;  // Friendship Mug
 		public override int MaxQuantity => 1;
 
-		public override int ComputeItemID()
+		public override int ComputeItemId()
 		{
 			if (ItemId >= 0x995 && ItemId <= 0x999)
 			{

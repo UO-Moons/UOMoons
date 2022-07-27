@@ -79,12 +79,12 @@ namespace Server.Mobiles
 			{
 				DamageStore ds = rights[i];
 
-				if (!ds.m_HasRight)
+				if (!ds.HasRight)
 					rights.RemoveAt(i);
 			}
 
 			if (rights.Count > 0)
-				return rights[Utility.Random(rights.Count)].m_Mobile;
+				return rights[Utility.Random(rights.Count)].Mobile;
 
 			return null;
 		}

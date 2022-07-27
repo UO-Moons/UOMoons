@@ -1,42 +1,41 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class CaptainQuacklebushsCutlass : Cutlass
 {
-	public class CaptainQuacklebushsCutlass : Cutlass
+	public override int LabelNumber => 1063474;
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public CaptainQuacklebushsCutlass()
 	{
-		public override int LabelNumber => 1063474;
+		Hue = 0x66C;
+		Attributes.BonusDex = 5;
+		Attributes.AttackChance = 10;
+		Attributes.WeaponSpeed = 20;
+		Attributes.WeaponDamage = 50;
+		WeaponAttributes.UseBestSkill = 1;
+	}
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+	public CaptainQuacklebushsCutlass(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public CaptainQuacklebushsCutlass()
-		{
-			Hue = 0x66C;
-			Attributes.BonusDex = 5;
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+
+		if (Attributes.AttackChance == 50)
 			Attributes.AttackChance = 10;
-			Attributes.WeaponSpeed = 20;
-			Attributes.WeaponDamage = 50;
-			WeaponAttributes.UseBestSkill = 1;
-		}
-
-		public CaptainQuacklebushsCutlass(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Attributes.AttackChance == 50)
-				Attributes.AttackChance = 10;
-		}
 	}
 }

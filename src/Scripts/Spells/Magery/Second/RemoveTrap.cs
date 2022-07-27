@@ -35,7 +35,7 @@ public class RemoveTrapSpell : MagerySpell
 		}
 	}
 
-	public void Target(TrapableContainer item)
+	private void Target(TrapableContainer item)
 	{
 		if (!Caster.CanSee(item))
 		{

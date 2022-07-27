@@ -14,15 +14,15 @@ public class FriendlyNameAttribute : Attribute
 
 	public static TextDefinition GetFriendlyNameFor(Type t)
 	{
-		if (t.IsDefined(typeof(FriendlyNameAttribute), false))
-		{
-			object[] objs = t.GetCustomAttributes(typeof(FriendlyNameAttribute), false);
+		if (!t.IsDefined(typeof(FriendlyNameAttribute), false))
+			return t.Name;
 
-			if (objs is {Length: > 0})
-			{
-				if (objs[0] is FriendlyNameAttribute friendly) return friendly.FriendlyName;
-			}
-		}
+		object[] objs = t.GetCustomAttributes(typeof(FriendlyNameAttribute), false);
+
+		if (objs is not { Length: > 0 })
+			return t.Name;
+
+		if (objs[0] is FriendlyNameAttribute friendly) return friendly.FriendlyName;
 
 		return t.Name;
 	}

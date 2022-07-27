@@ -5,18 +5,6 @@ namespace Server.Engines.NewMagincia;
 
 public static class NewMaginciaCommand
 {
-	public static void Initialize()
-	{
-		CommandSystem.Register("ViewLottos", AccessLevel.GameMaster, ViewLottos_OnCommand);
-
-		CommandSystem.Register("GenNewMagincia", AccessLevel.GameMaster, GenNewMagincia_OnCommand);
-		CommandSystem.Register("DeleteNewMagincia", AccessLevel.Administrator, Delete);
-	}
-
-	private static void Delete(CommandEventArgs e)
-	{
-	}
-
 	public static void GenNewMagincia_OnCommand(CommandEventArgs e)
 	{
 		Mobile from = e.Mobile;

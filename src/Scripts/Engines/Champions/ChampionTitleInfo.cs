@@ -7,8 +7,8 @@ namespace Server.Engines.Champions;
 [PropertyObject]
 public class ChampionTitleInfo
 {
-	public static readonly TimeSpan LossDelay = TimeSpan.FromDays(1.0);
-	public const int LossAmount = 90;
+	private static readonly TimeSpan LossDelay = TimeSpan.FromDays(1.0);
+	private const int LossAmount = 90;
 
 	private class TitleInfo
 	{
@@ -45,12 +45,12 @@ public class ChampionTitleInfo
 
 	private TitleInfo[] _mValues;
 
-	public int GetValue(ChampionSpawnType type)
+	private int GetValue(ChampionSpawnType type)
 	{
 		return GetValue((int)type);
 	}
 
-	public void SetValue(ChampionSpawnType type, int value)
+	private void SetValue(ChampionSpawnType type, int value)
 	{
 		SetValue((int)type, value);
 	}
@@ -70,7 +70,7 @@ public class ChampionTitleInfo
 		return _mValues[index].Value;
 	}
 
-	public DateTime GetLastDecay(int index)
+	private DateTime GetLastDecay(int index)
 	{
 		if (_mValues == null || index < 0 || index >= _mValues.Length)
 			return DateTime.MinValue;
@@ -80,7 +80,7 @@ public class ChampionTitleInfo
 		return _mValues[index].LastDecay;
 	}
 
-	public void SetValue(int index, int value)
+	private void SetValue(int index, int value)
 	{
 		_mValues ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
@@ -95,7 +95,7 @@ public class ChampionTitleInfo
 		_mValues[index].Value = value;
 	}
 
-	public void Award(int index, int value)
+	private void Award(int index, int value)
 	{
 		_mValues ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
@@ -107,7 +107,7 @@ public class ChampionTitleInfo
 		_mValues[index].Value += value;
 	}
 
-	public void Atrophy(int index, int value)
+	private void Atrophy(int index, int value)
 	{
 		_mValues ??= new TitleInfo[ChampionSpawnInfo.Table.Length];
 
@@ -157,7 +157,7 @@ public class ChampionTitleInfo
 	public int VerminHorde { get => GetValue(ChampionSpawnType.VerminHorde); set => SetValue(ChampionSpawnType.VerminHorde, value); }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int Harrower { get; set; }
+	public int Harrower { get; private set; }
 
 	public ChampionTitleInfo()
 	{

@@ -2,134 +2,123 @@ using System;
 using System.Collections.Generic;
 using Server.Items;
 
-namespace Server.Spells.Spellweaving
+namespace Server.Spells.Spellweaving;
+
+public class ImmolatingWeaponSpell : ArcanistSpell
 {
-    public class ImmolatingWeaponSpell : ArcanistSpell
-    {
-        private static readonly SpellInfo m_Info = new SpellInfo(
-            "Immolating Weapon", "Thalshara",
-            -1);
-        private static readonly Dictionary<Mobile, ImmolatingWeaponEntry> m_WeaponDamageTable = new Dictionary<Mobile, ImmolatingWeaponEntry>();
+	private static readonly SpellInfo m_Info = new(
+		"Immolating Weapon", "Thalshara",
+		-1);
+	private static readonly Dictionary<Mobile, ImmolatingWeaponEntry> m_WeaponDamageTable = new();
 
-        public ImmolatingWeaponSpell(Mobile caster, Item scroll)
-            : base(caster, scroll, m_Info)
-        {
-        }
+	public ImmolatingWeaponSpell(Mobile caster, Item scroll)
+		: base(caster, scroll, m_Info)
+	{
+	}
 
-        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.0);
-        public override double RequiredSkill => 10.0;
-        public override int RequiredMana => 32;
-        public static bool IsImmolating(Mobile m, BaseWeapon weapon)
-        {
-            if (m == null)
-                return false;
+	public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(1.0);
+	public override double RequiredSkill => 10.0;
+	public override int RequiredMana => 32;
+	public static bool IsImmolating(Mobile m, BaseWeapon weapon)
+	{
+		if (m == null)
+			return false;
 
-            return m_WeaponDamageTable.ContainsKey(m) && m_WeaponDamageTable[m].m_Weapon == weapon;
-        }
+		return m_WeaponDamageTable.ContainsKey(m) && m_WeaponDamageTable[m].Weapon == weapon;
+	}
 
-        public static int GetImmolatingDamage(Mobile attacker)
-        {
-            ImmolatingWeaponEntry entry;
+	public static int GetImmolatingDamage(Mobile attacker)
+	{
+		return m_WeaponDamageTable.TryGetValue(attacker, out var entry) ? entry.Damage : 0;
+	}
 
-            if (m_WeaponDamageTable.TryGetValue(attacker, out entry))
-                return entry.m_Damage;
+	public static void DoDelayEffect(Mobile attacker, Mobile target)
+	{
+		Timer.DelayCall(TimeSpan.FromSeconds(.25), () =>
+		{
+			if (m_WeaponDamageTable.ContainsKey(attacker))
+				AOS.Damage(target, attacker, m_WeaponDamageTable[attacker].Damage, 0, 100, 0, 0, 0);
+		});
+	}
 
-            return 0;
-        }
+	private static void StopImmolating(Mobile mob)
+	{
+		if (m_WeaponDamageTable.ContainsKey(mob))
+		{
+			StopImmolating(m_WeaponDamageTable[mob].Weapon, mob);
+		}
+	}
 
-        public static void DoDelayEffect(Mobile attacker, Mobile target)
-        {
-            Timer.DelayCall(TimeSpan.FromSeconds(.25), () =>
-                {
-                    if (m_WeaponDamageTable.ContainsKey(attacker))
-                        AOS.Damage(target, attacker, m_WeaponDamageTable[attacker].m_Damage, 0, 100, 0, 0, 0);
-                });
-        }
+	public static void StopImmolating(BaseWeapon weapon, Mobile mob)
+	{
+		if (!m_WeaponDamageTable.TryGetValue(mob, out var entry))
+			return;
 
-        public static void StopImmolating(Mobile mob)
-        {
-            if (m_WeaponDamageTable.ContainsKey(mob))
-            {
-                StopImmolating(m_WeaponDamageTable[mob].m_Weapon, mob);
-            }
-        }
+		mob.PlaySound(0x27);
 
-        public static void StopImmolating(BaseWeapon weapon, Mobile mob)
-        {
-            ImmolatingWeaponEntry entry;
+		entry.Timer.Stop();
 
-            if (m_WeaponDamageTable.TryGetValue(mob, out entry))
-            {
-                mob.PlaySound(0x27);
+		m_WeaponDamageTable.Remove(mob);
 
-                entry.m_Timer.Stop();
+		BuffInfo.RemoveBuff(mob, BuffIcon.ImmolatingWeapon);
 
-                m_WeaponDamageTable.Remove(mob);
+		weapon.InvalidateProperties();
+	}
 
-                BuffInfo.RemoveBuff(mob, BuffIcon.ImmolatingWeapon);
+	public override bool CheckCast()
+	{
+		if (!Caster.Player || Caster.Weapon is BaseWeapon and not Fists and not BaseRanged)
+			return base.CheckCast();
 
-                weapon.InvalidateProperties();
-            }
-        }
+		Caster.SendLocalizedMessage(1060179); // You must be wielding a weapon to use this ability!
+		return false;
 
-        public override bool CheckCast()
-        {
-            BaseWeapon weapon = Caster.Weapon as BaseWeapon;
+	}
 
-            if (Caster.Player && (weapon == null || weapon is Fists || weapon is BaseRanged))
-            {
-                Caster.SendLocalizedMessage(1060179); // You must be wielding a weapon to use this ability!
-                return false;
-            }
+	public override void OnCast()
+	{
+		BaseWeapon weapon = Caster.Weapon as BaseWeapon;
 
-            return base.CheckCast();
-        }
+		if (Caster.Player && weapon is null or Fists or BaseRanged)
+		{
+			Caster.SendLocalizedMessage(1060179); // You must be wielding a weapon to use this ability!
+		}
+		else if (CheckSequence())
+		{
+			Caster.PlaySound(0x5CA);
+			Caster.FixedParticles(0x36BD, 20, 10, 5044, EffectLayer.Head);
 
-        public override void OnCast()
-        {
-            BaseWeapon weapon = Caster.Weapon as BaseWeapon;
+			if (!IsImmolating(Caster, weapon)) // On OSI, the effect is not re-applied
+			{
+				double skill = Caster.Skills.Spellweaving.Value;
 
-            if (Caster.Player && (weapon == null || weapon is Fists || weapon is BaseRanged))
-            {
-                Caster.SendLocalizedMessage(1060179); // You must be wielding a weapon to use this ability!
-            }
-            else if (CheckSequence())
-            {
-                Caster.PlaySound(0x5CA);
-                Caster.FixedParticles(0x36BD, 20, 10, 5044, EffectLayer.Head);
+				int duration = 10 + (int)(skill / 24) + FocusLevel;
+				int damage = 5 + (int)(skill / 24) + FocusLevel;
 
-                if (!IsImmolating(Caster, weapon)) // On OSI, the effect is not re-applied
-                {
-                    double skill = Caster.Skills.Spellweaving.Value;
+				Timer stopTimer = Timer.DelayCall(TimeSpan.FromSeconds(duration), StopImmolating, Caster);
 
-                    int duration = 10 + (int)(skill / 24) + FocusLevel;
-                    int damage = 5 + (int)(skill / 24) + FocusLevel;
+				m_WeaponDamageTable[Caster] = new ImmolatingWeaponEntry(damage, stopTimer, weapon);
 
-                    Timer stopTimer = Timer.DelayCall<Mobile>(TimeSpan.FromSeconds(duration), StopImmolating, Caster);
+				BuffInfo.AddBuff(Caster, new BuffInfo(BuffIcon.ImmolatingWeapon, 1071028, 1153782, damage.ToString()));
 
-                    m_WeaponDamageTable[Caster] = new ImmolatingWeaponEntry(damage, stopTimer, weapon);
+				weapon?.InvalidateProperties();
+			}
+		}
 
-                    BuffInfo.AddBuff(Caster, new BuffInfo(BuffIcon.ImmolatingWeapon, 1071028, 1153782, damage.ToString()));
+		FinishSequence();
+	}
 
-                    weapon.InvalidateProperties();
-                }
-            }
+	private class ImmolatingWeaponEntry
+	{
+		public readonly int Damage;
+		public readonly Timer Timer;
+		public readonly BaseWeapon Weapon;
 
-            FinishSequence();
-        }
-
-        private class ImmolatingWeaponEntry
-        {
-            public readonly int m_Damage;
-            public readonly Timer m_Timer;
-            public readonly BaseWeapon m_Weapon;
-
-            public ImmolatingWeaponEntry(int damage, Timer stopTimer, BaseWeapon weapon)
-            {
-                m_Damage = damage;
-                m_Timer = stopTimer;
-                m_Weapon = weapon;
-            }
-        }
-    }
+		public ImmolatingWeaponEntry(int damage, Timer stopTimer, BaseWeapon weapon)
+		{
+			Damage = damage;
+			Timer = stopTimer;
+			Weapon = weapon;
+		}
+	}
 }

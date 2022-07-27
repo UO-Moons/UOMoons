@@ -26,7 +26,7 @@ public class ChampionSpawnInfo
 
 	public string[] LevelNames { get; }
 
-	public ChampionSpawnInfo(string name, Type champion, string[] levelNames, Type[][] spawnTypes)
+	private ChampionSpawnInfo(string name, Type champion, string[] levelNames, Type[][] spawnTypes)
 	{
 		Name = name;
 		Champion = champion;

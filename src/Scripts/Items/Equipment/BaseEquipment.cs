@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Server.Items;
 
-public abstract partial class BaseEquipment : BaseItem, IAosAttribute
+public abstract partial class BaseEquipment : BaseItem, IAosAttribute, IOwnerRestricted
 {
 	[Flags]
 	private enum SaveFlag
@@ -15,6 +15,32 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 		None = 0x00000000,
 		Attributes = 0x00000001,
 		Altered = 0x00000002
+	}
+
+	private int m_TimesImbued;
+	[CommandProperty(AccessLevel.GameMaster)]
+	public int TimesImbued
+	{
+		get => m_TimesImbued;
+		set { m_TimesImbued = value; InvalidateProperties(); }
+	}
+
+	private bool m_IsImbued;
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsImbued
+	{
+		get
+		{
+			if (TimesImbued >= 1 && !m_IsImbued)
+				m_IsImbued = true;
+
+			return m_IsImbued;
+		}
+		set
+		{
+			m_IsImbued = TimesImbued >= 1 || value;
+			InvalidateProperties();
+		}
 	}
 
 	private AosAttributes m_AosAttributes;
@@ -37,19 +63,19 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 		}
 	}
 
-	private Mobile _Owner;
+	private Mobile m_Owner;
 	[CommandProperty(AccessLevel.GameMaster)]
 	public Mobile Owner
 	{
-		get => _Owner;
-		set { _Owner = value; if (_Owner != null) { _OwnerName = _Owner.Name; } InvalidateProperties(); }
+		get => m_Owner;
+		set { m_Owner = value; if (m_Owner != null) { m_OwnerName = m_Owner.Name; } InvalidateProperties(); }
 	}
 
-	private string _OwnerName;
+	private string m_OwnerName;
 	public virtual string OwnerName
 	{
-		get => _OwnerName;
-		set { _OwnerName = value; InvalidateProperties(); }
+		get => m_OwnerName;
+		set { m_OwnerName = value; InvalidateProperties(); }
 	}
 
 	private FactionItem m_FactionState;
@@ -72,8 +98,9 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 	public virtual bool CanRepair => true;
 	public virtual bool CanAlter => true;
 	public virtual int ArtifactRarity => 0;
+	public virtual int[] BaseResists => new[] { 0, 0, 0, 0, 0 };
 
-	public BaseEquipment(int itemID) : base(itemID)
+	public BaseEquipment(int itemId) : base(itemId)
 	{
 		m_AosAttributes = new AosAttributes(this);
 	}
@@ -186,38 +213,42 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 
 	public virtual void AddStatBonuses(Mobile parent)
 	{
-		if (parent != null)
-		{
-			int strBonus = ComputeStatBonus(StatType.Str);
-			int dexBonus = ComputeStatBonus(StatType.Dex);
-			int intBonus = ComputeStatBonus(StatType.Int);
+		if (parent == null)
+			return;
 
-			if (strBonus == 0 && dexBonus == 0 && intBonus == 0)
-				return;
+		int strBonus = ComputeStatBonus(StatType.Str);
+		int dexBonus = ComputeStatBonus(StatType.Dex);
+		int intBonus = ComputeStatBonus(StatType.Int);
 
-			string modName = Serial.ToString();
+		if (strBonus == 0 && dexBonus == 0 && intBonus == 0)
+			return;
 
-			if (strBonus != 0)
-				parent.AddStatMod(new StatMod(StatType.Str, modName + "Str", strBonus, TimeSpan.Zero));
+		string modName = Serial.ToString();
 
-			if (dexBonus != 0)
-				parent.AddStatMod(new StatMod(StatType.Dex, modName + "Dex", dexBonus, TimeSpan.Zero));
+		if (strBonus != 0)
+			parent.AddStatMod(new StatMod(StatType.Str, modName + "Str", strBonus, TimeSpan.Zero));
 
-			if (intBonus != 0)
-				parent.AddStatMod(new StatMod(StatType.Int, modName + "Int", intBonus, TimeSpan.Zero));
-		}
+		if (dexBonus != 0)
+			parent.AddStatMod(new StatMod(StatType.Dex, modName + "Dex", dexBonus, TimeSpan.Zero));
+
+		if (intBonus != 0)
+			parent.AddStatMod(new StatMod(StatType.Int, modName + "Int", intBonus, TimeSpan.Zero));
 	}
 
 	public virtual void RemoveStatBonuses(Mobile parent)
 	{
-		if (parent != null)
-		{
-			string modName = Serial.ToString();
+		if (parent == null)
+			return;
 
-			_ = parent.RemoveStatMod(modName + "Str");
-			_ = parent.RemoveStatMod(modName + "Dex");
-			_ = parent.RemoveStatMod(modName + "Int");
-		}
+		string modName = Serial.ToString();
+
+		_ = parent.RemoveStatMod(modName + "Str");
+		_ = parent.RemoveStatMod(modName + "Dex");
+		_ = parent.RemoveStatMod(modName + "Int");
+	}
+
+	public virtual void OnAfterImbued(Mobile m, int mod, int value)
+	{
 	}
 
 	public override bool AllowEquipedCast(Mobile from)
@@ -232,7 +263,7 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 	{
 		base.OnAfterDuped(newItem);
 
-		if (newItem is IAosAttribute && newItem is BaseEquipment newEquipItem)
+		if (newItem is BaseEquipment newEquipItem)
 		{
 			newEquipItem.m_AosAttributes = new AosAttributes(newItem, m_AosAttributes);
 		}
@@ -282,27 +313,13 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 				}
 				else if (!clothing.AllowMaleWearer && !m.Female && m.AccessLevel < AccessLevel.GameMaster)
 				{
-					if (clothing.AllowFemaleWearer)
-					{
-						m.SendLocalizedMessage(1010388); // Only females can wear this.
-					}
-					else
-					{
-						m.SendLocalizedMessage(1071936); // You cannot equip that.
-					}
+					m.SendLocalizedMessage(clothing.AllowFemaleWearer ? 1010388 : 1071936);
 
 					m.AddToBackpack(clothing);
 				}
 				else if (!clothing.AllowFemaleWearer && m.Female && m.AccessLevel < AccessLevel.GameMaster)
 				{
-					if (clothing.AllowMaleWearer)
-					{
-						m.SendLocalizedMessage(1063343); // Only males can wear this.
-					}
-					else
-					{
-						m.SendLocalizedMessage(1071936); // You cannot equip that.
-					}
+					m.SendLocalizedMessage(clothing.AllowMaleWearer ? 1063343 : 1071936);
 
 					m.AddToBackpack(clothing);
 				}
@@ -323,8 +340,10 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 		base.Serialize(writer);
 
 		writer.Write(0);
-		writer.Write(_Owner);
-		writer.Write(_OwnerName);
+		writer.Write(m_IsImbued);
+		writer.Write(m_TimesImbued);
+		writer.Write(m_Owner);
+		writer.Write(m_OwnerName);
 
 		SaveFlag flags = SaveFlag.None;
 		Utility.SetSaveFlag(ref flags, SaveFlag.Attributes, !m_AosAttributes.IsEmpty);
@@ -345,15 +364,14 @@ public abstract partial class BaseEquipment : BaseItem, IAosAttribute
 		{
 			case 0:
 				{
-					_Owner = reader.ReadMobile();
-					_OwnerName = reader.ReadString();
+					m_IsImbued = reader.ReadBool();
+					m_TimesImbued = reader.ReadInt();
+					m_Owner = reader.ReadMobile();
+					m_OwnerName = reader.ReadString();
 
 					SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
-					if (flags.HasFlag(SaveFlag.Attributes))
-						m_AosAttributes = new AosAttributes(this, reader);
-					else
-						m_AosAttributes = new AosAttributes(this);
+					m_AosAttributes = flags.HasFlag(SaveFlag.Attributes) ? new AosAttributes(this, reader) : new AosAttributes(this);
 
 					if (flags.HasFlag(SaveFlag.Altered))
 					{

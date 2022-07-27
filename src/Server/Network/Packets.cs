@@ -2001,7 +2001,7 @@ namespace Server.Network
 		}
 	}
 
-	public sealed class DisplaySpellbook : Packet
+	/*public sealed class DisplaySpellbook : Packet
 	{
 		public DisplaySpellbook(Item book) : base(0x24, 7)
 		{
@@ -2018,11 +2018,41 @@ namespace Server.Network
 			m_Stream.Write((short)-1);
 			m_Stream.Write((short)0x7D);
 		}
+	}*/
+
+	public sealed class DisplaySpellbook : Packet
+	{
+		public static bool Send(NetState ns, Item book)
+		{
+			return ns != null && Send(ns, Instantiate(ns, book));
+		}
+
+		private static DisplaySpellbook Instantiate(NetState ns, IEntity book)
+		{
+			if (ns.HighSeas)
+			{
+				return new DisplaySpellbook(book, 0x7D);
+			}
+
+			return new DisplaySpellbook(book, null);
+		}
+
+		private DisplaySpellbook(IEntity book, int? unk)
+			: base(0x24, unk != null ? 9 : 7)
+		{
+			m_Stream.Write(book.Serial);
+			m_Stream.Write((short)-1);
+
+			if (unk != null)
+			{
+				m_Stream.Write((short)unk.Value);
+			}
+		}
 	}
 
 	public sealed class NewSpellbookContent : Packet
 	{
-		public NewSpellbookContent(Item item, int graphic, int offset, ulong content) : base(0xBF)
+		public NewSpellbookContent(IEntity item, int graphic, int offset, ulong content) : base(0xBF)
 		{
 			EnsureCapacity(23);
 
@@ -2033,11 +2063,91 @@ namespace Server.Network
 			m_Stream.Write((short)graphic);
 			m_Stream.Write((short)offset);
 
-			for (int i = 0; i < 8; ++i)
+			for (var i = 0; i < 8; ++i)
 				m_Stream.Write((byte)(content >> (i * 8)));
 		}
 	}
 
+	public sealed class SpellbookContent : Packet
+	{
+		public static bool Send(NetState ns, Item item, int offset, ulong content)
+		{
+			return ns != null && Send(ns, Instantiate(ns, item, offset, content));
+		}
+
+		private static SpellbookContent Instantiate(NetState ns, Item item, int offset, ulong content)
+		{
+			if (ns.NewSpellbook)
+			{
+				return new SpellbookContent(item.Serial, item.ItemId, offset, content);
+			}
+
+			if (ns.ContainerGridLines)
+			{
+				return new SpellbookContent(item.Serial, offset, content, true);
+			}
+
+			return new SpellbookContent(item.Serial, offset, content, false);
+		}
+
+		private SpellbookContent(Serial s, int graphic, int offset, ulong content)
+			: base(0xBF)
+		{
+			EnsureCapacity(23);
+
+			m_Stream.Write((short)0x1B);
+			m_Stream.Write((short)0x01);
+
+			m_Stream.Write(s);
+			m_Stream.Write((short)graphic);
+			m_Stream.Write((short)offset);
+
+			for (var i = 0; i < 8; ++i)
+			{
+				m_Stream.Write((byte)(content >> (i * 8)));
+			}
+		}
+
+		private SpellbookContent(Serial s, int offset, ulong content, bool gridLocs)
+			: base(0x3C)
+		{
+			var count = 0;
+
+			for (var i = 0; i < 64; ++i)
+			{
+				if ((content & (1UL << i)) != 0)
+				{
+					++count;
+				}
+			}
+
+			EnsureCapacity(5 + (count * (gridLocs ? 20 : 19)));
+
+			m_Stream.Write(count);
+
+			for (var i = 0; i < 64; ++i)
+			{
+				if ((content & (1UL << i)) == 0)
+					continue;
+
+				m_Stream.Write(0x7FFFFFFF - i);
+				m_Stream.Write((ushort)0);
+				m_Stream.Write((byte)0);
+				m_Stream.Write((ushort)(i + offset));
+				m_Stream.Write((short)0);
+				m_Stream.Write((short)0);
+
+				if (gridLocs)
+				{
+					m_Stream.Write((byte)0); // Grid Location?
+				}
+
+				m_Stream.Write(s);
+				m_Stream.Write((short)0);
+			}
+		}
+	}
+	/*
 	public sealed class SpellbookContent : Packet
 	{
 		public SpellbookContent(int count, int offset, ulong content, Item item) : base(0x3C)
@@ -2106,7 +2216,7 @@ namespace Server.Network
 			m_Stream.Write((ushort)written);
 		}
 	}
-
+	*/
 	//public sealed class ContainerDisplay : Packet
 	//{
 	//	public ContainerDisplay(Container c) : base(0x24, 7)
@@ -2115,6 +2225,7 @@ namespace Server.Network
 	//		m_Stream.Write((short)c.GumpID);
 	//	}
 	///}
+
 	public sealed class ContainerDisplay : Packet
 	{
 		public static bool Send(NetState ns, Container c)
@@ -2156,6 +2267,54 @@ namespace Server.Network
 	}
 
 	public sealed class ContainerContentUpdate : Packet
+	{
+		public static bool Send(NetState ns, Item c)
+		{
+			return ns != null && Send(ns, Instantiate(ns, c));
+		}
+
+		public static ContainerContentUpdate Instantiate(NetState ns, Item c)
+		{
+			if (ns.ContainerGridLines)
+			{
+				return new ContainerContentUpdate(c, true);
+			}
+
+			return new ContainerContentUpdate(c, false);
+		}
+
+		private ContainerContentUpdate(Item item, bool gridLocs)
+			: base(0x25, gridLocs ? 21 : 20)
+		{
+			Serial parentSerial;
+
+			if (item.Parent is Item ip)
+			{
+				parentSerial = ip.Serial;
+			}
+			else
+			{
+				parentSerial = Serial.Zero;
+			}
+
+			m_Stream.Write(item.Serial);
+			m_Stream.Write((ushort)item.ItemId);
+			m_Stream.Write((sbyte)0); // itemID offset
+			m_Stream.Write((ushort)item.Amount);
+			m_Stream.Write((short)item.X);
+			m_Stream.Write((short)item.Y);
+
+			if (gridLocs)
+			{
+				m_Stream.Write(item.GridLocation);
+			}
+
+			m_Stream.Write(parentSerial);
+			m_Stream.Write((ushort)(item.QuestItem ? item.QuestItemHue : item.Hue));
+		}
+	}
+
+	/*public sealed class ContainerContentUpdate : Packet
 	{
 		public ContainerContentUpdate(Item item)
 			: base(0x25, 20)
@@ -2210,7 +2369,7 @@ namespace Server.Network
 			m_Stream.Write(parentSerial);
 			m_Stream.Write((ushort)(item.QuestItem ? item.QuestItemHue : item.Hue));
 		}
-	}
+	}*/
 
 	public sealed class ContainerContent : Packet
 	{

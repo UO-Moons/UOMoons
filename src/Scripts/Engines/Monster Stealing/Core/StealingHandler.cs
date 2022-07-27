@@ -6,7 +6,7 @@ using Server.Engines.Champions;
 
 namespace Server.Engines.CreatureStealing;
 
-class StealingHandler
+internal class StealingHandler
 {
 	private static readonly Type[] SpecialItemList =
 	{
@@ -32,28 +32,28 @@ class StealingHandler
 
 		double stealing = thief.Skills.Stealing.Value;
 
-		if (stealing >= 100)
+		if (!(stealing >= 100))
+			return;
+
+		int chance = GetStealingChance(thief, bc, stealing);
+
+		if (Utility.Random(100) + 1 > chance)
+			return;
+
+		Item item;
+
+		if (bc is ExodusZealot)
 		{
-			int chance = GetStealingChance(thief, bc, stealing);
-
-			if ((Utility.Random(100) + 1) <= chance)
-			{
-				thief.SendLocalizedMessage(1094947);//You successfully steal a special item from the creature!
-
-				Item item;
-
-				//if (bc is ExodusZealot)
-				//{
-				//	item = Activator.CreateInstance(ExodusChest.RituelItem[Utility.Random(ExodusChest.RituelItem.Length)]) as Item;
-				//}
-				//else
-				//{
-					item = Activator.CreateInstance(SpecialItemList[Utility.Random(SpecialItemList.Length - 2)]) as Item;
-				//}
-
-				stolen = item;
-			}
+			item = Activator.CreateInstance(ExodusChest.RituelItem[Utility.Random(ExodusChest.RituelItem.Length)]) as Item;
 		}
+		else
+		{
+			item = Activator.CreateInstance(SpecialItemList[Utility.Random(SpecialItemList.Length - 2)]) as Item;
+		}
+
+		thief.SendLocalizedMessage(1094947);//You successfully steal a special item from the creature!
+
+		stolen = item;
 	}
 
 	public static void HandleSmugglersEdgeSteal(BaseCreature from, PlayerMobile thief)
@@ -125,12 +125,7 @@ class StealingHandler
 
 	private static bool CheckLocation(Mobile thief, Mobile from)
 	{
-		if (!((thief.Map == Map.Felucca && thief.Region is DungeonRegion) || thief.Region is ChampionSpawnRegion /*|| from is ExodusZealot*/))
-		{
-			return false;
-		}
-
-		return true;
+		return (thief.Map == Map.Felucca && thief.Region is DungeonRegion) || thief.Region is ChampionSpawnRegion;
 	}
 
 	private static int GetStealingChance(Mobile thief, Mobile from, double stealing)
@@ -184,68 +179,68 @@ class StealingHandler
 		Item stolen = null;
 		double w = toSteal.Weight + toSteal.TotalWeight;
 
-		if (w <= 10)
+		if (!(w <= 10))
+			return null;
+
+		if (toSteal.Stackable && toSteal.Amount > 1)
 		{
-			if (toSteal.Stackable && toSteal.Amount > 1)
+			int maxAmount = (int)((skill / 10.0) / toSteal.Weight);
+
+			if (maxAmount < 1)
 			{
-				int maxAmount = (int)((skill / 10.0) / toSteal.Weight);
-
-				if (maxAmount < 1)
-				{
-					maxAmount = 1;
-				}
-				else if (maxAmount > toSteal.Amount)
-				{
-					maxAmount = toSteal.Amount;
-				}
-
-				int amount = Utility.RandomMinMax(1, maxAmount);
-
-				if (amount >= toSteal.Amount)
-				{
-					int pileWeight = (int)Math.Ceiling(toSteal.Weight * toSteal.Amount);
-					pileWeight *= 10;
-
-					double chance = (skill - (pileWeight - 22.5)) / ((pileWeight + 27.5) - (pileWeight - 22.5));
-
-					if (chance >= Utility.RandomDouble())
-					{
-						stolen = toSteal;
-					}
-				}
-				else
-				{
-					int pileWeight = (int)Math.Ceiling(toSteal.Weight * amount);
-					pileWeight *= 10;
-
-					double chance = (skill - (pileWeight - 22.5)) / ((pileWeight + 27.5) - (pileWeight - 22.5));
-
-					if (chance >= Utility.RandomDouble())
-					{
-						stolen = Mobile.LiftItemDupe(toSteal, toSteal.Amount - amount) ?? toSteal;
-					}
-				}
+				maxAmount = 1;
 			}
-			else
+			else if (maxAmount > toSteal.Amount)
 			{
-				int iw = (int)Math.Ceiling(w);
-				iw *= 10;
+				maxAmount = toSteal.Amount;
+			}
 
-				double chance = (skill - (iw - 22.5)) / ((iw + 27.5) - (iw - 22.5));
+			int amount = Utility.RandomMinMax(1, maxAmount);
+
+			if (amount >= toSteal.Amount)
+			{
+				int pileWeight = (int)Math.Ceiling(toSteal.Weight * toSteal.Amount);
+				pileWeight *= 10;
+
+				double chance = (skill - (pileWeight - 22.5)) / ((pileWeight + 27.5) - (pileWeight - 22.5));
 
 				if (chance >= Utility.RandomDouble())
 				{
 					stolen = toSteal;
 				}
 			}
-
-			if (stolen != null)
+			else
 			{
-				ItemFlags.SetTaken(stolen, true);
-				ItemFlags.SetStealable(stolen, false);
-				stolen.Movable = true;
+				int pileWeight = (int)Math.Ceiling(toSteal.Weight * amount);
+				pileWeight *= 10;
+
+				double chance = (skill - (pileWeight - 22.5)) / (pileWeight + 27.5 - (pileWeight - 22.5));
+
+				if (chance >= Utility.RandomDouble())
+				{
+					stolen = Mobile.LiftItemDupe(toSteal, toSteal.Amount - amount) ?? toSteal;
+				}
 			}
 		}
+		else
+		{
+			int iw = (int)Math.Ceiling(w);
+			iw *= 10;
+
+			double chance = (skill - (iw - 22.5)) / ((iw + 27.5) - (iw - 22.5));
+
+			if (chance >= Utility.RandomDouble())
+			{
+				stolen = toSteal;
+			}
+		}
+
+		if (stolen == null)
+			return null;
+
+		ItemFlags.SetTaken(stolen, true);
+		ItemFlags.SetStealable(stolen, false);
+		stolen.Movable = true;
 
 		return stolen;
 	}

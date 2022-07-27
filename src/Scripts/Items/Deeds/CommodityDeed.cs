@@ -32,7 +32,7 @@ public static class CommodityDeedExtensions
 		return amount;
 	}
 
-	public static int ConsumeTotal(this Container cont, Type type, int amount, bool recurse, bool includeDeeds)
+	public static void ConsumeTotal(this Container cont, Type type, int amount, bool recurse, bool includeDeeds)
 	{
 		int left = amount;
 
@@ -52,8 +52,7 @@ public static class CommodityDeedExtensions
 			}
 		}
 
-		if (!includeDeeds)
-			return amount - left;
+		if (!includeDeeds) return;
 
 		var deeds = cont.FindItemsByType(typeof(CommodityDeed), recurse);
 		foreach (var item in deeds)
@@ -72,12 +71,9 @@ public static class CommodityDeedExtensions
 			{
 				deed.Commodity.Amount -= left;
 				deed.InvalidateProperties();
-				left = 0;
 				break;
 			}
 		}
-
-		return amount - left;
 	}
 }
 
@@ -109,11 +105,11 @@ public class CommodityDeed : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 		Commodity = reader.ReadItem();
 	}
 
-	public CommodityDeed(Item commodity) : base(0x14F0)
+	private CommodityDeed(Item commodity) : base(0x14F0)
 	{
 		Weight = 1.0;
 		Hue = 0x47;

@@ -7,10 +7,7 @@ public class IndecipherableMap : MapItem
 	[Constructable]
 	public IndecipherableMap()
 	{
-		if (Utility.RandomDouble() < 0.2)
-			Hue = 0x965;
-		else
-			Hue = 0x961;
+		Hue = Utility.RandomDouble() < 0.2 ? 0x965 : 0x961;
 	}
 
 	public IndecipherableMap(Serial serial) : base(serial)
@@ -31,6 +28,6 @@ public class IndecipherableMap : MapItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 }

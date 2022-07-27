@@ -22,9 +22,9 @@ public enum ParticleSupportType
 
 public static class Effects
 {
-	public static ParticleSupportType ParticleSupportType { get; set; } = ParticleSupportType.Detect;
+	private static ParticleSupportType ParticleSupportType => ParticleSupportType.Detect;
 
-	public static bool SendParticlesTo(NetState state)
+	private static bool SendParticlesTo(NetState state)
 	{
 		return ParticleSupportType == ParticleSupportType.Full ||
 		       (ParticleSupportType == ParticleSupportType.Detect && (state.IsUOTDClient || state.IsEnhancedClient));
@@ -63,16 +63,6 @@ public static class Effects
 		}
 	}
 
-	public static void SendBoltEffect(IEntity e)
-	{
-		SendBoltEffect(e, true, 0);
-	}
-
-	public static void SendBoltEffect(IEntity e, bool sound)
-	{
-		SendBoltEffect(e, sound, 0);
-	}
-
 	public static void SendBoltEffect(IEntity e, bool sound, int hue, bool delay)
 	{
 		if (delay)
@@ -85,7 +75,7 @@ public static class Effects
 		}
 	}
 
-	public static void SendBoltEffect(IEntity e, bool sound, int hue)
+	public static void SendBoltEffect(IEntity e, bool sound = true, int hue = 0)
 	{
 		Map map = e.Map;
 
@@ -102,45 +92,45 @@ public static class Effects
 
 		foreach (NetState state in eable)
 		{
-			if (state.Mobile.CanSee(e))
+			if (!state.Mobile.CanSee(e))
+				continue;
+
+			bool sendParticles = SendParticlesTo(state);
+
+			if (sendParticles)
 			{
-				bool sendParticles = SendParticlesTo(state);
+				preEffect ??= Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
 
-				if (sendParticles)
+				state.Send(preEffect);
+			}
+
+			if (boltEffect == null)
+			{
+				if (Core.SA && hue == 0)
 				{
-					preEffect ??= Packet.Acquire(new TargetParticleEffect(e, 0, 10, 5, 0, 0, 5031, 3, 0));
-
-					state.Send(preEffect);
+					boltEffect = Packet.Acquire(new BoltEffectNew(e));
 				}
-
-				if (boltEffect == null)
+				else
 				{
-					if (Core.SA && hue == 0)
-					{
-						boltEffect = Packet.Acquire(new BoltEffectNew(e));
-					}
-					else
-					{
-						boltEffect = Packet.Acquire(new BoltEffect(e, hue));
-					}
+					boltEffect = Packet.Acquire(new BoltEffect(e, hue));
 				}
+			}
 
-				state.Send(boltEffect);
+			state.Send(boltEffect);
 
-				if (sendParticles)
-				{
-					postEffect ??= Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location,
-						e.Location, 0, 0, false, 0));
+			if (sendParticles)
+			{
+				postEffect ??= Packet.Acquire(new GraphicalEffect(EffectType.FixedFrom, e.Serial, Serial.Zero, 0, e.Location,
+					e.Location, 0, 0, false, 0));
 
-					state.Send(postEffect);
-				}
+				state.Send(postEffect);
+			}
 
-				if (sound)
-				{
-					playSound ??= Packet.Acquire(new PlaySound(0x29, e));
+			if (sound)
+			{
+				playSound ??= Packet.Acquire(new PlaySound(0x29, e));
 
-					state.Send(playSound);
-				}
+				state.Send(playSound);
 			}
 		}
 
@@ -152,23 +142,13 @@ public static class Effects
 		eable.Free();
 	}
 
-	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration)
-	{
-		SendLocationEffect(p, map, itemId, duration, 10, 0, 0);
-	}
-
-	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int speed)
-	{
-		SendLocationEffect(p, map, itemId, duration, speed, 0, 0);
-	}
-
-	public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int hue, int renderMode)
-	{
-		SendLocationEffect(p, map, itemId, duration, 10, hue, renderMode);
-	}
+	//public static void SendLocationEffect(IPoint3D p, Map map, int itemId, int duration, int hue, int renderMode)
+	//{
+	//	SendLocationEffect(p, map, itemId, duration, 10, hue, renderMode);
+	//}
 
 	public static void SendLocationEffect(
-		IPoint3D p, Map map, int itemId, int duration, int speed, int hue, int renderMode)
+		IPoint3D p, Map map, int itemId, int duration, int speed = 10, int hue = 0, int renderMode = 0)
 	{
 		SendPacket(p, map, new LocationEffect(p, itemId, speed, duration, hue, renderMode));
 	}
@@ -220,17 +200,7 @@ public static class Effects
 		//SendPacket( e.Location, e.Map, new LocationParticleEffect( e, itemID, speed, duration, hue, renderMode, effect, unknown ) );
 	}
 
-	public static void SendTargetEffect(IEntity target, int itemId, int duration)
-	{
-		SendTargetEffect(target, itemId, duration, 0, 0);
-	}
-
-	public static void SendTargetEffect(IEntity target, int itemId, int speed, int duration)
-	{
-		SendTargetEffect(target, itemId, speed, duration, 0, 0);
-	}
-
-	public static void SendTargetEffect(IEntity target, int itemId, int duration, int hue, int renderMode)
+	public static void SendTargetEffect(IEntity target, int itemId, int duration, int hue = 0, int renderMode = 0)
 	{
 		SendTargetEffect(target, itemId, 10, duration, hue, renderMode);
 	}
@@ -310,12 +280,6 @@ public static class Effects
 	}
 
 	public static void SendMovingEffect(
-		IEntity from, IEntity to, int itemId, int speed, int duration, bool fixedDirection, bool explodes)
-	{
-		SendMovingEffect(from, to, itemId, speed, duration, fixedDirection, explodes, 0, 0);
-	}
-
-	public static void SendMovingEffect(
 		IEntity from,
 		IEntity to,
 		int itemId,
@@ -323,8 +287,8 @@ public static class Effects
 		int duration,
 		bool fixedDirection,
 		bool explodes,
-		int hue,
-		int renderMode)
+		int hue = 0,
+		int renderMode = 0)
 	{
 		if (from is Mobile mobile)
 		{

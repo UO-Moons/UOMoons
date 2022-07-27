@@ -36,7 +36,7 @@ public class MagicArrowSpell : MagerySpell
 		}
 	}
 
-	public void Target(IDamageable d)
+	private void Target(IDamageable d)
 	{
 		if (!Caster.CanSee(d))
 		{
@@ -101,9 +101,9 @@ public class MagicArrowSpell : MagerySpell
 
 		protected override void OnTarget(Mobile from, object o)
 		{
-			if (o is IDamageable)
+			if (o is IDamageable damageable)
 			{
-				_owner.Target((IDamageable)o);
+				_owner.Target(damageable);
 			}
 		}
 

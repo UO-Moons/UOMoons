@@ -7,12 +7,11 @@ using Server.Mobiles;
 
 namespace Server.Regions;
 
-public class SpawnEntry : ISpawner
+public sealed class SpawnEntry : ISpawner
 {
 	public static readonly TimeSpan DefaultMinSpawnTime = TimeSpan.FromMinutes(2.0);
 	public static readonly TimeSpan DefaultMaxSpawnTime = TimeSpan.FromMinutes(5.0);
-	public static readonly Direction InvalidDirection = Direction.Running;
-	private static readonly Hashtable MTable = new();
+	public const Direction InvalidDirection = Direction.Running;
 	private static List<IEntity> _mRemoveList;
 	private readonly TimeSpan _mMinSpawnTime;
 	private readonly TimeSpan _mMaxSpawnTime;
@@ -32,19 +31,20 @@ public class SpawnEntry : ISpawner
 		_mMaxSpawnTime = maxSpawnTime;
 		Running = false;
 
-		if (MTable.Contains(id))
+		if (Table.Contains(id))
 			Console.WriteLine("Warning: double SpawnEntry ID '{0}'", id);
 		else
-			MTable[id] = this;
+			Table[id] = this;
 	}
 
-	public static Hashtable Table => MTable;
+	public static Hashtable Table { get; } = new();
+
 	// When a creature's AI is deactivated (PlayerRangeSensitive optimization) does it return home?
-	public bool ReturnOnDeactivate => true;
+	public static bool ReturnOnDeactivate => true;
 	// Are creatures unlinked on taming (true) or should they also go out of the region (false)?
 	public bool UnlinkOnTaming => false;
 	// Are unlinked and untamed creatures removed after 20 hours?
-	public bool RemoveIfUntamed => false;
+	private static bool RemoveIfUntamed => false;
 	public int Id { get; }
 
 	public BaseRegion Region { get; }
@@ -57,21 +57,21 @@ public class SpawnEntry : ISpawner
 
 	public SpawnDefinition Definition { get; }
 
-	public List<ISpawnable> SpawnedObjects { get; }
+	private List<ISpawnable> SpawnedObjects { get; }
 
-	public int Max { get; private set; }
+	private int Max { get; set; }
 
 	public TimeSpan MinSpawnTime => _mMinSpawnTime;
 	public TimeSpan MaxSpawnTime => _mMaxSpawnTime;
-	public bool Running { get; private set; }
+	private bool Running { get; set; }
 
-	public bool Complete => SpawnedObjects.Count >= Max;
-	public bool Spawning => Running && !Complete;
+	private bool Complete => SpawnedObjects.Count >= Max;
+	private bool Spawning => Running && !Complete;
 
-	public virtual void GetSpawnProperties(ISpawnable spawn, ObjectPropertyList list)
+	public void GetSpawnProperties(ISpawnable spawn, ObjectPropertyList list)
 	{ }
 
-	public virtual void GetSpawnContextEntries(ISpawnable spawn, Mobile m, List<ContextMenuEntry> list)
+	public void GetSpawnContextEntries(ISpawnable spawn, Mobile m, List<ContextMenuEntry> list)
 	{ }
 
 	public static void Remove(GenericReader reader, int version)
@@ -83,13 +83,12 @@ public class SpawnEntry : ISpawner
 			Serial serial = reader.ReadSerial();
 			IEntity entity = World.FindEntity(serial);
 
-			if (entity != null)
-			{
-				if (_mRemoveList == null)
-					_mRemoveList = new List<IEntity>();
+			if (entity == null)
+				continue;
 
-				_mRemoveList.Add(entity);
-			}
+			_mRemoveList ??= new List<IEntity>();
+
+			_mRemoveList.Add(entity);
 		}
 
 		reader.ReadBool(); // m_Running
@@ -127,7 +126,7 @@ public class SpawnEntry : ISpawner
 		return Region.RandomSpawnLocation(spawnHeight, land, water, HomeLocation, HomeRange);
 	}
 
-	public void Start()
+	private void Start()
 	{
 		if (Running)
 			return;
@@ -136,7 +135,7 @@ public class SpawnEntry : ISpawner
 		CheckTimer();
 	}
 
-	public void Stop()
+	private void Stop()
 	{
 		if (!Running)
 			return;
@@ -145,7 +144,7 @@ public class SpawnEntry : ISpawner
 		CheckTimer();
 	}
 
-	public void DeleteSpawnedObjects()
+	private void DeleteSpawnedObjects()
 	{
 		InternalDeleteSpawnedObjects();
 
@@ -153,7 +152,7 @@ public class SpawnEntry : ISpawner
 		CheckTimer();
 	}
 
-	public void Respawn()
+	private void Respawn()
 	{
 		InternalDeleteSpawnedObjects();
 
@@ -175,8 +174,8 @@ public class SpawnEntry : ISpawner
 			_mSpawnTimer = null;
 		}
 
-		if (MTable[Id] == this)
-			MTable.Remove(Id);
+		if (Table[Id] == this)
+			Table.Remove(Id);
 	}
 
 	public void Serialize(GenericWriter writer)
@@ -212,9 +211,8 @@ public class SpawnEntry : ISpawner
 		for (int i = 0; i < count; i++)
 		{
 			Serial serial = reader.ReadSerial();
-			ISpawnable spawnableEntity = World.FindEntity(serial) as ISpawnable;
 
-			if (spawnableEntity != null)
+			if (World.FindEntity(serial) is ISpawnable spawnableEntity)
 				Add(spawnableEntity);
 		}
 
@@ -257,22 +255,19 @@ public class SpawnEntry : ISpawner
 			}
 		}
 
-		BaseRegion br = reg as BaseRegion;
+		if (reg is BaseRegion { Spawns: { } } br)
+			return br;
 
-		if (br == null || br.Spawns == null)
-		{
-			from.SendMessage("There are no spawners in region '{0}'.", reg);
-			return null;
-		}
+		from.SendMessage("There are no spawners in region '{0}'.", reg);
+		return null;
 
-		return br;
 	}
 
 	[Usage("RespawnAllRegions")]
 	[Description("Respawns all regions and sets the spawners as running.")]
 	private static void RespawnAllRegions_OnCommand(CommandEventArgs args)
 	{
-		foreach (SpawnEntry entry in MTable.Values)
+		foreach (SpawnEntry entry in Table.Values)
 		{
 			entry.Respawn();
 		}
@@ -299,7 +294,7 @@ public class SpawnEntry : ISpawner
 	[Description("Deletes all spawned objects of every regions and sets the spawners as not running.")]
 	private static void DelAllRegionSpawns_OnCommand(CommandEventArgs args)
 	{
-		foreach (SpawnEntry entry in MTable.Values)
+		foreach (SpawnEntry entry in Table.Values)
 		{
 			entry.DeleteSpawnedObjects();
 		}
@@ -326,7 +321,7 @@ public class SpawnEntry : ISpawner
 	[Description("Sets the region spawners of all regions as running.")]
 	private static void StartAllRegionSpawns_OnCommand(CommandEventArgs args)
 	{
-		foreach (SpawnEntry entry in MTable.Values)
+		foreach (SpawnEntry entry in Table.Values)
 		{
 			entry.Start();
 		}
@@ -353,7 +348,7 @@ public class SpawnEntry : ISpawner
 	[Description("Sets the region spawners of all regions as not running.")]
 	private static void StopAllRegionSpawns_OnCommand(CommandEventArgs args)
 	{
-		foreach (SpawnEntry entry in MTable.Values)
+		foreach (SpawnEntry entry in Table.Values)
 		{
 			entry.Stop();
 		}
@@ -414,12 +409,12 @@ public class SpawnEntry : ISpawner
 	{
 		if (Spawning)
 		{
-			if (_mSpawnTimer == null)
-			{
-				TimeSpan time = RandomTime();
-				_mSpawnTimer = Timer.DelayCall(time, TimerCallback);
-				_mNextSpawn = DateTime.UtcNow + time;
-			}
+			if (_mSpawnTimer != null)
+				return;
+
+			TimeSpan time = RandomTime();
+			_mSpawnTimer = Timer.DelayCall(time, TimerCallback);
+			_mNextSpawn = DateTime.UtcNow + time;
 		}
 		else if (_mSpawnTimer != null)
 		{

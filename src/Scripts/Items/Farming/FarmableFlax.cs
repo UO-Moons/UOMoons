@@ -1,48 +1,47 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class FarmableFlax : FarmableCrop
 {
-	public class FarmableFlax : FarmableCrop
+	private static int GetCropId()
 	{
-		public static int GetCropID()
+		return Utility.Random(6809, 3);
+	}
+
+	public override Item GetCropObject()
+	{
+		Flax flax = new Flax
 		{
-			return Utility.Random(6809, 3);
-		}
+			ItemId = Utility.Random(6812, 2)
+		};
 
-		public override Item GetCropObject()
-		{
-			Flax flax = new Flax
-			{
-				ItemId = Utility.Random(6812, 2)
-			};
+		return flax;
+	}
 
-			return flax;
-		}
+	public override int GetPickedId()
+	{
+		return 3254;
+	}
 
-		public override int GetPickedID()
-		{
-			return 3254;
-		}
+	[Constructable]
+	public FarmableFlax() : base(GetCropId())
+	{
+	}
 
-		[Constructable]
-		public FarmableFlax() : base(GetCropID())
-		{
-		}
+	public FarmableFlax(Serial serial) : base(serial)
+	{
+	}
 
-		public FarmableFlax(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.WriteEncodedInt(0); // version
+	}
 
-			writer.WriteEncodedInt(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

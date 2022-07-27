@@ -41,7 +41,7 @@ public class EnergyFieldSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -78,7 +78,7 @@ public class EnergyFieldSpell : MagerySpell
 
 			Effects.PlaySound(p, Caster.Map, 0x20B);
 
-			var duration = Core.AOS ? TimeSpan.FromSeconds((15 + (Caster.Skills.Magery.Fixed / 5)) / 7) : TimeSpan.FromSeconds(Caster.Skills[SkillName.Magery].Value * 0.28 + 2.0);
+			var duration = Core.AOS ? TimeSpan.FromSeconds((15 + Caster.Skills.Magery.Fixed / 5.0) / 7) : TimeSpan.FromSeconds(Caster.Skills[SkillName.Magery].Value * 0.28 + 2.0);
 
 			int itemId = eastToWest ? 0x3946 : 0x3956;
 
@@ -130,11 +130,11 @@ public class EnergyFieldSpell : MagerySpell
 			_timer.Start();
 		}
 
-		//public InternalItem(Serial serial) : base(serial)
-		//{
-		//	_timer = new InternalTimer(this, TimeSpan.FromSeconds(5.0));
-		//	_timer.Start();
-		//}
+		public InternalItem(Serial serial) : base(serial)
+		{
+			_timer = new InternalTimer(this, TimeSpan.FromSeconds(5.0));
+			_timer.Start();
+		}
 
 		public override void Serialize(GenericWriter writer)
 		{
@@ -153,13 +153,12 @@ public class EnergyFieldSpell : MagerySpell
 
 		public override bool OnMoveOver(Mobile m)
 		{
-			if (m is PlayerMobile)
-			{
-				var noto = Notoriety.Compute(_caster, m);
-				if (noto is Notoriety.Enemy or Notoriety.Ally)
-					return false;
-			}
-			return base.OnMoveOver(m);
+			if (m is not PlayerMobile)
+				return base.OnMoveOver(m);
+
+			var noto = Notoriety.Compute(_caster, m);
+
+			return noto is not (Notoriety.Enemy or Notoriety.Ally) && base.OnMoveOver(m);
 		}
 
 		public override void OnAfterDelete()

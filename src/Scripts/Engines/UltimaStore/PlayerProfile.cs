@@ -14,7 +14,7 @@ public class PlayerProfile
 	public StoreCategory Category { get; set; }
 	public SortBy SortBy { get; set; }
 
-	public int VaultTokens { get; set; }
+	private int VaultTokens { get; set; }
 
 	public PlayerProfile(Mobile m)
 	{
@@ -33,7 +33,7 @@ public class PlayerProfile
 		Deserialize(reader);
 	}
 
-	public void AddToCart(StoreEntry entry, int amount)
+	private void AddToCart(StoreEntry entry, int amount)
 	{
 		if (Cart.Count < Configuration.CartCapacity)
 		{

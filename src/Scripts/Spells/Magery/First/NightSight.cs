@@ -34,7 +34,7 @@ public class NightSightSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile targeted)
+	private void Target(Mobile targeted)
 	{
 		if (CheckBSequence(targeted))
 		{
@@ -64,7 +64,7 @@ public class NightSightSpell : MagerySpell
 		FinishSequence();
 	}
 
-	public class InternalTarget : Target
+	private class InternalTarget : Target
 	{
 		private readonly NightSightSpell _owner;
 
@@ -75,9 +75,9 @@ public class NightSightSpell : MagerySpell
 
 		protected override void OnTarget(Mobile from, object o)
 		{
-			if (o is Mobile)
+			if (o is Mobile mobile)
 			{
-				_owner.Target((Mobile)o);
+				_owner.Target(mobile);
 			}
 		}
 

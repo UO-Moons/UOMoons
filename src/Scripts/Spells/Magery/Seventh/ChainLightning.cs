@@ -41,7 +41,7 @@ public class ChainLightningSpell : MagerySpell
 
 	public override bool DelayedDamage => true;
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{

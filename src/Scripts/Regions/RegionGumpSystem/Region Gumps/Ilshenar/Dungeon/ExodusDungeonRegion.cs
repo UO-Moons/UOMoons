@@ -1,8 +1,8 @@
 namespace Server.Gumps;
 
-public class ExodusDungeonRegion : Gump
+public class ExodusDungeonRegionGump : Gump
 {
-	public ExodusDungeonRegion()
+	public ExodusDungeonRegionGump()
 		: base( 0, 0 )
 	{
 		Closable=true;
@@ -22,8 +22,5 @@ public class ExodusDungeonRegion : Gump
 		AddImage(502, 137, 4504);
 		AddImage(504, 106, 2529);
 		AddLabel(352, 126, 47, @"Exodus Dungeon");
-
 	}
-		
-
 }

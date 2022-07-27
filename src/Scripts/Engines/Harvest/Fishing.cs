@@ -5,6 +5,7 @@ using Server.Mobiles;
 using Server.Network;
 using System;
 using System.Collections.Generic;
+using Server.Misc;
 
 namespace Server.Engines.Harvest
 {
@@ -14,7 +15,7 @@ namespace Server.Engines.Harvest
 
 		public static Fishing System => _mSystem ??= new Fishing();
 
-		public HarvestDefinition Definition { get; }
+		private HarvestDefinition Definition { get; }
 
 		private Fishing()
 		{
@@ -198,19 +199,23 @@ namespace Server.Engines.Harvest
 
 		public override Item Construct(Type type, Mobile from, Item tool)
 		{
+			// Searing Weapon Support, handled elsewhere
+			if (type == typeof(BaseWeapon))
+				return null;
+
 			if (type == typeof(TreasureMap))
 			{
-				int level;
-				if (from is PlayerMobile mobile && mobile.Young && from.Map == Map.Trammel && TreasureMap.IsInHavenIsland(from))
-					level = 0;
-				else
-					level = 1;
-
-				return new TreasureMap(level, from.Map == Map.Felucca ? Map.Felucca : Map.Trammel);
+				return new TreasureMap(0, from.Map == Map.Felucca ? Map.Felucca : Map.Trammel);
 			}
-			else if (type == typeof(MessageInABottle))
+
+			if (type == typeof(MessageInABottle))
 			{
 				return new MessageInABottle(from.Map == Map.Felucca ? Map.Felucca : Map.Trammel);
+			}
+
+			if (type == typeof(WhitePearl))
+			{
+				return new WhitePearl();
 			}
 
 			Container pack = from.Backpack;
@@ -312,7 +317,7 @@ namespace Server.Engines.Harvest
 				if (sos.IsAncient)
 					chest.Hue = 0x481;
 
-				TreasureMapChest.Fill(chest, Math.Max(1, Math.Min(4, sos.Level)));
+				LootHelpers.Fill(null, chest, Math.Max(1, Math.Min(4, sos.Level)), false);
 
 				if (sos.IsAncient)
 					chest.DropItem(new FabledFishingNet());

@@ -1,52 +1,51 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class PieceWhiteChecker : BasePiece
 {
-	public class PieceWhiteChecker : BasePiece
+	public override string DefaultName => "white checker";
+
+	public PieceWhiteChecker(BaseBoard board) : base(0x3584, board)
 	{
-		public override string DefaultName => "white checker";
-
-		public PieceWhiteChecker(BaseBoard board) : base(0x3584, board)
-		{
-		}
-
-		public PieceWhiteChecker(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class PieceBlackChecker : BasePiece
+	public PieceWhiteChecker(Serial serial) : base(serial)
 	{
-		public override string DefaultName => "black checker";
+	}
 
-		public PieceBlackChecker(BaseBoard board) : base(0x358B, board)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public PieceBlackChecker(Serial serial) : base(serial)
-		{
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
+public class PieceBlackChecker : BasePiece
+{
+	public override string DefaultName => "black checker";
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+	public PieceBlackChecker(BaseBoard board) : base(0x358B, board)
+	{
+	}
+
+	public PieceBlackChecker(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

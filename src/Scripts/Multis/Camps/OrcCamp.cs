@@ -1,6 +1,7 @@
 using Server.Items;
 using Server.Mobiles;
 using System;
+using Server.Misc;
 
 namespace Server.Multis
 {
@@ -84,7 +85,7 @@ namespace Server.Multis
 
 			chest.LiftOverride = true;
 
-			TreasureMapChest.Fill(chest, 1);
+			LootHelpers.Fill(null, chest, 1, false);
 
 			AddItem(chest, -2, 2, 0);
 

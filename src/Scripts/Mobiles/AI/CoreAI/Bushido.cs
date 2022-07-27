@@ -4,7 +4,7 @@ using Server.Spells.Bushido;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
+    public sealed partial class CoreAi : BaseAI
     {
         public void BushidoPower()
         {

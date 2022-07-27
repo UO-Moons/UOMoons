@@ -1,6 +1,7 @@
 using Server.Items;
 using Server.Network;
 using System;
+using Server.Engines.Quests;
 
 namespace Server.Mobiles
 {
@@ -15,20 +16,38 @@ namespace Server.Mobiles
 			get => m_NextWoolTime;
 			set { m_NextWoolTime = value; Body = (DateTime.UtcNow >= m_NextWoolTime) ? 0xCF : 0xDF; }
 		}
-
-		public void Carve(Mobile from, Item item)
+		public bool Carve(Mobile from, Item item)
 		{
 			if (DateTime.UtcNow < m_NextWoolTime)
 			{
 				// This sheep is not yet ready to be shorn.
 				PrivateOverheadMessage(MessageType.Regular, 0x3B2, 500449, from.NetState);
-				return;
+				return false;
 			}
 
 			from.SendLocalizedMessage(500452); // You place the gathered wool into your backpack.
 			from.AddToBackpack(new Wool(Map == Map.Felucca ? 2 : 1));
 
-			NextWoolTime = DateTime.UtcNow + TimeSpan.FromHours(3.0); // TODO: Proper time delay
+			/*if (from is PlayerMobile)
+			{
+				PlayerMobile player = (PlayerMobile)from;
+				foreach (BaseQuest quest in player.Quests)
+				{
+					if (quest is ShearingKnowledgeQuest)
+					{
+						if (!quest.Completed &&
+						    (from.Map == Map.Trammel || from.Map == Map.Felucca))
+						{
+							from.AddToBackpack(new BritannianWool(1));
+						}
+						break;
+					}
+				}
+			}*/
+
+			NextWoolTime = DateTime.UtcNow + TimeSpan.FromHours(2.0); // TODO: Proper time delay
+
+			return true;
 		}
 
 		public override void OnThink()

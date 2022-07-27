@@ -7,7 +7,7 @@ namespace Server.Items
 {
 	public abstract class BaseRanged : BaseMeleeWeapon
 	{
-		public abstract int EffectID { get; }
+		public abstract int EffectId { get; }
 		public abstract Type AmmoType { get; }
 		public abstract Item Ammo { get; }
 
@@ -28,7 +28,7 @@ namespace Server.Items
 		public bool Balanced
 		{
 			get => m_Balanced;
-			set { m_Balanced = value; InvalidateProperties(); }
+			protected init { m_Balanced = value; InvalidateProperties(); }
 		}
 
 		[CommandProperty(AccessLevel.GameMaster)]
@@ -38,7 +38,7 @@ namespace Server.Items
 			set { m_Velocity = value; InvalidateProperties(); }
 		}
 
-		public BaseRanged(int itemID) : base(itemID)
+		public BaseRanged(int itemId) : base(itemId)
 		{
 		}
 
@@ -57,11 +57,11 @@ namespace Server.Items
 
 				if (Core.AOS)
 				{
-					canSwing = (!attacker.Paralyzed && !attacker.Frozen);
+					canSwing = !attacker.Paralyzed && !attacker.Frozen;
 
 					if (canSwing)
 					{
-						canSwing = (attacker.Spell is not Spell sp || !sp.IsCasting || !sp.BlocksMovement);
+						canSwing = attacker.Spell is not Spell { IsCasting: true, BlocksMovement: true };
 					}
 				}
 
@@ -91,24 +91,21 @@ namespace Server.Items
 
 				return GetDelay(attacker);
 			}
-			else
-			{
-				attacker.RevealingAction();
 
-				return TimeSpan.FromSeconds(0.25);
-			}
+			attacker.RevealingAction();
+
+			return TimeSpan.FromSeconds(0.25);
 		}
 
 		public override void OnHit(Mobile attacker, IDamageable damageable, double damageBonus)
 		{
-			if (AmmoType != null && attacker.Player && damageable is Mobile && !((Mobile)damageable).Player && (((Mobile)damageable).Body.IsAnimal || ((Mobile)damageable).Body.IsMonster) &&
-				0.4 >= Utility.RandomDouble())
+			if (AmmoType != null && attacker.Player && damageable is Mobile { Player: false } mobile && (mobile.Body.IsAnimal || mobile.Body.IsMonster) && 0.4 >= Utility.RandomDouble())
 			{
 				var ammo = Ammo;
 
 				if (ammo != null)
 				{
-					((Mobile)damageable).AddToBackpack(ammo);
+					mobile.AddToBackpack(ammo);
 				}
 			}
 
@@ -136,10 +133,7 @@ namespace Server.Items
 
 						if (!p.Warmode)
 						{
-							if (m_RecoveryTimer == null)
-							{
-								m_RecoveryTimer = Timer.DelayCall(TimeSpan.FromSeconds(10), p.RecoverAmmo);
-							}
+							m_RecoveryTimer ??= Timer.DelayCall(TimeSpan.FromSeconds(10), p.RecoverAmmo);
 
 							if (!m_RecoveryTimer.Running)
 							{
@@ -154,12 +148,9 @@ namespace Server.Items
 
 					var ammo = Ammo;
 
-					if (ammo != null)
-					{
-						ammo.MoveToWorld(
-							new Point3D(loc.X + Utility.RandomMinMax(-1, 1), loc.Y + Utility.RandomMinMax(-1, 1), loc.Z),
-							damageable.Map);
-					}
+					ammo?.MoveToWorld(
+						new Point3D(loc.X + Utility.RandomMinMax(-1, 1), loc.Y + Utility.RandomMinMax(-1, 1), loc.Z),
+						damageable.Map);
 				}
 			}
 
@@ -171,7 +162,7 @@ namespace Server.Items
 			WeaponAbility ability = WeaponAbility.GetCurrentAbility(attacker);
 
 			// Respect special moves that use no ammo
-			if (ability != null && ability.ConsumeAmmo == false)
+			if (ability is { ConsumeAmmo: false })
 			{
 				return true;
 			}
@@ -202,7 +193,7 @@ namespace Server.Items
 				}
 			}
 
-			attacker.MovingEffect(damageable, EffectID, 18, 1, false, false);
+			attacker.MovingEffect(damageable, EffectId, 18, 1, false, false);
 
 			return true;
 		}

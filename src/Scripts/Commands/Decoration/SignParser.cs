@@ -22,11 +22,6 @@ public class SignParser
 		}
 	}
 
-	public static void Initialize()
-	{
-		CommandSystem.Register("SignGen", AccessLevel.Administrator, SignGen_OnCommand);
-	}
-
 	[Usage("SignGen")]
 	[Description("Generates world/shop signs on all facets.")]
 	public static void SignGen_OnCommand(CommandEventArgs c)
@@ -34,7 +29,7 @@ public class SignParser
 		Parse(c.Mobile);
 	}
 
-	public static void Parse(Mobile from)
+	private static void Parse(Mobile from)
 	{
 		string cfg = Path.Combine(Core.BaseDirectory, "Data/signs.cfg");
 
@@ -94,7 +89,7 @@ public class SignParser
 
 	private static readonly Queue<Item> MToDelete = new();
 
-	public static void Add_Static(int itemId, Point3D location, Map map, string name)
+	private static void Add_Static(int itemId, Point3D location, Map map, string name)
 	{
 		IPooledEnumerable eable = map.GetItemsInRange(location, 0);
 

@@ -5,7 +5,6 @@ using System;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.GemOfSalvation")]
 public class GemOfSalvation : Item
 {
 	public override int LabelNumber => 1094939;  // Gem of Salvation
@@ -23,34 +22,34 @@ public class GemOfSalvation : Item
 		EventSink.OnPlayerDeath += PlayerDeath;
 	}
 
-	public static void PlayerDeath(PlayerDeathEventArgs args)
+	private static void PlayerDeath(PlayerDeathEventArgs args)
 	{
 		PlayerMobile pm = (PlayerMobile)args.Mobile;
 
-		if (pm is {Backpack: { }})
+		if (pm is not { Backpack: { } })
+			return;
+
+		GemOfSalvation gem = pm.Backpack.FindItemByType<GemOfSalvation>();
+
+		if (gem != null)
 		{
-			GemOfSalvation gem = pm.Backpack.FindItemByType<GemOfSalvation>();
-
-			if (gem != null)
+			Timer.DelayCall(TimeSpan.FromSeconds(2), () =>
 			{
-				Timer.DelayCall(TimeSpan.FromSeconds(2), () =>
+				if (DateTime.UtcNow < pm.GemOfSalvationUse)
 				{
-					if (DateTime.UtcNow < pm.GemOfSalvationUse)
-					{
-						TimeSpan left = pm.GemOfSalvationUse - DateTime.UtcNow;
+					TimeSpan left = pm.GemOfSalvationUse - DateTime.UtcNow;
 
-						if (left >= TimeSpan.FromMinutes(1.0))
-							pm.SendLocalizedMessage(1095131, ((left.Hours * 60) + left.Minutes).ToString()); // Your spirit lacks cohesion. You must wait ~1_minutes~ minutes before invoking the power of a Gem of Salvation.
-						else
-							pm.SendLocalizedMessage(1095130, left.Seconds.ToString()); // Your spirit lacks cohesion. You must wait ~1_seconds~ seconds before invoking the power of a Gem of Salvation.
-					}
+					if (left >= TimeSpan.FromMinutes(1.0))
+						pm.SendLocalizedMessage(1095131, (left.Hours * 60 + left.Minutes).ToString()); // Your spirit lacks cohesion. You must wait ~1_minutes~ minutes before invoking the power of a Gem of Salvation.
 					else
-					{
-						pm.CloseGump(typeof(ResurrectGump));
-						pm.SendGump(new GemResurrectGump(pm, gem));
-					}
-				});
-			}
+						pm.SendLocalizedMessage(1095130, left.Seconds.ToString()); // Your spirit lacks cohesion. You must wait ~1_seconds~ seconds before invoking the power of a Gem of Salvation.
+				}
+				else
+				{
+					pm.CloseGump(typeof(ResurrectGump));
+					pm.SendGump(new GemResurrectGump(pm, gem));
+				}
+			});
 		}
 	}
 

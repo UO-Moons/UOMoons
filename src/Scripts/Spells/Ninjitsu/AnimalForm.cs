@@ -17,7 +17,7 @@ public class AnimalForm : NinjaSpell
 		EventSink.OnLogin += OnLogin;
 	}
 
-	public static void OnLogin(Mobile m)
+	private static void OnLogin(Mobile m)
 	{
 		AnimalFormContext context = GetContext(m);
 
@@ -65,16 +65,15 @@ public class AnimalForm : NinjaSpell
 			return false;
 		}
 
-		if (DisguiseTimers.IsDisguised(Caster))
-		{
-			Caster.SendLocalizedMessage(1061631); // You can't do that while disguised.
-			return false;
-		}
+		if (!DisguiseTimers.IsDisguised(Caster))
+			return base.CheckCast();
 
-		return base.CheckCast();
+		Caster.SendLocalizedMessage(1061631); // You can't do that while disguised.
+		return false;
+
 	}
 
-	public override bool CheckDisturb(DisturbType type, bool firstCircle, bool resistable)
+	public override bool CheckDisturb(DisturbType type, bool resistable)
 	{
 		return false;
 	}
@@ -170,12 +169,12 @@ public class AnimalForm : NinjaSpell
 
 	private static readonly Dictionary<Mobile, int> m_LastAnimalForms = new();
 
-	public static void AddLastAnimalForm(Mobile m, int id)
+	private static void AddLastAnimalForm(Mobile m, int id)
 	{
 		m_LastAnimalForms[m] = id;
 	}
 
-	public int GetLastAnimalForm(Mobile m)
+	private static int GetLastAnimalForm(Mobile m)
 	{
 		if (m_LastAnimalForms.ContainsKey(m))
 		{
@@ -185,14 +184,14 @@ public class AnimalForm : NinjaSpell
 		return -1;
 	}
 
-	public enum MorphResult
+	private enum MorphResult
 	{
 		Success,
 		Fail,
 		NoSkill
 	}
 
-	public static MorphResult Morph(Mobile m, int entryId)
+	private static MorphResult Morph(Mobile m, int entryId)
 	{
 		if (entryId < 0 || entryId >= m_Entries.Length)
 		{
@@ -205,7 +204,7 @@ public class AnimalForm : NinjaSpell
 
 		if (m.Skills.Ninjitsu.Value < entry.ReqSkill)
 		{
-			string args = $"{entry.ReqSkill.ToString("F1")}\t{SkillName.Ninjitsu}\t ";
+			string args = $"{entry.ReqSkill:F1}\t{SkillName.Ninjitsu}\t ";
 			m.SendLocalizedMessage(1063013, args);
 			// You need at least ~1_SKILL_REQUIREMENT~ ~2_SKILL_NAME~ skill to use that ability.
 			return MorphResult.NoSkill;
@@ -254,8 +253,10 @@ public class AnimalForm : NinjaSpell
 
 		if (entry.StealthBonus)
 		{
-			mod = new DefaultSkillMod(SkillName.Stealth, true, 20.0);
-			mod.ObeyCap = true;
+			mod = new DefaultSkillMod(SkillName.Stealth, true, 20.0)
+			{
+				ObeyCap = true
+			};
 			m.AddSkillMod(mod);
 		}
 
@@ -263,8 +264,10 @@ public class AnimalForm : NinjaSpell
 
 		if (entry.StealingBonus)
 		{
-			stealingMod = new DefaultSkillMod(SkillName.Stealing, true, 10.0);
-			stealingMod.ObeyCap = true;
+			stealingMod = new DefaultSkillMod(SkillName.Stealing, true, 10.0)
+			{
+				ObeyCap = true
+			};
 			m.AddSkillMod(stealingMod);
 		}
 
@@ -277,7 +280,7 @@ public class AnimalForm : NinjaSpell
 
 	private static readonly Dictionary<Mobile, AnimalFormContext> m_Table = new();
 
-	public static void AddContext(Mobile m, AnimalFormContext context)
+	private static void AddContext(Mobile m, AnimalFormContext context)
 	{
 		m_Table[m] = context;
 
@@ -302,7 +305,7 @@ public class AnimalForm : NinjaSpell
 		m.Delta(MobileDelta.WeaponDamage);
 	}
 
-	public static void RemoveContext(Mobile m, AnimalFormContext context, bool resetGraphics)
+	private static void RemoveContext(Mobile m, AnimalFormContext context, bool resetGraphics)
 	{
 		m_Table.Remove(m);
 
@@ -343,10 +346,7 @@ public class AnimalForm : NinjaSpell
 
 	public static AnimalFormContext GetContext(Mobile m)
 	{
-		if (m_Table.ContainsKey(m))
-			return m_Table[m];
-
-		return null;
+		return m_Table.ContainsKey(m) ? m_Table[m] : null;
 	}
 
 	public static bool UnderTransformation(Mobile m)
@@ -448,9 +448,8 @@ public class AnimalForm : NinjaSpell
 
 	public static AnimalFormEntry[] Entries => m_Entries;
 
-	public class AnimalFormGump : Gump
+	private class AnimalFormGump : Gump
 	{
-		//TODO: Convert this for ML to the BaseImageTileButtonsgump
 		private readonly Mobile _caster;
 		private readonly AnimalForm _spell;
 		private readonly Item _talisman;
@@ -503,34 +502,34 @@ public class AnimalForm : NinjaSpell
 					}
 				}
 
-				if (enabled)
-				{
-					int x = pos % 2 == 0 ? 14 : 264;
-					int y = pos / 2 * 64 + 44;
+				if (!enabled)
+					continue;
 
-					Rectangle2D b = ItemBounds.Table[entries[i].ItemId];
+				int x = pos % 2 == 0 ? 14 : 264;
+				int y = pos / 2 * 64 + 44;
 
-					AddImageTiledButton(
-						x,
-						y,
-						0x918,
-						0x919,
-						i + 1,
-						GumpButtonType.Reply,
-						0,
-						entries[i].ItemId,
-						entries[i].Hue,
-						40 - b.Width / 2 - b.X,
-						30 - b.Height / 2 - b.Y,
-						entries[i].Tooltip);
-					AddHtml(x + 84, y, 250, 60, Color(string.Format(entries[i].Name), 0xFFFFFF), false, false);
+				Rectangle2D b = ItemBounds.Table[entries[i].ItemId];
 
-					current++;
-				}
+				AddImageTiledButton(
+					x,
+					y,
+					0x918,
+					0x919,
+					i + 1,
+					GumpButtonType.Reply,
+					0,
+					entries[i].ItemId,
+					entries[i].Hue,
+					40 - b.Width / 2 - b.X,
+					30 - b.Height / 2 - b.Y,
+					entries[i].Tooltip);
+				AddHtml(x + 84, y, 250, 60, Color(string.Format(entries[i].Name), 0xFFFFFF), false, false);
+
+				current++;
 			}
 		}
 
-		private new string Color(string str, int color)
+		private new static string Color(string str, int color)
 		{
 			return $"<BASEFONT COLOR=#{color:X6}>{str}</BASEFONT>";
 		}
@@ -568,7 +567,7 @@ public class AnimalForm : NinjaSpell
 					string typename = entry.Name;
 
 					BuffInfo.AddBuff(_caster, new BuffInfo(BuffIcon.AnimalForm, 1060612, 1075823,
-						$"{("aeiouy".IndexOf(typename.ToLower()[0]) >= 0 ? "an" : "a")}\t{typename}"));
+						$"{("aeiouy".Contains(typename.ToLower()[0]) ? "an" : "a")}\t{typename}"));
 				}
 			}
 		}
@@ -625,67 +624,76 @@ public class AnimalFormTimer : Timer
 		}
 		else
 		{
-			if (_body == 0x115) // Cu Sidhe
+			switch (_body)
 			{
-				if (_counter++ >= 8)
+				// Cu Sidhe
+				case 0x115:
 				{
-					if (_mobile.Hits < _mobile.HitsMax && _mobile.Backpack != null)
+					if (_counter++ >= 8)
 					{
-						if (_mobile.Backpack.FindItemByType(typeof(Bandage)) is Bandage b)
+						if (_mobile.Hits < _mobile.HitsMax && _mobile.Backpack != null)
 						{
-							_mobile.Hits += Utility.RandomMinMax(20, 50);
-							b.Consume();
+							if (_mobile.Backpack.FindItemByType(typeof(Bandage)) is Bandage b)
+							{
+								_mobile.Hits += Utility.RandomMinMax(20, 50);
+								b.Consume();
+							}
 						}
+
+						_counter = 0;
 					}
 
-					_counter = 0;
+					break;
 				}
-			}
-			else if (_body == 0x114) // Reptalon
-			{
-				if (_mobile.Combatant is Mobile mobile && _mobile.Combatant != _lastTarget)
+				// Reptalon
+				case 0x114:
 				{
-					_counter = 1;
-					_lastTarget = mobile;
-				}
-
-				if (_mobile.Warmode && _lastTarget is {Alive: true, Deleted: false} && _counter-- <= 0)
-				{
-					if (_mobile.CanBeHarmful(_lastTarget) && _lastTarget.Map == _mobile.Map &&
-					    _lastTarget.InRange(_mobile.Location, BaseCreature.DefaultRangePerception) && _mobile.InLOS(_lastTarget))
+					if (_mobile.Combatant is Mobile mobile && _mobile.Combatant != _lastTarget)
 					{
-						_mobile.Direction = _mobile.GetDirectionTo(_lastTarget);
-						_mobile.Freeze(TimeSpan.FromSeconds(1));
-						_mobile.PlaySound(0x16A);
-
-						DelayCall(TimeSpan.FromSeconds(1.3), BreathEffect_Callback, _lastTarget);
+						_counter = 1;
+						_lastTarget = mobile;
 					}
 
-					_counter = Math.Min((int)_mobile.GetDistanceToSqrt(_lastTarget), 10);
+					if (_mobile.Warmode && _lastTarget is {Alive: true, Deleted: false} && _counter-- <= 0)
+					{
+						if (_mobile.CanBeHarmful(_lastTarget) && _lastTarget.Map == _mobile.Map &&
+						    _lastTarget.InRange(_mobile.Location, BaseCreature.DefaultRangePerception) && _mobile.InLOS(_lastTarget))
+						{
+							_mobile.Direction = _mobile.GetDirectionTo(_lastTarget);
+							_mobile.Freeze(TimeSpan.FromSeconds(1));
+							_mobile.PlaySound(0x16A);
+
+							DelayCall(TimeSpan.FromSeconds(1.3), BreathEffect_Callback, _lastTarget);
+						}
+
+						_counter = Math.Min((int)_mobile.GetDistanceToSqrt(_lastTarget), 10);
+					}
+
+					break;
 				}
 			}
 		}
 	}
 
-	public void BreathEffect_Callback(Mobile target)
+	private void BreathEffect_Callback(Mobile target)
 	{
-		if (_mobile.CanBeHarmful(target))
-		{
-			_mobile.RevealingAction();
-			_mobile.PlaySound(0x227);
-			Effects.SendMovingEffect(_mobile, target, 0x36D4, 5, 0, false, false, 0, 0);
+		if (!_mobile.CanBeHarmful(target))
+			return;
 
-			DelayCall(TimeSpan.FromSeconds(1), BreathDamage_Callback, target);
-		}
+		_mobile.RevealingAction();
+		_mobile.PlaySound(0x227);
+		Effects.SendMovingEffect(_mobile, target, 0x36D4, 5, 0, false, false, 0, 0);
+
+		DelayCall(TimeSpan.FromSeconds(1), BreathDamage_Callback, target);
 	}
 
-	public void BreathDamage_Callback(Mobile target)
+	private void BreathDamage_Callback(Mobile target)
 	{
-		if (_mobile.CanBeHarmful(target))
-		{
-			_mobile.RevealingAction();
-			_mobile.DoHarmful(target);
-			AOS.Damage(target, _mobile, 20, !target.Player, 0, 100, 0, 0, 0);
-		}
+		if (!_mobile.CanBeHarmful(target))
+			return;
+
+		_mobile.RevealingAction();
+		_mobile.DoHarmful(target);
+		AOS.Damage(target, _mobile, 20, !target.Player, 0, 100, 0, 0, 0);
 	}
 }

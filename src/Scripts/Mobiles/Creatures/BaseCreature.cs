@@ -32,6 +32,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public virtual bool CanBeParagon => true;
 	public virtual bool CanBeBlackRock => true;
 	public virtual bool CanBeSupreme => true;
+	public virtual bool CanBeRenowned => true;
 	public virtual int FactionSilverWorth => 30;
 	public bool IsGolem => this is IRepairableMobile;
 	public virtual bool HasManaOveride => false;
@@ -42,7 +43,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public virtual bool SubdueBeforeTame => false;
 	public virtual bool StatLossAfterTame => SubdueBeforeTame;
 	public virtual bool ReduceSpeedWithDamage => true;
-	public virtual bool IsSubdued => SubdueBeforeTame && (Hits < (HitsMax / 10));
+	public virtual bool IsSubdued => SubdueBeforeTame && Hits < HitsMax / 10;
 
 	public virtual bool Commandable => true;
 
@@ -106,7 +107,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public virtual bool BreathImmune => false;
 
 	// Effect details and sound
-	public virtual int BreathEffectItemID => 0x36D4;
+	public virtual int BreathEffectItemId => 0x36D4;
 	public virtual int BreathEffectSpeed => 5;
 	public virtual int BreathEffectDuration => 0;
 	public virtual bool BreathEffectExplodes => false;
@@ -131,7 +132,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public override bool CanRegenStam => !IsParagon && !IsDeadPet && base.CanRegenStam;
 	public override bool CanRegenMana => !IsDeadPet && base.CanRegenMana;
 	public override bool IsDeadBondedPet => IsDeadPet;
-	public virtual bool HoldSmartSpawning => IsParagon || IsBlackRock || IsSupreme;
+	public virtual bool HoldSmartSpawning => IsParagon || IsRenowned || IsBlackRock || IsSupreme;
 	public virtual double SwitchWeaponChance => Body.IsHuman ? 0.1 : 0.0;
 	public virtual double SwitchWepSkillVal => 50;
 	public virtual double WeaponAbilityChance => 0.4;
@@ -146,8 +147,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public virtual int ArtyChanceInt => (int)(ArtyChance * 100);  //int version of above, should not be overwritten
 	public virtual int EntryAnimation => 12; //animations
 	public virtual int ArcaneLevel => 0;  //arcane focus level
-	private bool m_dispelonsummonerdeath = false;
-	public virtual bool CanFlee => !IsParagon || !IsBlackRock || !IsSupreme;
+	private bool m_Dispelonsummonerdeath;
+	public virtual bool CanFlee => !IsParagon || !IsRenowned || !IsBlackRock || !IsSupreme;
 	public virtual bool IsInvulnerable => false;
 	public virtual bool CanStealth => false;
 	public virtual bool SupportsRunAnimation => true;
@@ -165,8 +166,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public virtual Faction FactionAllegiance => null;
 	public virtual InhumanSpeech SpeechType => null;
 	public virtual bool PlayerRangeSensitive => CurrentWayPoint == null;  //If they are following a waypoint, they'll continue to follow it even if players aren't around
-	public virtual bool ReturnsToHome => SeeksHome && (Home != Point3D.Zero) && !m_ReturnQueued && !Controlled && !Summoned;
-	private static readonly bool EnableRummaging = true;
+	public virtual bool ReturnsToHome => SeeksHome && Home != Point3D.Zero && !m_ReturnQueued && !Controlled && !Summoned;
+	private const bool EnableRummaging = true;
 	private const double ChanceToRummage = 0.5; // 50%
 	private const double MinutesToNextRummageMin = 1.0;
 	private const double MinutesToNextRummageMax = 4.0;
@@ -246,6 +247,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	private bool m_IsChampionSpawn;
 	private bool m_IsSupreme;
 	private bool m_BlackRock;
+	private bool m_Renowned;
 	private string _mEngravedText;
 	private bool _mIsBonded;
 	private long m_NextBreathTime;
@@ -253,13 +255,15 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	/* until we are sure about who should be getting deleted, move them instead */
 	/* On OSI, they despawn */
 	private bool m_ReturnQueued;
-	private long _NextDetect;
+	private long m_NextDetect;
 	private long m_NextTeleport;
 	private long m_NextAura;
 	private long m_NextRummageTime;
 	#endregion
 
 	#region Get/Set
+	// Tribe Opposition (Replaces Opposition Group
+	public virtual TribeType Tribe => TribeType.None; // What opposition list am I in?
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool RemoveIfUntamed { get; set; }
 	// used for deleting untamed creatures [in houses]
@@ -358,8 +362,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool Dispelonsummonerdeath
 	{
-		get => m_dispelonsummonerdeath;
-		set { m_dispelonsummonerdeath = value; InvalidateProperties(); }
+		get => m_Dispelonsummonerdeath;
+		set { m_Dispelonsummonerdeath = value; InvalidateProperties(); }
 	}
 	public DateTime EndFleeTime { get; set; }
 	public BaseAI AIObject { get; private set; }
@@ -381,6 +385,9 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool ApproachWait { get; set; }
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public virtual bool HasDecanter { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int ApproachRange { get; set; }
@@ -429,6 +436,150 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int DirectDamage { get; set; }
 	#endregion
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsRenowned
+	{
+		get => m_Renowned;
+		set
+		{
+			if (m_Renowned == value)
+			{
+				return;
+			}
+
+			if (value)
+			{
+				Renowned.Convert(this);
+			}
+			else
+			{
+				Renowned.UnConvert(this);
+			}
+
+			m_Renowned = value;
+
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsBlackRock
+	{
+		get => m_BlackRock;
+		private set
+		{
+			if (m_BlackRock == value)
+			{
+				return;
+			}
+
+			if (value)
+			{
+				BlackRockInfected.Convert(this);
+			}
+			else
+			{
+				BlackRockInfected.UnConvert(this);
+			}
+
+			m_BlackRock = value;
+
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsSupreme
+	{
+		get => m_IsSupreme;
+		private set
+		{
+			if (m_IsSupreme == value)
+			{
+				return;
+			}
+
+			if (value)
+			{
+				SupremeCreature.Convert(this);
+			}
+			else
+			{
+				SupremeCreature.UnConvert(this);
+			}
+
+			m_IsSupreme = value;
+
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsParagon
+	{
+		get => m_Paragon;
+		protected set
+		{
+			if (m_Paragon == value)
+				return;
+			if (value)
+				Paragon.Convert(this);
+			else
+				Paragon.UnConvert(this);
+
+			m_Paragon = value;
+
+			InvalidateProperties();
+		}
+	}
+
+	[CommandProperty(AccessLevel.GameMaster)]
+	public bool IsChampionSpawn
+	{
+		get => m_IsChampionSpawn;
+		set
+		{
+			if (m_IsChampionSpawn == value)
+				return;
+
+			if (!m_IsChampionSpawn && value)
+				SetToChampionSpawn();
+
+			m_IsChampionSpawn = value;
+
+			OnChampionSpawnChange();
+		}
+	}
+
+	private bool _IsSoulBound;
+
+	public bool IsSoulBound
+	{
+		get
+		{
+			if (!IsSoulboundEnemies)
+			{
+				return false;
+			}
+
+			return _IsSoulBound /*|| _SoulboundCreatures.Any(c => c == GetType())*/;
+		}
+		set
+		{
+			if (IsSoulboundEnemies)
+			{
+				_IsSoulBound = value;
+			}
+		}
+	}
+
+	public static bool IsSoulboundEnemies => false;/*Engines.Fellowship.ForsakenFoesEvent.Instance.Running;*/
+
+	/*public static Type[] _SoulboundCreatures =
+	{
+		typeof(MerchantCaptain), typeof(PirateCrew), typeof(PirateCaptain), typeof(MerchantCrew), typeof(Osiredon), typeof(Charydbis), typeof(CorgulTheSoulBinder),
+	};*/
 	#endregion
 
 	#region regans
@@ -604,11 +755,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			newwep = null;
 		}
 
-		if (newwep != null)
-		{
-			Backpack.AddItem(curwep);
-			EquipItem(newwep);
-		}
+		if (newwep == null)
+			return true;
+
+		Backpack.AddItem(curwep);
+		EquipItem(newwep);
 
 		return true;
 	}
@@ -625,12 +776,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		//just in case, we'll check one handed as well
 		item = FindItemOnLayer(Layer.OneHanded);
 
-		if (item is BaseRanged)
-		{
-			return true;
-		}
-
-		return false;
+		return item is BaseRanged;
 	}
 
 	public bool HasMeleeWep()
@@ -644,12 +790,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		item = FindItemOnLayer(Layer.OneHanded);
 
-		if (item is BaseWeapon and not BaseRanged)
-		{
-			return true;
-		}
-
-		return false;
+		return item is BaseWeapon and not BaseRanged;
 	}
 
 	public bool HasWep()
@@ -663,106 +804,12 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		item = FindItemOnLayer(Layer.OneHanded);
 
-		if (item is BaseWeapon)
-		{
-			return true;
-		}
-
-		return false;
+		return item is BaseWeapon;
 	}
 
 	public virtual WeaponAbility GetWeaponAbility()
 	{
 		return null;
-	}
-
-	[CommandProperty(AccessLevel.GameMaster)]
-	public bool IsBlackRock
-	{
-		get => m_BlackRock;
-		set
-		{
-			if (m_BlackRock == value)
-			{
-				return;
-			}
-
-			if (value)
-			{
-				BlackRockInfected.Convert(this);
-			}
-			else
-			{
-				BlackRockInfected.UnConvert(this);
-			}
-
-			m_BlackRock = value;
-
-			InvalidateProperties();
-		}
-	}
-
-	[CommandProperty(AccessLevel.GameMaster)]
-	public bool IsSupreme
-	{
-		get => m_IsSupreme;
-		set
-		{
-			if (m_IsSupreme == value)
-			{
-				return;
-			}
-
-			if (value)
-			{
-				SupremeCreature.Convert(this);
-			}
-			else
-			{
-				SupremeCreature.UnConvert(this);
-			}
-
-			m_IsSupreme = value;
-
-			InvalidateProperties();
-		}
-	}
-
-	[CommandProperty(AccessLevel.GameMaster)]
-	public bool IsParagon
-	{
-		get => m_Paragon;
-		set
-		{
-			if (m_Paragon == value)
-				return;
-			if (value)
-				Paragon.Convert(this);
-			else
-				Paragon.UnConvert(this);
-
-			m_Paragon = value;
-
-			InvalidateProperties();
-		}
-	}
-
-	[CommandProperty(AccessLevel.GameMaster)]
-	public bool IsChampionSpawn
-	{
-		get => m_IsChampionSpawn;
-		set
-		{
-			if (m_IsChampionSpawn != value)
-			{
-				if (!m_IsChampionSpawn && value)
-					SetToChampionSpawn();
-
-				m_IsChampionSpawn = value;
-
-				OnChampionSpawnChange();
-			}
-		}
 	}
 
 	protected virtual void OnChampionSpawnChange()
@@ -820,15 +867,14 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public static void SetTempSummon(Mobile summoner, Mobile tochange)
 	{
-		if (tochange is BaseCreature)
+		if (tochange is not BaseCreature bc)
+			return;
+
+		bc.ControlMaster = summoner;
+		bc.Dispelonsummonerdeath = true;
+		if (summoner is BaseCreature creature)
 		{
-			BaseCreature bc = tochange as BaseCreature;
-			bc.ControlMaster = summoner;
-			bc.Dispelonsummonerdeath = true;
-			if (summoner is BaseCreature)
-			{
-				bc.Team = ((BaseCreature)summoner).Team;
-			}
+			bc.Team = creature.Team;
 		}
 	}
 
@@ -884,7 +930,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public virtual void BreathPlayEffect(Mobile target)
 	{
-		Effects.SendMovingEffect(this, target, BreathEffectItemID,
+		Effects.SendMovingEffect(this, target, BreathEffectItemId,
 			BreathEffectSpeed, BreathEffectDuration, BreathEffectFixedDir,
 			BreathEffectExplodes, BreathEffectHue, BreathEffectRenderMode);
 	}
@@ -896,11 +942,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (target is BaseCreature creature && creature.BreathImmune)
 			return;
 
-		if (CanBeHarmful(target))
-		{
-			DoHarmful(target);
-			BreathDealDamage(target);
-		}
+		if (!CanBeHarmful(target))
+			return;
+
+		DoHarmful(target);
+		BreathDealDamage(target);
 	}
 
 	public virtual void BreathDealDamage(Mobile target)
@@ -938,7 +984,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public virtual int BreathComputeDamage()
 	{
-		int damage = (int)(Hits * BreathDamageScalar);
+		var damage = (int)(Hits * BreathDamageScalar);
 
 		if (IsParagon)
 			damage = (int)(damage / Paragon.HitsBuff);
@@ -951,23 +997,23 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	#endregion
 
 	#region Spill Acid
-	public void SpillAcid(int Amount)
+	public void SpillAcid(int amount)
 	{
-		SpillAcid(null, Amount);
+		SpillAcid(null, amount);
 	}
 
-	public void SpillAcid(Mobile target, int Amount)
+	public void SpillAcid(Mobile target, int amount)
 	{
 		if ((target != null && target.Map == null) || Map == null)
 			return;
 
-		for (int i = 0; i < Amount; ++i)
+		for (int i = 0; i < amount; ++i)
 		{
 			Point3D loc = Location;
 			Map map = Map;
 			Item acid = NewHarmfulItem();
 
-			if (target != null && target.Map != null && Amount == 1)
+			if (target is { Map: { } } && amount == 1)
 			{
 				loc = target.Location;
 				map = target.Map;
@@ -1002,9 +1048,51 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	#endregion
 
 	#region Flee!!!
+
+	public DateTime ForceFleeUntil { get; set; }
+	public long NextFleeCheck { get; set; }
+	public virtual double FleeChance => 0.25;
+	public virtual double BreakFleeChance => 0.85;
+
 	public virtual void StopFlee()
 	{
 		EndFleeTime = DateTime.MinValue;
+	}
+
+	public bool CheckCanFlee()
+	{
+		if (ForceFleeUntil != DateTime.MinValue)
+		{
+			if (ForceFleeUntil < DateTime.UtcNow)
+			{
+				ForceFleeUntil = DateTime.MinValue;
+			}
+			else
+			{
+				return true;
+			}
+		}
+
+		if (!CanFlee || NextFleeCheck > Core.TickCount)
+		{
+			return false;
+		}
+
+		NextFleeCheck = Core.TickCount + 1000;
+
+		return CheckFlee() && FleeChance > Utility.RandomDouble();
+	}
+
+	public virtual bool CheckBreakFlee()
+	{
+		if ((ForceFleeUntil != DateTime.MinValue && ForceFleeUntil > DateTime.UtcNow) || Hits < HitsMax / 2)
+		{
+			return false;
+		}
+
+		bool caster = Ai is AIType.AI_Mage or AIType.AI_NecroMage or AIType.AI_Spellweaving or AIType.AI_Mystic;
+
+		return !caster || Mana > 20 || Mana == ManaMax;
 	}
 
 	public virtual bool CheckFlee()
@@ -1012,11 +1100,16 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (EndFleeTime == DateTime.MinValue)
 			return false;
 
-		if (DateTime.UtcNow >= EndFleeTime)
-		{
-			StopFlee();
-			return false;
-		}
+		if (DateTime.UtcNow < EndFleeTime)
+			return true;
+
+		StopFlee();
+		return false;
+	}
+
+	public virtual bool BreakFlee()
+	{
+		NextFleeCheck = Core.TickCount + Utility.RandomMinMax(2500, 10000);
 
 		return true;
 	}
@@ -1036,8 +1129,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public virtual void AddPetFriend(Mobile m)
 	{
-		if (Friends == null)
-			Friends = new List<Mobile>();
+		Friends ??= new List<Mobile>();
 
 		Friends.Add(m);
 	}
@@ -1055,12 +1147,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (g != null && g.IsEnemy(this, m))
 			return false;
 
-		if (!(m is BaseCreature))
+		if (!(m is BaseCreature creature))
 			return false;
 
-		BaseCreature c = (BaseCreature)m;
-
-		return (m_iTeam == c.m_iTeam && ((m_bSummoned || m_bControlled) == (c.m_bSummoned || c.m_bControlled))/* && c.Combatant != this */);
+		return m_iTeam == creature.m_iTeam && (m_bSummoned || m_bControlled) == (creature.m_bSummoned || creature.m_bControlled);
 	}
 
 	#endregion
@@ -1083,7 +1173,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (fac == null)
 			return Allegiance.None;
 
-		return (fac == FactionAllegiance ? Allegiance.Ally : Allegiance.Enemy);
+		return fac == FactionAllegiance ? Allegiance.Ally : Allegiance.Enemy;
 	}
 
 	public virtual Allegiance GetEthicAllegiance(Mobile mob)
@@ -1096,10 +1186,32 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (ethic == null)
 			return Allegiance.None;
 
-		return (ethic == EthicAllegiance ? Allegiance.Ally : Allegiance.Enemy);
+		return ethic == EthicAllegiance ? Allegiance.Ally : Allegiance.Enemy;
 	}
 
 	#endregion
+
+	public virtual bool IsTribeEnemy(Mobile m)
+	{
+		// Target must be BaseCreature
+		if (m is not BaseCreature creature)
+		{
+			return false;
+		}
+
+		return Tribe switch
+		{
+			TribeType.Terathan => creature.Tribe == TribeType.Ophidian,
+			TribeType.Ophidian => creature.Tribe == TribeType.Terathan,
+			TribeType.Savage => creature.Tribe == TribeType.Orc,
+			TribeType.Orc => creature.Tribe == TribeType.Savage,
+			TribeType.Fey => creature.Tribe == TribeType.Undead,
+			TribeType.Undead => creature.Tribe == TribeType.Fey,
+			TribeType.GrayGoblin => creature.Tribe == TribeType.GreenGoblin,
+			TribeType.GreenGoblin => creature.Tribe == TribeType.GrayGoblin,
+			_ => false
+		};
+	}
 
 	public virtual bool IsEnemy(Mobile m)
 	{
@@ -1121,30 +1233,40 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		Ethics.Ethic ourEthic = EthicAllegiance;
 		Ethics.Player pl = Ethics.Player.Find(m, true);
 
-		if (pl != null && pl.IsShielded && (ourEthic == null || ourEthic == pl.Ethic))
+		if (pl is { IsShielded: true } && (ourEthic == null || ourEthic == pl.Ethic))
 			return false;
 
-		if (m is not BaseCreature || m is MilitiaFighter)
+		if (m is not BaseCreature creature || creature is MilitiaFighter)
 			return true;
 
-		if (TransformationSpellHelper.UnderTransformation(m, typeof(EtherealVoyageSpell)) || m is PlayerMobile pm && pm.HonorActive)
-			return false;
+		if (Combatant != m)
+		{
+			if (TransformationSpellHelper.UnderTransformation(m, typeof(EtherealVoyageSpell)))
+			{
+				return false;
+			}
+		}
 
-		BaseCreature c = (BaseCreature)m;
+		if (Tribe != TribeType.None && IsTribeEnemy(m))
+		{
+			return true;
+		}
+
+		BaseCreature c = creature;
 
 		//if ((FightMode == FightMode.Evil && m.Karma < 0) || (c.FightMode == FightMode.Evil && Karma < 0))
 		//return true;
 		// Are we a non-aggressive FightMode or are they an uncontrolled Summon?
-		if (FightMode == FightMode.Aggressor || FightMode == FightMode.Evil || FightMode == FightMode.Good || (c != null && c.m_bSummoned && !c.m_bControlled && c.SummonMaster != null))
+		if (FightMode == FightMode.Aggressor || FightMode == FightMode.Evil || FightMode == FightMode.Good || (c.m_bSummoned && !c.m_bControlled && c.SummonMaster != null))
 		{
 			// Faction Opposed Players/Pets are my enemies
-			if (GetFactionAllegiance(m) == Allegiance.Enemy)
+			if (GetFactionAllegiance(creature) == Allegiance.Enemy)
 			{
 				return true;
 			}
 
 			// Ethic Opposed Players/Pets are my enemies
-			if (GetEthicAllegiance(m) == Allegiance.Enemy)
+			if (GetEthicAllegiance(creature) == Allegiance.Enemy)
 			{
 				return true;
 			}
@@ -1152,23 +1274,23 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			// Negative Karma are my enemies
 			if (FightMode == FightMode.Evil)
 			{
-				if (c != null && c.GetMaster() != null)
+				if (c.GetMaster() != null)
 				{
 					return c.GetMaster().Karma < 0;
 				}
 
-				return m.Karma < 0;
+				return creature.Karma < 0;
 			}
 
 			// Positive Karma are my enemies
 			if (FightMode == FightMode.Good)
 			{
-				if (c != null && c.GetMaster() != null)
+				if (c.GetMaster() != null)
 				{
 					return c.GetMaster().Karma > 0;
 				}
 
-				return m.Karma > 0;
+				return creature.Karma > 0;
 			}
 
 			// Others are not my enemies
@@ -1219,52 +1341,37 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public override string ApplyNameSuffix(string suffix)
 	{
-		if (IsParagon && IsSupreme)
+		suffix = IsParagon switch
 		{
-			if (suffix.Length == 0)
-			{
-				suffix = "(Behemoth Paragon)";
-			}
-			else
-			{
-				suffix = string.Concat(suffix, " (Behemoth Paragon)");
-			}
+			true when IsSupreme => suffix.Length == 0
+				? "(Behemoth Paragon)"
+				: string.Concat(suffix, " (Behemoth Paragon)"),
+			true when !GivesMlMinorArtifact => suffix.Length == 0 ? "(Paragon)" : string.Concat(suffix, " (Paragon)"),
+			_ => suffix
+		};
+		if (IsRenowned)
+		{
+			suffix = suffix.Length == 0 ? "[Renowned]" : string.Concat(suffix, " [Renowned]");
 		}
-		else if (IsParagon && !GivesMlMinorArtifact)
+		switch (IsBlackRock)
 		{
-			if (suffix.Length == 0)
+			case true when IsSupreme:
 			{
-				suffix = "(Paragon)";
+				suffix = suffix.Length == 0 ? "(Behemoth BlackRock Infected)" : string.Concat(suffix, " (Behemoth BlackRock Infected)");
+
+				break;
 			}
-			else
+			case true:
+				suffix = suffix.Length == 0 ? " (BlackRock Infected)" : string.Concat(suffix, " (BlackRock Infected)");
+				break;
+			default:
 			{
-				suffix = string.Concat(suffix, " (Paragon)");
-			}
-		}
-		if (IsBlackRock && IsSupreme)
-		{
-			if (suffix.Length == 0)
-			{
-				suffix = "(Behemoth BlackRock Infected)";
-			}
-			else
-			{
-				suffix = string.Concat(suffix, " (Behemoth BlackRock Infected)");
-			}
-		}
-		else if (IsBlackRock)
-		{
-			suffix = suffix.Length == 0 ? " (BlackRock Infected)" : string.Concat(suffix, " (BlackRock Infected)");
-		}
-		else if (IsSupreme)
-		{
-			if (suffix.Length == 0)
-			{
-				suffix = "(Behemoth)";
-			}
-			else
-			{
-				suffix = string.Concat(suffix, " (Behemoth)");
+				if (IsSupreme)
+				{
+					suffix = suffix.Length == 0 ? "(Behemoth)" : string.Concat(suffix, " (Behemoth)");
+				}
+
+				break;
 			}
 		}
 
@@ -1297,7 +1404,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public double GetControlChance(Mobile m)
 	{
-		return GetControlChance(m, false);
+		return GetControlChance(m: m, useBaseSkill: false);
 	}
 
 	public virtual double GetControlChance(Mobile m, bool useBaseSkill)
@@ -1316,25 +1423,25 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		int bonus;
 		if (Core.ML)
 		{
-			int SkillBonus = taming - (int)(dMinTameSkill * 10);
-			int LoreBonus = lore - (int)(dMinTameSkill * 10);
+			int skillBonus = taming - (int)(dMinTameSkill * 10);
+			int loreBonus = lore - (int)(dMinTameSkill * 10);
 
-			int SkillMod = 6, LoreMod = 6;
+			int skillMod = 6, loreMod = 6;
 
-			if (SkillBonus < 0)
-				SkillMod = 28;
-			if (LoreBonus < 0)
-				LoreMod = 14;
+			if (skillBonus < 0)
+				skillMod = 28;
+			if (loreBonus < 0)
+				loreMod = 14;
 
-			SkillBonus *= SkillMod;
-			LoreBonus *= LoreMod;
+			skillBonus *= skillMod;
+			loreBonus *= loreMod;
 
-			bonus = (SkillBonus + LoreBonus) / 2;
+			bonus = (skillBonus + loreBonus) / 2;
 		}
 		else
 		{
 			int difficulty = (int)(dMinTameSkill * 10);
-			int weighted = ((taming * 4) + lore) / 5;
+			int weighted = (taming * 4 + lore) / 5;
 			bonus = weighted - difficulty;
 
 			if (bonus <= 0)
@@ -1345,18 +1452,19 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		chance += bonus;
 
-		if (chance >= 0 && chance < 200)
-			chance = 200;
-		else if (chance > 990)
-			chance = 990;
+		chance = chance switch
+		{
+			>= 0 and < 200 => 200,
+			> 990 => 990,
+			_ => chance
+		};
 
 		chance -= (MaxLoyalty - m_Loyalty) * 10;
 
-		return ((double)chance / 1000);
+		return (double)chance / 1000;
 	}
 
-	private static readonly Type[] m_AnimateDeadTypes = new Type[]
-		{
+	private static readonly Type[] m_AnimateDeadTypes = {
 			typeof( MoundOfMaggots ), typeof( HellSteed ), typeof( SkeletalMount ),
 			typeof( WailingBanshee ), typeof( Wraith ), typeof( SkeletalDragon ),
 			typeof( LichLord ), typeof( FleshGolem ), typeof( Lich ),
@@ -1376,7 +1484,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			bool contains = false;
 
 			for (int i = 0; !contains && i < m_AnimateDeadTypes.Length; ++i)
-				contains = (type == m_AnimateDeadTypes[i]);
+				contains = type == m_AnimateDeadTypes[i];
 
 			return contains;
 		}
@@ -1477,8 +1585,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		ApplyPoisonResult result = base.ApplyPoison(from, poison);
 
-		if (from != null && result == ApplyPoisonResult.Poisoned && PoisonTimer is PoisonImpl.PoisonTimer)
-			(PoisonTimer as PoisonImpl.PoisonTimer).From = from;
+		if (from != null && result == ApplyPoisonResult.Poisoned && PoisonTimer is PoisonImpl.PoisonTimer timer)
+			timer.From = from;
 
 		return result;
 	}
@@ -1492,6 +1600,9 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		XmlPoison xp = (XmlPoison)XmlAttach.FindAttachment(this, typeof(XmlPoison));
 
 		if (m_Paragon)
+			p = PoisonImpl.IncreaseLevel(p);
+
+		if (m_Renowned)
 			p = PoisonImpl.IncreaseLevel(p);
 
 		if (xp != null)
@@ -1510,7 +1621,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public WayPoint CurrentWayPoint { get; set; } = null;
+	public WayPoint CurrentWayPoint { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public IPoint2D TargetLocation { get; set; } = null;
@@ -1523,7 +1634,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			XmlData x = (XmlData)XmlAttach.FindAttachment(this, typeof(XmlData), "NoSpecials");
 
-			return x != null && x.Data == "True";
+			return x is { Data: "True" };
 		}
 	}
 
@@ -1533,7 +1644,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			XmlData x = (XmlData)XmlAttach.FindAttachment(this, typeof(XmlData), "Notoriety");
 
-			return x != null && x.Data == "blue";
+			return x is { Data: "blue" };
 		}
 	}
 
@@ -1543,7 +1654,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			XmlData x = (XmlData)XmlAttach.FindAttachment(this, typeof(XmlData), "Notoriety");
 
-			return x != null && x.Data == "red";
+			return x is { Data: "red" };
 		}
 	}
 
@@ -1553,7 +1664,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			XmlData x = (XmlData)XmlAttach.FindAttachment(this, typeof(XmlData), "Notoriety");
 
-			return x != null && x.Data == "gray";
+			return x is { Data: "gray" };
 		}
 	}
 
@@ -1567,7 +1678,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public virtual bool ForceNotoriety => false;
 
-	public virtual bool UseSmartAI => false;
+	public virtual bool UseSmartAi => false;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public virtual int DamageMin { get => m_DamageMin; set => m_DamageMin = value; }
@@ -1580,19 +1691,18 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		get
 		{
-			if (HitsMaxSeed > 0)
-			{
-				int value = HitsMaxSeed + GetStatOffset(StatType.Str);
+			if (HitsMaxSeed <= 0)
+				return Str;
 
-				if (value < 1)
-					value = 1;
-				else if (value > MaxStatValue)
-					value = MaxStatValue;
+			int value = HitsMaxSeed + GetStatOffset(StatType.Str);
 
-				return value;
-			}
+			if (value < 1)
+				value = 1;
+			else if (value > MaxStatValue)
+				value = MaxStatValue;
 
-			return Str;
+			return value;
+
 		}
 	}
 
@@ -1604,19 +1714,18 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		get
 		{
-			if (StamMaxSeed > 0)
-			{
-				int value = StamMaxSeed + GetStatOffset(StatType.Dex);
+			if (StamMaxSeed <= 0)
+				return Dex;
 
-				if (value < 1)
-					value = 1;
-				else if (value > MaxStatValue)
-					value = MaxStatValue;
+			int value = StamMaxSeed + GetStatOffset(StatType.Dex);
 
-				return value;
-			}
+			if (value < 1)
+				value = 1;
+			else if (value > MaxStatValue)
+				value = MaxStatValue;
 
-			return Dex;
+			return value;
+
 		}
 	}
 
@@ -1628,19 +1737,17 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		get
 		{
-			if (ManaMaxSeed > 0)
-			{
-				int value = ManaMaxSeed + GetStatOffset(StatType.Int);
+			if (ManaMaxSeed <= 0)
+				return Int;
+			int value = ManaMaxSeed + GetStatOffset(StatType.Int);
 
-				if (value < 1)
-					value = 1;
-				else if (value > MaxStatValue)
-					value = MaxStatValue;
+			if (value < 1)
+				value = 1;
+			else if (value > MaxStatValue)
+				value = MaxStatValue;
 
-				return value;
-			}
+			return value;
 
-			return Int;
 		}
 	}
 
@@ -1674,7 +1781,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	Seems this actually was removed on OSI somewhere between the original bug report and now.
 	We will call it ML, until we can get better information. I suspect it was on the OSI TC when
-	originally it taken out of RunUO, and not implmented on OSIs production shards until more
+	originally it taken out of UOMoons, and not implmented on OSIs production shards until more
 	recently.  Either way, this is, or was, accurate OSI behavior, and just entirely
 	removing it was incorrect.  OSI followers were distracted by being attacked well into
 	AoS, at very least.
@@ -1694,23 +1801,17 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		}
 	}
 
-	private DateTime lastsawmaster;
-	private DateTime lastcheckedtamerlos;
-	private int tamerhidingticks;
+	private DateTime m_Lastsawmaster;
+	private DateTime m_Lastcheckedtamerlos;
+	private int m_Tamerhidingticks;
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int MinutesSinceSawMaster
-	{
-		get
-		{
-			return (int)(DateTime.UtcNow.Subtract(lastsawmaster)).TotalMinutes;
-		}
-	}
+	public int MinutesSinceSawMaster => (int)DateTime.UtcNow.Subtract(m_Lastsawmaster).TotalMinutes;
 
 	public void CheckSawTamer(bool uponly, int secsdelay)
 	{
 		//Testing code
-		if (ControlMaster != null && (lastcheckedtamerlos + TimeSpan.FromSeconds(secsdelay)) < DateTime.UtcNow)
+		if (ControlMaster != null && m_Lastcheckedtamerlos + TimeSpan.FromSeconds(secsdelay) < DateTime.UtcNow)
 		{
 			//Debugger.Write("petlos", "Checking {0} if {1} is in LOS...", this, ControlMaster);
 
@@ -1720,28 +1821,28 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				if (!uponly)
 				{
 					//Debugger.Write("petlos", "Dropping loyalty");
-					Loyalty -= 0.12 > Utility.RandomDouble() && (Loyalty > 5) ? 1 : 0;
-					if (tamerhidingticks < 10000)
-						tamerhidingticks++;
+					Loyalty -= 0.12 > Utility.RandomDouble() && Loyalty > 5 ? 1 : 0;
+					if (m_Tamerhidingticks < 10000)
+						m_Tamerhidingticks++;
 				}
 			}
 			else
 			{
 				//Debugger.Write("petlos", "In LOS");
-				if (tamerhidingticks > 25 && lastsawmaster < DateTime.UtcNow)
+				if (m_Tamerhidingticks > 25 && m_Lastsawmaster < DateTime.UtcNow)
 				{
 					//Debugger.Write("petlos", "Decrementing penalty.");
-					lastsawmaster += TimeSpan.FromSeconds(25);
-					tamerhidingticks--;
+					m_Lastsawmaster += TimeSpan.FromSeconds(25);
+					m_Tamerhidingticks--;
 				}
 				else
 				{
 					//Debugger.Write("petlos", "Clearing penalty.");
-					tamerhidingticks = 0;
-					lastsawmaster = DateTime.UtcNow;
+					m_Tamerhidingticks = 0;
+					m_Lastsawmaster = DateTime.UtcNow;
 				}
 			}
-			lastcheckedtamerlos = DateTime.UtcNow;
+			m_Lastcheckedtamerlos = DateTime.UtcNow;
 
 			//Debugger.Write("petlos", "{0} loyalty: {1}  --  hide ticks: {2}  --  last saw master: {3}", this, Loyalty, tamerhidingticks, lastsawmaster);
 		}
@@ -1783,8 +1884,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			BandageContext c = BandageContext.GetContext(this);
 
-			if (c != null)
-				c.Slip();
+			c?.Slip();
 		}
 
 		if (Confidence.IsRegenerating(this))
@@ -1797,8 +1897,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (speechType != null && !willKill)
 			speechType.OnDamage(this, amount);
 
-		if (ReceivedHonorContext != null)
-			ReceivedHonorContext.OnTargetDamaged(from, amount);
+		ReceivedHonorContext?.OnTargetDamaged(from, amount);
 
 		CheckSawTamer(false, 1);
 
@@ -1818,14 +1917,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			if (tamer != null && (!InRange(tamer, 3) || 0.01 > Utility.RandomDouble()) && InRange(tamer, 15))
 			{
 				//special case for those overpowered AWs:
-				if (from is AncientWyrm)
-				{
-					LockCombat(tamer, TimeSpan.FromSeconds(25 + Utility.Random(45)));
-				}
-				else
-				{
-					LockCombat(tamer, TimeSpan.FromSeconds(3 + Utility.Random(6)));
-				}
+				LockCombat(tamer,
+					from is AncientWyrm
+						? TimeSpan.FromSeconds(25 + Utility.Random(45))
+						: TimeSpan.FromSeconds(3 + Utility.Random(6)));
 
 				DebugSay("Will attack {0} the tamer instead", tamer.Name);
 			}
@@ -1865,17 +1960,15 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public override void AlterMeleeDamageFrom(Mobile from, ref int damage)
 	{
 		#region Mondain's Legacy
-		if (from != null && from.Talisman is BaseTalisman talisman1)
+		if (from is { Talisman: BaseTalisman talisman1 })
 		{
-			BaseTalisman talisman = talisman1;
-
-			if (talisman.Killer != null && talisman.Killer.Type != null)
+			if (talisman1.Killer is { Type: { } })
 			{
-				Type type = talisman.Killer.Type;
+				Type type = talisman1.Killer.Type;
 
 				if (type.IsAssignableFrom(GetType()))
 				{
-					damage = (int)(damage * (1 + (double)talisman.Killer.Amount / 100));
+					damage = (int)(damage * (1 + (double)talisman1.Killer.Amount / 100));
 				}
 			}
 		}
@@ -1892,13 +1985,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			return false;
 		}
 
-		if (GetDistanceToSqrt(Home) > RangeHome + 10 && !Controlled && LastOwner == null)
-		{
-			Location = Home;
-			return true;
-		}
-
-		return false;
+		if (!(GetDistanceToSqrt(Home) > RangeHome + 10) || Controlled || LastOwner != null)
+			return false;
+		Location = Home;
+		return true;
 
 	}
 
@@ -1919,6 +2009,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		int hides = Hides;
 		int scales = Scales;
 		int dragonblood = DragonBlood;
+		int fur = Fur;
 
 		bool special = with is HarvestersBlade;
 
@@ -1939,12 +2030,18 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				feathers *= 2;
 				wool *= 2;
 				hides *= 2;
+				fur *= 2;
+				meat *= 2;
+				scales *= 2;
+			}
 
-				if (Core.ML)
-				{
-					meat *= 2;
-					scales *= 2;
-				}
+			if (special)
+			{
+				feathers = (int)Math.Ceiling(feathers * 1.1);
+				wool = (int)Math.Ceiling(wool * 1.1);
+				hides = (int)Math.Ceiling(hides * 1.1);
+				meat = (int)Math.Ceiling(meat * 1.1);
+				scales = (int)Math.Ceiling(scales * 1.1);
 			}
 
 			new Blood(0x122D).MoveToWorld(corpse.Location, corpse.Map);
@@ -2135,6 +2232,14 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				}
 			}
 
+			if (fur != 0)
+			{
+				Item _fur = new Fur(FurType, fur);
+
+				corpse.AddCarvedItem(_fur, from);
+				from.SendLocalizedMessage(1112765); // You shear it, and the fur is now on the corpse.
+			}
+
 			corpse.Carved = true;
 
 			if (corpse.IsCriminalAction(from))
@@ -2189,7 +2294,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		NextReacquireTime = Core.TickCount + (int)ReacquireDelay.TotalMilliseconds;
 
-		ChangeAIType(AI);
+		ChangeAiType(Ai);
 
 		InhumanSpeech speechType = SpeechType;
 
@@ -2224,8 +2329,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		writer.Write(m_iTeam);
 
-		writer.Write((double)ActiveSpeed);
-		writer.Write((double)PassiveSpeed);
+		writer.Write(ActiveSpeed);
+		writer.Write(PassiveSpeed);
 		writer.Write(m_dCurrentSpeed);
 
 		writer.Write(m_pHome.X);
@@ -2253,10 +2358,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		writer.Write(m_bControlled);
 		writer.Write(m_ControlMaster);
-		writer.Write(ControlTarget is Mobile mobile ? mobile : null);
+		writer.Write(ControlTarget as Mobile);
 		writer.Write(m_ControlDest);
 		writer.Write((int)m_ControlOrder);
-		writer.Write((double)MinTameSkill);
+		writer.Write(MinTameSkill);
 		// Removed in version 9
 		//writer.Write( (double) m_dMaxTameSkill );
 		writer.Write(m_bTamable);
@@ -2313,6 +2418,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		// Version 12
 		writer.Write(m_Paragon);
+		writer.Write(m_Renowned);
 
 		// Version 13
 		writer.Write(Friends != null && Friends.Count > 0);
@@ -2340,15 +2446,14 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		writer.Write(Dispelonsummonerdeath);
 		writer.Write(m_IsSupreme);
+		writer.Write(HasDecanter);
 	}
 
-	private static readonly double[] m_StandardActiveSpeeds = new double[]
-		{
+	private static readonly double[] m_StandardActiveSpeeds = {
 			0.175, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.8
 		};
 
-	private static readonly double[] m_StandardPassiveSpeeds = new double[]
-		{
+	private static readonly double[] m_StandardPassiveSpeeds = {
 			0.350, 0.2, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.6, 2.0
 		};
 
@@ -2465,6 +2570,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 					OwnerAbandonTime = reader.ReadDateTime();
 					HasGeneratedLoot = reader.ReadBool();
 					m_Paragon = reader.ReadBool();
+					m_Renowned= reader.ReadBool();
 
 					if (reader.ReadBool())
 						Friends = reader.ReadStrongMobileList();
@@ -2476,11 +2582,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 					bool isStandardActive = false;
 					for (int i = 0; !isStandardActive && i < m_StandardActiveSpeeds.Length; ++i)
-						isStandardActive = (ActiveSpeed == m_StandardActiveSpeeds[i]);
+						isStandardActive = ActiveSpeed == m_StandardActiveSpeeds[i];
 
 					bool isStandardPassive = false;
 					for (int i = 0; !isStandardPassive && i < m_StandardPassiveSpeeds.Length; ++i)
-						isStandardPassive = (PassiveSpeed == m_StandardPassiveSpeeds[i]);
+						isStandardPassive = PassiveSpeed == m_StandardPassiveSpeeds[i];
 
 					if (isStandardActive && m_dCurrentSpeed == ActiveSpeed)
 						m_dCurrentSpeed = activeSpeed;
@@ -2516,10 +2622,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 					Dispelonsummonerdeath = reader.ReadBool();
 					m_IsSupreme = reader.ReadBool();
+					HasDecanter = reader.ReadBool();
 
 					CheckStatTimers();
 
-					ChangeAIType(m_CurrentAI);
+					ChangeAiType(m_CurrentAI);
 
 					AddFollowers();
 
@@ -2533,7 +2640,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public virtual bool IsHumanInTown()
 	{
-		return (Body.IsHuman && Region.IsPartOf(typeof(Regions.GuardedRegion)));
+		return Body.IsHuman && Region.IsPartOf(typeof(Regions.GuardedRegion));
 	}
 
 	public virtual bool CheckGold(Mobile from, Item dropped)
@@ -2563,10 +2670,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			SpeechHue = 0x23F;
 			SayTo(from, "Thou art giving me gold?");
 
-			if (dropped.Amount >= 400)
-				SayTo(from, "'Tis a noble gift.");
-			else
-				SayTo(from, "Money is always welcome.");
+			SayTo(from, dropped.Amount >= 400 ? "'Tis a noble gift." : "Money is always welcome.");
 
 			SpeechHue = 0x3B2;
 			SayTo(from, 501548); // I thank thee.
@@ -2583,23 +2687,19 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public override bool ShouldCheckStatTimers => false;
 
 	#region Food
-	private static readonly Type[] m_Eggs = new Type[]
-		{
+	private static readonly Type[] m_Eggs = {
 			typeof( FriedEggs ), typeof( Eggs )
 		};
 
-	private static readonly Type[] m_Fish = new Type[]
-		{
+	private static readonly Type[] m_Fish = {
 			typeof( FishSteak ), typeof( RawFishSteak )
 		};
 
-	private static readonly Type[] m_GrainsAndHay = new Type[]
-		{
+	private static readonly Type[] m_GrainsAndHay = {
 			typeof( BreadLoaf ), typeof( FrenchBread ), typeof( SheafOfHay )
 		};
 
-	private static readonly Type[] m_Meat = new Type[]
-		{
+	private static readonly Type[] m_Meat = {
 			/* Cooked */
 			typeof( Bacon ), typeof( CookedBird ), typeof( Sausage ),
 			typeof( Ham ), typeof( Ribs ), typeof( LambLeg ),
@@ -2614,8 +2714,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			typeof( Torso ), typeof( RightArm ), typeof( RightLeg )
 		};
 
-	private static readonly Type[] m_FruitsAndVegies = new Type[]
-		{
+	private static readonly Type[] m_FruitsAndVegies = {
 			typeof( HoneydewMelon ), typeof( YellowGourd ), typeof( GreenGourd ),
 			typeof( Banana ), typeof( Bananas ), typeof( Lemon ), typeof( Lime ),
 			typeof( Dates ), typeof( Grapes ), typeof( Peach ), typeof( Pear ),
@@ -2624,8 +2723,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			typeof( Onion ), typeof( Lettuce ), typeof( Pumpkin )
 		};
 
-	private static readonly Type[] m_Gold = new Type[]
-		{
+	private static readonly Type[] m_Gold = {
 			// white wyrms eat gold..
 			typeof( Gold )
 		};
@@ -2662,7 +2760,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		bool contains = false;
 
 		for (int i = 0; !contains && i < types.Length; ++i)
-			contains = (fedType == types[i]);
+			contains = fedType == types[i];
 
 		return contains;
 	}
@@ -2671,79 +2769,77 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		if (!IsDeadPet && Controlled && (ControlMaster == from || IsPetFriend(from)))
 		{
-			Item f = dropped;
-
-			if (CheckFoodPreference(f))
+			if (CheckFoodPreference(dropped))
 			{
-				int amount = f.Amount;
+				int amount = dropped.Amount;
 
-				if (amount > 0)
+				if (amount <= 0)
+					return false;
+
+				int stamGain;
+
+				if (dropped is Gold)
+					stamGain = amount - 50;
+				else
+					stamGain = amount * 15 - 50;
+
+				if (stamGain > 0)
+					Stam += stamGain;
+
+				if (Core.SE)
 				{
-					int stamGain;
-
-					if (f is Gold)
-						stamGain = amount - 50;
-					else
-						stamGain = (amount * 15) - 50;
-
-					if (stamGain > 0)
-						Stam += stamGain;
-
-					if (Core.SE)
+					if (m_Loyalty < MaxLoyalty)
 					{
-						if (m_Loyalty < MaxLoyalty)
-						{
-							m_Loyalty = MaxLoyalty;
-						}
+						m_Loyalty = MaxLoyalty;
 					}
-					else
-					{
-						for (int i = 0; i < amount; ++i)
-						{
-							if (m_Loyalty < MaxLoyalty && 0.5 >= Utility.RandomDouble())
-							{
-								m_Loyalty += 10;
-							}
-						}
-					}
-
-					/* if ( happier )*/    // looks like in OSI pets say they are happier even if they are at maximum loyalty
-					SayTo(from, 502060); // Your pet looks happier.
-
-					if (Body.IsAnimal)
-						Animate(3, 5, 1, true, false, 0);
-					else if (Body.IsMonster)
-						Animate(17, 5, 1, true, false, 0);
-
-					if (IsBondable && !IsBonded)
-					{
-						Mobile master = m_ControlMaster;
-
-						if (master != null && master == from)   //So friends can't start the bonding process
-						{
-							if (MinTameSkill <= 29.1 || master.Skills[SkillName.AnimalTaming].Base >= MinTameSkill || OverrideBondingReqs() || (Core.ML && master.Skills[SkillName.AnimalTaming].Value >= MinTameSkill))
-							{
-								if (BondingBegin == DateTime.MinValue)
-								{
-									BondingBegin = DateTime.UtcNow;
-								}
-								else if ((BondingBegin + BondingDelay) <= DateTime.UtcNow)
-								{
-									IsBonded = true;
-									BondingBegin = DateTime.MinValue;
-									from.SendLocalizedMessage(1049666); // Your pet has bonded with you!
-								}
-							}
-							else if (Core.ML)
-							{
-								from.SendLocalizedMessage(1075268); // Your pet cannot form a bond with you until your animal taming ability has risen.
-							}
-						}
-					}
-
-					dropped.Delete();
-					return true;
 				}
+				else
+				{
+					for (int i = 0; i < amount; ++i)
+					{
+						if (m_Loyalty < MaxLoyalty && 0.5 >= Utility.RandomDouble())
+						{
+							m_Loyalty += 10;
+						}
+					}
+				}
+
+				/* if ( happier )*/    // looks like in OSI pets say they are happier even if they are at maximum loyalty
+				SayTo(from, 502060); // Your pet looks happier.
+
+				if (Body.IsAnimal)
+					Animate(3, 5, 1, true, false, 0);
+				else if (Body.IsMonster)
+					Animate(17, 5, 1, true, false, 0);
+
+				if (IsBondable && !IsBonded)
+				{
+					Mobile master = m_ControlMaster;
+
+					if (master != null && master == from)   //So friends can't start the bonding process
+					{
+						if (MinTameSkill <= 29.1 || master.Skills[SkillName.AnimalTaming].Base >= MinTameSkill || OverrideBondingReqs() || (Core.ML && master.Skills[SkillName.AnimalTaming].Value >= MinTameSkill))
+						{
+							if (BondingBegin == DateTime.MinValue)
+							{
+								BondingBegin = DateTime.UtcNow;
+							}
+							else if (BondingBegin + BondingDelay <= DateTime.UtcNow)
+							{
+								IsBonded = true;
+								BondingBegin = DateTime.MinValue;
+								from.SendLocalizedMessage(1049666); // Your pet has bonded with you!
+							}
+						}
+						else if (Core.ML)
+						{
+							from.SendLocalizedMessage(1075268); // Your pet cannot form a bond with you until your animal taming ability has risen.
+						}
+					}
+				}
+
+				dropped.Delete();
+				return true;
 			}
 		}
 
@@ -2797,124 +2893,61 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		return base.OnDragDrop(from, dropped);
 	}
 
-	protected virtual BaseAI ForcedAI => null;
+	protected virtual BaseAI ForcedAi => null;
 
-	public void ChangeAIType(AIType NewAI)
+	public void ChangeAiType(AIType NewAI)
 	{
-		if (AIObject != null)
-			AIObject.m_Timer.Stop();
+		AIObject?.m_Timer.Stop();
 
-		if (ForcedAI != null)
+		if (ForcedAi != null)
 		{
-			AIObject = ForcedAI;
+			AIObject = ForcedAi;
 			return;
 		}
 
-		AIObject = null;
-
-		switch (NewAI)
+		AIObject = NewAI switch
 		{
-			case AIType.AI_Melee:
-				AIObject = new MeleeAI(this);
-				break;
-			case AIType.AI_Animal:
-				AIObject = new AnimalAI(this);
-				break;
-			case AIType.BerserkAI:
-				AIObject = new BerserkAI(this);
-				break;
-			case AIType.AI_Archer:
-				AIObject = new ArcherAI(this);
-				break;
-			case AIType.AI_Healer:
-				AIObject = new HealerAI(this);
-				break;
-			case AIType.AI_Vendor:
-				AIObject = new VendorAI(this);
-				break;
-			case AIType.AI_Mage:
-				AIObject = new MageAI(this);
-				break;
-			case AIType.PredatorAI:
-				AIObject = new PredatorAI(this);
-				//AIObject = new MeleeAI(this);
-				break;
-			case AIType.AI_Thief:
-				AIObject = new ThiefAI(this);
-				break;
-			case AIType.AI_NecroMage:
-				AIObject = new NecroMageAI(this);
-				break;
-			case AIType.OrcScoutAI:
-				AIObject = new OrcScoutAI(this);
-				break;
-			case AIType.AI_Samurai:
-				AIObject = new SamuraiAI(this);
-				break;
-			case AIType.AI_Ninja:
-				AIObject = new NinjaAI(this);
-				break;
-			case AIType.AI_Spellweaving:
-				AIObject = new SpellweavingAI(this);
-				break;
-			case AIType.AI_Mystic:
-				AIObject = new MysticAI(this);
-				break;
-			case AIType.AI_Paladin:
-				AIObject = new PaladinAI(this);
-				break;
-			case AIType.SpellbinderAI:
-				AIObject = new SpellbinderAI(this);
-				break;
-			case AIType.AI_Necro:
-				AIObject = new NecroAI(this);
-				break;
-			case AIType.ChampionMeleeAI:
-				AIObject = new ChampionMeleeAI(this);
-				break;
-			case AIType.BoneDemonAI:
-				AIObject = new BoneDemonAI(this);
-				break;
-			case AIType.BossMeleeAI:
-				AIObject = new BossMeleeAI(this);
-				break;
-			case AIType.MephitisAI:
-				AIObject = new MephitisAI(this);
-				break;
-			case AIType.ScalisAI:
-				AIObject = new ScalisAI(this);
-				break;
-			case AIType.AdvancedArcherAI:
-				AIObject = new AdvancedArcherAI(this);
-				break;
-			case AIType.AmbusherAI:
-				AIObject = new AmbusherAI(this);
-				break;
-			case AIType.WeakMageAI:
-				AIObject = new WeakMageAI(this);
-				break;
-			case AIType.CoreAI:
-				AIObject = new CoreAI(this);
-				break;
-			case AIType.SuperAI:
-				AIObject = new SuperAI(this);
-				break;
-			case AIType.AnimalSkittishAI:
-				AIObject = new AnimalSkittishAI(this);
-				break;
-			case AIType.VampireAI:
-				AIObject = new VampireAI(this);
-				break;
-		}
+			AIType.AI_Melee => new MeleeAI(this),
+			AIType.AI_Animal => new AnimalAI(this),
+			AIType.BerserkAI => new BerserkAI(this),
+			AIType.AI_Archer => new ArcherAI(this),
+			AIType.AI_Healer => new HealerAI(this),
+			AIType.AI_Vendor => new VendorAI(this),
+			AIType.AI_Mage => new MageAI(this),
+			AIType.PredatorAI => new PredatorAI(this),
+			AIType.AI_Thief => new ThiefAI(this),
+			AIType.AI_NecroMage => new NecroMageAI(this),
+			AIType.OrcScoutAI => new OrcScoutAI(this),
+			AIType.AI_Samurai => new SamuraiAI(this),
+			AIType.AI_Ninja => new NinjaAI(this),
+			AIType.AI_Spellweaving => new SpellweavingAI(this),
+			AIType.AI_Mystic => new MysticAI(this),
+			AIType.AI_Paladin => new PaladinAI(this),
+			AIType.SpellbinderAI => new SpellbinderAI(this),
+			AIType.AI_Necro => new NecroAI(this),
+			AIType.ChampionMeleeAI => new ChampionMeleeAI(this),
+			AIType.BoneDemonAI => new BoneDemonAI(this),
+			AIType.BossMeleeAI => new BossMeleeAI(this),
+			AIType.MephitisAI => new MephitisAI(this),
+			AIType.ScalisAI => new ScalisAI(this),
+			AIType.AdvancedArcherAI => new AdvancedArcherAI(this),
+			AIType.AmbusherAI => new AmbusherAI(this),
+			AIType.WeakMageAI => new WeakMageAI(this),
+			AIType.CoreAI => new CoreAi(this),
+			AIType.SuperAI => new SuperAI(this),
+			AIType.AnimalSkittishAI => new AnimalSkittishAI(this),
+			AIType.VampireAI => new VampireAI(this),
+			_ => null
+		};
 	}
 
-	public void ChangeAIToDefault()
+	public void ChangeAiToDefault()
 	{
-		ChangeAIType(m_DefaultAI);
+		ChangeAiType(m_DefaultAI);
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public AIType AI
+	public AIType Ai
 	{
 		get => m_CurrentAI;
 		set
@@ -2926,7 +2959,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				m_CurrentAI = m_DefaultAI;
 			}
 
-			ChangeAIType(m_CurrentAI);
+			ChangeAiType(m_CurrentAI);
 		}
 	}
 
@@ -3167,7 +3200,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool Tamable
 	{
-		get => m_bTamable && !(m_Paragon || m_BlackRock || m_IsSupreme);
+		get => m_bTamable && !(m_Paragon || m_Renowned || m_BlackRock || m_IsSupreme);
 		set => m_bTamable = value;
 	}
 
@@ -3198,7 +3231,9 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	#region Corpse Resources
 	public virtual int Feathers => 0;
 	public virtual int Wool => 0;
+
 	public virtual int Fur => 0;
+	public virtual FurType FurType => FurType.Green;
 
 	public virtual MeatType MeatType => MeatType.Ribs;
 	public virtual int Meat => 0;
@@ -3212,7 +3247,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	#endregion
 
 	public virtual bool AutoDispel => false;
-	public virtual double AutoDispelChance => ((Core.SE) ? .10 : 1.0);
+	public virtual double AutoDispelChance => Core.SE ? .10 : 1.0;
 
 	public virtual bool IsScaryToPets => false;
 	public virtual bool IsScaredOfScaryThings => true;
@@ -3307,7 +3342,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			return acqType switch
 			{
-				FightMode.Strongest => (m.Skills[SkillName.Tactics].Value + m.Str),//returns strongest mobile
+				FightMode.Strongest => m.Skills[SkillName.Tactics].Value + m.Str,//returns strongest mobile
 				FightMode.Weakest => -m.Hits,// returns weakest mobile
 				_ => -GetDistanceToSqrt(m),// returns closest mobile
 			};
@@ -3336,7 +3371,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public bool IsHurt()
 	{
-		return (Hits != HitsMax);
+		return Hits != HitsMax;
 	}
 
 	public double GetHomeDistance()
@@ -3472,7 +3507,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (freePoints < 0)
 			freePoints = 0;
 
-		for (int i = 0; (freePoints + freeablePoints) < pointsToLearn && i < m.Skills.Length; ++i)
+		for (int i = 0; freePoints + freeablePoints < pointsToLearn && i < m.Skills.Length; ++i)
 		{
 			Skill sk = m.Skills[i];
 
@@ -3482,10 +3517,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			freeablePoints += sk.BaseFixedPoint;
 		}
 
-		if ((freePoints + freeablePoints) == 0)
+		if (freePoints + freeablePoints == 0)
 			return TeachResult.NotEnoughFreePoints;
 
-		if ((freePoints + freeablePoints) < pointsToLearn)
+		if (freePoints + freeablePoints < pointsToLearn)
 		{
 			pointsToLearn = freePoints + freeablePoints;
 			baseToSet = theirSkill.BaseFixedPoint + pointsToLearn;
@@ -3515,7 +3550,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			}
 
 			/* Sanity check */
-			if (baseToSet > theirSkill.CapFixedPoint || (m.Skills.Total - theirSkill.BaseFixedPoint + baseToSet) > m.Skills.Cap)
+			if (baseToSet > theirSkill.CapFixedPoint || m.Skills.Total - theirSkill.BaseFixedPoint + baseToSet > m.Skills.Cap)
 				return TeachResult.NotEnoughFreePoints;
 
 			theirSkill.BaseFixedPoint = baseToSet;
@@ -3645,7 +3680,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public override bool OnMoveOver(Mobile m)
 	{
 		if (m is BaseCreature creature && !creature.Controlled)
-			return (!Alive || !m.Alive || IsDeadBondedPet || m.IsDeadBondedPet) || (Hidden && AccessLevel > AccessLevel.Player);
+			return !Alive || !m.Alive || IsDeadBondedPet || m.IsDeadBondedPet || (Hidden && AccessLevel > AccessLevel.Player);
 		#region Dueling
 		if (Region.IsPartOf(typeof(Engines.ConPVP.SafeZone)) && m is PlayerMobile pm)
 		{
@@ -3692,7 +3727,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 					if (toTeach > 420)
 						toTeach = 420;
 
-					list.Add(new TeachEntry((SkillName)i, this, from, (toTeach > theirSkill.BaseFixedPoint)));
+					list.Add(new TeachEntry((SkillName)i, this, from, toTeach > theirSkill.BaseFixedPoint));
 				}
 			}
 		}
@@ -3881,7 +3916,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		base.OnCombatantChange();
 
-		Warmode = (Combatant != null && !Combatant.Deleted && Combatant.Alive);
+		Warmode = Combatant != null && !Combatant.Deleted && Combatant.Alive;
 
 		if (CanFly && Warmode)
 		{
@@ -3939,7 +3974,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public override void OnMovement(Mobile m, Point3D oldLocation)
 	{
-		if (AcquireOnApproach && (!Controlled && !Summoned) && FightMode != FightMode.Aggressor)
+		if (AcquireOnApproach && !Controlled && !Summoned && FightMode != FightMode.Aggressor)
 		{
 			if (InRange(m.Location, AcquireOnApproachRange) && !InRange(oldLocation, AcquireOnApproachRange))
 			{
@@ -4300,7 +4335,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public void SetResist(ResistanceType type, int min, int max = 0)
 	{
 		if (max == 0) max = min;
-		int val = (min == max || max == 0) ? min : Utility.RandomMinMax(min, max);
+		int val = min == max || max == 0 ? min : Utility.RandomMinMax(min, max);
 
 		switch (type)
 		{
@@ -4340,7 +4375,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (Skills[name].Base > Skills[name].Cap)
 		{
 			if (Core.SE)
-				SkillsCap += (Skills[name].BaseFixedPoint - Skills[name].CapFixedPoint);
+				SkillsCap += Skills[name].BaseFixedPoint - Skills[name].CapFixedPoint;
 
 			Skills[name].Cap = Skills[name].Base;
 		}
@@ -4356,7 +4391,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (Skills[name].Base > Skills[name].Cap)
 		{
 			if (Core.SE)
-				SkillsCap += (Skills[name].BaseFixedPoint - Skills[name].CapFixedPoint);
+				SkillsCap += Skills[name].BaseFixedPoint - Skills[name].CapFixedPoint;
 
 			Skills[name].Cap = Skills[name].Base;
 		}
@@ -4991,7 +5026,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				list.Add(1080078); // guarding
 		}
 
-		if (Summoned && !IsAnimatedDead && !IsNecroFamiliar && this is not Clone)
+		if (Summoned && !IsAnimatedDead && !IsNecroFamiliar && this is not MirrorImageClone)
 		{
 			list.Add(1049646); // (summoned)
 		}
@@ -5005,6 +5040,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		if (IsGolem)
 			list.Add(1113697); // (Golem)
+
+		if (IsSoulBound)
+		{
+			list.Add(1159188); // <BASEFONT COLOR=#FF8300>Soulbound<BASEFONT COLOR=#FFFFFF>
+		}
 
 		if (IsAmbusher)
 		{
@@ -5034,16 +5074,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	public override bool OnBeforeDeath()
 	{
 		Mobile killer = LastKiller;
-		int treasureLevel = TreasureMapLevel;
+		int treasureLevel = TreasureMapInfo.ConvertLevel(TreasureMapLevel);
 		GetLootingRights();
-		if (treasureLevel == 1 && Map == Map.Trammel && TreasureMap.IsInHavenIsland(this))
-		{
-			if (killer is BaseCreature creature)
-				killer = creature.GetMaster();
-
-			if (killer is PlayerMobile pm && pm.Young)
-				treasureLevel = 0;
-		}
 
 		if (!Summoned && !NoKillAwards && !IsBonded && !NoLootOnDeath)
 		{
@@ -5163,7 +5195,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 	public bool HasLootingRights(Mobile m)
 	{
-		return LootingRights?.FirstOrDefault(ds => ds.m_Mobile == m && ds.m_HasRight) != null;
+		return LootingRights?.FirstOrDefault(ds => ds.Mobile == m && ds.HasRight) != null;
 	}
 
 	public Mobile GetHighestDamager()
@@ -5171,12 +5203,34 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		if (LootingRights == null || LootingRights.Count == 0)
 			return null;
 
-		return LootingRights[0].m_Mobile;
+		return LootingRights[0].Mobile;
 	}
 
 	public bool IsHighestDamager(Mobile m)
 	{
-		return LootingRights != null && LootingRights.Count > 0 && LootingRights[0].m_Mobile == m;
+		return LootingRights is { Count: > 0 } && LootingRights[0].Mobile == m;
+	}
+
+	public Mobile RandomPlayerWithLootingRights()
+	{
+		var rights = GetLootingRights();
+
+		if (rights == null)
+		{
+			return null;
+		}
+
+		for (var i = rights.Count - 1; i >= 0; --i)
+		{
+			var ds = rights[i];
+
+			if (!ds.HasRight)
+			{
+				rights.RemoveAt(i);
+			}
+		}
+
+		return rights.Count > 0 ? rights[Utility.Random(rights.Count)].Mobile : null;
 	}
 
 	public List<DamageStore> GetLootingRights()
@@ -5185,7 +5239,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			return LootingRights;
 
 		List<DamageEntry> damageEntries = DamageEntries;
-		int hitsMax = HitsMax;
+		var hitsMax = HitsMax;
 
 		List<DamageStore> rights = new();
 
@@ -5222,11 +5276,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 					{
 						DamageStore ds = rights[k];
 
-						if (ds.m_Mobile == master)
-						{
-							ds.m_Damage += subEntry.DamageGiven;
-							needNewSubEntry = false;
-						}
+						if (ds.Mobile != master)
+							continue;
+						ds.Damage += subEntry.DamageGiven;
+						needNewSubEntry = false;
 					}
 
 					if (needNewSubEntry)
@@ -5250,11 +5303,10 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			{
 				DamageStore ds = rights[j];
 
-				if (ds.m_Mobile == m)
-				{
-					ds.m_Damage += damage;
-					needNewEntry = false;
-				}
+				if (ds.Mobile != m)
+					continue;
+				ds.Damage += damage;
+				needNewEntry = false;
 			}
 
 			if (needNewEntry)
@@ -5263,52 +5315,51 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		if (rights.Count > 0)
 		{
-			rights[0].m_Damage = (int)(rights[0].m_Damage * 1.25);  //This would be the first valid person attacking it.  Gets a 25% bonus.  Per 1/19/07 Five on Friday
+			rights[0].Damage = (int)(rights[0].Damage * 1.25);  //This would be the first valid person attacking it.  Gets a 25% bonus.  Per 1/19/07 Five on Friday
 
 			if (rights.Count > 1)
 				rights.Sort(); //Sort by damage
 
-			int topDamage = rights[0].m_Damage;
+			int topDamage = rights[0].Damage;
 			int minDamage;
 
-			//if (Core.SA)
-			//{
-			//	minDamage = (int)(topDamage * 0.06);
-			//}
-			//else
-			//{
-				if (hitsMax >= 3000)
-					minDamage = topDamage / 16;
-				else if (hitsMax >= 1000)
-					minDamage = topDamage / 8;
-				else if (hitsMax >= 200)
-					minDamage = topDamage / 4;
-				else
-					minDamage = topDamage / 2;
-			//}
+			if (Core.SA)
+			{
+				minDamage = (int)(topDamage * 0.06);
+			}
+			else
+			{
+				minDamage = hitsMax switch
+				{
+					>= 3000 => topDamage / 16,
+					>= 1000 => topDamage / 8,
+					>= 200 => topDamage / 4,
+					_ => topDamage / 2
+				};
+			}
 
-			//for (int i = 0; i < rights.Count; ++i)
-			//{
-			//	DamageStore ds = rights[i];
-			//
-			//	ds.m_HasRight = (ds.m_Damage >= minDamage);
-			//}
+			for (int i = 0; i < rights.Count; ++i)
+			{
+				DamageStore ds = rights[i];
+			
+				ds.HasRight = ds.Damage >= minDamage;
+			}
 			int totalDamage = 0; // check on when this was added.
 			for (int i = 0; i < rights.Count; ++i)
 			{
 				DamageStore ds = rights[i];
 
-				totalDamage += ds.m_Damage;
+				totalDamage += ds.Damage;
 			}
 
 			for (int i = 0; i < rights.Count; ++i)
 			{
 				DamageStore ds = rights[i];
 
-				ds.m_HasRight = ds.m_Damage >= minDamage;
+				ds.HasRight = ds.Damage >= minDamage;
 
 				if (totalDamage != 0)
-					ds.DamagePercent = ds.m_Damage / totalDamage;
+					ds.DamagePercent = ds.Damage / totalDamage;
 			}
 		}
 
@@ -5385,7 +5436,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		EventSink.InvokeOnKilledBy(this, mob);
 	}
 
-	public static void AppendPath(ref string path, string toAppend)
+	private static void AppendPath(ref string path, string toAppend)
 	{
 		path = Path.Combine(path, toAppend);
 
@@ -5468,8 +5519,8 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 			if (!Summoned && !NoKillAwards)
 			{
-				int totalFame = Fame / 100;
-				int totalKarma = -Karma / 100;
+				var totalFame = Fame / 100;
+				var totalKarma = -Karma / 100;
 
 				if (Map == Map.Felucca)
 				{
@@ -5490,12 +5541,12 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				{
 					DamageStore ds = list[i];
 
-					if (!ds.m_HasRight)
+					if (!ds.HasRight)
 						continue;
 
 					if (GivesFameAndKarmaAward)
 					{
-						Party party = Engines.PartySystem.Party.Get(ds.m_Mobile);
+						Party party = Engines.PartySystem.Party.Get(ds.Mobile);
 
 						if (party != null)
 						{
@@ -5524,13 +5575,13 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 						}
 						else
 						{
-							titles.Add(ds.m_Mobile);
+							titles.Add(ds.Mobile);
 							fame.Add(totalFame);
 							karma.Add(totalKarma);
 						}
 					}
 
-					OnKilledBy(ds.m_Mobile);
+					OnKilledBy(ds.Mobile);
 
 					//if (HumilityVirtue.IsInHunt(ds.m_Mobile) && Karma < 0)
 					//{
@@ -5540,18 +5591,18 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 					if (!givenFactionKill)
 					{
 						givenFactionKill = true;
-						Faction.HandleDeath(this, ds.m_Mobile);
+						Faction.HandleDeath(this, ds.Mobile);
 					}
 
-					Region region = ds.m_Mobile.Region;
+					Region region = ds.Mobile.Region;
 
 					if (!givenToTKill && (Map == Map.Tokuno || region.IsPartOf("Yomotsu Mines") || region.IsPartOf("Fan Dancer's Dojo")))
 					{
 						givenToTKill = true;
-						TreasuresOfTokuno.HandleKill(this, ds.m_Mobile);
+						TreasuresOfTokuno.HandleKill(this, ds.Mobile);
 					}
 
-					if (ds.m_Mobile is PlayerMobile pm)
+					if (ds.Mobile is PlayerMobile pm)
 					{
 						if (givenQuestKill)
 							continue;
@@ -5569,7 +5620,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 					//{
 					//	pm.CheckKRStartingQuestStep(19);
 					//}
-					XmlQuest.RegisterKill(this, ds.m_Mobile);
+					XmlQuest.RegisterKill(this, ds.Mobile);
 				}
 
 				for (int i = 0; i < titles.Count; ++i)
@@ -5793,14 +5844,15 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		base.OnRegionChange(Old, New);
 
-		if (Controlled)
-		{
-			if (Spawner is SpawnEntry se && !se.UnlinkOnTaming && (New == null || !New.AcceptsSpawnsFrom(se.Region)))
-			{
-				Spawner.Remove(this);
-				Spawner = null;
-			}
-		}
+		if (!Controlled)
+			return;
+
+		if (Spawner is not SpawnEntry { UnlinkOnTaming: false } se ||
+		    (New != null && New.AcceptsSpawnsFrom(se.Region)))
+			return;
+
+		Spawner.Remove(this);
+		Spawner = null;
 	}
 
 	public virtual double GetDispelDifficulty()
@@ -5858,7 +5910,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		Effects.PlaySound(p, creature.Map, sound);
 
-		if (creature is EnergyVortex || creature is BladeSpirits)
+		if (creature is EnergyVortex or BladeSpirits)
 		{
 			SpellHelper.CheckSummonLimits(creature);
 		}
@@ -5934,7 +5986,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			return;
 		}
 
-		bool onSelf = (patient == this);
+		bool onSelf = patient == this;
 
 		if (!patient.Alive)
 		{
@@ -5947,7 +5999,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			double anatomy = Skills.Anatomy.Value;
 			double chance = (healing - 30.0) / 50.0 - poisonLevel * 0.1;
 
-			if ((healing >= 60.0 && anatomy >= 60.0) && chance > Utility.RandomDouble())
+			if (healing >= 60.0 && anatomy >= 60.0 && chance > Utility.RandomDouble())
 			{
 				if (patient.CurePoison(this))
 				{
@@ -5973,13 +6025,13 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			{
 				double min, max;
 
-				min = (anatomy / 10.0) + (healing / 6.0) + 4.0;
-				max = (anatomy / 8.0) + (healing / 3.0) + 4.0;
+				min = anatomy / 10.0 + healing / 6.0 + 4.0;
+				max = anatomy / 8.0 + healing / 3.0 + 4.0;
 
 				if (onSelf)
 					max += 10;
 
-				double toHeal = min + (Utility.RandomDouble() * (max - min));
+				double toHeal = min + Utility.RandomDouble() * (max - min);
 
 				toHeal *= HealScalar;
 
@@ -6184,11 +6236,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 				max = MinutesToNextChanceMax;
 			}
 
-			double delay = min + (Utility.RandomDouble() * (max - min));
+			double delay = min + Utility.RandomDouble() * (max - min);
 			m_NextRummageTime = tc + (int)TimeSpan.FromMinutes(delay).TotalMilliseconds;
 		}
 
-		if (Controlled && AIObject is SuperAI aI && Hits < (HitsMax - 10) && Combatant == null)
+		if (Controlled && AIObject is SuperAI aI && Hits < HitsMax - 10 && Combatant == null)
 		{
 			Target targ = Target;
 			if (targ != null)
@@ -6205,12 +6257,12 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 		{
 			if (Combatant is Mobile target && target.Alive && !target.IsDeadBondedPet && CanBeHarmful(target) && target.Map == Map && !IsDeadBondedPet && target.InRange(this, BreathRange) && InLOS(target) && !BardPacified)
 			{
-				if ((Core.TickCount - m_NextBreathTime) < 30000 && Utility.RandomBool())
+				if (Core.TickCount - m_NextBreathTime < 30000 && Utility.RandomBool())
 				{
 					BreathStart(target);
 				}
 
-				m_NextBreathTime = tc + (int)TimeSpan.FromSeconds(BreathMinDelay + (Utility.RandomDouble() * (BreathMaxDelay - BreathMinDelay))).TotalMilliseconds;
+				m_NextBreathTime = tc + (int)TimeSpan.FromSeconds(BreathMinDelay + Utility.RandomDouble() * (BreathMaxDelay - BreathMinDelay)).TotalMilliseconds;
 			}
 		}
 
@@ -6234,7 +6286,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 
 		if (ReturnsToHome && IsSpawnerBound() && !InRange(Home, RangeHome))
 		{
-			if ((Combatant == null) && (Warmode == false) && Utility.RandomDouble() < .10)  /* some throttling */
+			if (Combatant == null && Warmode == false && Utility.RandomDouble() < .10)  /* some throttling */
 			{
 				m_FailedReturnHome = !Move(GetDirectionTo(Home.X, Home.Y)) ? m_FailedReturnHome + 1 : 0;
 
@@ -6257,7 +6309,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			m_NextTeleport = tc + (int)TeleportDuration.TotalMilliseconds;
 		}
 
-		if (CanDetectHidden && Core.TickCount >= _NextDetect)
+		if (CanDetectHidden && Core.TickCount >= m_NextDetect)
 		{
 			TryFindPlayer();
 
@@ -6276,7 +6328,7 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 			int min = delay * (FindPlayerDelayLow / FindPlayerDelayHigh); // 13s at 1000 int, 33s at 400 int, 54s at <250 int
 			int max = delay * (FindPlayerDelayHigh / FindPlayerDelayLow); // 16s at 1000 int, 41s at 400 int, 66s at <250 int
 
-			_NextDetect = Core.TickCount +
+			m_NextDetect = Core.TickCount +
 				(int)TimeSpan.FromSeconds(Utility.RandomMinMax(min, max)).TotalMilliseconds;
 		}
 
@@ -6525,13 +6577,13 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	/* On OSI, they despawn */
 	private bool IsSpawnerBound()
 	{
-		if ((Map != null) && (Map != Map.Internal))
+		if (Map != null && Map != Map.Internal)
 		{
-			if (FightMode != FightMode.None && (RangeHome >= 0))
+			if (FightMode != FightMode.None && RangeHome >= 0)
 			{
 				if (!Controlled && !Summoned)
 				{
-					if (Spawner != null && Spawner is Spawner && ((Spawner as Spawner).Map) == Map)
+					if (Spawner != null && Spawner is Spawner && (Spawner as Spawner).Map == Map)
 					{
 						return true;
 					}
@@ -6562,11 +6614,11 @@ public partial class BaseCreature : BaseMobile, IHonorTarget
 	{
 		if (m_ReturnQueued && IsSpawnerBound())
 		{
-			if (!((Map.GetSector(X, Y)).Active))
+			if (!Map.GetSector(X, Y).Active)
 			{
 				SetLocation(Home, true);
 
-				if (!((Map.GetSector(X, Y)).Active) && AIObject != null)
+				if (!Map.GetSector(X, Y).Active && AIObject != null)
 				{
 					AIObject.Deactivate();
 				}

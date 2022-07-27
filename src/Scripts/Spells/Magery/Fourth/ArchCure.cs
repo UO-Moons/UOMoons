@@ -41,7 +41,7 @@ public class ArchCureSpell : MagerySpell
 	// Arch cure is now 1/4th of a second faster
 	public override TimeSpan CastDelayBase => base.CastDelayBase - TimeSpan.FromSeconds(0.25);
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -119,17 +119,17 @@ public class ArchCureSpell : MagerySpell
 		if (!Caster.CanBeBeneficial(target, false))
 			return false;
 
-		if (Core.AOS && target != Caster)
-		{
-			if (IsAggressor(target) || IsAggressed(target))
-				return false;
+		if (!Core.AOS || target == Caster)
+			return true;
 
-			if ((!IsInnocentTo(Caster, target) || !IsInnocentTo(target, Caster)) && !IsAllyTo(Caster, target))
-				return false;
+		if (IsAggressor(target) || IsAggressed(target))
+			return false;
 
-			if (feluccaRules && target is not PlayerMobile)
-				return false;
-		}
+		if ((!IsInnocentTo(Caster, target) || !IsInnocentTo(target, Caster)) && !IsAllyTo(Caster, target))
+			return false;
+
+		if (feluccaRules && target is not PlayerMobile)
+			return false;
 
 		return true;
 	}

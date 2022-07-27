@@ -40,7 +40,7 @@ public class EarthElementalSpell : MagerySpell
 	{
 		if (CheckSequence())
 		{
-			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5);
+			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5.0);
 
 			if (Core.AOS)
 				SpellHelper.Summon(new SummonedEarthElemental(), Caster, 0x217, duration, false, false);

@@ -27,7 +27,7 @@ public class NameChangeDeed : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 
 	public override void OnDoubleClick(Mobile from)
@@ -44,29 +44,29 @@ public class NameChangeDeed : BaseItem
 
 public class NameChangeDeedGump : Gump
 {
-	private readonly Item _mSender;
+	private readonly Item m_Sender;
 
-	public void AddBlackAlpha(int x, int y, int width, int height)
+	private void AddBlackAlpha(int x, int y, int width, int height)
 	{
 		AddImageTiled(x, y, width, height, 2624);
 		AddAlphaRegion(x, y, width, height);
 	}
 
-	public void AddTextField(int x, int y, int width, int height, int index)
+	private void AddTextField(int x, int y, int width, int height, int index)
 	{
 		AddBackground(x - 2, y - 2, width + 4, height + 4, 0x2486);
 		AddTextEntry(x + 2, y + 2, width - 4, height - 4, 0, index, "");
 	}
 
-	public void AddButtonLabeled(int x, int y, int buttonID, string text)
+	private void AddButtonLabeled(int x, int y, int buttonId, string text)
 	{
-		AddButton(x, y - 1, 4005, 4007, buttonID, GumpButtonType.Reply, 0);
+		AddButton(x, y - 1, 4005, 4007, buttonId, GumpButtonType.Reply, 0);
 		AddHtml(x + 35, y, 240, 20, Color(text, 0xFFFFFF), false, false);
 	}
 
 	public NameChangeDeedGump(Item sender) : base(50, 50)
 	{
-		_mSender = sender;
+		m_Sender = sender;
 
 		Closable = true;
 		Dragable = true;
@@ -86,7 +86,7 @@ public class NameChangeDeedGump : Gump
 
 	public override void OnResponse(NetState sender, RelayInfo info)
 	{
-		if (_mSender == null || _mSender.Deleted || info.ButtonID != 1 || _mSender.RootParent != sender.Mobile)
+		if (m_Sender == null || m_Sender.Deleted || info.ButtonID != 1 || m_Sender.RootParent != sender.Mobile)
 			return;
 
 		Mobile m = sender.Mobile;
@@ -103,7 +103,7 @@ public class NameChangeDeedGump : Gump
 			m.RawName = newName;
 			m.SendMessage("Your name has been changed!");
 			m.SendMessage($"You are now known as {newName}");
-			_mSender.Delete();
+			m_Sender.Delete();
 		}
 	}
 }

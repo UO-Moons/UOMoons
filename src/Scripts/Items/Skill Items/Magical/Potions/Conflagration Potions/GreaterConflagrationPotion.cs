@@ -1,33 +1,32 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class GreaterConflagrationPotion : BaseConflagrationPotion
 {
-	public class GreaterConflagrationPotion : BaseConflagrationPotion
+	public override int MinDamage => 4;
+	public override int MaxDamage => 8;
+
+	public override int LabelNumber => 1072098;  // a Greater Conflagration potion
+
+	[Constructable]
+	public GreaterConflagrationPotion() : base(PotionEffect.ConflagrationGreater)
 	{
-		public override int MinDamage => 4;
-		public override int MaxDamage => 8;
+	}
 
-		public override int LabelNumber => 1072098;  // a Greater Conflagration potion
+	public GreaterConflagrationPotion(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public GreaterConflagrationPotion() : base(PotionEffect.ConflagrationGreater)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public GreaterConflagrationPotion(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

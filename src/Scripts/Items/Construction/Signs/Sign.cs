@@ -1,104 +1,103 @@
-namespace Server.Items
+namespace Server.Items;
+
+public enum SignFacing
 {
-	public enum SignFacing
+	North,
+	West
+}
+
+public enum SignType
+{
+	Library,
+	DarkWoodenPost,
+	LightWoodenPost,
+	MetalPostC,
+	MetalPostB,
+	MetalPostA,
+	MetalPost,
+	Bakery,
+	Tailor,
+	Tinker,
+	Butcher,
+	Healer,
+	Mage,
+	Woodworker,
+	Customs,
+	Inn,
+	Shipwright,
+	Stables,
+	BarberShop,
+	Bard,
+	Fletcher,
+	Armourer,
+	Jeweler,
+	Tavern,
+	ReagentShop,
+	Blacksmith,
+	Painter,
+	Provisioner,
+	Bowyer,
+	WoodenSign,
+	BrassSign,
+	ArmamentsGuild,
+	ArmourersGuild,
+	BlacksmithsGuild,
+	WeaponsGuild,
+	BardicGuild,
+	BartersGuild,
+	ProvisionersGuild,
+	TradersGuild,
+	CooksGuild,
+	HealersGuild,
+	MagesGuild,
+	SorcerersGuild,
+	IllusionistGuild,
+	MinersGuild,
+	ArchersGuild,
+	SeamensGuild,
+	FishermensGuild,
+	SailorsGuild,
+	ShipwrightsGuild,
+	TailorsGuild,
+	ThievesGuild,
+	RoguesGuild,
+	AssassinsGuild,
+	TinkersGuild,
+	WarriorsGuild,
+	CavalryGuild,
+	FightersGuild,
+	MerchantsGuild,
+	Bank,
+	Theatre
+}
+
+public class Sign : BaseSign
+{
+	[Constructable]
+	public Sign(SignType type, SignFacing facing) : base(0xB95 + 2 * (int)type + (int)facing)
 	{
-		North,
-		West
 	}
 
-	public enum SignType
+	[Constructable]
+	public Sign(int itemId) : base(itemId)
 	{
-		Library,
-		DarkWoodenPost,
-		LightWoodenPost,
-		MetalPostC,
-		MetalPostB,
-		MetalPostA,
-		MetalPost,
-		Bakery,
-		Tailor,
-		Tinker,
-		Butcher,
-		Healer,
-		Mage,
-		Woodworker,
-		Customs,
-		Inn,
-		Shipwright,
-		Stables,
-		BarberShop,
-		Bard,
-		Fletcher,
-		Armourer,
-		Jeweler,
-		Tavern,
-		ReagentShop,
-		Blacksmith,
-		Painter,
-		Provisioner,
-		Bowyer,
-		WoodenSign,
-		BrassSign,
-		ArmamentsGuild,
-		ArmourersGuild,
-		BlacksmithsGuild,
-		WeaponsGuild,
-		BardicGuild,
-		BartersGuild,
-		ProvisionersGuild,
-		TradersGuild,
-		CooksGuild,
-		HealersGuild,
-		MagesGuild,
-		SorcerersGuild,
-		IllusionistGuild,
-		MinersGuild,
-		ArchersGuild,
-		SeamensGuild,
-		FishermensGuild,
-		SailorsGuild,
-		ShipwrightsGuild,
-		TailorsGuild,
-		ThievesGuild,
-		RoguesGuild,
-		AssassinsGuild,
-		TinkersGuild,
-		WarriorsGuild,
-		CavalryGuild,
-		FightersGuild,
-		MerchantsGuild,
-		Bank,
-		Theatre
 	}
 
-	public class Sign : BaseSign
+	public Sign(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public Sign(SignType type, SignFacing facing) : base((0xB95 + (2 * (int)type)) + (int)facing)
-		{
-		}
+	}
 
-		[Constructable]
-		public Sign(int itemID) : base(itemID)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public Sign(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

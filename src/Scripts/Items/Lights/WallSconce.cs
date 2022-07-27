@@ -1,73 +1,56 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+[Flipable]
+public class WallSconce : BaseLight
 {
-	[Flipable]
-	public class WallSconce : BaseLight
+	public override int LitItemId => ItemId == 0x9FB ? 0x9FD : 0xA02;
+
+	public override int UnlitItemId => ItemId == 0x9FD ? 0x9FB : 0xA00;
+
+	[Constructable]
+	public WallSconce() : base(0x9FB)
 	{
-		public override int LitItemID
+		Movable = false;
+		Duration = TimeSpan.Zero; // Never burnt out
+		Burning = false;
+		Light = LightType.WestBig;
+		Weight = 3.0;
+	}
+
+	public WallSconce(Serial serial) : base(serial)
+	{
+	}
+
+	public void Flip()
+	{
+		Light = Light switch
 		{
-			get
-			{
-				if (ItemId == 0x9FB)
-					return 0x9FD;
-				else
-					return 0xA02;
-			}
-		}
+			LightType.WestBig => LightType.NorthBig,
+			LightType.NorthBig => LightType.WestBig,
+			_ => Light
+		};
 
-		public override int UnlitItemID
+		ItemId = ItemId switch
 		{
-			get
-			{
-				if (ItemId == 0x9FD)
-					return 0x9FB;
-				else
-					return 0xA00;
-			}
-		}
+			0x9FB => 0xA00,
+			0x9FD => 0xA02,
+			0xA00 => 0x9FB,
+			0xA02 => 0x9FD,
+			_ => ItemId
+		};
+	}
 
-		[Constructable]
-		public WallSconce() : base(0x9FB)
-		{
-			Movable = false;
-			Duration = TimeSpan.Zero; // Never burnt out
-			Burning = false;
-			Light = LightType.WestBig;
-			Weight = 3.0;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public WallSconce(Serial serial) : base(serial)
-		{
-		}
-
-		public void Flip()
-		{
-			if (Light == LightType.WestBig)
-				Light = LightType.NorthBig;
-			else if (Light == LightType.NorthBig)
-				Light = LightType.WestBig;
-
-			switch (ItemId)
-			{
-				case 0x9FB: ItemId = 0xA00; break;
-				case 0x9FD: ItemId = 0xA02; break;
-
-				case 0xA00: ItemId = 0x9FB; break;
-				case 0xA02: ItemId = 0x9FD; break;
-			}
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

@@ -33,13 +33,11 @@ public class TeleportSpell : MagerySpell
 			return false;
 		}
 
-		if (WeightOverloading.IsOverloaded(Caster))
-		{
-			Caster.SendLocalizedMessage(502359, 0x22); // Thou art too encumbered to move.
-			return false;
-		}
+		if (!WeightOverloading.IsOverloaded(Caster))
+			return SpellHelper.CheckTravel(Caster, TravelCheckType.TeleportFrom);
+		Caster.SendLocalizedMessage(502359, 0x22); // Thou art too encumbered to move.
+		return false;
 
-		return SpellHelper.CheckTravel(Caster, TravelCheckType.TeleportFrom);
 	}
 
 	public override void OnCast()
@@ -57,7 +55,7 @@ public class TeleportSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		IPoint3D orig = p;
 		Map map = Caster.Map;

@@ -8,7 +8,7 @@ namespace Server.Spells.Seventh;
 
 public class MeteorSwarmSpell : MagerySpell
 {
-	public Item Item { get; set; }
+	private Item Item { get; }
 	private static readonly SpellInfo m_Info = new(
 		"Meteor Swarm", "Flam Kal Des Ylem",
 		233,
@@ -22,8 +22,9 @@ public class MeteorSwarmSpell : MagerySpell
 
 	public override SpellCircle Circle => SpellCircle.Seventh;
 
-	public MeteorSwarmSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	public MeteorSwarmSpell(Mobile caster, Item scroll, Item item) : base(caster, scroll, m_Info)
 	{
+		Item = item;
 	}
 
 	public override int GetMana()
@@ -48,7 +49,7 @@ public class MeteorSwarmSpell : MagerySpell
 
 	public override bool DelayedDamage => true;
 
-	public void Target(IPoint3D p, Item item)
+	private void Target(IPoint3D p, Item item)
 	{
 		if (!Caster.CanSee(p))
 		{

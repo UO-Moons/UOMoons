@@ -23,7 +23,8 @@
 
   <ItemGroup>
     <PackageReference Include="HashedWheelTimer" Version="1.0.3" />
-    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="MySql.Data" Version="8.0.29" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0-preview.5.22301.12" />
   </ItemGroup>
 
 </Project>

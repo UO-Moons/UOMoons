@@ -2,272 +2,271 @@ using Server.Engines.Craft;
 using System;
 using System.Collections.Generic;
 
-namespace Server.Items
+namespace Server.Items;
+
+public enum PotionEffect
 {
-	public enum PotionEffect
+	Nightsight,
+	CureLesser,
+	Cure,
+	CureGreater,
+	Agility,
+	AgilityGreater,
+	Strength,
+	StrengthGreater,
+	PoisonLesser,
+	Poison,
+	PoisonGreater,
+	PoisonDeadly,
+	Refresh,
+	RefreshTotal,
+	HealLesser,
+	Heal,
+	HealGreater,
+	ExplosionLesser,
+	Explosion,
+	ExplosionGreater,
+	Conflagration,
+	ConflagrationGreater,
+	MaskOfDeath,        // Mask of Death is not available in OSI but does exist in cliloc files
+	MaskOfDeathGreater, // included in enumeration for compatability if later enabled by OSI
+	ConfusionBlast,
+	ConfusionBlastGreater,
+	Invisibility,
+	Parasitic,
+	Darkglow,
+}
+
+public abstract class BasePotion : BaseItem, ICraftable, ICommodity
+{
+	private static readonly bool IsStackable = Settings.Configuration.Get("Items", "StackablePotions", Core.ML);
+	public virtual bool RequireFreeHand => Settings.Configuration.Get<bool>("Items", "PotionsRequiredFreeHands", true);
+
+	public override int LabelNumber => 1041314 + (int)m_PotionEffect;
+
+	TextDefinition ICommodity.Description => LabelNumber;
+	bool ICommodity.IsDeedable => Core.ML;
+
+	private PotionEffect m_PotionEffect;
+
+	public PotionEffect PotionEffect
 	{
-		Nightsight,
-		CureLesser,
-		Cure,
-		CureGreater,
-		Agility,
-		AgilityGreater,
-		Strength,
-		StrengthGreater,
-		PoisonLesser,
-		Poison,
-		PoisonGreater,
-		PoisonDeadly,
-		Refresh,
-		RefreshTotal,
-		HealLesser,
-		Heal,
-		HealGreater,
-		ExplosionLesser,
-		Explosion,
-		ExplosionGreater,
-		Conflagration,
-		ConflagrationGreater,
-		MaskOfDeath,        // Mask of Death is not available in OSI but does exist in cliloc files
-		MaskOfDeathGreater, // included in enumeration for compatability if later enabled by OSI
-		ConfusionBlast,
-		ConfusionBlastGreater,
-		Invisibility,
-		Parasitic,
-		Darkglow,
+		get => m_PotionEffect;
+		set
+		{
+			m_PotionEffect = value;
+			InvalidateProperties();
+		}
 	}
 
-	public abstract class BasePotion : BaseItem, ICraftable, ICommodity
+	public BasePotion(int itemID, PotionEffect effect) : base(itemID)
 	{
-		private static readonly bool IsStackable = Settings.Configuration.Get("Items", "StackablePotions", Core.ML);
-		public virtual bool RequireFreeHand => Settings.Configuration.Get<bool>("Items", "PotionsRequiredFreeHands", true);
+		m_PotionEffect = effect;
 
-		public override int LabelNumber => 1041314 + (int)m_PotionEffect;
+		Stackable = IsStackable;
+		Weight = 1.0;
+	}
 
-		TextDefinition ICommodity.Description => LabelNumber;
-		bool ICommodity.IsDeedable => Core.ML;
+	public BasePotion(Serial serial) : base(serial)
+	{
+	}
 
-		private PotionEffect m_PotionEffect;
+	public static bool HasFreeHand(Mobile m)
+	{
+		Item handOne = m.FindItemOnLayer(Layer.OneHanded);
+		Item handTwo = m.FindItemOnLayer(Layer.TwoHanded);
 
-		public PotionEffect PotionEffect
+		if (handTwo is BaseWeapon)
+			handOne = handTwo;
+		if (handTwo is BaseRanged ranged)
 		{
-			get => m_PotionEffect;
-			set
+			if (ranged.Balanced)
+				return true;
+		}
+
+		return (handOne == null || handTwo == null);
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		if (!Movable)
+			return;
+
+		if (from.InRange(GetWorldLocation(), 1))
+		{
+			if (!RequireFreeHand || HasFreeHand(from))
 			{
-				m_PotionEffect = value;
-				InvalidateProperties();
-			}
-		}
-
-		public BasePotion(int itemID, PotionEffect effect) : base(itemID)
-		{
-			m_PotionEffect = effect;
-
-			Stackable = IsStackable;
-			Weight = 1.0;
-		}
-
-		public BasePotion(Serial serial) : base(serial)
-		{
-		}
-
-		public static bool HasFreeHand(Mobile m)
-		{
-			Item handOne = m.FindItemOnLayer(Layer.OneHanded);
-			Item handTwo = m.FindItemOnLayer(Layer.TwoHanded);
-
-			if (handTwo is BaseWeapon)
-				handOne = handTwo;
-			if (handTwo is BaseRanged ranged)
-			{
-				if (ranged.Balanced)
-					return true;
-			}
-
-			return (handOne == null || handTwo == null);
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (!Movable)
-				return;
-
-			if (from.InRange(GetWorldLocation(), 1))
-			{
-				if (!RequireFreeHand || HasFreeHand(from))
+				if (this is BaseExplosionPotion && Amount > 1)
 				{
-					if (this is BaseExplosionPotion && Amount > 1)
-					{
-						BasePotion pot = (BasePotion)Activator.CreateInstance(GetType());
+					BasePotion pot = (BasePotion)Activator.CreateInstance(GetType());
 
-						if (pot != null)
+					if (pot != null)
+					{
+						Amount--;
+
+						if (from.Backpack != null && !from.Backpack.Deleted)
 						{
-							Amount--;
-
-							if (from.Backpack != null && !from.Backpack.Deleted)
-							{
-								from.Backpack.DropItem(pot);
-							}
-							else
-							{
-								pot.MoveToWorld(from.Location, from.Map);
-							}
-							pot.Drink(from);
+							from.Backpack.DropItem(pot);
 						}
-					}
-					else
-					{
-						Drink(from);
+						else
+						{
+							pot.MoveToWorld(from.Location, from.Map);
+						}
+						pot.Drink(from);
 					}
 				}
 				else
 				{
-					from.SendLocalizedMessage(502172); // You must have a free hand to drink a potion.
+					Drink(from);
 				}
 			}
 			else
 			{
-				from.SendLocalizedMessage(502138); // That is too far away for you to use
+				from.SendLocalizedMessage(502172); // You must have a free hand to drink a potion.
 			}
 		}
-
-		public override void Serialize(GenericWriter writer)
+		else
 		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-
-			writer.Write((int)m_PotionEffect);
+			from.SendLocalizedMessage(502138); // That is too far away for you to use
 		}
+	}
 
-		public override void Deserialize(GenericReader reader)
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+
+		writer.Write((int)m_PotionEffect);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		int version = reader.ReadInt();
+
+		switch (version)
 		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			switch (version)
+			case 0:
 			{
-				case 0:
-					{
-						m_PotionEffect = (PotionEffect)reader.ReadInt();
-						break;
-					}
+				m_PotionEffect = (PotionEffect)reader.ReadInt();
+				break;
 			}
 		}
+	}
 
-		public abstract void Drink(Mobile from);
+	public abstract void Drink(Mobile from);
 
-		public static void PlayDrinkEffect(Mobile m)
+	public static void PlayDrinkEffect(Mobile m)
+	{
+		m.RevealingAction();
+
+		m.PlaySound(0x2D6);
+
+		#region Dueling
+		if (!Engines.ConPVP.DuelContext.IsFreeConsume(m))
+			_ = m.AddToBackpack(new EmptyBottle());
+		#endregion
+
+		if (m.Body.IsHuman && !m.Mounted)
+			m.Animate(34, 5, 1, true, false, 0);
+	}
+
+	public static int EnhancePotions(Mobile m)
+	{
+		int EP = AosAttributes.GetValue(m, AosAttribute.EnhancePotions);
+		int skillBonus = m.Skills.Alchemy.Fixed / 330 * 10;
+
+		if (Core.ML && EP > 50 && m.AccessLevel <= AccessLevel.Player)
+			EP = 50;
+
+		return (EP + skillBonus);
+	}
+
+	public static TimeSpan Scale(Mobile m, TimeSpan v)
+	{
+		if (!Core.AOS)
+			return v;
+
+		double scalar = 1.0 + (0.01 * EnhancePotions(m));
+
+		return TimeSpan.FromSeconds(v.TotalSeconds * scalar);
+	}
+
+	public static double Scale(Mobile m, double v)
+	{
+		if (!Core.AOS)
+			return v;
+
+		double scalar = 1.0 + (0.01 * EnhancePotions(m));
+
+		return v * scalar;
+	}
+
+	public static int Scale(Mobile m, int v)
+	{
+		if (!Core.AOS)
+			return v;
+
+		return AOS.Scale(v, 100 + EnhancePotions(m));
+	}
+
+	public override bool StackWith(Mobile from, Item dropped, bool playSound)
+	{
+		if (dropped is BasePotion potion && potion.m_PotionEffect == m_PotionEffect)
+			return base.StackWith(from, dropped, playSound);
+
+		return false;
+	}
+
+	#region ICraftable Members
+
+	public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
+	{
+		if (craftSystem is DefAlchemy)
 		{
-			m.RevealingAction();
+			Container pack = from.Backpack;
 
-			m.PlaySound(0x2D6);
-
-			#region Dueling
-			if (!Engines.ConPVP.DuelContext.IsFreeConsume(m))
-				_ = m.AddToBackpack(new EmptyBottle());
-			#endregion
-
-			if (m.Body.IsHuman && !m.Mounted)
-				m.Animate(34, 5, 1, true, false, 0);
-		}
-
-		public static int EnhancePotions(Mobile m)
-		{
-			int EP = AosAttributes.GetValue(m, AosAttribute.EnhancePotions);
-			int skillBonus = m.Skills.Alchemy.Fixed / 330 * 10;
-
-			if (Core.ML && EP > 50 && m.AccessLevel <= AccessLevel.Player)
-				EP = 50;
-
-			return (EP + skillBonus);
-		}
-
-		public static TimeSpan Scale(Mobile m, TimeSpan v)
-		{
-			if (!Core.AOS)
-				return v;
-
-			double scalar = 1.0 + (0.01 * EnhancePotions(m));
-
-			return TimeSpan.FromSeconds(v.TotalSeconds * scalar);
-		}
-
-		public static double Scale(Mobile m, double v)
-		{
-			if (!Core.AOS)
-				return v;
-
-			double scalar = 1.0 + (0.01 * EnhancePotions(m));
-
-			return v * scalar;
-		}
-
-		public static int Scale(Mobile m, int v)
-		{
-			if (!Core.AOS)
-				return v;
-
-			return AOS.Scale(v, 100 + EnhancePotions(m));
-		}
-
-		public override bool StackWith(Mobile from, Item dropped, bool playSound)
-		{
-			if (dropped is BasePotion potion && potion.m_PotionEffect == m_PotionEffect)
-				return base.StackWith(from, dropped, playSound);
-
-			return false;
-		}
-
-		#region ICraftable Members
-
-		public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
-		{
-			if (craftSystem is DefAlchemy)
+			if (pack != null)
 			{
-				Container pack = from.Backpack;
-
-				if (pack != null)
+				if ((int)PotionEffect >= (int)PotionEffect.Invisibility)
 				{
-					if ((int)PotionEffect >= (int)PotionEffect.Invisibility)
+					return 1;
+				}
+
+				List<PotionKeg> kegs = pack.FindItemsByType<PotionKeg>();
+
+				for (int i = 0; i < kegs.Count; ++i)
+				{
+					PotionKeg keg = kegs[i];
+
+					if (keg == null)
 					{
-						return 1;
+						continue;
 					}
 
-					List<PotionKeg> kegs = pack.FindItemsByType<PotionKeg>();
-
-					for (int i = 0; i < kegs.Count; ++i)
+					if (keg.Held <= 0 || keg.Held >= 100)
 					{
-						PotionKeg keg = kegs[i];
-
-						if (keg == null)
-						{
-							continue;
-						}
-
-						if (keg.Held <= 0 || keg.Held >= 100)
-						{
-							continue;
-						}
-
-						if (keg.Type != PotionEffect)
-						{
-							continue;
-						}
-
-						++keg.Held;
-
-						Consume();
-						from.AddToBackpack(new EmptyBottle());
-
-						return -1; // signal placed in keg
+						continue;
 					}
+
+					if (keg.Type != PotionEffect)
+					{
+						continue;
+					}
+
+					++keg.Held;
+
+					Consume();
+					from.AddToBackpack(new EmptyBottle());
+
+					return -1; // signal placed in keg
 				}
 			}
-
-			return 1;
 		}
-		#endregion
+
+		return 1;
 	}
+	#endregion
 }

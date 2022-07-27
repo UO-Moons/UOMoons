@@ -1,43 +1,42 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class DreadPirateHat : TricorneHat
 {
-	public class DreadPirateHat : TricorneHat
+	public override int LabelNumber => 1063467;
+
+	public override int BaseColdResistance => 14;
+	public override int BasePoisonResistance => 10;
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public DreadPirateHat()
 	{
-		public override int LabelNumber => 1063467;
+		Hue = 0x497;
 
-		public override int BaseColdResistance => 14;
-		public override int BasePoisonResistance => 10;
+		SkillBonuses.SetValues(0, Utility.RandomCombatSkill(), 10.0);
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+		Attributes.BonusDex = 8;
+		Attributes.AttackChance = 10;
+		Attributes.NightSight = 1;
+	}
 
-		[Constructable]
-		public DreadPirateHat()
-		{
-			Hue = 0x497;
+	public DreadPirateHat(Serial serial) : base(serial)
+	{
+	}
 
-			SkillBonuses.SetValues(0, Utility.RandomCombatSkill(), 10.0);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			Attributes.BonusDex = 8;
-			Attributes.AttackChance = 10;
-			Attributes.NightSight = 1;
-		}
+		writer.Write(0);
+	}
 
-		public DreadPirateHat(Serial serial) : base(serial)
-		{
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

@@ -38,7 +38,7 @@ public class DispelFieldSpell : MagerySpell
 		}
 	}
 
-	public void Target(Item item)
+	private void Target(Item item)
 	{
 		Type t = item.GetType();
 

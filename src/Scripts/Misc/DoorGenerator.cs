@@ -506,12 +506,12 @@ namespace Server
 						{
 							if (IsEastFrame(vx + 2, vy, z))
 							{
-								AddDoor(vx + 1, vy, z, DoorFacing.WestCW);
+								AddDoor(vx + 1, vy, z, DoorFacing.WestCw);
 							}
 							else if (IsEastFrame(vx + 3, vy, z))
 							{
-								BaseDoor first = AddDoor(vx + 1, vy, z, DoorFacing.WestCW);
-								BaseDoor second = AddDoor(vx + 2, vy, z, DoorFacing.EastCCW);
+								BaseDoor first = AddDoor(vx + 1, vy, z, DoorFacing.WestCw);
+								BaseDoor second = AddDoor(vx + 2, vy, z, DoorFacing.EastCcw);
 
 								if (first != null && second != null)
 								{
@@ -532,12 +532,12 @@ namespace Server
 						{
 							if (IsSouthFrame(vx, vy + 2, z))
 							{
-								AddDoor(vx, vy + 1, z, DoorFacing.SouthCW);
+								AddDoor(vx, vy + 1, z, DoorFacing.SouthCw);
 							}
 							else if (IsSouthFrame(vx, vy + 3, z))
 							{
-								BaseDoor first = AddDoor(vx, vy + 1, z, DoorFacing.NorthCCW);
-								BaseDoor second = AddDoor(vx, vy + 2, z, DoorFacing.SouthCW);
+								BaseDoor first = AddDoor(vx, vy + 1, z, DoorFacing.NorthCcw);
+								BaseDoor second = AddDoor(vx, vy + 2, z, DoorFacing.SouthCw);
 
 								if (first != null && second != null)
 								{

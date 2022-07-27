@@ -36,7 +36,7 @@ public class MagicLockSpell : MagerySpell
 		}
 	}
 
-	public void Target(LockableContainer targ)
+	private void Target(LockableContainer targ)
 	{
 		if (Multis.BaseHouse.CheckLockedDownOrSecured(targ))
 		{

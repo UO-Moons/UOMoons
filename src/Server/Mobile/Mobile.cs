@@ -3472,7 +3472,7 @@ public class Mobile : IHued, IComparable<Mobile>, ISerializable, ISpawnable, IDa
 				{
 					reject = LRReason.AreHolding;
 				}
-				else if (from.AccessLevel < AccessLevel.GameMaster && !from.InRange(item.GetWorldLocation(), 2))
+				else if (from.IsPlayer() && !from.InRange(item.GetWorldLocation(), 2))
 				{
 					reject = LRReason.OutOfRange;
 				}
@@ -3502,7 +3502,7 @@ public class Mobile : IHued, IComparable<Mobile>, ISerializable, ISpawnable, IDa
 				{
 					object root = item.RootParent;
 
-					if (root != null && root is Mobile mob && !mob.CheckNonlocalLift(from, item))
+					if (root is Mobile mob && !mob.CheckNonlocalLift(from, item))
 					{
 						reject = LRReason.TryToSteal;
 					}
@@ -3623,11 +3623,8 @@ public class Mobile : IHued, IComparable<Mobile>, ISerializable, ISpawnable, IDa
 
 			switch (item.Parent)
 			{
-				case Item when state.ContainerGridLines:
-					state.Send(new ContainerContentUpdate6017(item));
-					break;
 				case Item:
-					state.Send(new ContainerContentUpdate(item));
+					ContainerContentUpdate.Send(state, item);
 					break;
 				case Mobile:
 					state.Send(new EquipUpdate(item));

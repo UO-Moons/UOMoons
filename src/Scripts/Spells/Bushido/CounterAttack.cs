@@ -24,7 +24,7 @@ public class CounterAttack : SamuraiSpell
 		return m_Table.Contains(m);
 	}
 
-	public static void StartCountering(Mobile m)
+	private static void StartCountering(Mobile m)
 	{
 		Timer t = (Timer)m_Table[m];
 

@@ -1,120 +1,114 @@
 using System;
-using Server.Mobiles;
 using Server.Targeting;
 
-namespace Server.Spells.Mysticism
+namespace Server.Spells.Mysticism;
+
+public class BombardSpell : MysticSpell
 {
-    public class BombardSpell : MysticSpell
-    {
-        public override SpellCircle Circle => SpellCircle.Sixth;
-        public override bool DelayedDamage => true;
-        public override bool DelayedDamageStacking => false;
+	public override SpellCircle Circle => SpellCircle.Sixth;
+	public override bool DelayedDamage => true;
+	public override bool DelayedDamageStacking => false;
 
-        private static SpellInfo m_Info = new SpellInfo(
-                "Bombard", "Corp Por Ylem",
-                230,
-                9022,
-                Reagent.Bloodmoss,
-                Reagent.Garlic,
-                Reagent.SulfurousAsh,
-                Reagent.DragonBlood
-            );
+	private static readonly SpellInfo m_Info = new(
+		"Bombard", "Corp Por Ylem",
+		230,
+		9022,
+		Reagent.Bloodmoss,
+		Reagent.Garlic,
+		Reagent.SulfurousAsh,
+		Reagent.DragonBlood
+	);
 
-        public BombardSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
-        {
-        }
+	public BombardSpell(Mobile caster, Item scroll) : base(caster, scroll, m_Info)
+	{
+	}
 
-        public override void OnCast()
-        {
-            Caster.Target = new InternalTarget(this);
-        }
+	public override void OnCast()
+	{
+		Caster.Target = new InternalTarget(this);
+	}
 
-        public void OnTarget(IDamageable d)
-        {
-            if (d == null)
-            {
-                return;
-            }
-            else if (CheckHSequence(d))
-            {
-                IDamageable target = d;
-                IDamageable source = Caster;
+	private void OnTarget(IDamageable d)
+	{
+		if (d == null)
+		{
+			return;
+		}
 
-                SpellHelper.Turn(Caster, target);
+		if (CheckHSequence(d))
+		{
+			IDamageable target = d;
+			IDamageable source = Caster;
 
-                if (Core.SA && HasDelayContext(target))
-                {
-                    DoHurtFizzle();
-                    return;
-                }
+			SpellHelper.Turn(Caster, target);
 
-                if (SpellHelper.CheckReflect((int)Circle, ref source, ref target))
-                {
-                    Server.Timer.DelayCall(TimeSpan.FromSeconds(.5), () =>
-                    {
-                        source.MovingEffect(target, 0x1363, 12, 1, false, true, 0, 0);
-                        source.PlaySound(0x64B);
-                    });
-                }
+			if (Core.SA && HasDelayContext(target))
+			{
+				DoHurtFizzle();
+				return;
+			}
 
-                Caster.MovingEffect(d, 0x1363, 12, 1, false, true, 0, 0);
-                Caster.PlaySound(0x64B);
+			if (SpellHelper.CheckReflect((int)Circle, ref source, ref target))
+			{
+				Timer.DelayCall(TimeSpan.FromSeconds(.5), () =>
+				{
+					source.MovingEffect(target, 0x1363, 12, 1, false, true, 0, 0);
+					source.PlaySound(0x64B);
+				});
+			}
 
-                SpellHelper.Damage(this, target, GetNewAosDamage(40, 1, 5, target), 100, 0, 0, 0, 0);
+			Caster.MovingEffect(d, 0x1363, 12, 1, false, true, 0, 0);
+			Caster.PlaySound(0x64B);
 
-                if (target is Mobile)
-                {
-                    Timer.DelayCall(TimeSpan.FromMilliseconds(1200), () =>
-                    {
-                        if (!CheckResisted((Mobile)target))
-                        {
-                            int secs = (int)((GetDamageSkill(Caster) / 10) - (GetResistSkill((Mobile)target) / 10));
+			SpellHelper.Damage(this, target, GetNewAosDamage(40, 1, 5, target), 100, 0, 0, 0, 0);
 
-                            if (secs < 0)
-                                secs = 0;
+			if (target is Mobile mobile)
+			{
+				Timer.DelayCall(TimeSpan.FromMilliseconds(1200), () =>
+				{
+					if (CheckResisted(mobile))
+						return;
 
-                            ((Mobile)target).Paralyze(TimeSpan.FromSeconds(secs));
-                        }
-                    });
-                }
-            }
+					int secs = (int)(GetDamageSkill(Caster) / 10 - (GetResistSkill(mobile) / 10));
 
-            FinishSequence();
-        }
+					if (secs < 0)
+						secs = 0;
 
-        public class InternalTarget : Target
-        {
-            public BombardSpell Owner { get; set; }
+					mobile.Paralyze(TimeSpan.FromSeconds(secs));
+				});
+			}
+		}
 
-            public InternalTarget(BombardSpell owner)
-                : this(owner, false)
-            {
-            }
+		FinishSequence();
+	}
 
-            public InternalTarget(BombardSpell owner, bool allowland)
-                : base(12, allowland, TargetFlags.Harmful)
-            {
-                Owner = owner;
-            }
+	private class InternalTarget : Target
+	{
+		private BombardSpell Owner { get; }
 
-            protected override void OnTarget(Mobile from, object o)
-            {
-                if (o == null)
-                    return;
+		public InternalTarget(BombardSpell owner, bool allowland = false)
+			: base(12, allowland, TargetFlags.Harmful)
+		{
+			Owner = owner;
+		}
 
-                if (!from.CanSee(o))
-                    from.SendLocalizedMessage(500237); // Target can not be seen.
-                else if (o is IDamageable)
-                {
-                    SpellHelper.Turn(from, o);
-                    Owner.OnTarget((IDamageable)o);
-                }
-            }
+		protected override void OnTarget(Mobile from, object o)
+		{
+			if (o == null)
+				return;
 
-            protected override void OnTargetFinish(Mobile from)
-            {
-                Owner.FinishSequence();
-            }
-        }
-    }
+			if (!from.CanSee(o))
+				from.SendLocalizedMessage(500237); // Target can not be seen.
+			else if (o is IDamageable damageable)
+			{
+				SpellHelper.Turn(from, damageable);
+				Owner.OnTarget(damageable);
+			}
+		}
+
+		protected override void OnTargetFinish(Mobile from)
+		{
+			Owner.FinishSequence();
+		}
+	}
 }

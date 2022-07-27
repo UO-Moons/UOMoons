@@ -1,62 +1,61 @@
 using System;
 using Server;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class FancyWoodenShelfSouthAddon : BaseAddon
 {
-    public class FancyWoodenShelfSouthAddon : BaseAddon
-    {
-        public override BaseAddonDeed Deed => new FancyWoodenShelfSouthDeed();
-        public override bool RetainDeedHue => true;
+	public override BaseAddonDeed Deed => new FancyWoodenShelfSouthDeed();
+	public override bool RetainDeedHue => true;
 
-        [Constructable]
-        public FancyWoodenShelfSouthAddon()
-        {
-            AddComponent(new AddonComponent(0x4C38), 0, 0, 0);
-        }
+	[Constructable]
+	public FancyWoodenShelfSouthAddon()
+	{
+		AddComponent(new AddonComponent(0x4C38), 0, 0, 0);
+	}
 
-        public FancyWoodenShelfSouthAddon(Serial serial)
-            : base(serial)
-        {
-        }
+	public FancyWoodenShelfSouthAddon(Serial serial)
+		: base(serial)
+	{
+	}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(0); // version
-        }
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
-        }
-    }
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
+	}
+}
 
-    public class FancyWoodenShelfSouthDeed : BaseAddonDeed
-    {
-        public override BaseAddon Addon => new FancyWoodenShelfSouthAddon();
-        public override int LabelNumber => 1154158;  // Fancy Wooden Shelf (South)
+public class FancyWoodenShelfSouthDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new FancyWoodenShelfSouthAddon();
+	public override int LabelNumber => 1154158;  // Fancy Wooden Shelf (South)
 
-        [Constructable]
-        public FancyWoodenShelfSouthDeed()
-        {
-        }
+	[Constructable]
+	public FancyWoodenShelfSouthDeed()
+	{
+	}
 
-        public FancyWoodenShelfSouthDeed(Serial serial)
-            : base(serial)
-        {
-        }
+	public FancyWoodenShelfSouthDeed(Serial serial)
+		: base(serial)
+	{
+	}
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(0); // version
-        }
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
-            int version = reader.ReadInt();
-        }
-    }
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
+	}
 }

@@ -19,7 +19,8 @@ public class Evasion : SamuraiSpell
 	public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(0.25);
 	public override double RequiredSkill => 60.0;
 	public override int RequiredMana => 10;
-	public static bool VerifyCast(Mobile caster, bool messages)
+
+	private static bool VerifyCast(Mobile caster, bool messages)
 	{
 		if (caster == null) // Sanity
 			return false;
@@ -104,7 +105,7 @@ public class Evasion : SamuraiSpell
 		return m_Table.Contains(m);
 	}
 
-	public static TimeSpan GetEvadeDuration(Mobile m)
+	private static TimeSpan GetEvadeDuration(Mobile m)
 	{
 		/* Evasion duration now scales with Bushido skill
 		* 
@@ -151,7 +152,7 @@ public class Evasion : SamuraiSpell
 		return 1.0 + bonus;
 	}
 
-	public static void BeginEvasion(Mobile m)
+	private static void BeginEvasion(Mobile m)
 	{
 		Timer t = (Timer)m_Table[m];
 
@@ -183,10 +184,7 @@ public class Evasion : SamuraiSpell
 
 	public override bool CheckCast()
 	{
-		if (VerifyCast(Caster, true))
-			return base.CheckCast();
-
-		return false;
+		return VerifyCast(Caster, true) && base.CheckCast();
 	}
 
 	public override void OnBeginCast()

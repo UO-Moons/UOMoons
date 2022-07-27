@@ -59,8 +59,8 @@ public class CreateFoodSpell : MagerySpell
 
 public class FoodInfo
 {
-	public Type Type { get; set; }
-	public string Name { get; set; }
+	private Type Type { get; }
+	public string Name { get; }
 
 	public FoodInfo(Type type, string name)
 	{

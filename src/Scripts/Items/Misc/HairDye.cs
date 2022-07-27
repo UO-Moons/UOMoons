@@ -1,167 +1,163 @@
 using Server.Gumps;
 using Server.Network;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class HairDye : BaseItem
 {
-	public class HairDye : BaseItem
+	public override int LabelNumber => 1041060;  // Hair Dye
+
+	[Constructable]
+	public HairDye() : base(0xEFF)
 	{
-		public override int LabelNumber => 1041060;  // Hair Dye
+		Weight = 1.0;
+	}
 
-		[Constructable]
-		public HairDye() : base(0xEFF)
+	public HairDye(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		if (from.InRange(GetWorldLocation(), 1))
 		{
-			Weight = 1.0;
+			from.CloseGump(typeof(HairDyeGump));
+			from.SendGump(new HairDyeGump(this));
+		}
+		else
+		{
+			from.LocalOverheadMessage(MessageType.Regular, 906, 1019045); // I can't reach that.
+		}
+	}
+}
+
+public class HairDyeGump : Gump
+{
+	private readonly HairDye m_HairDye;
+
+	private class HairDyeEntry
+	{
+		public string Name { get; }
+		public int HueStart { get; }
+		public int HueCount { get; }
+
+		public HairDyeEntry(string name, int hueStart, int hueCount)
+		{
+			Name = name;
+			HueStart = hueStart;
+			HueCount = hueCount;
+		}
+	}
+
+	private static readonly HairDyeEntry[] m_Entries = {
+		new( "*****", 1602, 26 ),
+		new( "*****", 1628, 27 ),
+		new( "*****", 1502, 32 ),
+		new( "*****", 1302, 32 ),
+		new( "*****", 1402, 32 ),
+		new( "*****", 1202, 24 ),
+		new( "*****", 2402, 29 ),
+		new( "*****", 2213, 6 ),
+		new( "*****", 1102, 8 ),
+		new( "*****", 1110, 8 ),
+		new( "*****", 1118, 16 ),
+		new( "*****", 1134, 16 )
+	};
+
+	public HairDyeGump(HairDye dye) : base(50, 50)
+	{
+		m_HairDye = dye;
+
+		AddPage(0);
+
+		AddBackground(100, 10, 350, 355, 2600);
+		AddBackground(120, 54, 110, 270, 5100);
+
+		AddHtmlLocalized(70, 25, 400, 35, 1011013, false, false); // <center>Hair Color Selection Menu</center>
+
+		AddButton(149, 328, 4005, 4007, 1, GumpButtonType.Reply, 0);
+		AddHtmlLocalized(185, 329, 250, 35, 1011014, false, false); // Dye my hair this color!
+
+		for (int i = 0; i < m_Entries.Length; ++i)
+		{
+			AddLabel(130, 59 + (i * 22), m_Entries[i].HueStart - 1, m_Entries[i].Name);
+			AddButton(207, 60 + (i * 22), 5224, 5224, 0, GumpButtonType.Page, i + 1);
 		}
 
-		public HairDye(Serial serial) : base(serial)
+		for (int i = 0; i < m_Entries.Length; ++i)
 		{
-		}
+			HairDyeEntry e = m_Entries[i];
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+			AddPage(i + 1);
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			if (from.InRange(GetWorldLocation(), 1))
+			for (int j = 0; j < e.HueCount; ++j)
 			{
-				from.CloseGump(typeof(HairDyeGump));
-				from.SendGump(new HairDyeGump(this));
-			}
-			else
-			{
-				from.LocalOverheadMessage(MessageType.Regular, 906, 1019045); // I can't reach that.
+				AddLabel(278 + ((j / 16) * 80), 52 + ((j % 16) * 17), e.HueStart + j - 1, "*****");
+				AddRadio(260 + ((j / 16) * 80), 52 + ((j % 16) * 17), 210, 211, false, (i * 100) + j);
 			}
 		}
 	}
 
-	public class HairDyeGump : Gump
+	public override void OnResponse(NetState from, RelayInfo info)
 	{
-		private readonly HairDye m_HairDye;
+		if (m_HairDye.Deleted)
+			return;
 
-		private class HairDyeEntry
+		Mobile m = from.Mobile;
+		int[] switches = info.Switches;
+
+		if (!m_HairDye.IsChildOf(m.Backpack))
 		{
-			public string Name { get; }
-			public int HueStart { get; }
-			public int HueCount { get; }
-
-			public HairDyeEntry(string name, int hueStart, int hueCount)
-			{
-				Name = name;
-				HueStart = hueStart;
-				HueCount = hueCount;
-			}
+			m.SendLocalizedMessage(1042010); //You must have the objection your backpack to use it.
+			return;
 		}
 
-		private static readonly HairDyeEntry[] m_Entries = new HairDyeEntry[]
-			{
-				new HairDyeEntry( "*****", 1602, 26 ),
-				new HairDyeEntry( "*****", 1628, 27 ),
-				new HairDyeEntry( "*****", 1502, 32 ),
-				new HairDyeEntry( "*****", 1302, 32 ),
-				new HairDyeEntry( "*****", 1402, 32 ),
-				new HairDyeEntry( "*****", 1202, 24 ),
-				new HairDyeEntry( "*****", 2402, 29 ),
-				new HairDyeEntry( "*****", 2213, 6 ),
-				new HairDyeEntry( "*****", 1102, 8 ),
-				new HairDyeEntry( "*****", 1110, 8 ),
-				new HairDyeEntry( "*****", 1118, 16 ),
-				new HairDyeEntry( "*****", 1134, 16 )
-			};
-
-		public HairDyeGump(HairDye dye) : base(50, 50)
+		if (info.ButtonID != 0 && switches.Length > 0)
 		{
-			m_HairDye = dye;
-
-			AddPage(0);
-
-			AddBackground(100, 10, 350, 355, 2600);
-			AddBackground(120, 54, 110, 270, 5100);
-
-			AddHtmlLocalized(70, 25, 400, 35, 1011013, false, false); // <center>Hair Color Selection Menu</center>
-
-			AddButton(149, 328, 4005, 4007, 1, GumpButtonType.Reply, 0);
-			AddHtmlLocalized(185, 329, 250, 35, 1011014, false, false); // Dye my hair this color!
-
-			for (int i = 0; i < m_Entries.Length; ++i)
+			if (m.HairItemId == 0 && m.FacialHairItemId == 0)
 			{
-				AddLabel(130, 59 + (i * 22), m_Entries[i].HueStart - 1, m_Entries[i].Name);
-				AddButton(207, 60 + (i * 22), 5224, 5224, 0, GumpButtonType.Page, i + 1);
-			}
-
-			for (int i = 0; i < m_Entries.Length; ++i)
-			{
-				HairDyeEntry e = m_Entries[i];
-
-				AddPage(i + 1);
-
-				for (int j = 0; j < e.HueCount; ++j)
-				{
-					AddLabel(278 + ((j / 16) * 80), 52 + ((j % 16) * 17), e.HueStart + j - 1, "*****");
-					AddRadio(260 + ((j / 16) * 80), 52 + ((j % 16) * 17), 210, 211, false, (i * 100) + j);
-				}
-			}
-		}
-
-		public override void OnResponse(NetState from, RelayInfo info)
-		{
-			if (m_HairDye.Deleted)
-				return;
-
-			Mobile m = from.Mobile;
-			int[] switches = info.Switches;
-
-			if (!m_HairDye.IsChildOf(m.Backpack))
-			{
-				m.SendLocalizedMessage(1042010); //You must have the objectin your backpack to use it.
-				return;
-			}
-
-			if (info.ButtonID != 0 && switches.Length > 0)
-			{
-				if (m.HairItemId == 0 && m.FacialHairItemId == 0)
-				{
-					m.SendLocalizedMessage(502623); // You have no hair to dye and cannot use this
-				}
-				else
-				{
-					// To prevent this from being exploited, the hue is abstracted into an internal list
-
-					int entryIndex = switches[0] / 100;
-					int hueOffset = switches[0] % 100;
-
-					if (entryIndex >= 0 && entryIndex < m_Entries.Length)
-					{
-						HairDyeEntry e = m_Entries[entryIndex];
-
-						if (hueOffset >= 0 && hueOffset < e.HueCount)
-						{
-							int hue = e.HueStart + hueOffset;
-
-							m.HairHue = hue;
-							m.FacialHairHue = hue;
-
-							m.SendLocalizedMessage(501199);  // You dye your hair
-							m_HairDye.Delete();
-							m.PlaySound(0x4E);
-						}
-					}
-				}
+				m.SendLocalizedMessage(502623); // You have no hair to dye and cannot use this
 			}
 			else
 			{
-				m.SendLocalizedMessage(501200); // You decide not to dye your hair
+				// To prevent this from being exploited, the hue is abstracted into an internal list
+
+				int entryIndex = switches[0] / 100;
+				int hueOffset = switches[0] % 100;
+
+				if (entryIndex < 0 || entryIndex >= m_Entries.Length)
+					return;
+				HairDyeEntry e = m_Entries[entryIndex];
+
+				if (hueOffset < 0 || hueOffset >= e.HueCount)
+					return;
+				int hue = e.HueStart + hueOffset;
+
+				m.HairHue = hue;
+				m.FacialHairHue = hue;
+
+				m.SendLocalizedMessage(501199);  // You dye your hair
+				m_HairDye.Delete();
+				m.PlaySound(0x4E);
 			}
+		}
+		else
+		{
+			m.SendLocalizedMessage(501200); // You decide not to dye your hair
 		}
 	}
 }

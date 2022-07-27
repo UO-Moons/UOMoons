@@ -1,33 +1,31 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class CrystallineFragments : BaseItem
 {
-	public class CrystallineFragments : BaseItem
+	public override int LabelNumber => 1073160;  // Crystalline Fragments
+
+	[Constructable]
+	public CrystallineFragments() : base(0x223B)
 	{
-		public override int LabelNumber => 1073160;  // Crystalline Fragments
+		LootType = LootType.Blessed;
+		Hue = 0x47E;
+	}
 
-		[Constructable]
-		public CrystallineFragments() : base(0x223B)
-		{
-			LootType = LootType.Blessed;
-			Hue = 0x47E;
-		}
+	public CrystallineFragments(Serial serial) : base(serial)
+	{
+	}
 
-		public CrystallineFragments(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

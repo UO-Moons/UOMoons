@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.ManaDraught")]
 public class ManaDraught : Item
 {
 	private static readonly Dictionary<PlayerMobile, DateTime> DaughtUsageList = new();
@@ -33,7 +32,7 @@ public class ManaDraught : Item
 		toRemove.Clear();
 	}
 
-	private bool CheckUse(PlayerMobile pm)
+	private static bool CheckUse(PlayerMobile pm)
 	{
 		if (DaughtUsageList.ContainsKey(pm))
 		{
@@ -51,7 +50,7 @@ public class ManaDraught : Item
 		}
 		else
 		{
-			by.SendLocalizedMessage(1079263, ((int)((DaughtUsageList[by] + Cooldown) - DateTime.Now).TotalSeconds).ToString());
+			by.SendLocalizedMessage(1079263, ((int)(DaughtUsageList[by] + Cooldown - DateTime.Now).TotalSeconds).ToString());
 		}
 	}
 

@@ -3,7 +3,7 @@ namespace Server.Items;
 public class BlueBook : BaseBook
 {
 	[Constructable]
-	public BlueBook() : base(0xFF2, 40, true)
+	public BlueBook() : base(0xFF2, 40)
 	{
 	}
 
@@ -34,6 +34,6 @@ public class BlueBook : BaseBook
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 }

@@ -94,7 +94,7 @@ namespace Server.Mobiles
             MaxOutSkill(bc, SkillName.Alchemy);
 
 
-            bc.AI = AIType.SuperAI;
+            bc.Ai = AIType.SuperAI;
             bc.FightMode = FightMode.Weakest;
 
             bc.DamageMin += DamageBuff;
@@ -161,7 +161,7 @@ namespace Server.Mobiles
             if (Array.IndexOf(Maps, m) == -1)
                 return false;
 
-            if (bc is BaseChampion || bc is Harrower || bc is BaseVendor || bc is BaseEscortable || bc is Clone || bc.IsSupreme || bc.IsBlackRock)
+            if (bc is BaseChampion || bc is Harrower || bc is BaseVendor || bc is BaseEscortable || bc is MirrorImageClone || bc.IsSupreme || bc.IsBlackRock)
                 return false;
 
             int fame = bc.Fame;

@@ -263,10 +263,11 @@ namespace Server.Items
 
 			if (state.IsEnhancedClient && pageCount == 1)
 			{
-				book.ContentChangeEC(state, pvSrc);
+				book.ContentChangeEc(state, pvSrc);
 				return;
 			}
-			else if (book.Writable && from.InRange(book.GetWorldLocation(), 1))
+
+			if (book.Writable && from.InRange(book.GetWorldLocation(), 1))
 			{
 				if (pageCount > book.PagesCount)
 					return;

@@ -240,31 +240,31 @@ namespace Server.Mobiles
             }
 
             if (attacker.Skills[SkillName.Swords].Value >= 50.0 || attacker.Skills[SkillName.Fencing].Value >= 50.0 || attacker.Skills[SkillName.Macing].Value >= 50.0)
-                ChangeAIType(AIType.AI_Melee);
+                ChangeAiType(AIType.AI_Melee);
 
             if (attacker.Skills[SkillName.Archery].Value >= 50.0)
-                ChangeAIType(AIType.AI_Archer);
+                ChangeAiType(AIType.AI_Archer);
 
             if (attacker.Skills[SkillName.Spellweaving].Value >= 50.0)
-                ChangeAIType(AIType.AI_Spellweaving);
+                ChangeAiType(AIType.AI_Spellweaving);
 
             if (attacker.Skills[SkillName.Mysticism].Value >= 50.0)
-                ChangeAIType(AIType.AI_Mystic);
+                ChangeAiType(AIType.AI_Mystic);
 
             if (attacker.Skills[SkillName.Magery].Value >= 50.0)
-                ChangeAIType(AIType.AI_Mage);
+                ChangeAiType(AIType.AI_Mage);
 
             if (attacker.Skills[SkillName.Necromancy].Value >= 50.0)
-                ChangeAIType(AIType.AI_Necro);
+                ChangeAiType(AIType.AI_Necro);
 
             if (attacker.Skills[SkillName.Ninjitsu].Value >= 50.0)
-                ChangeAIType(AIType.AI_Ninja);
+                ChangeAiType(AIType.AI_Ninja);
 
             if (attacker.Skills[SkillName.Bushido].Value >= 50.0)
-                ChangeAIType(AIType.AI_Samurai);
+                ChangeAiType(AIType.AI_Samurai);
 
             if (attacker.Skills[SkillName.Necromancy].Value >= 50.0 && attacker.Skills[SkillName.Magery].Value >= 50.0)
-                ChangeAIType(AIType.AI_NecroMage);
+                ChangeAiType(AIType.AI_NecroMage);
 
             PlaySound(0x511);
             FixedParticles(0x376A, 1, 14, 5045, EffectLayer.Waist);
@@ -316,7 +316,7 @@ namespace Server.Mobiles
 
             DeleteItems();
 
-            ChangeAIType(AIType.AI_Mage);
+            ChangeAiType(AIType.AI_Mage);
 
             if (m_Timer != null)
             {

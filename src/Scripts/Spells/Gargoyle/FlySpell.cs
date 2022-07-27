@@ -24,7 +24,7 @@ public class FlySpell : Spell
 	public override bool CheckFizzle() { return true; }
 	public override bool CheckNextSpellTime => false;
 
-	public override bool CheckDisturb(DisturbType type, bool checkFirst, bool resistable)
+	public override bool CheckDisturb(DisturbType type, bool resistable)
 	{
 		return type is not (DisturbType.EquipRequest or DisturbType.UseRequest);
 	}
@@ -42,20 +42,18 @@ public class FlySpell : Spell
 			Caster.SendLocalizedMessage(1113192); // You have been disrupted while attempting to fly!
 	}
 
-	public static bool CheckFlyingAllowed(Mobile mob, bool message)
+	private static bool CheckFlyingAllowed(Mobile mob)
 	{
-		if (mob.Region != null && !mob.Region.AllowFlying(mob))
-		{
-			mob.SendMessage("You may not fly here.");
-			return false;
-		}
+		if (mob.Region == null || mob.Region.AllowFlying(mob))
+			return true;
+		mob.SendMessage("You may not fly here.");
+		return false;
 
-		return true;
 	}
 
 	public override bool CheckCast()
 	{
-		if (!CheckFlyingAllowed(Caster, true))
+		if (!CheckFlyingAllowed(Caster))
 		{
 			return false;
 		}

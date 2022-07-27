@@ -36,14 +36,14 @@ public enum SortBy
 
 public static class UltimaStore
 {
-	public static readonly string FilePath = Path.Combine("Saves/Misc", "UltimaStore.bin");
+	private static readonly string FilePath = Path.Combine("Saves/Misc", "UltimaStore.bin");
 
-	public static bool Enabled { get => Configuration.Enabled;
+	private static bool Enabled { get => Configuration.Enabled;
 		set => Configuration.Enabled = value;
 	}
 
 	public static List<StoreEntry> Entries { get; }
-	public static Dictionary<Mobile, List<Item>> PendingItems { get; }
+	private static Dictionary<Mobile, List<Item>> PendingItems { get; }
 
 	private static UltimaStoreContainer _ultimaStoreContainer;
 
@@ -51,12 +51,12 @@ public static class UltimaStore
 	{
 		get
 		{
-			if (_ultimaStoreContainer != null && _ultimaStoreContainer.Deleted)
+			if (_ultimaStoreContainer is { Deleted: true })
 			{
 				_ultimaStoreContainer = null;
 			}
 
-			return _ultimaStoreContainer ?? (_ultimaStoreContainer = new UltimaStoreContainer());
+			return _ultimaStoreContainer ??= new UltimaStoreContainer();
 		}
 	}
 
@@ -69,7 +69,7 @@ public static class UltimaStore
 
 	public static void Configure()
 	{
-		PacketHandlers.Register(0xFA, 1, true, UOStoreRequest);
+		PacketHandlers.Register(0xFA, 1, true, UoStoreRequest);
 
 		CommandSystem.Register("Store", AccessLevel.Player, e => OpenStore(e.Mobile as PlayerMobile));
 
@@ -359,27 +359,27 @@ public static class UltimaStore
 		Register<MerchantsTrinket>(new TextDefinition[] { 1156828, 1156682 }, 1156667, 0, 0x9C67, 0, 500, cat, ConstructMerchantsTrinket);
 
 		Register<ArmorEngravingToolToken>(1080547, 1156652, 0, 0x9C65, 0, 200, cat);
-		Register<BagOfBulkOrderCovers>(1071116, 1156654, 0, 0x9CC6, 0, 200, cat, ConstructBOBCoverTwo);
+		Register<BagOfBulkOrderCovers>(1071116, 1156654, 0, 0x9CC6, 0, 200, cat, ConstructBobCoverTwo);
 	}
 
-	public static void Register<T>(TextDefinition name, int tooltip, int itemID, int gumpID, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null) where T : Item
+	private static void Register<T>(TextDefinition name, int tooltip, int itemId, int gumpId, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null) where T : Item
 	{
-		Register(typeof(T), name, tooltip, itemID, gumpID, hue, cost, cat, constructor);
+		Register(typeof(T), name, tooltip, itemId, gumpId, hue, cost, cat, constructor);
 	}
 
-	public static void Register(Type itemType, TextDefinition name, int tooltip, int itemID, int gumpID, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null)
+	private static void Register(Type itemType, TextDefinition name, int tooltip, int itemId, int gumpId, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null)
 	{
-		Register(new StoreEntry(itemType, name, tooltip, itemID, gumpID, hue, cost, cat, constructor));
+		Register(new StoreEntry(itemType, name, tooltip, itemId, gumpId, hue, cost, cat, constructor));
 	}
 
-	public static void Register<T>(TextDefinition[] name, int tooltip, int itemID, int gumpID, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null) where T : Item
+	private static void Register<T>(TextDefinition[] name, int tooltip, int itemId, int gumpId, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null) where T : Item
 	{
-		Register(typeof(T), name, tooltip, itemID, gumpID, hue, cost, cat, constructor);
+		Register(typeof(T), name, tooltip, itemId, gumpId, hue, cost, cat, constructor);
 	}
 
-	public static void Register(Type itemType, TextDefinition[] name, int tooltip, int itemID, int gumpID, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null)
+	private static void Register(Type itemType, TextDefinition[] name, int tooltip, int itemId, int gumpId, int hue, int cost, StoreCategory cat, Func<Mobile, StoreEntry, Item> constructor = null)
 	{
-		Register(new StoreEntry(itemType, name, tooltip, itemID, gumpID, hue, cost, cat, constructor));
+		Register(new StoreEntry(itemType, name, tooltip, itemId, gumpId, hue, cost, cat, constructor));
 	}
 
 	public static StoreEntry GetEntry(Type t)
@@ -387,17 +387,17 @@ public static class UltimaStore
 		return Entries.FirstOrDefault(e => e.ItemType == t);
 	}
 
-	public static void Register(StoreEntry entry)
+	private static void Register(StoreEntry entry)
 	{
 		Entries.Add(entry);
 	}
 
-	public static bool CanSearch(Mobile m)
+	private static bool CanSearch(Mobile m)
 	{
 		return m != null && m.Region.GetLogoutDelay(m) <= TimeSpan.Zero;
 	}
 
-	public static void UOStoreRequest(NetState state, PacketReader pvSrc)
+	private static void UoStoreRequest(NetState state, PacketReader pvSrc)
 	{
 		OpenStore(state.Mobile as PlayerMobile);
 	}
@@ -438,52 +438,36 @@ public static class UltimaStore
 	}
 
 	#region Constructors
-	public static Item ConstructHairDye(Mobile m, StoreEntry entry)
+
+	private static Item ConstructHairDye(Mobile m, StoreEntry entry)
 	{
 		NaturalHairDye.HairDyeInfo info = NaturalHairDye.Table.FirstOrDefault(x => x.Localization == entry.Name[1].Number);
 
-		if (info != null)
-		{
-			return new NaturalHairDye(info.Type);
-		}
-
-		return null;
+		return info != null ? new NaturalHairDye(info.Type) : null;
 	}
 
-	public static Item ConstructHaochisPigment(Mobile m, StoreEntry entry)
+	private static Item ConstructHaochisPigment(Mobile m, StoreEntry entry)
 	{
 		HaochisPigment.HoachisPigmentInfo info = HaochisPigment.Table.FirstOrDefault(x => x.Localization == entry.Name[1].Number);
 
-		if (info != null)
-		{
-			return new HaochisPigment(info.Type, 50);
-		}
-
-		return null;
+		return info != null ? new HaochisPigment(info.Type, 50) : null;
 	}
 
-	public static Item ConstructPigments(Mobile m, StoreEntry entry)
+	private static Item ConstructPigments(Mobile m, StoreEntry entry)
 	{
 		PigmentType type = PigmentType.None;
 
 		for (int i = 0; i < PigmentsOfTokuno.Table.Length; i++)
 		{
-			if (PigmentsOfTokuno.Table[i][1] == entry.Name[1].Number)
-			{
-				type = (PigmentType)i;
-				break;
-			}
+			if (PigmentsOfTokuno.Table[i][1] != entry.Name[1].Number) continue;
+			type = (PigmentType)i;
+			break;
 		}
 
-		if (type != PigmentType.None)
-		{
-			return new PigmentsOfTokuno(type, 50);
-		}
-
-		return null;
+		return type != PigmentType.None ? new PigmentsOfTokuno(type, 50) : null;
 	}
 
-	public static Item ConstructEarrings(Mobile m, StoreEntry entry)
+	private static Item ConstructEarrings(Mobile m, StoreEntry entry)
 	{
 		AosElementAttribute ele = AosElementAttribute.Physical;
 
@@ -498,12 +482,12 @@ public static class UltimaStore
 		return new EarringsOfProtection(ele);
 	}
 
-	public static Item ConstructRobe(Mobile m, StoreEntry entry)
+	private static Item ConstructRobe(Mobile m, StoreEntry entry)
 	{
 		return new HoodedBritanniaRobe(entry.ItemId);
 	}
 
-	public static Item ConstructMiniHouseDeed(Mobile m, StoreEntry entry)
+	private static Item ConstructMiniHouseDeed(Mobile m, StoreEntry entry)
 	{
 		int label = entry.Name[1].Number;
 
@@ -512,12 +496,10 @@ public static class UltimaStore
 			default:
 				for (int i = 0; i < MiniHouseInfo.Info.Length; i++)
 				{
-					if (MiniHouseInfo.Info[i].LabelNumber == entry.Name[1].Number)
-					{
-						MiniHouseType type = (MiniHouseType)i;
+					if (MiniHouseInfo.Info[i].LabelNumber != entry.Name[1].Number) continue;
+					MiniHouseType type = (MiniHouseType)i;
 
-						return new MiniHouseDeed(type);
-					}
+					return new MiniHouseDeed(type);
 				}
 				return null;
 			case 1157015: return new MiniHouseDeed(MiniHouseType.TwoStoryWoodAndPlaster);
@@ -525,9 +507,9 @@ public static class UltimaStore
 		}
 	}
 
-	public static Item ConstructRaisedGarden(Mobile m, StoreEntry entry)
+	private static Item ConstructRaisedGarden(Mobile m, StoreEntry entry)
 	{
-		Bag bag = new Bag();
+		Bag bag = new();
 
 		bag.DropItem(new RaisedGardenDeed());
 		bag.DropItem(new RaisedGardenDeed());
@@ -536,9 +518,9 @@ public static class UltimaStore
 		return bag;
 	}
 
-	public static Item ConstructLampPost(Mobile m, StoreEntry entry)
+	private static Item ConstructLampPost(Mobile m, StoreEntry entry)
 	{
-		LampPost2 item = new LampPost2
+		LampPost2 item = new()
 		{
 			Movable = true,
 			LootType = LootType.Blessed
@@ -574,28 +556,27 @@ public static class UltimaStore
 	    return null;
 	}*/
 
-	public static Item ConstructMerchantsTrinket(Mobile m, StoreEntry entry)
+	private static Item ConstructMerchantsTrinket(Mobile m, StoreEntry entry)
 	{
-		switch (entry.Name[0].Number)
+		return entry.Name[0].Number switch
 		{
-			case 1156827: return new MerchantsTrinket(false);
-			case 1156828: return new MerchantsTrinket(true);
-		}
-
-		return null;
+			1156827 => new MerchantsTrinket(false),
+			1156828 => new MerchantsTrinket(true),
+			_ => null
+		};
 	}
 
-	public static Item ConstructBOBCoverOne(Mobile m, StoreEntry entry)
+	private static Item ConstructBOBCoverOne(Mobile m, StoreEntry entry)
 	{
 		return new BagOfBulkOrderCovers(12, 25);
 	}
 
-	public static Item ConstructBOBCoverTwo(Mobile m, StoreEntry entry)
+	private static Item ConstructBobCoverTwo(Mobile m, StoreEntry entry)
 	{
 		return new BagOfBulkOrderCovers(1, 11);
 	}
 
-	public static Item ConstructHitchingPost(Mobile m, StoreEntry entry)
+	private static Item ConstructHitchingPost(Mobile m, StoreEntry entry)
 	{
 		return new HitchingPost(false);
 	}
@@ -623,67 +604,66 @@ public static class UltimaStore
 
 	public static void CheckPendingItem(Mobile m)
 	{
-		if (PendingItems.TryGetValue(m, out List<Item> list))
+		if (!PendingItems.TryGetValue(m, out List<Item> list))
+			return;
+		int index = list.Count;
+
+		while (--index >= 0)
 		{
-			int index = list.Count;
-
-			while (--index >= 0)
+			if (index >= list.Count)
 			{
-				if (index >= list.Count)
-				{
+				continue;
+			}
+
+			Item item = list[index];
+
+			if (item != null)
+			{
+				if (m.Backpack == null || !m.Alive || !m.Backpack.TryDropItem(m, item, false))
 					continue;
-				}
 
-				Item item = list[index];
-
-				if (item != null)
+				if (item is IPromotionalToken { ItemName: { } } token)
 				{
-					if (m.Backpack != null && m.Alive && m.Backpack.TryDropItem(m, item, false))
-					{
-						if (item is IPromotionalToken && ((IPromotionalToken)item).ItemName != null)
-						{
-							// A token has been placed in your backpack. Double-click it to redeem your ~1_PROMO~.
-							m.SendLocalizedMessage(1075248, ((IPromotionalToken)item).ItemName.ToString());
-						}
-						else if (item.LabelNumber > 0 || item.Name != null)
-						{
-							string name = item.LabelNumber > 0 ? ("#" + item.LabelNumber) : item.Name;
+					// A token has been placed in your backpack. Double-click it to redeem your ~1_PROMO~.
+					m.SendLocalizedMessage(1075248, token.ItemName.ToString());
+				}
+				else if (item.LabelNumber > 0 || item.Name != null)
+				{
+					string name = item.LabelNumber > 0 ? ("#" + item.LabelNumber) : item.Name;
 
-							// Your purchase of ~1_ITEM~ has been placed in your backpack.
-							m.SendLocalizedMessage(1156844, name);
-						}
-						else
-						{
-							// Your purchased item has been placed in your backpack.
-							m.SendLocalizedMessage(1156843);
-						}
-
-						list.RemoveAt(index);
-					}
+					// Your purchase of ~1_ITEM~ has been placed in your backpack.
+					m.SendLocalizedMessage(1156844, name);
 				}
 				else
 				{
-					list.RemoveAt(index);
+					// Your purchased item has been placed in your backpack.
+					m.SendLocalizedMessage(1156843);
 				}
-			}
 
-			if (list.Count == 0 && PendingItems.Remove(m))
-			{
-				list.TrimExcess();
+				list.RemoveAt(index);
 			}
+			else
+			{
+				list.RemoveAt(index);
+			}
+		}
+
+		if (list.Count == 0 && PendingItems.Remove(m))
+		{
+			list.TrimExcess();
 		}
 	}
 
 	public static List<StoreEntry> GetSortedList(string searchString)
 	{
-		List<StoreEntry> list = new List<StoreEntry>();
+		List<StoreEntry> list = new();
 
 		list.AddRange(Entries.Where(e => Insensitive.Contains(GetStringName(e.Name), searchString)));
 
 		return list;
 	}
 
-	public static string GetStringName(TextDefinition[] text)
+	private static string GetStringName(TextDefinition[] text)
 	{
 		string str = string.Empty;
 
@@ -750,12 +730,7 @@ public static class UltimaStore
 	{
 		PlayerProfile profile = GetProfile(m, false);
 
-		if (profile != null)
-		{
-			return profile.Cart.Count;
-		}
-
-		return 0;
+		return profile != null ? profile.Cart.Count : 0;
 	}
 
 	public static int GetSubTotal(Dictionary<StoreEntry, int> cart)
@@ -776,9 +751,9 @@ public static class UltimaStore
 		{
 			case CurrencyType.Sovereigns:
 			{
-				if (m is PlayerMobile)
+				if (m is PlayerMobile mobile)
 				{
-					return ((PlayerMobile)m).AccountSovereigns;
+					return mobile.AccountSovereigns;
 				}
 			}
 				break;
@@ -813,9 +788,9 @@ public static class UltimaStore
 		}
 		else if (total > GetCurrency(m, true))
 		{
-			if (m is PlayerMobile)
+			if (m is PlayerMobile mobile)
 			{
-				BaseGump.SendGump(new NoFundsGump((PlayerMobile)m));
+				BaseGump.SendGump(new NoFundsGump(mobile));
 			}
 		}
 		else
@@ -823,7 +798,7 @@ public static class UltimaStore
 			int subtotal = 0;
 			bool fail = false;
 
-			List<StoreEntry> remove = new List<StoreEntry>();
+			List<StoreEntry> remove = new();
 
 			foreach (KeyValuePair<StoreEntry, int> entry in cart)
 			{
@@ -879,15 +854,14 @@ public static class UltimaStore
 	/// </summary>
 	/// <param name="m"></param>
 	/// <param name="amount"></param>
-	public static int DeductCurrency(Mobile m, int amount)
+	private static void DeductCurrency(Mobile m, int amount)
 	{
 		switch (Configuration.CurrencyImpl)
 		{
 			case CurrencyType.Sovereigns:
 			{
-				if (m is PlayerMobile && ((PlayerMobile)m).WithdrawSovereigns(amount))
+				if (m is PlayerMobile mobile && mobile.WithdrawSovereigns(amount))
 				{
-					return amount;
 				}
 			}
 				break;
@@ -895,35 +869,32 @@ public static class UltimaStore
 			{
 				if (Banker.Withdraw(m, amount, true))
 				{
-					return amount;
 				}
 			}
 				break;
-			/*case CurrencyType.PointsSystem:
-			    {
-			        PointsSystem sys = PointsSystem.GetSystemInstance(Configuration.PointsImpl);
-
-			        if (sys != null && sys.DeductPoints(m, amount, true))
-			        {
-			            return amount;
-			        }
-			    }
-			    break;*/
 			case CurrencyType.Custom:
-				return Configuration.DeductCustomCurrency(m, amount);
-		}
+				Configuration.DeductCustomCurrency(m, amount);
+				return;
+				/*case CurrencyType.PointsSystem:
+					{
+						PointsSystem sys = PointsSystem.GetSystemInstance(Configuration.PointsImpl);
 
-		return 0;
+						if (sys != null && sys.DeductPoints(m, amount, true))
+						{
+							return amount;
+						}
+					}
+					break;*/
+		}
 	}
 
 	#region Player Persistence
-	public static Dictionary<Mobile, PlayerProfile> PlayerProfiles { get; private set; }
+
+	private static Dictionary<Mobile, PlayerProfile> PlayerProfiles { get; }
 
 	public static PlayerProfile GetProfile(Mobile m, bool create = true)
 	{
-		PlayerProfile profile;
-
-		if ((!PlayerProfiles.TryGetValue(m, out profile) || profile == null) && create)
+		if ((!PlayerProfiles.TryGetValue(m, out var profile) || profile == null) && create)
 		{
 			PlayerProfiles[m] = profile = new PlayerProfile(m);
 		}
@@ -931,24 +902,19 @@ public static class UltimaStore
 		return profile;
 	}
 
-	public static Dictionary<StoreEntry, int> GetCart(Mobile m)
+	private static Dictionary<StoreEntry, int> GetCart(Mobile m)
 	{
 		PlayerProfile profile = GetProfile(m, false);
 
-		if (profile != null)
-		{
-			return profile.Cart;
-		}
-
-		return null;
+		return profile?.Cart;
 	}
 
-	public static void OnSave()
+	private static void OnSave()
 	{
 		Persistence.Serialize(FilePath, Serialize);
 	}
 
-	public static void OnLoad()
+	private static void OnLoad()
 	{
 		Persistence.Deserialize(FilePath, Deserialize);
 	}
@@ -998,7 +964,7 @@ public static class UltimaStore
 
 		for (int i = 0; i < count; i++)
 		{
-			PlayerProfile pe = new PlayerProfile(reader);
+			PlayerProfile pe = new(reader);
 
 			if (pe.Player != null)
 			{
@@ -1031,7 +997,7 @@ public sealed class UltimaStoreContainer : Container
 		: base(serial)
 	{ }
 
-	public void AddDisplayItem(Item item)
+	private void AddDisplayItem(Item item)
 	{
 		if (item == null)
 		{
@@ -1050,20 +1016,19 @@ public sealed class UltimaStoreContainer : Container
 	{
 		Item item = GetDisplayItem(t);
 
-		if (item == null)
-		{
-			item = Loot.Construct(t);
+		if (item != null)
+			return item;
+		item = Loot.Construct(t);
 
-			if (item != null)
-			{
-				AddDisplayItem(item);
-			}
+		if (item != null)
+		{
+			AddDisplayItem(item);
 		}
 
 		return item;
 	}
 
-	public Item GetDisplayItem(Type t)
+	private static Item GetDisplayItem(Type t)
 	{
 		return m_DisplayItems.FirstOrDefault(x => x.GetType() == t);
 	}

@@ -1,39 +1,35 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class Candle : BaseEquipableLight
 {
-	public class Candle : BaseEquipableLight
+	public override int LitItemId => 0xA0F;
+	public override int UnlitItemId => 0xA28;
+
+	[Constructable]
+	public Candle() : base(0xA28)
 	{
-		public override int LitItemID => 0xA0F;
-		public override int UnlitItemID => 0xA28;
+		Duration = TimeSpan.Zero;
 
-		[Constructable]
-		public Candle() : base(0xA28)
-		{
-			if (Burnout)
-				Duration = TimeSpan.FromMinutes(20);
-			else
-				Duration = TimeSpan.Zero;
+		Burning = false;
+		Light = LightType.Circle150;
+		Weight = 1.0;
+	}
 
-			Burning = false;
-			Light = LightType.Circle150;
-			Weight = 1.0;
-		}
+	public Candle(Serial serial) : base(serial)
+	{
+	}
 
-		public Candle(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

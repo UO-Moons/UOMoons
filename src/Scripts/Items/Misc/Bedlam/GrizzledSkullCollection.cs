@@ -1,31 +1,29 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class GrizzledSkullCollection : BaseItem
 {
-	public class GrizzledSkullCollection : BaseItem
+	public override int LabelNumber => 1072116;  // Grizzled Skull collection
+
+	[Constructable]
+	public GrizzledSkullCollection() : base(0x21FC)
 	{
-		public override int LabelNumber => 1072116;  // Grizzled Skull collection
+	}
 
-		[Constructable]
-		public GrizzledSkullCollection() : base(0x21FC)
-		{
-		}
+	public GrizzledSkullCollection(Serial serial) : base(serial)
+	{
+	}
 
-		public GrizzledSkullCollection(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

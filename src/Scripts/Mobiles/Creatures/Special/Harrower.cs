@@ -256,8 +256,8 @@ namespace Server.Mobiles
 			{
 				DamageStore ds = rights[i];
 
-				if (ds.m_HasRight)
-					toGive.Add(ds.m_Mobile);
+				if (ds.HasRight)
+					toGive.Add(ds.Mobile);
 			}
 
 			if (toGive.Count == 0)
@@ -331,8 +331,8 @@ namespace Server.Mobiles
 				{
 					DamageStore ds = rights[i];
 
-					if (ds.m_HasRight && ds.m_Mobile is PlayerMobile)
-						ChampionTitleInfo.AwardHarrowerTitle((PlayerMobile)ds.m_Mobile);
+					if (ds.HasRight && ds.Mobile is PlayerMobile)
+						ChampionTitleInfo.AwardHarrowerTitle((PlayerMobile)ds.Mobile);
 				}
 
 				if (!NoKillAwards)

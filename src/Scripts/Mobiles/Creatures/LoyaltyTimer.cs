@@ -37,67 +37,69 @@ public class LoyaltyTimer : Timer
 
 		_ = Parallel.ForEach(World.Mobiles.Values, m =>
 		{
-			if (m is BaseMount mount && mount.Rider != null)
+			switch (m)
 			{
-				((BaseCreature)m).OwnerAbandonTime = DateTime.MinValue;
-				return;
-			}
-
-			if (m is BaseCreature c)
-			{
-				if (c.IsDeadPet)
+				case BaseMount { Rider: { } } mount:
+					mount.OwnerAbandonTime = DateTime.MinValue;
+					return;
+				case BaseCreature c:
 				{
-					Mobile owner = c.ControlMaster;
-
-					if (!c.IsStabled && (owner == null || owner.Deleted || owner.Map != c.Map || !owner.InRange(c, 12) || !c.CanSee(owner) || !c.InLOS(owner)))
+					if (c.IsDeadPet)
 					{
-						if (c.OwnerAbandonTime == DateTime.MinValue)
+						Mobile owner = c.ControlMaster;
+
+						if (!c.IsStabled && (owner == null || owner.Deleted || owner.Map != c.Map || !owner.InRange(c, 12) || !c.CanSee(owner) || !c.InLOS(owner)))
 						{
-							c.OwnerAbandonTime = DateTime.UtcNow;
+							if (c.OwnerAbandonTime == DateTime.MinValue)
+							{
+								c.OwnerAbandonTime = DateTime.UtcNow;
+							}
+							else if ((c.OwnerAbandonTime + c.BondingAbandonDelay) <= DateTime.UtcNow)
+							{
+								lock (toRemove)
+									toRemove.Add(c);
+							}
 						}
-						else if ((c.OwnerAbandonTime + c.BondingAbandonDelay) <= DateTime.UtcNow)
+						else
 						{
+							c.OwnerAbandonTime = DateTime.MinValue;
+						}
+					}
+					else if (c.Controlled && c.Commandable)
+					{
+						c.OwnerAbandonTime = DateTime.MinValue;
+
+						if (c.Map != Map.Internal)
+						{
+							c.Loyalty -= (BaseCreature.MaxLoyalty / 10);
+
+							if (c.Loyalty < (BaseCreature.MaxLoyalty / 10))
+							{
+								c.Say(1043270, c.Name); // * ~1_NAME~ looks around desperately *
+								c.PlaySound(c.GetIdleSound());
+							}
+
+							if (c.Loyalty <= 0)
+								lock (toRelease)
+									toRelease.Add(c);
+						}
+					}
+
+					// added lines to check if a wild creature in a house region has to be removed or not
+					if (!c.Controlled && !c.IsStabled && ((c.Region.IsPartOf(typeof(HouseRegion)) && c.CanBeDamaged()) || (c.RemoveIfUntamed && c.Spawner == null)))
+					{
+						c.RemoveStep++;
+
+						if (c.RemoveStep >= 20)
 							lock (toRemove)
 								toRemove.Add(c);
-						}
 					}
 					else
 					{
-						c.OwnerAbandonTime = DateTime.MinValue;
+						c.RemoveStep = 0;
 					}
-				}
-				else if (c.Controlled && c.Commandable)
-				{
-					c.OwnerAbandonTime = DateTime.MinValue;
 
-					if (c.Map != Map.Internal)
-					{
-						c.Loyalty -= (BaseCreature.MaxLoyalty / 10);
-
-						if (c.Loyalty < (BaseCreature.MaxLoyalty / 10))
-						{
-							c.Say(1043270, c.Name); // * ~1_NAME~ looks around desperately *
-							c.PlaySound(c.GetIdleSound());
-						}
-
-						if (c.Loyalty <= 0)
-							lock (toRelease)
-								toRelease.Add(c);
-					}
-				}
-
-				// added lines to check if a wild creature in a house region has to be removed or not
-				if (!c.Controlled && !c.IsStabled && ((c.Region.IsPartOf(typeof(HouseRegion)) && c.CanBeDamaged()) || (c.RemoveIfUntamed && c.Spawner == null)))
-				{
-					c.RemoveStep++;
-
-					if (c.RemoveStep >= 20)
-						lock (toRemove)
-							toRemove.Add(c);
-				}
-				else
-				{
-					c.RemoveStep = 0;
+					break;
 				}
 			}
 		});
@@ -117,10 +119,7 @@ public class LoyaltyTimer : Timer
 			c.OwnerAbandonTime = DateTime.MinValue;
 			c.ControlTarget = null;
 
-			if (c.AIObject != null)
-			{
-				c.AIObject.DoOrderRelease();
-			}
+			c.AIObject?.DoOrderRelease();
 			// this will prevent no release of creatures left alone with AI disabled (and consequent bug of Followers)
 			c.DropBackpack();
 			c.RemoveOnSave = true;

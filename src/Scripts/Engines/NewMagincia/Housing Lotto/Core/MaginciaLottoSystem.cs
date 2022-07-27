@@ -10,17 +10,17 @@ namespace Server.Engines.NewMagincia;
 
 public class MaginciaLottoSystem : Item
 {
-	public static readonly TimeSpan DefaultLottoDuration = TimeSpan.FromDays(30);
-	public static readonly int WritExpirePeriod = 30;
-	public static readonly bool AutoResetLotto = false;
+	private static readonly TimeSpan DefaultLottoDuration = TimeSpan.FromDays(30);
+	public const int WritExpirePeriod = 30;
+	public const bool AutoResetLotto = false;
 
 	public static MaginciaLottoSystem Instance { get; set; }
 
 	public static List<MaginciaHousingPlot> Plots { get; } = new();
 
-	public static Dictionary<Map, List<Rectangle2D>> FreeHousingZones { get; private set; }
+	private static Dictionary<Map, List<Rectangle2D>> FreeHousingZones { get; set; }
 
-	public static Dictionary<Mobile, List<NewMaginciaMessage>> MessageQueue { get; } = new();
+	private static Dictionary<Mobile, List<NewMaginciaMessage>> MessageQueue { get; } = new();
 
 	private Timer _timer;
 	private bool _enabled;
@@ -38,12 +38,11 @@ public class MaginciaLottoSystem : Item
 		get => false;
 		set
 		{
-			if (value)
+			if (!value)
+				return;
+			foreach (var plot in Plots.Where(plot => plot.IsAvailable))
 			{
-				foreach (var plot in Plots.Where(plot => plot.IsAvailable))
-				{
-					plot.LottoEnds = DateTime.UtcNow + LottoDuration;
-				}
+				plot.LottoEnds = DateTime.UtcNow + LottoDuration;
 			}
 		}
 	}
@@ -54,16 +53,15 @@ public class MaginciaLottoSystem : Item
 		get => _enabled;
 		set
 		{
-			if (_enabled != value)
+			if (_enabled == value)
+				return;
+			if (value)
 			{
-				if (value)
-				{
-					StartTimer();
-				}
-				else
-				{
-					EndTimer();
-				}
+				StartTimer();
+			}
+			else
+			{
+				EndTimer();
 			}
 		}
 	}
@@ -72,7 +70,7 @@ public class MaginciaLottoSystem : Item
 	public static int GoldSink { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public TimeSpan LottoDuration { get; set; }
+	public TimeSpan LottoDuration { get; private set; }
 
 	public MaginciaLottoSystem() : base(3240)
 	{
@@ -102,7 +100,7 @@ public class MaginciaLottoSystem : Item
 		}
 	}
 
-	public void StartTimer()
+	private void StartTimer()
 	{
 		_timer?.Stop();
 
@@ -111,7 +109,7 @@ public class MaginciaLottoSystem : Item
 		_timer.Start();
 	}
 
-	public void EndTimer()
+	private void EndTimer()
 	{
 		if (_timer != null)
 		{
@@ -120,7 +118,7 @@ public class MaginciaLottoSystem : Item
 		}
 	}
 
-	public void ProcessTick()
+	private void ProcessTick()
 	{
 		List<MaginciaHousingPlot> plots = new List<MaginciaHousingPlot>(Plots);
 
@@ -148,7 +146,7 @@ public class MaginciaLottoSystem : Item
 	{
 	}
 
-	public static void RegisterPlot(MaginciaHousingPlot plot)
+	private static void RegisterPlot(MaginciaHousingPlot plot)
 	{
 		Plots.Add(plot);
 	}
@@ -197,16 +195,15 @@ public class MaginciaLottoSystem : Item
 
 			foreach (Item item in items)
 			{
-				if (item is WritOfLease {Expired: false, Plot: { }} lease && lease.Plot.Bounds.Contains(center) && from.Map == lease.Plot.Map)
-				{
-					lease.OnExpired();
-					return;
-				}
+				if (item is not WritOfLease { Expired: false, Plot: { } } lease ||
+				    !lease.Plot.Bounds.Contains(center) || from.Map != lease.Plot.Map) continue;
+				lease.OnExpired();
+				return;
 			}
 		}
 	}
 
-	public static bool IsInMagincia(int x, int y, Map map)
+	private static bool IsInMagincia(int x, int y, Map map)
 	{
 		return x is > 3614 and < 3817 && y is > 2031 and < 2274 && (map == Map.Trammel || map == Map.Felucca);
 	}
@@ -343,7 +340,7 @@ public class MaginciaLottoSystem : Item
 		return FormatSextant(p, plot.Map);
 	}
 
-	public static string FormatSextant(Point3D p, Map map)
+	private static string FormatSextant(Point3D p, Map map)
 	{
 		int xLong = 0, yLat = 0;
 		int xMins = 0, yMins = 0;
@@ -385,7 +382,7 @@ public class MaginciaLottoSystem : Item
 		}
 	}
 
-	public static void AddMessageToQueue(Mobile from, NewMaginciaMessage message)
+	private static void AddMessageToQueue(Mobile from, NewMaginciaMessage message)
 	{
 		if (!MessageQueue.ContainsKey(from) || MessageQueue[from] == null)
 		{
@@ -438,7 +435,7 @@ public class MaginciaLottoSystem : Item
 		}
 	}
 
-	public static void OnLogin(Mobile from)
+	private static void OnLogin(Mobile from)
 	{
 		CheckMessages(from);
 
@@ -457,7 +454,7 @@ public class MaginciaLottoSystem : Item
 		GetWinnerGump(from);
 	}
 
-	public void PruneMessages()
+	private void PruneMessages()
 	{
 		List<Mobile> mobiles = new(MessageQueue.Keys);
 
@@ -511,7 +508,7 @@ public class MaginciaLottoSystem : Item
 		return list;
 	}
 
-	public static void CheckMessages(Mobile from)
+	private static void CheckMessages(Mobile from)
 	{
 		if (!MessageQueue.ContainsKey(from) || MessageQueue[from] == null || MessageQueue[from].Count == 0)
 			return;
@@ -636,7 +633,7 @@ public class MaginciaLottoSystem : Item
 		Timer.DelayCall(ValidatePlots);
 	}
 
-	public void ValidatePlots()
+	private void ValidatePlots()
 	{
 		for (int i = 0; i < m_Identifiers.Length; i++)
 		{
@@ -657,15 +654,16 @@ public class MaginciaLottoSystem : Item
 				UnregisterPlot(plotTram);
 			}
 
-			if (plotFel == null && !FreeHousingZones[Map.Felucca].Contains(rec))
+			switch (plotFel)
 			{
-				Console.WriteLine("Adding {0} to Magincia Free Housing Zone.[{1}]", rec, "Plot non-existent");
-				FreeHousingZones[Map.Felucca].Add(rec);
-			}
-			else if (plotFel is {Stone: null} && (plotFel.Writ == null || plotFel.Writ.Expired))
-			{
-				Console.WriteLine("Adding {0} to Magincia Free Housing Zone.[{1}]", rec, "Plot existed, writ expired");
-				UnregisterPlot(plotFel);
+				case null when !FreeHousingZones[Map.Felucca].Contains(rec):
+					Console.WriteLine("Adding {0} to Magincia Free Housing Zone.[{1}]", rec, "Plot non-existent");
+					FreeHousingZones[Map.Felucca].Add(rec);
+					break;
+				case {Stone: null} when (plotFel.Writ == null || plotFel.Writ.Expired):
+					Console.WriteLine("Adding {0} to Magincia Free Housing Zone.[{1}]", rec, "Plot existed, writ expired");
+					UnregisterPlot(plotFel);
+					break;
 			}
 		}
 	}

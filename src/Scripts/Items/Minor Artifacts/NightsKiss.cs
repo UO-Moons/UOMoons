@@ -1,39 +1,38 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class NightsKiss : Dagger
 {
-	public class NightsKiss : Dagger
+	public override int LabelNumber => 1063475;
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public NightsKiss()
 	{
-		public override int LabelNumber => 1063475;
+		ItemId = 0xF51;
+		Hue = 0x455;
+		WeaponAttributes.HitLeechHits = 40;
+		Slayer = SlayerName.Repond;
+		Attributes.WeaponSpeed = 30;
+		Attributes.WeaponDamage = 35;
+	}
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+	public NightsKiss(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public NightsKiss()
-		{
-			ItemId = 0xF51;
-			Hue = 0x455;
-			WeaponAttributes.HitLeechHits = 40;
-			Slayer = SlayerName.Repond;
-			Attributes.WeaponSpeed = 30;
-			Attributes.WeaponDamage = 35;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public NightsKiss(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

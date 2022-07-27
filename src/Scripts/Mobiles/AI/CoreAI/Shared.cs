@@ -2,57 +2,45 @@ using System;
 using Server.Items;
 using Server.Spells;
 using Server.Spells.Chivalry;
-using Server.Spells.First;
 using Server.Spells.Fourth;
 using Server.Spells.Mysticism;
 using Server.Spells.Second;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
-	{
-        public DateTime m_NextWeaponSwap;
-        public virtual bool CanStun
-        {
-            get
-            {
-                return (m_Mobile is BaseVendor || m_Mobile is BaseEscortable || m_Mobile is BaseChampion);
-            }
-        }
+    public sealed partial class CoreAi
+    {
+	    private DateTime m_NextWeaponSwap;
+	    private bool CanStun => m_Mobile is BaseVendor or BaseEscortable or BaseChampion;
 
-        public static bool IsFieldSpell(int ID)
-        {
-            if (ID >= 14612 && ID <= 14633) //poison field
-            {
-                return true;
-            }
-            else if (ID >= 14695 && ID <= 14730) //paralysis field
-            {
-                return true;
-            }
-            else if (ID >= 14732 && ID <= 14751) //fire field
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+	    private static bool IsFieldSpell(int id)
+	    {
+		    return id switch
+		    {
+			    //poison field
+			    >= 14612 and <= 14633 => true,
+			    //paralysis field
+			    >= 14695 and <= 14730 => true,
+			    //fire field
+			    >= 14732 and <= 14751 => true,
+			    _ => false
+		    };
+	    }
 
-        public bool TryToHeal()
+	    private bool TryToHeal()
         {
             if (m_Mobile.Summoned)
             {
                 return false;
             }
-            else if (DateTime.UtcNow < m_NextHealTime)
+
+            if (DateTime.UtcNow < m_NextHealTime)
             {
-                return false;
+	            return false;
             }
 
             int diff = m_Mobile.HitsMax - m_Mobile.Hits;
-            diff = ((m_Mobile.HitsMax * (100 - diff)) / 100);
+            diff = m_Mobile.HitsMax * (100 - diff) / 100;
             diff = 100 - diff;
 
             if ((int)(Utility.RandomDouble() * 100.0) > diff)
@@ -71,11 +59,6 @@ namespace Server.Mobiles
                 }
 
                 spell = new GreaterHealSpell(m_Mobile, null);
-
-                if (spell == null)
-                {
-                    spell = new HealSpell(m_Mobile, null);
-                }
             }
             else if (CanUseNecromancy)
             {
@@ -99,7 +82,7 @@ namespace Server.Mobiles
             }
             else if (m_Mobile.Skills[SkillName.Healing].Value > 10.0)
             {
-                int delay = (int)(5.0 + (0.5 * ((120 - m_Mobile.Dex) / 10)));
+                int delay = (int)(5.0 + 0.5 * ((120 - m_Mobile.Dex) / 10));
                 new BandageContext(m_Mobile, m_Mobile, TimeSpan.FromSeconds(delay), false);
                 m_NextHealTime = DateTime.UtcNow + TimeSpan.FromSeconds(delay + 1);
                 return true;
@@ -113,62 +96,56 @@ namespace Server.Mobiles
             return true;
         }
 
-        public void CheckArmed(bool swap)
-        {
-            if (DateTime.UtcNow > m_NextWeaponSwap)
-            {
-                return;
-            }
+	    private void CheckArmed(bool swap)
+	    {
+		    if (DateTime.UtcNow > m_NextWeaponSwap)
+		    {
+			    return;
+		    }
 
-            if (!SwapWeapons)
-            {
-                return;
-            }
+		    if (!SwapWeapons)
+		    {
+			    return;
+		    }
 
-            Container pack = m_Mobile.Backpack;
+		    Container pack = m_Mobile.Backpack;
 
-            if (pack == null)
-            {
-                m_Mobile.EquipItem(new Backpack());
-                pack = m_Mobile.Backpack;
-            }
+		    if (pack == null)
+		    {
+			    m_Mobile.EquipItem(new Backpack());
+			    pack = m_Mobile.Backpack;
+		    }
 
-            BaseWeapon weapon = m_Mobile.Weapon as BaseWeapon;
+		    if (m_Mobile.Weapon is BaseWeapon weapon)
+		    {
+			    if (!swap)
+			    {
+				    return;
+			    }
 
-            if (weapon != null)
-            {
-                if (!swap)
-                {
-                    return;
-                }
+			    pack.DropItem(weapon);
+		    }
 
-                pack.DropItem(weapon);
-                weapon = null;
-            }
+		    m_Mobile.DebugSay("Searching my pack for a weapon.");
 
-            if (weapon == null)
-            {
-                m_Mobile.DebugSay("Searching my pack for a weapon.");
+		    Item[] weapons = pack.FindItemsByType(typeof(BaseMeleeWeapon));
 
-                Item[] weapons = pack.FindItemsByType(typeof(BaseMeleeWeapon));
+		    if (weapons != null && weapons.Length != 0)
+		    {
+			    int max = weapons.Length == 1 ? 0 : weapons.Length - 1;
+			    int whichone = Utility.RandomMinMax(0, max);
+			    m_Mobile.EquipItem(weapons[whichone]);
+		    }
 
-                if (weapons != null && weapons.Length != 0)
-                {
-                    int max = (weapons.Length == 1) ? 0 : (weapons.Length - 1);
-                    int whichone = Utility.RandomMinMax(0, max);
-                    m_Mobile.EquipItem(weapons[whichone]);
-                }
-            }
+		    m_NextWeaponSwap = DateTime.UtcNow + TimeSpan.FromSeconds(15);
+	    }
 
-            m_NextWeaponSwap = DateTime.UtcNow + TimeSpan.FromSeconds(15);
-        }
-
-        public void UseWeaponStrike()
+	    private void UseWeaponStrike()
         {
             m_Mobile.DebugSay("Picking a weapon move");
 
 
-            if (!(m_Mobile.FindItemOnLayer(Layer.OneHanded) is BaseWeapon weapon))
+            if (m_Mobile.FindItemOnLayer(Layer.OneHanded) is not BaseWeapon weapon)
             {
                 weapon = m_Mobile.FindItemOnLayer(Layer.TwoHanded) as BaseWeapon;
             }
@@ -194,7 +171,7 @@ namespace Server.Mobiles
             }
         }
 
-        public void CheckForFieldSpells()
+	    private void CheckForFieldSpells()
         {
             if (!IsSmart)
             {
@@ -207,36 +184,34 @@ namespace Server.Mobiles
 
             foreach (Item item in eable)
             {
-                if (item == null)
+	            if (item == null)
                 {
                     continue;
                 }
-                else if (item.Z != m_Mobile.Z)
-                {
-                    continue;
-                }
-                else
-                {
-                    move = IsFieldSpell(item.ItemId);
-                }
+
+	            if (item.Z != m_Mobile.Z)
+	            {
+		            continue;
+	            }
+
+	            move = IsFieldSpell(item.ItemId);
             }
             eable.Free();
 
-            if (move)
+            if (!move)
+	            return;
+
+            switch( Utility.Random(9) )
             {
-                //TODO, make movement not so random.
-                switch( Utility.Random(9) )
-                {
-                    case 0: DoMove(Direction.Up); break;
-                    case 1: DoMove(Direction.North); break;
-                    case 2: DoMove(Direction.Left); break;
-                    case 3: DoMove(Direction.West); break;
-                    case 5: DoMove(Direction.Down); break;
-                    case 6: DoMove(Direction.South); break;
-                    case 7: DoMove(Direction.Right); break;
-                    case 8: DoMove(Direction.East); break;
-                    default: DoMove(m_Mobile.Direction); break;
-                }
+	            case 0: DoMove(Direction.Up); break;
+	            case 1: DoMove(Direction.North); break;
+	            case 2: DoMove(Direction.Left); break;
+	            case 3: DoMove(Direction.West); break;
+	            case 5: DoMove(Direction.Down); break;
+	            case 6: DoMove(Direction.South); break;
+	            case 7: DoMove(Direction.Right); break;
+	            case 8: DoMove(Direction.East); break;
+	            default: DoMove(m_Mobile.Direction); break;
             }
         }
     }

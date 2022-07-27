@@ -1,238 +1,237 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class LightFlowerTapestryEastAddon : BaseAddon
 {
-	public class LightFlowerTapestryEastAddon : BaseAddon
+	public override BaseAddonDeed Deed => new LightFlowerTapestryEastDeed();
+
+	[Constructable]
+	public LightFlowerTapestryEastAddon()
 	{
-		public override BaseAddonDeed Deed => new LightFlowerTapestryEastDeed();
-
-		[Constructable]
-		public LightFlowerTapestryEastAddon()
-		{
-			AddComponent(new AddonComponent(0xFDC), 0, 0, 0);
-			AddComponent(new AddonComponent(0xFDB), 0, 1, 0);
-		}
-
-		public LightFlowerTapestryEastAddon(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		AddComponent(new AddonComponent(0xFDC), 0, 0, 0);
+		AddComponent(new AddonComponent(0xFDB), 0, 1, 0);
 	}
 
-	public class LightFlowerTapestryEastDeed : BaseAddonDeed
+	public LightFlowerTapestryEastAddon(Serial serial) : base(serial)
 	{
-		public override BaseAddon Addon => new LightFlowerTapestryEastAddon();
-		public override int LabelNumber => 1049393;  // a flower tapestry deed facing east
-
-		[Constructable]
-		public LightFlowerTapestryEastDeed()
-		{
-		}
-
-		public LightFlowerTapestryEastDeed(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class LightFlowerTapestrySouthAddon : BaseAddon
+	public override void Serialize(GenericWriter writer)
 	{
-		public override BaseAddonDeed Deed => new LightFlowerTapestrySouthDeed();
+		base.Serialize(writer);
 
-		[Constructable]
-		public LightFlowerTapestrySouthAddon()
-		{
-			AddComponent(new AddonComponent(0xFD9), 0, 0, 0);
-			AddComponent(new AddonComponent(0xFDA), 1, 0, 0);
-		}
-
-		public LightFlowerTapestrySouthAddon(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class LightFlowerTapestrySouthDeed : BaseAddonDeed
+	public override void Deserialize(GenericReader reader)
 	{
-		public override BaseAddon Addon => new LightFlowerTapestrySouthAddon();
-		public override int LabelNumber => 1049394;  // a flower tapestry deed facing south
+		base.Deserialize(reader);
 
-		[Constructable]
-		public LightFlowerTapestrySouthDeed()
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public LightFlowerTapestrySouthDeed(Serial serial) : base(serial)
-		{
-		}
+public class LightFlowerTapestryEastDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new LightFlowerTapestryEastAddon();
+	public override int LabelNumber => 1049393;  // a flower tapestry deed facing east
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	[Constructable]
+	public LightFlowerTapestryEastDeed()
+	{
 	}
 
-	public class DarkFlowerTapestryEastAddon : BaseAddon
+	public LightFlowerTapestryEastDeed(Serial serial) : base(serial)
 	{
-		public override BaseAddonDeed Deed => new DarkFlowerTapestryEastDeed();
-
-		[Constructable]
-		public DarkFlowerTapestryEastAddon()
-		{
-			AddComponent(new AddonComponent(0xFE0), 0, 0, 0);
-			AddComponent(new AddonComponent(0xFDF), 0, 1, 0);
-		}
-
-		public DarkFlowerTapestryEastAddon(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class DarkFlowerTapestryEastDeed : BaseAddonDeed
+	public override void Serialize(GenericWriter writer)
 	{
-		public override BaseAddon Addon => new DarkFlowerTapestryEastAddon();
-		public override int LabelNumber => 1049395;  // a dark flower tapestry deed facing east
+		base.Serialize(writer);
 
-		[Constructable]
-		public DarkFlowerTapestryEastDeed()
-		{
-		}
-
-		public DarkFlowerTapestryEastDeed(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class DarkFlowerTapestrySouthAddon : BaseAddon
+	public override void Deserialize(GenericReader reader)
 	{
-		public override BaseAddonDeed Deed => new DarkFlowerTapestrySouthDeed();
+		base.Deserialize(reader);
 
-		[Constructable]
-		public DarkFlowerTapestrySouthAddon()
-		{
-			AddComponent(new AddonComponent(0xFDD), 0, 0, 0);
-			AddComponent(new AddonComponent(0xFDE), 1, 0, 0);
-		}
+		reader.ReadInt();
+	}
+}
 
-		public DarkFlowerTapestrySouthAddon(Serial serial) : base(serial)
-		{
-		}
+public class LightFlowerTapestrySouthAddon : BaseAddon
+{
+	public override BaseAddonDeed Deed => new LightFlowerTapestrySouthDeed();
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+	[Constructable]
+	public LightFlowerTapestrySouthAddon()
+	{
+		AddComponent(new AddonComponent(0xFD9), 0, 0, 0);
+		AddComponent(new AddonComponent(0xFDA), 1, 0, 0);
 	}
 
-	public class DarkFlowerTapestrySouthDeed : BaseAddonDeed
+	public LightFlowerTapestrySouthAddon(Serial serial) : base(serial)
 	{
-		public override BaseAddon Addon => new DarkFlowerTapestrySouthAddon();
-		public override int LabelNumber => 1049396;  // a dark flower tapestry deed facing south
+	}
 
-		[Constructable]
-		public DarkFlowerTapestrySouthDeed()
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public DarkFlowerTapestrySouthDeed(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class LightFlowerTapestrySouthDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new LightFlowerTapestrySouthAddon();
+	public override int LabelNumber => 1049394;  // a flower tapestry deed facing south
 
-			int version = reader.ReadInt();
-		}
+	[Constructable]
+	public LightFlowerTapestrySouthDeed()
+	{
+	}
+
+	public LightFlowerTapestrySouthDeed(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class DarkFlowerTapestryEastAddon : BaseAddon
+{
+	public override BaseAddonDeed Deed => new DarkFlowerTapestryEastDeed();
+
+	[Constructable]
+	public DarkFlowerTapestryEastAddon()
+	{
+		AddComponent(new AddonComponent(0xFE0), 0, 0, 0);
+		AddComponent(new AddonComponent(0xFDF), 0, 1, 0);
+	}
+
+	public DarkFlowerTapestryEastAddon(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class DarkFlowerTapestryEastDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new DarkFlowerTapestryEastAddon();
+	public override int LabelNumber => 1049395;  // a dark flower tapestry deed facing east
+
+	[Constructable]
+	public DarkFlowerTapestryEastDeed()
+	{
+	}
+
+	public DarkFlowerTapestryEastDeed(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class DarkFlowerTapestrySouthAddon : BaseAddon
+{
+	public override BaseAddonDeed Deed => new DarkFlowerTapestrySouthDeed();
+
+	[Constructable]
+	public DarkFlowerTapestrySouthAddon()
+	{
+		AddComponent(new AddonComponent(0xFDD), 0, 0, 0);
+		AddComponent(new AddonComponent(0xFDE), 1, 0, 0);
+	}
+
+	public DarkFlowerTapestrySouthAddon(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class DarkFlowerTapestrySouthDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new DarkFlowerTapestrySouthAddon();
+	public override int LabelNumber => 1049396;  // a dark flower tapestry deed facing south
+
+	[Constructable]
+	public DarkFlowerTapestrySouthDeed()
+	{
+	}
+
+	public DarkFlowerTapestrySouthDeed(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

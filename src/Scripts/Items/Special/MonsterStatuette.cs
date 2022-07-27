@@ -104,7 +104,7 @@ namespace Server.Items
 			Sounds = sounds;
 		}
 
-		private static readonly MonsterStatuetteInfo[] m_Table = {
+		public static readonly MonsterStatuetteInfo[] Table = {
             /* Crocodile */			new(1041249, 0x20DA, 660),
             /* Daemon */			new(1041250, 0x20D3, 357),
             /* Dragon */			new(1041251, 0x20D6, 362),
@@ -186,10 +186,10 @@ namespace Server.Items
 		{
 			var v = (int)type;
 
-			if (v < 0 || v >= m_Table.Length)
+			if (v < 0 || v >= Table.Length)
 				v = 0;
 
-			return m_Table[v];
+			return Table[v];
 		}
 	}
 

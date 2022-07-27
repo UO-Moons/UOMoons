@@ -1,39 +1,38 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class RighteousAnger : ElvenMachete
 {
-	public class RighteousAnger : ElvenMachete
+	public override int LabelNumber => 1075049;  // Righteous Anger
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public RighteousAnger()
 	{
-		public override int LabelNumber => 1075049;  // Righteous Anger
+		Hue = 0x284;
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+		Attributes.AttackChance = 15;
+		Attributes.DefendChance = 5;
+		Attributes.WeaponSpeed = 35;
+		Attributes.WeaponDamage = 40;
+	}
 
-		[Constructable]
-		public RighteousAnger()
-		{
-			Hue = 0x284;
+	public RighteousAnger(Serial serial) : base(serial)
+	{
+	}
 
-			Attributes.AttackChance = 15;
-			Attributes.DefendChance = 5;
-			Attributes.WeaponSpeed = 35;
-			Attributes.WeaponDamage = 40;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public RighteousAnger(Serial serial) : base(serial)
-		{
-		}
+		writer.WriteEncodedInt(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

@@ -70,22 +70,22 @@ public class SpellRegistry
 		if (!m_IDsFromTypes.ContainsKey(type))
 			m_IDsFromTypes.Add(type, spellId);
 
-		if (type.IsSubclassOf(typeof(SpecialMove)))
+		if (!type.IsSubclassOf(typeof(SpecialMove)))
+			return;
+
+		SpecialMove spm = null;
+
+		try
 		{
-			SpecialMove spm = null;
-
-			try
-			{
-				spm = Activator.CreateInstance(type) as SpecialMove;
-			}
-			catch
-			{
-				// ignored
-			}
-
-			if (spm != null)
-				SpecialMoves.Add(spellId, spm);
+			spm = Activator.CreateInstance(type) as SpecialMove;
 		}
+		catch
+		{
+			// ignored
+		}
+
+		if (spm != null)
+			SpecialMoves.Add(spellId, spm);
 	}
 
 	public static SpecialMove GetSpecialMove(int spellId)
@@ -110,19 +110,19 @@ public class SpellRegistry
 
 		Type t = m_Types[spellId];
 
-		if (t != null && !t.IsSubclassOf(typeof(SpecialMove)))
-		{
-			m_Params[0] = caster;
-			m_Params[1] = scroll;
+		if (t == null || t.IsSubclassOf(typeof(SpecialMove)))
+			return null;
 
-			try
-			{
-				return (Spell)Activator.CreateInstance(t, m_Params);
-			}
-			catch
-			{
-				// ignored
-			}
+		m_Params[0] = caster;
+		m_Params[1] = scroll;
+
+		try
+		{
+			return (Spell)Activator.CreateInstance(t, m_Params);
+		}
+		catch
+		{
+			// ignored
 		}
 
 		return null;
@@ -150,19 +150,19 @@ public class SpellRegistry
 		{
 			Type t = Assembler.FindTypeByFullName($"Server.Spells.{m_CircleNames[i]}.{name}");
 
-			if (t != null && !t.IsSubclassOf(typeof(SpecialMove)))
-			{
-				m_Params[0] = caster;
-				m_Params[1] = scroll;
+			if (t == null || t.IsSubclassOf(typeof(SpecialMove)))
+				continue;
 
-				try
-				{
-					return (Spell)Activator.CreateInstance(t, m_Params);
-				}
-				catch
-				{
-					// ignored
-				}
+			m_Params[0] = caster;
+			m_Params[1] = scroll;
+
+			try
+			{
+				return (Spell)Activator.CreateInstance(t, m_Params);
+			}
+			catch
+			{
+				// ignored
 			}
 		}
 

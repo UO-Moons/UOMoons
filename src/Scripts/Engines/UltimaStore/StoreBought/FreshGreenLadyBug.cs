@@ -6,9 +6,9 @@ public class FreshGreenLadyBug : BaseLight
 {
 	public override int LabelNumber => 1071401;  // Fresh Green Ladybug
 
-	public override int LitItemID => SouthFacing ? 0x2D04 : 0x2D02;
+	public override int LitItemId => SouthFacing ? 0x2D04 : 0x2D02;
 
-	public override int UnlitItemID => SouthFacing ? 0x2D03 : 0x2D01;
+	public override int UnlitItemId => SouthFacing ? 0x2D03 : 0x2D01;
 
 	public bool SouthFacing => ItemId is 0x2D03 or 0x2D04;
 

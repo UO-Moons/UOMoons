@@ -11,7 +11,8 @@ public class KiAttack : NinjaMove
 	public override int BaseMana => 25;
 	public override double RequiredSkill => 80.0;
 	public override TextDefinition AbilityMessage => new(1063099);// Your Ki Attack must be complete within 2 seconds for the damage bonus!
-	public static double GetBonus(Mobile from)
+
+	private static double GetBonus(Mobile from)
 	{
 		if (m_Table[from] is not KiAttackInfo info)
 			return 0.0;
@@ -46,16 +47,15 @@ public class KiAttack : NinjaMove
 			return false;
 		}
 
-		if (Core.ML)
-		{
-			if (from.Weapon is BaseRanged)
-			{
-				from.SendLocalizedMessage(1075858); // You can only use this with melee attacks.
-				return false;
-			}
-		}
+		if (!Core.ML)
+			return base.Validate(from);
 
-		return base.Validate(from);
+		if (from.Weapon is not BaseRanged)
+			return base.Validate(from);
+
+		from.SendLocalizedMessage(1075858); // You can only use this with melee attacks.
+		return false;
+
 	}
 
 	public override double GetDamageScalar(Mobile attacker, Mobile defender)
@@ -91,12 +91,12 @@ public class KiAttack : NinjaMove
 
 	public override void OnClearMove(Mobile from)
 	{
-		if (m_Table[from] is KiAttackInfo info)
-		{
-			info.Timer?.Stop();
+		if (m_Table[from] is not KiAttackInfo info)
+			return;
 
-			m_Table.Remove(info.Mobile);
-		}
+		info.Timer?.Stop();
+
+		m_Table.Remove(info.Mobile);
 	}
 
 	private static void EndKiAttack(object state)

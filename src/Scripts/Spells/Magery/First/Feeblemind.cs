@@ -14,7 +14,7 @@ public class FeeblemindSpell : MagerySpell
 		Reagent.Nightshade
 	);
 
-	public static readonly Dictionary<Mobile, Timer> Table = new();
+	private static readonly Dictionary<Mobile, Timer> Table = new();
 
 	public static bool IsUnderEffects(Mobile m)
 	{
@@ -23,24 +23,24 @@ public class FeeblemindSpell : MagerySpell
 
 	public static void RemoveEffects(Mobile m, bool removeMod = true)
 	{
-		if (Table.ContainsKey(m))
+		if (!Table.ContainsKey(m))
+			return;
+
+		Timer t = Table[m];
+
+		if (t is {Running: true})
 		{
-			Timer t = Table[m];
-
-			if (t is {Running: true})
-			{
-				t.Stop();
-			}
-
-			BuffInfo.RemoveBuff(m, BuffIcon.FeebleMind);
-
-			if (removeMod)
-			{
-				m.RemoveStatMod("[Magic] Int Curse");
-			}
-
-			Table.Remove(m);
+			t.Stop();
 		}
+
+		BuffInfo.RemoveBuff(m, BuffIcon.FeebleMind);
+
+		if (removeMod)
+		{
+			m.RemoveStatMod("[Magic] Int Curse");
+		}
+
+		Table.Remove(m);
 	}
 
 	public override SpellCircle Circle => SpellCircle.First;
@@ -65,7 +65,7 @@ public class FeeblemindSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

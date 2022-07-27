@@ -6,8 +6,8 @@ public class WeddingFancyCandelabra : BaseLight, IDyable
 {
 	public override int LabelNumber => 1011213; // candelabra
 
-	public override int LitItemID => 0x9E93;
-	public override int UnlitItemID => 0x9E96;
+	public override int LitItemId => 0x9E93;
+	public override int UnlitItemId => 0x9E96;
 
 	[Constructable]
 	public WeddingFancyCandelabra()

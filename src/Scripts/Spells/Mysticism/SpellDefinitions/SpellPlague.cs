@@ -2,252 +2,229 @@ using System;
 using Server.Mobiles;
 using Server.Targeting;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Server.Spells.Mysticism
+namespace Server.Spells.Mysticism;
+
+public class SpellPlagueSpell : MysticSpell
 {
-    public class SpellPlagueSpell : MysticSpell
-    {
-        private static SpellInfo m_Info = new SpellInfo(
-                "Spell Plague", "Vas Rel Jux Ort",
-                230,
-                9022,
-                Reagent.DaemonBone,
-                Reagent.DragonBlood,
-                Reagent.Nightshade,
-                Reagent.SulfurousAsh
-            );
+	private static readonly SpellInfo m_Info = new(
+		"Spell Plague", "Vas Rel Jux Ort",
+		230,
+		9022,
+		Reagent.DaemonBone,
+		Reagent.DragonBlood,
+		Reagent.Nightshade,
+		Reagent.SulfurousAsh
+	);
 
-        public override SpellCircle Circle => SpellCircle.Seventh;
+	public override SpellCircle Circle => SpellCircle.Seventh;
 
-        public SpellPlagueSpell(Mobile caster, Item scroll)
-            : base(caster, scroll, m_Info)
-        {
-        }
+	public SpellPlagueSpell(Mobile caster, Item scroll)
+		: base(caster, scroll, m_Info)
+	{
+	}
 
-        public override void OnCast()
-        {
-            Caster.Target = new InternalTarget(this);
-        }
+	public override void OnCast()
+	{
+		Caster.Target = new InternalTarget(this);
+	}
 
-        public void OnTarget(object o)
-        {
-            Mobile m = o as Mobile;
+	private void OnTarget(object o)
+	{
+		if (o is not Mobile m)
+			return;
 
-            if (m == null)
-                return;
+		if (!(m is PlayerMobile || m is BaseCreature))
+		{
+			Caster.SendLocalizedMessage(1080194); // Your target cannot be affected by spell plague.
+		}
+		else if (CheckResisted(m))
+		{
+			m.SendLocalizedMessage(1080199); //You resist spell plague.
+			Caster.SendLocalizedMessage(1080200); //Your target resists spell plague.
+		}
+		else if (CheckHSequence(m))
+		{
+			SpellHelper.CheckReflect((int)Circle, Caster, ref m);
 
-            if (!(m is PlayerMobile || m is BaseCreature))
-            {
-                Caster.SendLocalizedMessage(1080194); // Your target cannot be affected by spell plague.
-            }
-            else if (CheckResisted(m))
-            {
-                m.SendLocalizedMessage(1080199); //You resist spell plague.
-                Caster.SendLocalizedMessage(1080200); //Your target resists spell plague.
-            }
-            else if (CheckHSequence(m))
-            {
-                SpellHelper.CheckReflect((int)Circle, Caster, ref m);
+			SpellHelper.Turn(Caster, m);
 
-                SpellHelper.Turn(Caster, m);
+			Caster.PlaySound(0x658);
 
-                Caster.PlaySound(0x658);
+			m.FixedParticles(0x375A, 1, 17, 9919, 1161, 7, EffectLayer.Waist);
+			m.FixedParticles(0x3728, 1, 13, 9502, 1161, 7, (EffectLayer)255);
 
-                m.FixedParticles(0x375A, 1, 17, 9919, 1161, 7, EffectLayer.Waist);
-                m.FixedParticles(0x3728, 1, 13, 9502, 1161, 7, (EffectLayer)255);
+			if (!m_Table.ContainsKey(m) || m_Table[m] == null)
+				m_Table.Add(m, new List<SpellPlagueTimer>());
 
-                if (!m_Table.ContainsKey(m) || m_Table[m] == null)
-                    m_Table.Add(m, new List<SpellPlagueTimer>());
+			m_Table[m].Add(new SpellPlagueTimer(Caster, m, TimeSpan.FromSeconds(8)));
 
-                m_Table[m].Add(new SpellPlagueTimer(Caster, m, TimeSpan.FromSeconds(8)));
+			BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.SpellPlague, 1031690, 1080167, TimeSpan.FromSeconds(8), m));
 
-                BuffInfo.AddBuff(m, new BuffInfo(BuffIcon.SpellPlague, 1031690, 1080167, TimeSpan.FromSeconds(8), m));
+			DoExplosion(m, Caster, 1);
+		}
 
-                DoExplosion(m, Caster, true, 1);
-            }
+		FinishSequence();
+	}
 
-            FinishSequence();
-        }
+	private static readonly Dictionary<Mobile, List<SpellPlagueTimer>> m_Table = new();
 
-        private static Dictionary<Mobile, List<SpellPlagueTimer>> m_Table = new Dictionary<Mobile, List<SpellPlagueTimer>>();
+	public static bool HasSpellPlague(Mobile from)
+	{
+		return m_Table.Where(kvp => kvp.Value != null).SelectMany(kvp => kvp.Value).Any(timer => timer.Caster == from);
+	}
 
-        public static bool HasSpellPlague(Mobile from)
-        {
-            foreach (KeyValuePair<Mobile, List<SpellPlagueTimer>> kvp in m_Table)
-            {
-                if (kvp.Value != null)
-                {
-                    foreach (SpellPlagueTimer timer in kvp.Value)
-                    {
-                        if (timer.Caster == from)
-                            return true;
-                    }
-                }
-            }
+	public static void OnMobileDamaged(Mobile from)
+	{
+		if (!m_Table.ContainsKey(from) || m_Table[from].Count <= 0 ||
+		    m_Table[from][0].NextUse >= DateTime.UtcNow)
+			return;
 
-            return false;
-        }
+		int amount = m_Table[from][0].Amount;
+		bool doExplosion = false;
+		double mod = from.Skills[SkillName.MagicResist].Value >= 70.0 ? (from.Skills[SkillName.MagicResist].Value / 1000 * 3) : 0.0;
 
-        public static void OnMobileDamaged(Mobile from)
-        {
-            if (m_Table.ContainsKey(from) && m_Table[from].Count > 0 && m_Table[from][0].NextUse < DateTime.UtcNow)
-            {
-                int amount = m_Table[from][0].Amount;
-                bool doExplosion = false;
-                double mod = from.Skills[SkillName.MagicResist].Value >= 70.0 ? (from.Skills[SkillName.MagicResist].Value / 1000 * 3) : 0.0;
+		if (mod < 0)
+			mod = .01;
 
-                if (mod < 0)
-                    mod = .01;
+		if (amount == 0 && .90 - mod > Utility.RandomDouble())
+			doExplosion = true;
+		else if (amount == 1 && .60 - mod > Utility.RandomDouble())
+			doExplosion = true;
+		else if (amount == 2 && .30 - mod > Utility.RandomDouble())
+			doExplosion = true;
 
-                if (amount == 0 && .90 - mod > Utility.RandomDouble())
-                    doExplosion = true;
-                else if (amount == 1 && .60 - mod > Utility.RandomDouble())
-                    doExplosion = true;
-                else if (amount == 2 && .30 - mod > Utility.RandomDouble())
-                    doExplosion = true;
+		if (!doExplosion)
+			return;
 
-                if (doExplosion)
-                {
-                    SpellPlagueTimer timer = m_Table[from][0];
+		SpellPlagueTimer timer = m_Table[from][0];
 
-                    timer.NextUse = DateTime.UtcNow + TimeSpan.FromSeconds(1.5);
+		timer.NextUse = DateTime.UtcNow + TimeSpan.FromSeconds(1.5);
 
-                    DoExplosion(from, timer.Caster, false, amount);
-                    timer.Amount++;
-                }
-            }
-        }
+		DoExplosion(from, timer.Caster, amount);
+		timer.Amount++;
+	}
 
-        public static void DoExplosion(Mobile from, Mobile caster, bool initial, int amount)
-        {
-            double prim = caster.Skills[SkillName.Mysticism].Value;
-            double sec = caster.Skills[SkillName.Imbuing].Value;
+	private static void DoExplosion(Mobile from, Mobile caster, int amount)
+	{
+		double prim = caster.Skills[SkillName.Mysticism].Value;
+		double sec = caster.Skills[SkillName.Imbuing].Value;
 
-            if (caster.Skills[SkillName.Focus].Value > sec)
-                sec = caster.Skills[SkillName.Focus].Value;
+		if (caster.Skills[SkillName.Focus].Value > sec)
+			sec = caster.Skills[SkillName.Focus].Value;
 
-            int damage = (int)((prim + sec) / 12) + Utility.RandomMinMax(1, 6);
+		int damage = (int)((prim + sec) / 12) + Utility.RandomMinMax(1, 6);
 
-            if (amount > 1)
-                damage /= amount;
+		if (amount > 1)
+			damage /= amount;
 
-            from.PlaySound(0x658);
+		from.PlaySound(0x658);
 
-            from.FixedParticles(0x375A, 1, 17, 9919, 1161, 7, EffectLayer.Waist);
-            from.FixedParticles(0x3728, 1, 13, 9502, 1161, 7, (EffectLayer)255);
+		from.FixedParticles(0x375A, 1, 17, 9919, 1161, 7, EffectLayer.Waist);
+		from.FixedParticles(0x3728, 1, 13, 9502, 1161, 7, (EffectLayer)255);
 
-            int sdiBonus = SpellHelper.GetSpellDamageBonus(caster, from, SkillName.Mysticism, from is PlayerMobile);
+		int sdiBonus = SpellHelper.GetSpellDamageBonus(caster, from, SkillName.Mysticism, from is PlayerMobile);
 
-            damage *= (100 + sdiBonus);
-            damage /= 100;
+		damage *= 100 + sdiBonus;
+		damage /= 100;
 
-            SpellHelper.Damage(null, TimeSpan.Zero, from, caster, damage, 0, 0, 0, 0, 0, DfAlgorithm.Standard, 100, 0);
-        }
+		SpellHelper.Damage(null, TimeSpan.Zero, from, caster, damage, 0, 0, 0, 0, 0, DfAlgorithm.Standard, 100);
+	}
 
-        public static void RemoveFromList(Mobile from)
-        {
-            if (m_Table.ContainsKey(from) && m_Table[from].Count > 0)
-            {
-                Mobile caster = m_Table[from][0].Caster;
+	public static void RemoveFromList(Mobile from)
+	{
+		if (!m_Table.ContainsKey(from) || m_Table[from].Count <= 0)
+			return;
 
-                m_Table[from].Remove(m_Table[from][0]);
+		Mobile caster = m_Table[from][0].Caster;
 
-                if (m_Table[from].Count == 0)
-                {
-                    m_Table.Remove(from);
-                    BuffInfo.RemoveBuff(from, BuffIcon.SpellPlague);
-                }
+		m_Table[from].Remove(m_Table[from][0]);
 
-                foreach (KeyValuePair<Mobile, List<SpellPlagueTimer>> kvp in m_Table)
-                {
-                    foreach (SpellPlagueTimer Ttimer in kvp.Value)
-                    {
-                        if (Ttimer.Caster == caster)
-                            return;
-                    }
-                }
+		if (m_Table[from].Count == 0)
+		{
+			m_Table.Remove(from);
+			BuffInfo.RemoveBuff(from, BuffIcon.SpellPlague);
+		}
 
-                BuffInfo.RemoveBuff(caster, BuffIcon.SpellPlague);
-            }
-        }
+		if (m_Table.SelectMany(kvp => kvp.Value).Any(ttimer => ttimer.Caster == caster))
+		{
+			return;
+		}
 
-        public class InternalTarget : Target
-        {
-            public SpellPlagueSpell Owner { get; set; }
+		BuffInfo.RemoveBuff(caster, BuffIcon.SpellPlague);
+	}
 
-            public InternalTarget(SpellPlagueSpell owner)
-                : this(owner, false)
-            {
-            }
+	private class InternalTarget : Target
+	{
+		private SpellPlagueSpell Owner { get; }
 
-            public InternalTarget(SpellPlagueSpell owner, bool allowland)
-                : base(12, allowland, TargetFlags.Harmful)
-            {
-                Owner = owner;
-            }
+		public InternalTarget(SpellPlagueSpell owner, bool allowland = false)
+			: base(12, allowland, TargetFlags.Harmful)
+		{
+			Owner = owner;
+		}
 
-            protected override void OnTarget(Mobile from, object o)
-            {
-                if (o == null)
-                    return;
+		protected override void OnTarget(Mobile from, object o)
+		{
+			if (o == null)
+				return;
 
-                if (!from.CanSee(o))
-                    from.SendLocalizedMessage(500237); // Target can not be seen.
-                else
-                {
-                    SpellHelper.Turn(from, o);
-                    Owner.OnTarget(o);
-                }
-            }
+			if (!from.CanSee(o))
+				from.SendLocalizedMessage(500237); // Target can not be seen.
+			else
+			{
+				SpellHelper.Turn(from, o);
+				Owner.OnTarget(o);
+			}
+		}
 
-            protected override void OnTargetFinish(Mobile from)
-            {
-                Owner.FinishSequence();
-            }
-        }
-    }
+		protected override void OnTargetFinish(Mobile from)
+		{
+			Owner.FinishSequence();
+		}
+	}
+}
 
-    public class SpellPlagueTimer : Timer
-    {
-        private Mobile m_Caster;
-        private Mobile m_Owner;
-        private int m_Amount;
-        private DateTime m_NextUse;
+public class SpellPlagueTimer : Timer
+{
+	private readonly Mobile m_Owner;
+	private int m_Amount;
 
-        public Mobile Caster => m_Caster;
-        public int Amount
-        {
-            get { return m_Amount; }
-            set
-            {
-                m_Amount = value;
+	public Mobile Caster { get; }
 
-                if (m_Amount >= 3)
-                    EndTimer();
-            }
-        }
+	public int Amount
+	{
+		get => m_Amount;
+		set
+		{
+			m_Amount = value;
 
-        public DateTime NextUse { get { return m_NextUse; } set { m_NextUse = value; } }
+			if (m_Amount >= 3)
+				EndTimer();
+		}
+	}
 
-        public SpellPlagueTimer(Mobile caster, Mobile owner, TimeSpan duration)
-            : base(duration)
-        {
-            m_Caster = caster;
-            m_Owner = owner;
-            m_Amount = 0;
-            m_NextUse = DateTime.UtcNow;
-            Start();
-        }
+	public DateTime NextUse { get; set; }
 
-        protected override void OnTick()
-        {
-            EndTimer();
-        }
+	public SpellPlagueTimer(Mobile caster, Mobile owner, TimeSpan duration)
+		: base(duration)
+	{
+		Caster = caster;
+		m_Owner = owner;
+		m_Amount = 0;
+		NextUse = DateTime.UtcNow;
+		Start();
+	}
 
-        private void EndTimer()
-        {
-            Stop();
-            SpellPlagueSpell.RemoveFromList(m_Owner);
-        }
-    }
+	protected override void OnTick()
+	{
+		EndTimer();
+	}
+
+	private void EndTimer()
+	{
+		Stop();
+		SpellPlagueSpell.RemoveFromList(m_Owner);
+	}
 }

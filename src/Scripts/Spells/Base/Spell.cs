@@ -16,15 +16,15 @@ public abstract class Spell : ISpell
 {
 	#region Gettters/Settters
 	public int Id => SpellRegistry.GetRegistryNumber(this);
-	public SpellState State { get; set; }
+	public SpellState State { get; private set; }
 	public Mobile Caster { get; }
-	public object SpellTarget { get; set; }
+	public object SpellTarget { get; private set; }
 	public SpellInfo Info { get; }
 	public string Name => Info.Name;
 	public string Mantra => Info.Mantra;
 	public Type[] Reagents => Info.Reagents;
 	public Item Scroll { get; }
-	public long StartCastTime { get; private set; }
+	private long StartCastTime { get; set; }
 	public IDamageable InstantTarget { get; set; }
 	public virtual SkillName CastSkill => SkillName.Magery;
 	public virtual SkillName DamageSkill => SkillName.EvalInt;
@@ -166,24 +166,27 @@ public abstract class Spell : ISpell
 
 	public void HarmfulSpell(IDamageable d)
 	{
-		if (d is BaseMobile mobile)
-			mobile.OnHarmfulSpell(Caster, this);
-		//else if (d is IDamageableItem)
-		//{
-		//	((IDamageableItem)d).OnHarmfulSpell(Caster);
-		//}
-
-		//NegativeAttributes.OnCombatAction(Caster);
-
-		if (d is Mobile mobile1)
+		switch (d)
 		{
-			//	if ((Mobile)d != Caster)
-			//	{
-			//		NegativeAttributes.OnCombatAction((Mobile)d);
-			//	}
-
-			EvilOmenSpell.TryEndEffect(mobile1);
+			case BaseMobile mobile:
+				mobile.OnHarmfulSpell(Caster, this);
+				break;
+			case IDamageableItem item:
+				item.OnHarmfulSpell(Caster);
+				break;
 		}
+
+		NegativeAttributes.OnCombatAction(Caster);
+
+		if (d is not Mobile mobile1)
+			return;
+
+		if (mobile1 != Caster)
+		{
+			NegativeAttributes.OnCombatAction(mobile1);
+		}
+
+		EvilOmenSpell.TryEndEffect(mobile1);
 	}
 
 	public Spell(Mobile caster, Item scroll, SpellInfo info)
@@ -249,82 +252,81 @@ public abstract class Spell : ISpell
 		CheckCasterDisruption();
 	}
 
-	public virtual void CheckCasterDisruption(bool checkElem = false, int phys = 0, int fire = 0, int cold = 0, int pois = 0, int nrgy = 0)
+	public virtual void CheckCasterDisruption(bool checkElem = false, int phys = 0, int fire = 0, int cold = 0,
+		int pois = 0, int nrgy = 0)
 	{
 		if (!Caster.Player || Caster.AccessLevel > AccessLevel.Player)
 		{
 			return;
 		}
 
-		if (IsCasting)
+		if (!IsCasting)
+			return;
+
+		object o = ProtectionSpell.Registry[Caster];
+		bool disturb = true;
+
+		if (o is double d)
 		{
-			object o = ProtectionSpell.Registry[Caster];
-			bool disturb = true;
-
-			if (o is double d)
-			{
-				if (d > Utility.RandomDouble() * 100.0)
-				{
-					disturb = false;
-				}
-			}
-
-			#region Stygian Abyss
-			/*int focus = SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.CastingFocus);
-
-			if (BaseFishPie.IsUnderEffects(Caster, FishPieEffect.CastFocus))
-			{
-				focus += 2;
-			}
-
-			if (focus > 12)
-			{
-				focus = 12;
-			}
-
-			focus += Caster.Skills[SkillName.Inscribe].Value >= 50 ? GetInscribeFixed(Caster) / 200 : 0;
-
-			if (focus > 0 && focus > Utility.Random(100))
+			if (d > Utility.RandomDouble() * 100.0)
 			{
 				disturb = false;
-				Caster.SendLocalizedMessage(1113690); // You regain your focus and continue casting the spell.
 			}
-			else if (checkElem)
+		}
+
+		int focus = SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.CastingFocus);
+
+		//if (BaseFishPie.IsUnderEffects(Caster, FishPieEffect.CastFocus))
+		//{
+		//	focus += 2;
+		//}
+
+		if (focus > 12)
+		{
+			focus = 12;
+		}
+
+		focus += Caster.Skills[SkillName.Inscribe].Value >= 50 ? GetInscribeFixed(Caster) / 200 : 0;
+
+		if (focus > 0 && focus > Utility.Random(100))
+		{
+			disturb = false;
+			Caster.SendLocalizedMessage(1113690); // You regain your focus and continue casting the spell.
+		}
+		else if (checkElem)
+		{
+			int res = 0;
+
+			if (phys == 100)
 			{
-				int res = 0;
-
-				if (phys == 100)
-				{
-					res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceKinetic));
-				}
-				else if (fire == 100)
-				{
-					res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceFire));
-				}
-				else if (cold == 100)
-				{
-					res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceCold));
-				}
-				else if (pois == 100)
-				{
-					res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonancePoison));
-				}
-				else if (nrgy == 100)
-				{
-					res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceEnergy));
-				}
-
-				if (res > Utility.Random(100))
-				{
-					disturb = false;
-				}
-			}*/
-			#endregion
-
-			if (disturb)
-			{
-				Disturb(DisturbType.Hurt, false, true);
+				res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceKinetic));
 			}
+			else if (fire == 100)
+			{
+				res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceFire));
+			}
+			else if (cold == 100)
+			{
+				res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceCold));
+			}
+			else if (pois == 100)
+			{
+				res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonancePoison));
+			}
+			else if (nrgy == 100)
+			{
+				res = Math.Min(40, SAAbsorptionAttributes.GetValue(Caster, SAAbsorptionAttribute.ResonanceEnergy));
+			}
+
+			if (res > Utility.Random(100))
+			{
+				disturb = false;
+			}
+		}
+
+		if (disturb)
+		{
+			Disturb(DisturbType.Hurt, false, true);
 		}
 	}
 
@@ -367,13 +369,12 @@ public abstract class Spell : ISpell
 	/// <returns></returns>
 	public virtual bool OnCasterMoving(Direction d)
 	{
-		if (IsCasting && BlocksMovement)
-		{
-			Caster.SendLocalizedMessage(500111); // You are frozen and can not move.
-			return false;
-		}
+		if (!IsCasting || !BlocksMovement)
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(500111); // You are frozen and can not move.
+		return false;
+
 	}
 
 	/// <summary>
@@ -383,12 +384,7 @@ public abstract class Spell : ISpell
 	/// <returns></returns>
 	public virtual bool CheckMovement(Mobile caster)
 	{
-		if (IsCasting && BlocksMovement && (!(Caster is BaseCreature) || ((BaseCreature)Caster).FreezeOnCast))
-		{
-			return false;
-		}
-
-		return true;
+		return !IsCasting || !BlocksMovement || Caster is BaseCreature { FreezeOnCast: false };
 	}
 
 	public virtual bool OnCasterEquiping(Item item)
@@ -431,10 +427,7 @@ public abstract class Spell : ISpell
 		if (pack == null)
 			return false;
 
-		if (pack.ConsumeTotal(Info.Reagents, Info.Amounts) == -1)
-			return true;
-
-		return false;
+		return pack.ConsumeTotal(Info.Reagents, Info.Amounts) == -1;
 	}
 
 	public virtual double GetInscribeSkill(Mobile m)
@@ -539,19 +532,16 @@ public abstract class Spell : ISpell
 				return scalar;
 		}
 
-		ISlayer defISlayer = Spellbook.FindEquippedSpellbook(defender);
+		ISlayer defISlayer = Spellbook.FindEquippedSpellbook(defender) ?? defender.Weapon as ISlayer;
 
 		if (defISlayer == null)
-			defISlayer = defender.Weapon as ISlayer;
+			return scalar;
 
-		if (defISlayer != null)
-		{
-			SlayerEntry defSlayer = SlayerGroup.GetEntryByName(defISlayer.Slayer);
-			SlayerEntry defSlayer2 = SlayerGroup.GetEntryByName(defISlayer.Slayer2);
+		SlayerEntry defSlayer = SlayerGroup.GetEntryByName(defISlayer.Slayer);
+		SlayerEntry defSlayer2 = SlayerGroup.GetEntryByName(defISlayer.Slayer2);
 
-			if (defSlayer != null && defSlayer.Group.OppositionSuperSlays(Caster) || defSlayer2 != null && defSlayer2.Group.OppositionSuperSlays(Caster))
-				scalar = 2.0;
-		}
+		if (defSlayer != null && defSlayer.Group.OppositionSuperSlays(Caster) || defSlayer2 != null && defSlayer2.Group.OppositionSuperSlays(Caster))
+			scalar = 2.0;
 
 		return scalar;
 	}
@@ -574,22 +564,14 @@ public abstract class Spell : ISpell
 	private CastTimer _castTimer;
 	private AnimTimer _animTimer;
 
-	public void Disturb(DisturbType type)
+	public virtual bool CheckDisturb(DisturbType type, bool resistable)
 	{
-		Disturb(type, true, false);
+		return !resistable || Scroll is not BaseWand;
 	}
 
-	public virtual bool CheckDisturb(DisturbType type, bool firstCircle, bool resistable)
+	public void Disturb(DisturbType type, bool firstCircle = true, bool resistable = false)
 	{
-		if (resistable && Scroll is BaseWand)
-			return false;
-
-		return true;
-	}
-
-	public void Disturb(DisturbType type, bool firstCircle, bool resistable)
-	{
-		if (!CheckDisturb(type, firstCircle, resistable))
+		if (!CheckDisturb(type, resistable))
 			return;
 
 		if (State == SpellState.Casting)
@@ -636,7 +618,7 @@ public abstract class Spell : ISpell
 
 	public virtual void OnDisturb(DisturbType type, bool message)
 	{
-		if (message)
+		if (type == DisturbType.Hurt && message)
 			Caster.SendLocalizedMessage(500641); // Your concentration is disturbed, thus ruining thy spell.
 	}
 
@@ -703,7 +685,7 @@ public abstract class Spell : ISpell
 		}
 	}
 
-	public bool StartCast()
+	private bool StartCast()
 	{
 		StartCastTime = Core.TickCount;
 
@@ -902,7 +884,7 @@ public abstract class Spell : ISpell
 	public virtual TimeSpan GetCastDelay()
 	{
 		if (Scroll is BaseWand)
-			return Core.ML ? CastDelayBase : TimeSpan.Zero; // TODO: Should FC apply to wands?
+			return Core.ML ? CastDelayBase : TimeSpan.Zero;
 
 		int fc = Caster.GetSpellCastSpeedBonus(CastSkill);
 
@@ -1036,12 +1018,7 @@ public abstract class Spell : ISpell
 		return false;
 	}
 
-	public bool CheckBSequence(Mobile target)
-	{
-		return CheckBSequence(target, false);
-	}
-
-	public bool CheckBSequence(Mobile target, bool allowDead)
+	public bool CheckBSequence(Mobile target, bool allowDead = false)
 	{
 		if (!target.Alive && !allowDead)
 		{
@@ -1159,9 +1136,9 @@ public abstract class Spell : ISpell
 		}
 	}
 
-	public class SpellRequestTarget : Target
+	private class SpellRequestTarget : Target
 	{
-		public Spell Spell { get; }
+		private Spell Spell { get; }
 
 		public SpellRequestTarget(Spell spell) : base(spell.SpellRange, spell.CanTargetGround, spell.SpellTargetFlags)
 		{

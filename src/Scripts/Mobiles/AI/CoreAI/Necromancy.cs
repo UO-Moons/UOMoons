@@ -5,10 +5,10 @@ using Server.Spells.Necromancy;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
+    public sealed partial class CoreAi : BaseAI
 	{
         public DateTime m_NextShiftTime;
-        public virtual bool CanShapeShift
+        public bool CanShapeShift
         {
             get
             {

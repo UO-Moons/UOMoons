@@ -5,9 +5,9 @@ using Server.Spells.Spellweaving;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
-	{
-        public void SpellweavingPower()
+    public sealed partial class CoreAi
+    {
+		private void SpellweavingPower()
         {
             CheckFocus();
 
@@ -21,71 +21,69 @@ namespace Server.Mobiles
                 return;
             }
 
-            // TODO improve selecting the spell.
-
             int choices = 5; // default choices: allure, summon, melee, melee, thunderstorm
 
             if (m_Mobile.Mana > 50)
             {
-                if (m_Mobile.Skills[SkillName.Spellweaving].Value > 90.0) // add word of death+, uses 50 mana
-                {
-                    choices += 4;
-                }
-                else if (m_Mobile.Skills[SkillName.Spellweaving].Value > 66.0) // add wildfire+, uses 50 mana
-                {
-                    choices += 3;
-                }
-                else if (m_Mobile.Skills[SkillName.Spellweaving].Value > 62.0) // add essence of wind+, uses 42 mana
-                {
-                    choices += 2;
-                }
-                else if (m_Mobile.Skills[SkillName.Spellweaving].Value > 44.0) // add empower, uses 50 mana
-                {
-                    ++choices;
-                }
+	            switch (m_Mobile.Skills[SkillName.Spellweaving].Value)
+	            {
+		            // add word of death+, uses 50 mana
+		            case > 90.0:
+			            choices += 4;
+			            break;
+		            // add wildfire+, uses 50 mana
+		            case > 66.0:
+			            choices += 3;
+			            break;
+		            // add essence of wind+, uses 42 mana
+		            case > 62.0:
+			            choices += 2;
+			            break;
+		            // add empower, uses 50 mana
+		            case > 44.0:
+			            ++choices;
+			            break;
+	            }
             }
 
             switch( Utility.Random(choices) )
             {
                 case 0: // Allure
-                    {
-                        if (m_Mobile.Combatant is BaseCreature)
-                        {
-                            if (m_Mobile.Debug)
-                            {
-                                m_Mobile.Say(1436, "Casting Dryad Allure");
-                            }
+                {
+	                if (m_Mobile.Combatant is BaseCreature)
+	                {
+		                if (m_Mobile.Debug)
+		                {
+			                m_Mobile.Say(1436, "Casting Dryad Allure");
+		                }
 
-                            new DryadAllureSpell(m_Mobile, null).Cast();
-                            break;
-                        }
-                        else
-                            goto case 1;
-                    }
+		                new DryadAllureSpell(m_Mobile, null).Cast();
+		                break;
+	                }
+
+	                goto case 1;
+                }
                 case 1: // Summon
-                    {
-                        if (m_Mobile.Followers < m_Mobile.FollowersMax)
-                        {
-                            Spell spell = GetSpellweavingSummon();
+                {
+	                if (m_Mobile.Followers < m_Mobile.FollowersMax)
+	                {
+		                Spell spell = GetSpellweavingSummon();
 
-                            if (spell != null)
-                            {
-                                if (m_Mobile.Debug)
-                                {
-                                    m_Mobile.Say(1436, "Summoning help");
-                                }
+		                if (spell != null)
+		                {
+			                if (m_Mobile.Debug)
+			                {
+				                m_Mobile.Say(1436, "Summoning help");
+			                }
 
-                                spell.Cast();
-                            }
+			                spell.Cast();
+		                }
 
-                            ForceTarget();
-                            break;
-                        }
-                        else
-                        {
-                            goto case 2;
-                        }
-                    }
+		                ForceTarget();
+	                }
+
+	                goto case 2;
+                }
                 case 2:
                 case 3: // Do nothing, aka melee
                     {
@@ -97,17 +95,14 @@ namespace Server.Mobiles
                         break;
                     }
                 case 5: // Essence of Wind, cold aura and speed debuff.
-                    {
-                        if (!EssenceOfWindSpell.IsDebuffed((Mobile)m_Mobile.Combatant))
-                        {
-                            new EssenceOfWindSpell(m_Mobile, null).Cast();
-                            break;
-                        }
-                        else
-                        {
-                            goto case 2;
-                        }
-                    }
+                {
+	                if (!EssenceOfWindSpell.IsDebuffed((Mobile)m_Mobile.Combatant))
+	                {
+		                new EssenceOfWindSpell(m_Mobile, null).Cast();
+	                }
+
+	                goto case 2;
+                }
                 case 6:
                     {
                         new WildfireSpell(m_Mobile, null).Cast();
@@ -120,12 +115,10 @@ namespace Server.Mobiles
                         break;
                     }
             }
-
-            return;
         }
 
         // Due to many spells having no target flag we have to force it.
-        public void ForceTarget()
+        private void ForceTarget()
         {
             if (m_Mobile.Target != null && m_Mobile.Combatant != null)
             {
@@ -133,7 +126,7 @@ namespace Server.Mobiles
             }
         }
 
-        public void CheckFocus()
+        private void CheckFocus()
         {
             ArcaneFocus focus = ArcanistSpell.FindArcaneFocus(m_Mobile);
 
@@ -155,36 +148,35 @@ namespace Server.Mobiles
                 {
                     continue;
                 }
-                else if (m == m_Mobile)
+
+                if (m == m_Mobile)
                 {
-                    continue;
-                }
-                else if (!(m is BaseCreature))
-                {
-                    continue;
+	                continue;
                 }
 
-                BaseCreature bc = (BaseCreature)m;
-
-                if (bc.Skills[SkillName.Spellweaving].Value > 50.0)
+                if (m is not BaseCreature bc)
                 {
-                    if (m_Mobile.Controlled == bc.Controlled && m_Mobile.Summoned == bc.Summoned)
-                    {
-                        power++;
-                    }
+	                continue;
+                }
+
+                if (!(bc.Skills[SkillName.Spellweaving].Value > 50.0))
+	                continue;
+
+                if (m_Mobile.Controlled == bc.Controlled && m_Mobile.Summoned == bc.Summoned)
+                {
+	                power++;
                 }
             }
 
-            if (power > 6)
+            power = power switch
             {
-                power = 6;
-            }
-            else if (power < 2) // No spellweavers found, setting to min required.
-            {
-                power = 2;
-            }
+	            > 6 => 6,
+	            // No spellweavers found, setting to min required.
+	            < 2 => 2,
+	            _ => power
+            };
 
-            ArcaneFocus f = new ArcaneFocus(TimeSpan.FromHours(1), power);
+            ArcaneFocus f = new(TimeSpan.FromHours(1), power);
 
             Container pack = m_Mobile.Backpack;
 
@@ -202,43 +194,38 @@ namespace Server.Mobiles
             }
         }
 
-        public Spell GetSpellweavingSummon()
+        private Spell GetSpellweavingSummon()
         {
-            if (m_Mobile.Skills[SkillName.Spellweaving].Value > 38.0)
-            {
-                if (m_Mobile.Serial.Value % 2 == 0)
-                {
-                    return new SummonFeySpell(m_Mobile, null);
-                }
-                else
-                {
-                    return new SummonFiendSpell(m_Mobile, null);
-                }
-            }
-            else
-            {
-                return new NatureFurySpell(m_Mobile, null);
-            }
+	        if (!(m_Mobile.Skills[SkillName.Spellweaving].Value > 38.0))
+		        return new NatureFurySpell(m_Mobile, null);
+
+	        if (m_Mobile.Serial.Value % 2 == 0)
+	        {
+		        return new SummonFeySpell(m_Mobile, null);
+	        }
+
+	        return new SummonFiendSpell(m_Mobile, null);
+
         }
 
-        public bool CheckForGiftOfRenewal()
+        private bool CheckForGiftOfRenewal()
         {
-            if (GiftOfRenewalSpell.m_Table.ContainsKey(m_Mobile) || !m_Mobile.CanBeginAction(typeof(GiftOfRenewalSpell)))
+            if (GiftOfRenewalSpell.Table.ContainsKey(m_Mobile) || !m_Mobile.CanBeginAction(typeof(GiftOfRenewalSpell)))
             {
                 return false;
             }
-            else if (m_Mobile.Skills[SkillName.Spellweaving].Value > 20.0 && m_Mobile.Mana > 24)
-            {
-                if (m_Mobile.Debug)
-                {
-                    m_Mobile.Say(1436, "Casting Gift Of Renewal");
-                }
 
-                new GiftOfRenewalSpell(m_Mobile, null).Cast();
-                return true;
+            if (!(m_Mobile.Skills[SkillName.Spellweaving].Value > 20.0) || m_Mobile.Mana <= 24)
+	            return false;
+
+            if (m_Mobile.Debug)
+            {
+	            m_Mobile.Say(1436, "Casting Gift Of Renewal");
             }
 
-            return false;
+            new GiftOfRenewalSpell(m_Mobile, null).Cast();
+            return true;
+
         }
     }
 }

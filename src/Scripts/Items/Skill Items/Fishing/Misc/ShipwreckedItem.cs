@@ -1,76 +1,75 @@
-namespace Server.Items
+namespace Server.Items;
+
+public interface IShipwreckedItem
 {
-	public interface IShipwreckedItem
+	bool IsShipwreckedItem { get; set; }
+}
+
+public class ShipwreckedItem : BaseItem, IDyable, IShipwreckedItem
+{
+	public ShipwreckedItem(int itemId) : base(itemId)
 	{
-		bool IsShipwreckedItem { get; set; }
+		int weight = ItemData.Weight;
+
+		if (weight >= 255)
+			weight = 1;
+
+		Weight = weight;
 	}
 
-	public class ShipwreckedItem : BaseItem, IDyable, IShipwreckedItem
+	public override void OnSingleClick(Mobile from)
 	{
-		public ShipwreckedItem(int itemID) : base(itemID)
-		{
-			int weight = ItemData.Weight;
+		LabelTo(from, 1050039, $"#{LabelNumber}\t#1041645");
+	}
 
-			if (weight >= 255)
-				weight = 1;
+	public override void AddNameProperties(ObjectPropertyList list)
+	{
+		base.AddNameProperties(list);
+		list.Add(1041645); // recovered from a shipwreck
+	}
 
-			Weight = weight;
-		}
+	public ShipwreckedItem(Serial serial) : base(serial)
+	{
+	}
 
-		public override void OnSingleClick(Mobile from)
-		{
-			LabelTo(from, 1050039, string.Format("#{0}\t#1041645", LabelNumber));
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void AddNameProperties(ObjectPropertyList list)
-		{
-			base.AddNameProperties(list);
-			list.Add(1041645); // recovered from a shipwreck
-		}
+		writer.Write(0); // version
+	}
 
-		public ShipwreckedItem(Serial serial) : base(serial)
-		{
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		reader.ReadInt();
+	}
 
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-
-		public bool Dye(Mobile from, DyeTub sender)
-		{
-			if (Deleted)
-				return false;
-
-			if (ItemId >= 0x13A4 && ItemId <= 0x13AE)
-			{
-				Hue = sender.DyedHue;
-				return true;
-			}
-
-			from.SendLocalizedMessage(sender.FailMessage);
+	public bool Dye(Mobile from, DyeTub sender)
+	{
+		if (Deleted)
 			return false;
-		}
 
-		#region IShipwreckedItem Members
-
-		public bool IsShipwreckedItem
+		if (ItemId is >= 0x13A4 and <= 0x13AE)
 		{
-			get => true;    //It's a ShipwreckedItem item.  'Course it's gonna be a Shipwreckeditem
-			set
-			{
-			}
+			Hue = sender.DyedHue;
+			return true;
 		}
 
-		#endregion
+		from.SendLocalizedMessage(sender.FailMessage);
+		return false;
 	}
+
+	#region IShipwreckedItem Members
+
+	public bool IsShipwreckedItem
+	{
+		get => true;    //It's a ShipwreckedItem item.  'Course it's gonna be a Shipwreckeditem
+		set
+		{
+		}
+	}
+
+	#endregion
 }

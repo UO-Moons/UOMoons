@@ -1,4 +1,5 @@
 using Server.Engines.Plants;
+using Server.Items;
 using System.Collections.Generic;
 using System.IO;
 
@@ -11,58 +12,15 @@ public enum CraftMarkOption
 	PromptForMark
 }
 
-#region SA
 public enum CraftQuestOption
 {
 	QuestItem,
 	NonQuestItem
 }
-#endregion
-
 public class CraftContext
 {
 	public Mobile Owner { get; }
 	public CraftSystem System { get; }
-
-	#region Hue State Vars
-	/*private bool m_CheckedHues;
-	private List<int> m_Hues;
-	private Item m_CompareHueTo;
-
-	public bool CheckedHues
-	{
-	    get
-	    {
-	        return m_CheckedHues;
-	    }
-	    set
-	    {
-	        m_CheckedHues = value;
-	    }
-	}
-	public List<int> Hues
-	{
-	    get
-	    {
-	        return m_Hues;
-	    }
-	    set
-	    {
-	        m_Hues = value;
-	    }
-	}
-	public Item CompareHueTo
-	{
-	    get
-	    {
-	        return m_CompareHueTo;
-	    }
-	    set
-	    {
-	        m_CompareHueTo = value;
-	    }
-	}*/
-	#endregion
 
 	public List<CraftItem> Items { get; }
 	public int LastResourceIndex { get; set; }
@@ -70,15 +28,10 @@ public class CraftContext
 	public int LastGroupIndex { get; set; }
 	public bool DoNotColor { get; set; }
 	public CraftMarkOption MarkOption { get; set; }
-	#region SA
 	public CraftQuestOption QuestOption { get; set; }
-
 	public int MakeTotal { get; set; }
-
 	public PlantHue RequiredPlantHue { get; set; }
-
 	public PlantPigmentHue RequiredPigmentHue { get; set; }
-	#endregion
 
 	public CraftContext(Mobile owner, CraftSystem system)
 	{
@@ -178,7 +131,7 @@ public class CraftContext
 	private static readonly string FilePath = Path.Combine("Saves", "CraftContext", "Contexts.bin");
 
 	private static readonly List<CraftContext> Contexts = new();
-
+	private static readonly Dictionary<Mobile, AnvilOfArtifactsEntry> AnvilEntries = new Dictionary<Mobile, AnvilOfArtifactsEntry>();
 	public static CraftSystem[] Systems { get; } = new CraftSystem[11];
 
 	public static void Configure()
@@ -218,7 +171,7 @@ public class CraftContext
 			FilePath,
 			reader =>
 			{
-				int version = reader.ReadInt();
+				reader.ReadInt();
 
 				int count = reader.ReadInt();
 				for (var i = 0; i < count; i++)
@@ -226,6 +179,147 @@ public class CraftContext
 					new CraftContext(reader);
 				}
 			});
+	}
+
+	public static AnvilOfArtifactsEntry GetAnvilEntry(Mobile m)
+	{
+		return GetAnvilEntry(m, true);
+	}
+
+	public static AnvilOfArtifactsEntry GetAnvilEntry(Mobile m, bool create)
+	{
+		if (AnvilEntries.ContainsKey(m))
+		{
+			return AnvilEntries[m];
+		}
+
+		if (create)
+		{
+			var entry = new AnvilOfArtifactsEntry();
+
+			AnvilEntries[m] = entry;
+
+			return entry;
+		}
+
+		return null;
+	}
+
+	public static bool IsAnvilReady(Mobile m)
+	{
+		var entry = GetAnvilEntry(m, false);
+
+		if (entry != null)
+		{
+			return entry.Ready;
+		}
+
+		return false;
+	}
+
+	public class AnvilOfArtifactsEntry
+	{
+		private AnvilofArtifactsAddon _Anvil;
+
+		public Dictionary<ResistanceType, int> Exceptional { get; set; }
+		public Dictionary<ResistanceType, int> Runic { get; set; }
+		public AnvilofArtifactsAddon Anvil
+		{
+			get { return _Anvil; }
+			set
+			{
+				_Anvil = value;
+
+				if (_Anvil != null)
+				{
+					Ready = true;
+				}
+				else
+				{
+					Ready = false;
+				}
+			}
+		}
+
+		public bool Ready { get; set; }
+
+		public AnvilOfArtifactsEntry()
+		{
+			Exceptional = CreateArray();
+			Runic = CreateArray();
+
+			Ready = false;
+		}
+
+		public void Clear(Mobile m)
+		{
+			var gump = m.FindGump<AnvilofArtifactsGump>();
+
+			if (gump != null)
+			{
+				gump.Refresh();
+			}
+
+			Anvil = null;
+		}
+
+		public void Serialize(GenericWriter writer)
+		{
+			writer.Write(0);
+
+			writer.Write(Exceptional.Count);
+
+			foreach (var kvp in Exceptional)
+			{
+				writer.Write((int)kvp.Key);
+				writer.Write(kvp.Value);
+			}
+
+			writer.Write(Runic.Count);
+
+			foreach (var kvp in Runic)
+			{
+				writer.Write((int)kvp.Key);
+				writer.Write(kvp.Value);
+			}
+
+			writer.Write(Ready);
+			writer.Write(_Anvil);
+		}
+
+		public void Deserialize(GenericReader reader)
+		{
+			reader.ReadInt();
+
+			var count = reader.ReadInt();
+
+			for (int i = 0; i < count; i++)
+			{
+				Exceptional[(ResistanceType)reader.ReadInt()] = reader.ReadInt();
+			}
+
+			count = reader.ReadInt();
+
+			for (int i = 0; i < count; i++)
+			{
+				Runic[(ResistanceType)reader.ReadInt()] = reader.ReadInt();
+			}
+
+			Ready = reader.ReadBool();
+			_Anvil = reader.ReadItem<AnvilofArtifactsAddon>();
+		}
+
+		public static Dictionary<ResistanceType, int> CreateArray()
+		{
+			return new Dictionary<ResistanceType, int>
+				{
+					{ ResistanceType.Physical, 0 },
+					{ ResistanceType.Fire, 0 },
+					{ ResistanceType.Cold, 0 },
+					{ ResistanceType.Poison, 0 },
+					{ ResistanceType.Energy, 0 },
+				};
+		}
 	}
 	#endregion
 }

@@ -9,9 +9,9 @@ public class DonationGift
 		Name = name;
 	}
 
-	public int Id { get; set; }
+	public int Id { get; }
 
-	public int Type { get; set; }
+	private int Type { get; }
 
-	public string Name { get; set; }
+	public string Name { get; }
 }

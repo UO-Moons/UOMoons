@@ -12,7 +12,7 @@ public class ItemSocket
 
 	public virtual TimeSpan TickDuration => TimeSpan.FromMinutes(1);
 
-	public Timer Timer { get; set; }
+	private Timer Timer { get; set; }
 
 	public ItemSocket()
 		: this(TimeSpan.Zero)
@@ -37,13 +37,13 @@ public class ItemSocket
 		Timer.Start();
 	}
 
-	protected void EndTimer()
+	private void EndTimer()
 	{
-		if (Timer != null)
-		{
-			Timer.Stop();
-			Timer = null;
-		}
+		if (Timer == null)
+			return;
+
+		Timer.Stop();
+		Timer = null;
 	}
 
 	protected virtual void OnTick()
@@ -80,7 +80,7 @@ public class ItemSocket
 		catch
 		{
 			Console.WriteLine(
-				"Warning: 0x{0:X}: Item socket must have a zero paramater constructor to be separated from a stack. '{1}'.",
+				"Warning: 0x{0:X}: Item socket must have a zero parameter constructor to be separated from a stack. '{1}'.",
 				Owner.Serial.Value,
 				GetType().Name);
 		}
@@ -111,7 +111,7 @@ public class ItemSocket
 
 	public virtual void Deserialize(Item owner, GenericReader reader)
 	{
-		reader.ReadInt(); // version
+		reader.ReadInt();
 
 		Expires = reader.ReadDateTime();
 
@@ -121,10 +121,8 @@ public class ItemSocket
 			{
 				return;
 			}
-			else
-			{
-				BeginTimer();
-			}
+
+			BeginTimer();
 		}
 
 		owner.AttachSocket(this);

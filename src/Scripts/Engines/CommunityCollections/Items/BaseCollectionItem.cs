@@ -97,7 +97,7 @@ public abstract class BaseCollectionItem : BaseItem, IComunityCollection
 	public long DailyDecay
 	{
 		get => _mDailyDecay;
-		set
+		init
 		{
 			_mDailyDecay = value;
 			InvalidateProperties();

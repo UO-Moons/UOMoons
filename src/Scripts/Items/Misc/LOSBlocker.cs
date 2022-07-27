@@ -1,113 +1,112 @@
 using Server.Network;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class LOSBlocker : BaseItem
 {
-	public class LOSBlocker : BaseItem
+	public static void Initialize()
 	{
-		public static void Initialize()
+		TileData.ItemTable[0x21A2].Flags = TileFlag.Wall | TileFlag.NoShoot;
+		TileData.ItemTable[0x21A2].Height = 20;
+	}
+
+	public override string DefaultName => "no line of sight";
+
+	[Constructable]
+	public LOSBlocker() : base(0x21A2)
+	{
+		Movable = false;
+	}
+
+	public LOSBlocker(Serial serial) : base(serial)
+	{
+	}
+
+	protected override Packet GetWorldPacketFor(NetState state)
+	{
+		Mobile mob = state.Mobile;
+
+		if (mob != null && mob.AccessLevel >= AccessLevel.GameMaster)
 		{
-			TileData.ItemTable[0x21A2].Flags = TileFlag.Wall | TileFlag.NoShoot;
-			TileData.ItemTable[0x21A2].Height = 20;
+			return new GMItemPacket(this);
 		}
 
-		public override string DefaultName => "no line of sight";
+		return base.GetWorldPacketFor(state);
+	}
 
-		[Constructable]
-		public LOSBlocker() : base(0x21A2)
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+
+	public sealed class GMItemPacket : Packet
+	{
+		public GMItemPacket(Item item) : base(0x1A)
 		{
-			Movable = false;
-		}
+			EnsureCapacity(20);
 
-		public LOSBlocker(Serial serial) : base(serial)
-		{
-		}
+			// 14 base length
+			// +2 - Amount
+			// +2 - Hue
+			// +1 - Flags
 
-		protected override Packet GetWorldPacketFor(NetState state)
-		{
-			Mobile mob = state.Mobile;
+			uint serial = (uint)item.Serial.Value;
+			int itemID = 0x36FF;
+			int amount = item.Amount;
+			Point3D loc = item.Location;
+			int x = loc.X;
+			int y = loc.Y;
+			int hue = item.Hue;
+			int flags = item.GetPacketFlags();
+			int direction = (int)item.Direction;
 
-			if (mob != null && mob.AccessLevel >= AccessLevel.GameMaster)
-			{
-				return new GMItemPacket(this);
-			}
+			if (amount != 0)
+				serial |= 0x80000000;
+			else
+				serial &= 0x7FFFFFFF;
 
-			return base.GetWorldPacketFor(state);
-		}
+			m_Stream.Write(serial);
+			m_Stream.Write((short)(itemID & 0x7FFF));
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+			if (amount != 0)
+				m_Stream.Write((short)amount);
 
-			writer.Write(0);
-		}
+			x &= 0x7FFF;
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+			if (direction != 0)
+				x |= 0x8000;
 
-			int version = reader.ReadInt();
-		}
+			m_Stream.Write((short)x);
 
-		public sealed class GMItemPacket : Packet
-		{
-			public GMItemPacket(Item item) : base(0x1A)
-			{
-				EnsureCapacity(20);
+			y &= 0x3FFF;
 
-				// 14 base length
-				// +2 - Amount
-				// +2 - Hue
-				// +1 - Flags
+			if (hue != 0)
+				y |= 0x8000;
 
-				uint serial = (uint)item.Serial.Value;
-				int itemID = 0x36FF;
-				int amount = item.Amount;
-				Point3D loc = item.Location;
-				int x = loc.X;
-				int y = loc.Y;
-				int hue = item.Hue;
-				int flags = item.GetPacketFlags();
-				int direction = (int)item.Direction;
+			if (flags != 0)
+				y |= 0x4000;
 
-				if (amount != 0)
-					serial |= 0x80000000;
-				else
-					serial &= 0x7FFFFFFF;
+			m_Stream.Write((short)y);
 
-				m_Stream.Write(serial);
-				m_Stream.Write((short)(itemID & 0x7FFF));
+			if (direction != 0)
+				m_Stream.Write((byte)direction);
 
-				if (amount != 0)
-					m_Stream.Write((short)amount);
+			m_Stream.Write((sbyte)loc.Z);
 
-				x &= 0x7FFF;
+			if (hue != 0)
+				m_Stream.Write((ushort)hue);
 
-				if (direction != 0)
-					x |= 0x8000;
-
-				m_Stream.Write((short)x);
-
-				y &= 0x3FFF;
-
-				if (hue != 0)
-					y |= 0x8000;
-
-				if (flags != 0)
-					y |= 0x4000;
-
-				m_Stream.Write((short)y);
-
-				if (direction != 0)
-					m_Stream.Write((byte)direction);
-
-				m_Stream.Write((sbyte)loc.Z);
-
-				if (hue != 0)
-					m_Stream.Write((ushort)hue);
-
-				if (flags != 0)
-					m_Stream.Write((byte)flags);
-			}
+			if (flags != 0)
+				m_Stream.Write((byte)flags);
 		}
 	}
 }

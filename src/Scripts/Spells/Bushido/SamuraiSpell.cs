@@ -21,7 +21,8 @@ public abstract class SamuraiSpell : Spell
 	//public override int CastDelayBase{ get{ return 1; } }
 	public override double CastDelayFastScalar => 0;
 	public override int CastRecoveryBase => 7;
-	public static bool CheckExpansion(Mobile from)
+
+	private static bool CheckExpansion(Mobile from)
 	{
 		if (!Core.SE)
 			return false;
@@ -55,18 +56,17 @@ public abstract class SamuraiSpell : Spell
 
 		if (Caster.Skills[CastSkill].Value < RequiredSkill)
 		{
-			string args = $"{RequiredSkill:F1}\t{CastSkill.ToString()}\t ";
+			string args = $"{RequiredSkill:F1}\t{CastSkill}\t ";
 			Caster.SendLocalizedMessage(1063013, args); // You need at least ~1_SKILL_REQUIREMENT~ ~2_SKILL_NAME~ skill to use that ability.
 			return false;
 		}
 
-		if (Caster.Mana < mana)
-		{
-			Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
-			return false;
-		}
+		if (Caster.Mana >= mana)
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(1060174, mana.ToString()); // You must have at least ~1_MANA_REQUIREMENT~ Mana to use this ability.
+		return false;
+
 	}
 
 	public override bool CheckFizzle()

@@ -5,7 +5,7 @@ namespace Server.Items;
 [Flipable(0x13B2, 0x13B1)]
 public class Bow : BaseRanged
 {
-	public override int EffectID => 0xF42;
+	public override int EffectId => 0xF42;
 	public override Type AmmoType => typeof(Arrow);
 	public override Item Ammo => new Arrow();
 	public override WeaponAbility PrimaryAbility => WeaponAbility.ParalyzingBlow;

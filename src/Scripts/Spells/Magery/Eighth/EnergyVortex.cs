@@ -53,7 +53,7 @@ public class EnergyVortexSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		Map map = Caster.Map;
 

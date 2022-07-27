@@ -5,7 +5,7 @@ namespace Server.Items
 	[Flipable(0x26C2, 0x26CC)]
 	public class CompositeBow : BaseRanged
 	{
-		public override int EffectID => 0xF42;
+		public override int EffectId => 0xF42;
 		public override Type AmmoType => typeof(Arrow);
 		public override Item Ammo => new Arrow();
 

@@ -103,10 +103,7 @@ public class DragonBardingDeed : BaseItem, ICraftable, IResource
 		if (makersMark)
 			Crafter = from;
 
-		Type resourceType = typeRes;
-
-		if (resourceType == null)
-			resourceType = craftItem.Resources.GetAt(0).ItemType;
+		Type resourceType = typeRes ?? craftItem.Resources.GetAt(0).ItemType;
 
 		Resource = CraftResources.GetFromType(resourceType);
 

@@ -5,11 +5,10 @@ using System.Linq;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.SeedOflife")]
 public class SeedOfLife : Item
 {
-	private static readonly Dictionary<PlayerMobile, DateTime> SeedUsageList = new Dictionary<PlayerMobile, DateTime>();
-	private static TimeSpan Cooldown = TimeSpan.FromMinutes(10);
+	private static readonly Dictionary<PlayerMobile, DateTime> SeedUsageList = new();
+	private static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(10);
 
 	public static void Initialize()
 	{
@@ -27,13 +26,13 @@ public class SeedOfLife : Item
 		Stackable = true;
 	}
 
-	public static void CheckCleanup(AfterWorldSaveEventArgs e)
+	private static void CheckCleanup(AfterWorldSaveEventArgs e)
 	{
 		DoCleanup();
 		ManaDraught.DoCleanup();
 	}
 
-	public static void DoCleanup()
+	private static void DoCleanup()
 	{
 		List<PlayerMobile> toRemove = SeedUsageList.Keys.Where(pm => SeedUsageList[pm] < DateTime.Now + Cooldown).ToList();
 
@@ -46,7 +45,7 @@ public class SeedOfLife : Item
 
 	}
 
-	private bool CheckUse(PlayerMobile pm)
+	private static bool CheckUse(PlayerMobile pm)
 	{
 		if (SeedUsageList.ContainsKey(pm))
 		{
@@ -64,7 +63,7 @@ public class SeedOfLife : Item
 		}
 		else
 		{
-			by.SendLocalizedMessage(1079263, ((int)(((SeedUsageList[by] + Cooldown) - DateTime.Now).TotalSeconds)).ToString());
+			by.SendLocalizedMessage(1079263, ((int)(SeedUsageList[by] + Cooldown - DateTime.Now).TotalSeconds).ToString());
 		}
 	}
 

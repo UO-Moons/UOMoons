@@ -3,36 +3,21 @@ using Server.Items;
 using Server.Mobiles;
 using Server.Network;
 using System;
+using System.Linq;
 
 namespace Server.Misc
 {
 	public class CharacterCreation
 	{
-		public const string GENERIC_NAME = "Generic Player";
-		public static bool UniqueNaming = true;
+		public const string GenericName = "Generic Player";
+		public const bool UniqueNaming = true;
 
 		private static void SetName(IEntity m, string name)
 		{
 			name = name.Trim();
 			if (UniqueNaming)
 			{
-				if (!CheckDupe(m, name))
-				{
-					m.Name = GENERIC_NAME;
-				}
-				else
-				{
-					m.Name = name;
-				}
-			}
-			else
-			{
-				if (!NameVerification.Validate(name, 2, 16, true, false, true, 1, NameVerification.SpaceDashPeriodQuote))
-				{
-					name = "Generic Player";
-				}
-
-				m.Name = name;
+				m.Name = !CheckDupe(m, name) ? GenericName : name;
 			}
 		}
 
@@ -50,15 +35,7 @@ namespace Server.Misc
 				return false;
 			}
 
-			foreach (Mobile wm in World.Mobiles.Values)
-			{
-				if (wm != m && !wm.Deleted && wm is PlayerMobile && Insensitive.Equals(wm.RawName, name)) //Filter Mobiles by PlayerMobile type and do the name check in one go, no need for another list.
-				{
-					return false; // No need to clear anything since we did not make any temporary lists.
-				}
-			}
-
-			return true;
+			return World.Mobiles.Values.All(wm => wm == m || wm.Deleted || wm is not PlayerMobile || !Insensitive.Equals(wm.RawName, name));
 		}
 
 		public static void Initialize()
@@ -321,9 +298,9 @@ namespace Server.Misc
 			vDex = (int)(vDex * scalar);
 			vInt = (int)(vInt * scalar);
 
-			FixStat(ref vStr, (vStr + vDex + vInt) - vMax, vMax);
-			FixStat(ref vDex, (vStr + vDex + vInt) - vMax, vMax);
-			FixStat(ref vInt, (vStr + vDex + vInt) - vMax, vMax);
+			FixStat(ref vStr, vStr + vDex + vInt - vMax, vMax);
+			FixStat(ref vDex, vStr + vDex + vInt - vMax, vMax);
+			FixStat(ref vInt, vStr + vDex + vInt - vMax, vMax);
 
 			str = vStr + 10;
 			dex = vDex + 10;
@@ -387,7 +364,7 @@ namespace Server.Misc
 				FixStats(ref str, ref dex, ref intel, max);
 			}
 
-			if (str < 10 || str > 60 || dex < 10 || dex > 60 || intel < 10 || intel > 60 || (str + dex + intel) != max)
+			if (str < 10 || str > 60 || dex < 10 || dex > 60 || intel < 10 || intel > 60 || str + dex + intel != max)
 			{
 				str = 10;
 				dex = 10;

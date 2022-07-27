@@ -1,31 +1,29 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class TravestysCollectionOfShells : BaseItem
 {
-	public class TravestysCollectionOfShells : BaseItem
+	public override int LabelNumber => 1072090;  // Travesty's Collection of Shells
+
+	[Constructable]
+	public TravestysCollectionOfShells() : base(0xFD3)
 	{
-		public override int LabelNumber => 1072090;  // Travesty's Collection of Shells
+	}
 
-		[Constructable]
-		public TravestysCollectionOfShells() : base(0xFD3)
-		{
-		}
+	public TravestysCollectionOfShells(Serial serial) : base(serial)
+	{
+	}
 
-		public TravestysCollectionOfShells(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

@@ -35,7 +35,7 @@ public class FireballSpell : MagerySpell
 		}
 	}
 
-	public void Target(IDamageable m)
+	private void Target(IDamageable m)
 	{
 		if (!Caster.CanSee(m))
 		{

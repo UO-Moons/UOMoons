@@ -38,7 +38,7 @@ public class ManaDrainSpell : MagerySpell
 		}
 	}
 
-	private void AosDelay_Callback(object state)
+	private static void AosDelay_Callback(object state)
 	{
 		object[] states = (object[])state;
 
@@ -56,7 +56,7 @@ public class ManaDrainSpell : MagerySpell
 		m_Table.Remove(m);
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

@@ -43,14 +43,11 @@ public class NewPlayerTicket : BaseItem
 		base.Deserialize(reader);
 		int version = reader.ReadInt();
 
-		switch (version)
+		Owner = version switch
 		{
-			case 0:
-				{
-					Owner = reader.ReadMobile();
-					break;
-				}
-		}
+			0 => reader.ReadMobile(),
+			_ => Owner
+		};
 	}
 
 	public override void OnDoubleClick(Mobile from)

@@ -1,40 +1,39 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class SmithStone : BaseItem
 {
-	public class SmithStone : BaseItem
+	public override string DefaultName => "a Blacksmith Supply Stone";
+
+	[Constructable]
+	public SmithStone() : base(0xED4)
 	{
-		public override string DefaultName => "a Blacksmith Supply Stone";
+		Movable = false;
+		Hue = 0x476;
+	}
 
-		[Constructable]
-		public SmithStone() : base(0xED4)
-		{
-			Movable = false;
-			Hue = 0x476;
-		}
+	public override void OnDoubleClick(Mobile from)
+	{
+		SmithBag smithBag = new(5000);
 
-		public override void OnDoubleClick(Mobile from)
-		{
-			SmithBag SmithBag = new(5000);
+		if (!from.AddToBackpack(smithBag))
+			smithBag.Delete();
+	}
 
-			if (!from.AddToBackpack(SmithBag))
-				SmithBag.Delete();
-		}
+	public SmithStone(Serial serial) : base(serial)
+	{
+	}
 
-		public SmithStone(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

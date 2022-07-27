@@ -1,61 +1,63 @@
-namespace Server.Items
+namespace Server.Items;
+
+public abstract class BaseEquipableLight : BaseLight
 {
-	public abstract class BaseEquipableLight : BaseLight
+	[Constructable]
+	public BaseEquipableLight(int itemId) : base(itemId)
 	{
-		[Constructable]
-		public BaseEquipableLight(int itemID) : base(itemID)
-		{
-			Layer = Layer.TwoHanded;
-		}
+		Layer = Layer.TwoHanded;
+	}
 
-		public BaseEquipableLight(Serial serial) : base(serial)
-		{
-		}
+	public BaseEquipableLight(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Ignite()
+	public override void Ignite()
+	{
+		if (Parent is not Mobile && RootParent is Mobile mobile)
 		{
-			if (!(Parent is Mobile) && RootParent is Mobile)
+			if (mobile.EquipItem(this))
 			{
-				Mobile holder = (Mobile)RootParent;
-
-				if (holder.EquipItem(this))
+				switch (this)
 				{
-					if (this is Candle)
-						holder.SendLocalizedMessage(502969); // You put the candle in your left hand.
-					else if (this is Torch)
-						holder.SendLocalizedMessage(502971); // You put the torch in your left hand.
+					case Candle:
+						mobile.SendLocalizedMessage(502969); // You put the candle in your left hand.
+						break;
+					case Torch:
+						mobile.SendLocalizedMessage(502971); // You put the torch in your left hand.
+						break;
+				}
 
-					base.Ignite();
-				}
-				else
-				{
-					holder.SendLocalizedMessage(502449); // You cannot hold this item.
-				}
+				base.Ignite();
 			}
 			else
 			{
-				base.Ignite();
+				mobile.SendLocalizedMessage(502449); // You cannot hold this item.
 			}
 		}
-
-		public override void OnAdded(IEntity parent)
+		else
 		{
-			if (Burning && parent is Container)
-				Douse();
-
-			base.OnAdded(parent);
+			base.Ignite();
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-			writer.Write(0);
-		}
+	public override void OnAdded(IEntity parent)
+	{
+		if (Burning && parent is Container)
+			Douse();
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-			int version = reader.ReadInt();
-		}
+		base.OnAdded(parent);
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

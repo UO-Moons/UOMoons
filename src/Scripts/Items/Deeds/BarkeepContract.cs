@@ -28,7 +28,7 @@ public class BarkeepContract : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 
 	public override void OnDoubleClick(Mobile from)

@@ -37,7 +37,7 @@ public class LightningSpell : MagerySpell
 
 	public override bool DelayedDamage => false;
 
-	public void Target(IDamageable m)
+	private void Target(IDamageable m)
 	{
 		Mobile mob = m as Mobile;
 		if (!Caster.CanSee(m))
@@ -93,8 +93,8 @@ public class LightningSpell : MagerySpell
 
 		protected override void OnTarget(Mobile from, object o)
 		{
-			if (o is Mobile)
-				_owner.Target((Mobile)o);
+			if (o is Mobile mobile)
+				_owner.Target(mobile);
 		}
 
 		protected override void OnTargetFinish(Mobile from)

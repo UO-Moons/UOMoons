@@ -1,91 +1,90 @@
 using Server.Targeting;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class Scales : BaseItem
 {
-	public class Scales : BaseItem
+	[Constructable]
+	public Scales() : base(0x1852)
 	{
-		[Constructable]
-		public Scales() : base(0x1852)
+		Weight = 4.0;
+	}
+
+	public Scales(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+
+	public override void OnDoubleClick(Mobile from)
+	{
+		from.SendLocalizedMessage(502431); // What would you like to weigh?
+		from.Target = new InternalTarget(this);
+	}
+
+	private class InternalTarget : Target
+	{
+		private readonly Scales m_Item;
+
+		public InternalTarget(Scales item) : base(1, false, TargetFlags.None)
 		{
-			Weight = 4.0;
+			m_Item = item;
 		}
 
-		public Scales(Serial serial) : base(serial)
+		protected override void OnTarget(Mobile from, object targeted)
 		{
-		}
+			string message;
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-
-		public override void OnDoubleClick(Mobile from)
-		{
-			from.SendLocalizedMessage(502431); // What would you like to weigh?
-			from.Target = new InternalTarget(this);
-		}
-
-		private class InternalTarget : Target
-		{
-			private readonly Scales m_Item;
-
-			public InternalTarget(Scales item) : base(1, false, TargetFlags.None)
+			if (targeted == m_Item)
 			{
-				m_Item = item;
+				message = "It cannot weight itself.";
 			}
-
-			protected override void OnTarget(Mobile from, object targeted)
+			else if (targeted is Item)
 			{
-				string message;
+				Item item = (Item)targeted;
+				object root = item.RootParent;
 
-				if (targeted == m_Item)
+				if ((root != null && root != from) || item.Parent == from)
 				{
-					message = "It cannot weight itself.";
+					message = "You decide that item's current location is too awkward to get an accurate result.";
 				}
-				else if (targeted is Item)
+				else if (item.Movable)
 				{
-					Item item = (Item)targeted;
-					object root = item.RootParent;
-
-					if ((root != null && root != from) || item.Parent == from)
-					{
-						message = "You decide that item's current location is too awkward to get an accurate result.";
-					}
-					else if (item.Movable)
-					{
-						if (item.Amount > 1)
-							message = "You place one item on the scale. ";
-						else
-							message = "You place that item on the scale. ";
-
-						double weight = item.Weight;
-
-						if (weight <= 0.0)
-							message += "It is lighter than a feather.";
-						else
-							message += string.Format("It weighs {0} stones.", weight);
-					}
+					if (item.Amount > 1)
+						message = "You place one item on the scale. ";
 					else
-					{
-						message = "You cannot weigh that object.";
-					}
+						message = "You place that item on the scale. ";
+
+					double weight = item.Weight;
+
+					if (weight <= 0.0)
+						message += "It is lighter than a feather.";
+					else
+						message += string.Format("It weighs {0} stones.", weight);
 				}
 				else
 				{
 					message = "You cannot weigh that object.";
 				}
-
-				from.SendMessage(message);
 			}
+			else
+			{
+				message = "You cannot weigh that object.";
+			}
+
+			from.SendMessage(message);
 		}
 	}
 }

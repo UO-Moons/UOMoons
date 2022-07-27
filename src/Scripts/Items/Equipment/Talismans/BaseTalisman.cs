@@ -59,13 +59,7 @@ namespace Server.Items
 		}
 		public override int LabelNumber => 1071023;// Talisman
 
-		public override bool DisplayWeight
-		{
-			get
-			{
-				return base.DisplayWeight;
-			}
-		}
+		public override bool DisplayWeight => base.DisplayWeight;
 
 		public virtual bool ForceShowName => false;// used to override default summoner/removal name
 
@@ -81,10 +75,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxCharges
 		{
-			get
-			{
-				return m_MaxCharges;
-			}
+			get => m_MaxCharges;
 			set
 			{
 				m_MaxCharges = value;
@@ -95,10 +86,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int Charges
 		{
-			get
-			{
-				return m_Charges;
-			}
+			get => m_Charges;
 			set
 			{
 				m_Charges = value;
@@ -113,10 +101,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxChargeTime
 		{
-			get
-			{
-				return m_MaxChargeTime;
-			}
+			get => m_MaxChargeTime;
 			set
 			{
 				m_MaxChargeTime = value;
@@ -127,10 +112,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ChargeTime
 		{
-			get
-			{
-				return m_ChargeTime;
-			}
+			get => m_ChargeTime;
 			set
 			{
 				m_ChargeTime = value;
@@ -141,10 +123,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public bool Blessed
 		{
-			get
-			{
-				return m_Blessed;
-			}
+			get => m_Blessed;
 			set
 			{
 				m_Blessed = value;
@@ -155,10 +134,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int MaxHitPoints
 		{
-			get
-			{
-				return m_MaxHitPoints;
-			}
+			get => m_MaxHitPoints;
 			set
 			{
 				m_MaxHitPoints = value;
@@ -173,10 +149,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int HitPoints
 		{
-			get
-			{
-				return m_HitPoints;
-			}
+			get => m_HitPoints;
 			set
 			{
 				if (value != m_HitPoints && MaxHitPoints > 0)
@@ -203,10 +176,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanSlayerName Slayer
 		{
-			get
-			{
-				return m_Slayer;
-			}
+			get => m_Slayer;
 			set
 			{
 				m_Slayer = value;
@@ -223,10 +193,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Summoner
 		{
-			get
-			{
-				return m_Summoner;
-			}
+			get => m_Summoner;
 			set
 			{
 				m_Summoner = value;
@@ -237,10 +204,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanRemoval Removal
 		{
-			get
-			{
-				return m_Removal;
-			}
+			get => m_Removal;
 			set
 			{
 				m_Removal = value;
@@ -256,10 +220,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Protection
 		{
-			get
-			{
-				return m_Protection;
-			}
+			get => m_Protection;
 			set
 			{
 				m_Protection = value;
@@ -270,10 +231,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanAttribute Killer
 		{
-			get
-			{
-				return m_Killer;
-			}
+			get => m_Killer;
 			set
 			{
 				m_Killer = value;
@@ -290,10 +248,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public TalismanSkill Skill
 		{
-			get
-			{
-				return m_Skill;
-			}
+			get => m_Skill;
 			set
 			{
 				m_Skill = value;
@@ -307,10 +262,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int SuccessBonus
 		{
-			get
-			{
-				return m_SuccessBonus;
-			}
+			get => m_SuccessBonus;
 			set
 			{
 				m_SuccessBonus = value;
@@ -321,10 +273,7 @@ namespace Server.Items
 		[CommandProperty(AccessLevel.GameMaster)]
 		public int ExceptionalBonus
 		{
-			get
-			{
-				return m_ExceptionalBonus;
-			}
+			get => m_ExceptionalBonus;
 			set
 			{
 				m_ExceptionalBonus = value;
@@ -335,21 +284,18 @@ namespace Server.Items
 
 		#region AOS bonuses
 		private AosSkillBonuses m_AosSkillBonuses;
-		//private NegativeAttributes m_NegativeAttributes;
+		private NegativeAttributes m_NegativeAttributes;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public AosSkillBonuses SkillBonuses
 		{
-			get
-			{
-				return m_AosSkillBonuses;
-			}
+			get => m_AosSkillBonuses;
 			set
 			{
 			}
 		}
 
-		/*[CommandProperty(AccessLevel.GameMaster)]
+		[CommandProperty(AccessLevel.GameMaster)]
 		public NegativeAttributes NegativeAttributes
 		{
 			get
@@ -359,22 +305,19 @@ namespace Server.Items
 			set
 			{
 			}
-		}*/
+		}
 		#endregion
 
-		/*private SAAbsorptionAttributes m_SAAbsorptionAttributes;
+		private SAAbsorptionAttributes m_SAAbsorptionAttributes;
 
 		[CommandProperty(AccessLevel.GameMaster)]
 		public SAAbsorptionAttributes SAAbsorptionAttributes
 		{
-			get
-			{
-				return m_SAAbsorptionAttributes;
-			}
+			get => m_SAAbsorptionAttributes;
 			set
 			{
 			}
-		}*/
+		}
 
 		public BaseTalisman()
 			: this(GetRandomItemID())
@@ -396,8 +339,8 @@ namespace Server.Items
 			m_Killer = new TalismanAttribute();
 			m_Summoner = new TalismanAttribute();
 			m_AosSkillBonuses = new AosSkillBonuses(this);
-			//m_SAAbsorptionAttributes = new SAAbsorptionAttributes(this);
-			//m_NegativeAttributes = new NegativeAttributes(this);
+			m_SAAbsorptionAttributes = new SAAbsorptionAttributes(this);
+			m_NegativeAttributes = new NegativeAttributes(this);
 		}
 
 		public BaseTalisman(Serial serial)
@@ -451,8 +394,8 @@ namespace Server.Items
 			talisman.m_Protection = new TalismanAttribute(m_Protection);
 			talisman.m_Killer = new TalismanAttribute(m_Killer);
 			talisman.m_AosSkillBonuses = new AosSkillBonuses(newItem, m_AosSkillBonuses);
-			//talisman.m_SAAbsorptionAttributes = new SAAbsorptionAttributes(newItem, m_SAAbsorptionAttributes);
-			//talisman.m_NegativeAttributes = new NegativeAttributes(newItem, m_NegativeAttributes);
+			talisman.m_SAAbsorptionAttributes = new SAAbsorptionAttributes(newItem, m_SAAbsorptionAttributes);
+			talisman.m_NegativeAttributes = new NegativeAttributes(newItem, m_NegativeAttributes);
 
 			base.OnAfterDuped(newItem);
 		}
@@ -646,6 +589,9 @@ namespace Server.Items
 		{
 			base.GetProperties(list);
 
+			if (Attributes.Brittle > 0)
+				list.Add(1116209); // Brittle   
+
 			#region Factions
 			if (FactionItemState != null)
 				list.Add(1041350); // faction item
@@ -701,6 +647,44 @@ namespace Server.Items
 					}
 				}
 			}
+
+			#region SA
+			if ((prop = m_SAAbsorptionAttributes.CastingFocus) != 0)
+				list.Add(1113696, prop.ToString()); // Casting Focus ~1_val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterFire) != 0)
+				list.Add(1113593, prop.ToString()); // Fire Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterCold) != 0)
+				list.Add(1113594, prop.ToString()); // Cold Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterPoison) != 0)
+				list.Add(1113595, prop.ToString()); // Poison Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterEnergy) != 0)
+				list.Add(1113596, prop.ToString()); // Energy Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterKinetic) != 0)
+				list.Add(1113597, prop.ToString()); // Kinetic Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.EaterDamage) != 0)
+				list.Add(1113598, prop.ToString()); // Damage Eater ~1_Val~%
+
+			if ((prop = m_SAAbsorptionAttributes.ResonanceFire) != 0)
+				list.Add(1113691, prop.ToString()); // Fire Resonance ~1_val~%
+
+			if ((prop = m_SAAbsorptionAttributes.ResonanceCold) != 0)
+				list.Add(1113692, prop.ToString()); // Cold Resonance ~1_val~%
+
+			if ((prop = m_SAAbsorptionAttributes.ResonancePoison) != 0)
+				list.Add(1113693, prop.ToString()); // Poison Resonance ~1_val~%
+
+			if ((prop = m_SAAbsorptionAttributes.ResonanceEnergy) != 0)
+				list.Add(1113694, prop.ToString()); // Energy Resonance ~1_val~%
+
+			if ((prop = m_SAAbsorptionAttributes.ResonanceKinetic) != 0)
+				list.Add(1113695, prop.ToString()); // Kinetic Resonance ~1_val~%
+			#endregion
 
 			if ((prop = Attributes.BonusDex) != 0)
 				list.Add(1060409, prop.ToString()); // dexterity bonus ~1_val~
@@ -816,7 +800,9 @@ namespace Server.Items
 			MaxChargeTime = 0x00002000,
 			ChargeTime = 0x00004000,
 			Blessed = 0x00008000,
-			Slayer = 0x00010000
+			Slayer = 0x00010000,
+			SAAbsorptionAttributes = 0x00020000,
+			NegativeAttributes = 0x00040000,
 		}
 
 		public override void Serialize(GenericWriter writer)
@@ -846,6 +832,8 @@ namespace Server.Items
 			SetSaveFlag(ref flags, SaveFlag.ChargeTime, m_ChargeTime != 0);
 			SetSaveFlag(ref flags, SaveFlag.Blessed, m_Blessed);
 			SetSaveFlag(ref flags, SaveFlag.Slayer, m_Slayer != TalismanSlayerName.None);
+			SetSaveFlag(ref flags, SaveFlag.SAAbsorptionAttributes, !m_SAAbsorptionAttributes.IsEmpty);
+			SetSaveFlag(ref flags, SaveFlag.NegativeAttributes, !m_NegativeAttributes.IsEmpty);
 
 			writer.WriteEncodedInt((int)flags);
 
@@ -887,6 +875,12 @@ namespace Server.Items
 
 			if (GetSaveFlag(flags, SaveFlag.Slayer))
 				writer.WriteEncodedInt((int)m_Slayer);
+
+			if (GetSaveFlag(flags, SaveFlag.SAAbsorptionAttributes))
+				m_SAAbsorptionAttributes.Serialize(writer);
+
+			if (GetSaveFlag(flags, SaveFlag.NegativeAttributes))
+				m_NegativeAttributes.Serialize(writer);
 		}
 
 		public override void Deserialize(GenericReader reader)
@@ -905,25 +899,13 @@ namespace Server.Items
 
 						SaveFlag flags = (SaveFlag)reader.ReadEncodedInt();
 
-						if (GetSaveFlag(flags, SaveFlag.SkillBonuses))
-							m_AosSkillBonuses = new AosSkillBonuses(this, reader);
-						else
-							m_AosSkillBonuses = new AosSkillBonuses(this);
+						m_AosSkillBonuses = GetSaveFlag(flags, SaveFlag.SkillBonuses) ? new AosSkillBonuses(this, reader) : new AosSkillBonuses(this);
 
-						if (GetSaveFlag(flags, SaveFlag.Protection))
-							m_Protection = new TalismanAttribute(reader);
-						else
-							m_Protection = new TalismanAttribute();
+						m_Protection = GetSaveFlag(flags, SaveFlag.Protection) ? new TalismanAttribute(reader) : new TalismanAttribute();
 
-						if (GetSaveFlag(flags, SaveFlag.Killer))
-							m_Killer = new TalismanAttribute(reader);
-						else
-							m_Killer = new TalismanAttribute();
+						m_Killer = GetSaveFlag(flags, SaveFlag.Killer) ? new TalismanAttribute(reader) : new TalismanAttribute();
 
-						if (GetSaveFlag(flags, SaveFlag.Summoner))
-							m_Summoner = new TalismanAttribute(reader);
-						else
-							m_Summoner = new TalismanAttribute();
+						m_Summoner = GetSaveFlag(flags, SaveFlag.Summoner) ? new TalismanAttribute(reader) : new TalismanAttribute();
 
 						if (GetSaveFlag(flags, SaveFlag.Removal))
 							m_Removal = (TalismanRemoval)reader.ReadEncodedInt();
@@ -955,12 +937,18 @@ namespace Server.Items
 							m_Slayer = (TalismanSlayerName)reader.ReadEncodedInt();
 
 						m_Blessed = GetSaveFlag(flags, SaveFlag.Blessed);
+
+						m_SAAbsorptionAttributes = GetSaveFlag(flags, SaveFlag.SAAbsorptionAttributes) ? new SAAbsorptionAttributes(this, reader) : new SAAbsorptionAttributes(this);
+
+						m_NegativeAttributes = GetSaveFlag(flags, SaveFlag.NegativeAttributes) ? new NegativeAttributes(this, reader) : new NegativeAttributes(this);
 						break;
 					}
 			}
 
-			if (Parent is Mobile m)
+			if (Parent is Mobile)
 			{
+				Mobile m = (Mobile)Parent;
+
 				m_AosSkillBonuses.AddTo(m);
 
 				if (m_ChargeTime > 0)

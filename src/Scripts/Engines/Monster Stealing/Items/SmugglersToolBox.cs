@@ -4,12 +4,13 @@ namespace Server.Items;
 
 public class SmugglersToolBox : Item
 {
-	private int _UsesRemaining;
+	private int m_UsesRemaining;
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int UsesRemaining { get { return _UsesRemaining; } set { _UsesRemaining = value; InvalidateProperties(); } }
+	private int UsesRemaining { get => m_UsesRemaining;
+		set { m_UsesRemaining = value; InvalidateProperties(); } }
 
-	public DateTime NextRecharge { get; set; }
+	private DateTime NextRecharge { get; set; }
 
 	public override int LabelNumber => 1071520;  // Smuggler's Tool Box
 
@@ -25,9 +26,9 @@ public class SmugglersToolBox : Item
 
 	public override void OnDoubleClick(Mobile m)
 	{
-		if (IsChildOf(m.Backpack) && _UsesRemaining > 0)
+		if (IsChildOf(m.Backpack) && m_UsesRemaining > 0)
 		{
-			Lockpick lockpick = new Lockpick(Utility.RandomMinMax(5, 12));
+			Lockpick lockpick = new(Utility.RandomMinMax(5, 12));
 
 			if (m.Backpack == null || !m.Backpack.TryDropItem(m, lockpick, false))
 			{
@@ -45,7 +46,7 @@ public class SmugglersToolBox : Item
 	public override void GetProperties(ObjectPropertyList list)
 	{
 		base.GetProperties(list);
-		list.Add(1060584, _UsesRemaining.ToString());
+		list.Add(1060584, m_UsesRemaining.ToString());
 	}
 
 	public SmugglersToolBox(Serial serial)
@@ -58,14 +59,14 @@ public class SmugglersToolBox : Item
 		base.Serialize(writer);
 
 		writer.Write(0); // version
-		writer.Write(_UsesRemaining);
+		writer.Write(m_UsesRemaining);
 		writer.Write(NextRecharge);
 
-		if (NextRecharge < DateTime.UtcNow)
-		{
-			UsesRemaining = Math.Min(20, UsesRemaining + 1);
-			NextRecharge = DateTime.UtcNow + TimeSpan.FromHours(24);
-		}
+		if (NextRecharge >= DateTime.UtcNow)
+			return;
+
+		UsesRemaining = Math.Min(20, UsesRemaining + 1);
+		NextRecharge = DateTime.UtcNow + TimeSpan.FromHours(24);
 	}
 
 	public override void Deserialize(GenericReader reader)
@@ -73,7 +74,7 @@ public class SmugglersToolBox : Item
 		base.Deserialize(reader);
 
 		reader.ReadInt();
-		_UsesRemaining = reader.ReadInt();
+		m_UsesRemaining = reader.ReadInt();
 		NextRecharge = reader.ReadDateTime();
 	}
 }

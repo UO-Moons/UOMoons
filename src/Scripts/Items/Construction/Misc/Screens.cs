@@ -1,63 +1,59 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Furniture]
+[Flipable(0x24D0, 0x24D1, 0x24D2, 0x24D3, 0x24D4)]
+public class BambooScreen : BaseItem
 {
-	[Furniture]
-	[Flipable(0x24D0, 0x24D1, 0x24D2, 0x24D3, 0x24D4)]
-	public class BambooScreen : BaseItem
+	[Constructable]
+	public BambooScreen() : base(0x24D0)
 	{
-		[Constructable]
-		public BambooScreen() : base(0x24D0)
-		{
-			Weight = 20.0;
-		}
-
-		public BambooScreen(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-		}
+		Weight = 20.0;
 	}
 
-	[Furniture]
-	[Flipable(0x24CB, 0x24CC, 0x24CD, 0x24CE, 0x24CF)]
-	public class ShojiScreen : BaseItem
+	public BambooScreen(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public ShojiScreen() : base(0x24CB)
-		{
-			Weight = 20.0;
-		}
-
-		public ShojiScreen(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-		}
 	}
 
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[Furniture]
+[Flipable(0x24CB, 0x24CC, 0x24CD, 0x24CE, 0x24CF)]
+public class ShojiScreen : BaseItem
+{
+	[Constructable]
+	public ShojiScreen() : base(0x24CB)
+	{
+		Weight = 20.0;
+	}
+
+	public ShojiScreen(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
 }

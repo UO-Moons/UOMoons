@@ -21,7 +21,7 @@ public class WeakenSpell : MagerySpell
 	{
 	}
 
-	public static Dictionary<Mobile, Timer> Table = new();
+	private static readonly Dictionary<Mobile, Timer> Table = new();
 
 	public static bool IsUnderEffects(Mobile m)
 	{
@@ -30,24 +30,24 @@ public class WeakenSpell : MagerySpell
 
 	public static void RemoveEffects(Mobile m, bool removeMod = true)
 	{
-		if (Table.ContainsKey(m))
+		if (!Table.ContainsKey(m))
+			return;
+
+		Timer t = Table[m];
+
+		if (t is {Running: true})
 		{
-			Timer t = Table[m];
-
-			if (t is {Running: true})
-			{
-				t.Stop();
-			}
-
-			BuffInfo.RemoveBuff(m, BuffIcon.Weaken);
-
-			if (removeMod)
-			{
-				m.RemoveStatMod("[Magic] Str Curse");
-			}
-
-			Table.Remove(m);
+			t.Stop();
 		}
+
+		BuffInfo.RemoveBuff(m, BuffIcon.Weaken);
+
+		if (removeMod)
+		{
+			m.RemoveStatMod("[Magic] Str Curse");
+		}
+
+		Table.Remove(m);
 	}
 
 	public override void OnCast()
@@ -65,7 +65,7 @@ public class WeakenSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{
@@ -118,7 +118,7 @@ public class WeakenSpell : MagerySpell
 		FinishSequence();
 	}
 
-	public class InternalTarget : Target
+	private class InternalTarget : Target
 	{
 		private readonly WeakenSpell _owner;
 

@@ -9,12 +9,7 @@ public class ConfirmRewardGump : BaseConfirmGump
 	private readonly CollectionItem _mItem;
 	private readonly int _mHue;
 
-	public ConfirmRewardGump(IComunityCollection collection, Point3D location, CollectionItem item)
-		: this(collection, location, item, 0)
-	{
-	}
-
-	public ConfirmRewardGump(IComunityCollection collection, Point3D location, CollectionItem item, int hue)
+	public ConfirmRewardGump(IComunityCollection collection, Point3D location, CollectionItem item, int hue = 0)
 	{
 		_mCollection = collection;
 		_mLocation = location;

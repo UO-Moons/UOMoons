@@ -18,13 +18,12 @@ public class Backstab : NinjaMove
 
 	public override bool Validate(Mobile from)
 	{
-		if (!from.Hidden || from.AllowedStealthSteps <= 0)
-		{
-			from.SendLocalizedMessage(1063087); // You must be in stealth mode to use this ability.
-			return false;
-		}
+		if (from.Hidden && from.AllowedStealthSteps > 0)
+			return base.Validate(from);
 
-		return base.Validate(from);
+		from.SendLocalizedMessage(1063087); // You must be in stealth mode to use this ability.
+		return false;
+
 	}
 
 	public override bool OnBeforeSwing(Mobile attacker, Mobile defender)

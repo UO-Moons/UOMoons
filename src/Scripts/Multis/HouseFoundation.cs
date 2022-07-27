@@ -278,63 +278,63 @@ namespace Server.Multis
                     switch (door.Facing)
                     {
                         default:
-                        case DoorFacing.WestCW:
-                            linkFacing = DoorFacing.EastCCW;
+                        case DoorFacing.WestCw:
+                            linkFacing = DoorFacing.EastCcw;
                             xOffset = 1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.EastCCW:
-                            linkFacing = DoorFacing.WestCW;
+                        case DoorFacing.EastCcw:
+                            linkFacing = DoorFacing.WestCw;
                             xOffset = -1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.WestCCW:
-                            linkFacing = DoorFacing.EastCW;
+                        case DoorFacing.WestCcw:
+                            linkFacing = DoorFacing.EastCw;
                             xOffset = 1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.EastCW:
-                            linkFacing = DoorFacing.WestCCW;
+                        case DoorFacing.EastCw:
+                            linkFacing = DoorFacing.WestCcw;
                             xOffset = -1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.SouthCW:
-                            linkFacing = DoorFacing.NorthCCW;
+                        case DoorFacing.SouthCw:
+                            linkFacing = DoorFacing.NorthCcw;
                             xOffset = 0;
                             yOffset = -1;
                             break;
-                        case DoorFacing.NorthCCW:
-                            linkFacing = DoorFacing.SouthCW;
+                        case DoorFacing.NorthCcw:
+                            linkFacing = DoorFacing.SouthCw;
                             xOffset = 0;
                             yOffset = 1;
                             break;
-                        case DoorFacing.SouthCCW:
-                            linkFacing = DoorFacing.NorthCW;
+                        case DoorFacing.SouthCcw:
+                            linkFacing = DoorFacing.NorthCw;
                             xOffset = 0;
                             yOffset = -1;
                             break;
-                        case DoorFacing.NorthCW:
-                            linkFacing = DoorFacing.SouthCCW;
+                        case DoorFacing.NorthCw:
+                            linkFacing = DoorFacing.SouthCcw;
                             xOffset = 0;
                             yOffset = 1;
                             break;
-                        case DoorFacing.SouthSW:
-                            linkFacing = DoorFacing.SouthSE;
+                        case DoorFacing.SouthSw:
+                            linkFacing = DoorFacing.SouthSe;
                             xOffset = 1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.SouthSE:
-                            linkFacing = DoorFacing.SouthSW;
+                        case DoorFacing.SouthSe:
+                            linkFacing = DoorFacing.SouthSw;
                             xOffset = -1;
                             yOffset = 0;
                             break;
-                        case DoorFacing.WestSN:
-                            linkFacing = DoorFacing.WestSS;
+                        case DoorFacing.WestSn:
+                            linkFacing = DoorFacing.WestSs;
                             xOffset = 0;
                             yOffset = 1;
                             break;
-                        case DoorFacing.WestSS:
-                            linkFacing = DoorFacing.WestSN;
+                        case DoorFacing.WestSs:
+                            linkFacing = DoorFacing.WestSn;
                             xOffset = 0;
                             yOffset = -1;
                             break;

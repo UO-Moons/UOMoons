@@ -15,10 +15,11 @@ namespace Server.Items
 			_ = Timer.DelayCall(TimeSpan.FromSeconds(5), new TimerCallback(Hatch));
 		}
 
-		public void Carve(Mobile from, Item item)
+		public bool Carve(Mobile from, Item item)
 		{
 			from.SendMessage("You destroy the egg sack.");
 			Delete();
+			return true;
 		}
 
 		private void Hatch()

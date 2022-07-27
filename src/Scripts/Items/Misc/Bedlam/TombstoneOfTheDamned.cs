@@ -1,31 +1,29 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class TombstoneOfTheDamned : BaseItem
 {
-	public class TombstoneOfTheDamned : BaseItem
+	public override int LabelNumber => 1072123;  // Tombstone of the Damned
+
+	[Constructable]
+	public TombstoneOfTheDamned() : base(Utility.RandomMinMax(0xED7, 0xEDE))
 	{
-		public override int LabelNumber => 1072123;  // Tombstone of the Damned
+	}
 
-		[Constructable]
-		public TombstoneOfTheDamned() : base(Utility.RandomMinMax(0xED7, 0xEDE))
-		{
-		}
+	public TombstoneOfTheDamned(Serial serial) : base(serial)
+	{
+	}
 
-		public TombstoneOfTheDamned(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }
-

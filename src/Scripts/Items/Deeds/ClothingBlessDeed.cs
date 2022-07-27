@@ -27,7 +27,7 @@ public class ClothingBlessDeed : BaseItem // Create the item class which is deri
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 
 	public override void OnDoubleClick(Mobile from) // Override double click of the deed to call our target

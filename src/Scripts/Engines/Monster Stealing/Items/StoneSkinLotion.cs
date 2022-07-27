@@ -2,7 +2,6 @@ using Server.Mobiles;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.StoneSkinLotion")]
 public class StoneSkinLotion : BaseBalmOrLotion
 {
 	protected override void ApplyEffect(PlayerMobile pm)

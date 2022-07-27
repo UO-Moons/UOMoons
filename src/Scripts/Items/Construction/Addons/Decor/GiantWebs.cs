@@ -1,200 +1,199 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class GiantWeb1 : BaseAddon
 {
-	public class GiantWeb1 : BaseAddon
+	[Constructable]
+	public GiantWeb1()
 	{
-		[Constructable]
-		public GiantWeb1()
-		{
-			int itemID = 4280;
-			int count = 5;
-			bool leftToRight = false;
+		int itemID = 4280;
+		int count = 5;
+		bool leftToRight = false;
 
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
-
-		public GiantWeb1(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write((byte)0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadByte();
-		}
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
 	}
 
-	public class GiantWeb2 : BaseAddon
+	public GiantWeb1(Serial serial)
+		: base(serial)
 	{
-		[Constructable]
-		public GiantWeb2()
-		{
-			int itemID = 4285;
-			int count = 5;
-			bool leftToRight = true;
-
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
-
-		public GiantWeb2(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write((byte)0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadByte();
-		}
 	}
 
-	public class GiantWeb3 : BaseAddon
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public GiantWeb3()
-		{
-			int itemID = 4290;
-			int count = 4;
-			bool leftToRight = true;
+		base.Serialize(writer);
 
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
-
-		public GiantWeb3(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write((byte)0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadByte();
-		}
+		writer.Write((byte)0); // version
 	}
 
-	public class GiantWeb4 : BaseAddon
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public GiantWeb4()
-		{
-			int itemID = 4294;
-			int count = 4;
-			bool leftToRight = false;
+		base.Deserialize(reader);
 
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
+		reader.ReadByte();
+	}
+}
 
-		public GiantWeb4(Serial serial)
-			: base(serial)
-		{
-		}
+public class GiantWeb2 : BaseAddon
+{
+	[Constructable]
+	public GiantWeb2()
+	{
+		int itemID = 4285;
+		int count = 5;
+		bool leftToRight = true;
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write((byte)0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadByte();
-		}
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
 	}
 
-	public class GiantWeb5 : BaseAddon
+	public GiantWeb2(Serial serial)
+		: base(serial)
 	{
-		[Constructable]
-		public GiantWeb5()
-		{
-			int itemID = 4298;
-			int count = 4;
-			bool leftToRight = true;
-
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
-
-		public GiantWeb5(Serial serial)
-			: base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write((byte)0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadByte();
-		}
 	}
 
-	public class GiantWeb6 : BaseAddon
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public GiantWeb6()
-		{
-			int itemID = 4302;
-			int count = 4;
-			bool leftToRight = false;
+		base.Serialize(writer);
 
-			for (int i = 0; i < count; ++i)
-				AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
-		}
+		writer.Write((byte)0); // version
+	}
 
-		public GiantWeb6(Serial serial)
-			: base(serial)
-		{
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		reader.ReadByte();
+	}
+}
 
-			writer.Write((byte)0); // version
-		}
+public class GiantWeb3 : BaseAddon
+{
+	[Constructable]
+	public GiantWeb3()
+	{
+		int itemID = 4290;
+		int count = 4;
+		bool leftToRight = true;
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
+	}
 
-			int version = reader.ReadByte();
-		}
+	public GiantWeb3(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write((byte)0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadByte();
+	}
+}
+
+public class GiantWeb4 : BaseAddon
+{
+	[Constructable]
+	public GiantWeb4()
+	{
+		int itemID = 4294;
+		int count = 4;
+		bool leftToRight = false;
+
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
+	}
+
+	public GiantWeb4(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write((byte)0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadByte();
+	}
+}
+
+public class GiantWeb5 : BaseAddon
+{
+	[Constructable]
+	public GiantWeb5()
+	{
+		int itemID = 4298;
+		int count = 4;
+		bool leftToRight = true;
+
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
+	}
+
+	public GiantWeb5(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write((byte)0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadByte();
+	}
+}
+
+public class GiantWeb6 : BaseAddon
+{
+	[Constructable]
+	public GiantWeb6()
+	{
+		int itemID = 4302;
+		int count = 4;
+		bool leftToRight = false;
+
+		for (int i = 0; i < count; ++i)
+			AddComponent(new AddonComponent(itemID++), leftToRight ? i : count - 1 - i, -(leftToRight ? i : count - 1 - i), 0);
+	}
+
+	public GiantWeb6(Serial serial)
+		: base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write((byte)0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadByte();
 	}
 }

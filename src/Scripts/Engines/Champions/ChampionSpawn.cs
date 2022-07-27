@@ -11,7 +11,7 @@ namespace Server.Engines.Champions;
 
 public class ChampionSpawn : BaseItem
 {
-	public static readonly int MaxStrayDistance = 250;
+	private const int MaxStrayDistance = 250;
 
 	private bool _mActive;
 	private ChampionSpawnType _mType;
@@ -31,7 +31,7 @@ public class ChampionSpawn : BaseItem
 	private IdolOfTheChampion _mIdol;
 	private Dictionary<Mobile, int> _mDamageEntries;
 
-	public List<Mobile> Creatures { get; private set; }
+	private List<Mobile> Creatures { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public string GroupName { get; set; }
@@ -52,7 +52,7 @@ public class ChampionSpawn : BaseItem
 	public string SpawnName { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public bool ConfinedRoaming { get; set; }
+	private bool ConfinedRoaming { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public bool HasBeenAdvanced { get; set; }
@@ -84,14 +84,14 @@ public class ChampionSpawn : BaseItem
 		Timer.DelayCall(TimeSpan.Zero, SetInitialSpawnArea);
 	}
 
-	public void SetInitialSpawnArea()
+	private void SetInitialSpawnArea()
 	{
 		//Previous default used to be 24;
 		SpawnArea = new Rectangle2D(new Point2D(X - SpawnRadius, Y - SpawnRadius),
 			new Point2D(X + SpawnRadius, Y + SpawnRadius));
 	}
 
-	public void UpdateRegion()
+	private void UpdateRegion()
 	{
 		_mRegion?.Unregister();
 
@@ -106,7 +106,7 @@ public class ChampionSpawn : BaseItem
 	public bool RandomizeType { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int Kills
+	private int Kills
 	{
 		get => _mKills;
 		set
@@ -120,7 +120,7 @@ public class ChampionSpawn : BaseItem
 	public Rectangle2D SpawnArea
 	{
 		get => _mSpawnArea;
-		set
+		private set
 		{
 			_mSpawnArea = value;
 			InvalidateProperties();
@@ -129,10 +129,10 @@ public class ChampionSpawn : BaseItem
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public TimeSpan RestartDelay { get; set; }
+	private TimeSpan RestartDelay { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public DateTime RestartTime { get; private set; }
+	private DateTime RestartTime { get; set; }
 
 	//[CommandProperty(AccessLevel.GameMaster)]
 	//public TimeSpan ExpireDelay
@@ -142,7 +142,7 @@ public class ChampionSpawn : BaseItem
 	//}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public DateTime ExpireTime { get; set; }
+	private DateTime ExpireTime { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public ChampionSpawnType Type
@@ -173,13 +173,13 @@ public class ChampionSpawn : BaseItem
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public Mobile Champion { get; set; }
+	public Mobile Champion { get; private set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int Level
 	{
 		get => _mRedSkulls.Count;
-		set
+		private set
 		{
 			for (var i = _mRedSkulls.Count - 1; i >= value; --i)
 			{
@@ -206,7 +206,7 @@ public class ChampionSpawn : BaseItem
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int StartLevel { get; private set; }
+	private int StartLevel { get; set; }
 
 	private void RemoveSkulls()
 	{
@@ -227,7 +227,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public int MaxKills
+	private int MaxKills
 	{
 		get
 		{
@@ -241,7 +241,7 @@ public class ChampionSpawn : BaseItem
 		return Creatures.Contains(m);
 	}
 
-	public void SetWhiteSkullCount(int val)
+	private void SetWhiteSkullCount(int val)
 	{
 		for (var i = _mWhiteSkulls.Count - 1; i >= val; --i)
 		{
@@ -266,7 +266,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public void Start(bool serverLoad = false)
+	private void Start(bool serverLoad = false)
 	{
 		if (_mActive || Deleted)
 			return;
@@ -321,7 +321,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public void Stop()
+	private void Stop()
 	{
 		if (!_mActive || Deleted)
 			return;
@@ -355,7 +355,7 @@ public class ChampionSpawn : BaseItem
 		_mKills = 0;
 	}
 
-	public void BeginRestart(TimeSpan ts)
+	private void BeginRestart(TimeSpan ts)
 	{
 		_mRestartTimer?.Stop();
 
@@ -386,7 +386,8 @@ public class ChampionSpawn : BaseItem
 	}
 
 	#region Scroll of Transcendence
-	public static ScrollOfTranscendence CreateRandomSoT(bool felucca)
+
+	private static ScrollOfTranscendence CreateRandomSoT(bool felucca)
 	{
 		var level = Utility.RandomMinMax(1, 5);
 
@@ -398,7 +399,7 @@ public class ChampionSpawn : BaseItem
 
 	#endregion
 
-	public static void GiveScrollTo(Mobile killer, SpecialScroll scroll)
+	private static void GiveScrollTo(Mobile killer, SpecialScroll scroll)
 	{
 		if (scroll == null || killer == null)   //sanity
 			return;
@@ -642,7 +643,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public void SpawnChampion()
+	private void SpawnChampion()
 	{
 		_mKills = 0;
 		Level = 0;
@@ -742,7 +743,7 @@ public class ChampionSpawn : BaseItem
 		return GetSpawnLocation(m_SpawnArea, 24);
 	}*/
 
-	public Point3D GetSpawnLocation(Rectangle2D rect, int range)
+	private Point3D GetSpawnLocation(Rectangle2D rect, int range)
 	{
 		var map = Map;
 
@@ -778,7 +779,7 @@ public class ChampionSpawn : BaseItem
 
 	public int Rank => ChampionSystem.RankForLevel(Level);
 
-	public int GetRankFor(Mobile m)
+	private int GetRankFor(Mobile m)
 	{
 		var types = ChampionSpawnInfo.GetInfo(_mType).SpawnTypes;
 		var t = m.GetType();
@@ -796,7 +797,7 @@ public class ChampionSpawn : BaseItem
 		return -1;
 	}
 
-	public Mobile Spawn()
+	private Mobile Spawn()
 	{
 		var types = ChampionSpawnInfo.GetInfo(_mType).SpawnTypes;
 
@@ -808,7 +809,7 @@ public class ChampionSpawn : BaseItem
 		return null;
 	}
 
-	public static Mobile Spawn(params Type[] types)
+	private static Mobile Spawn(params Type[] types)
 	{
 		try
 		{
@@ -820,7 +821,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public void Expire()
+	private void Expire()
 	{
 		_mKills = 0;
 
@@ -840,7 +841,7 @@ public class ChampionSpawn : BaseItem
 		ExpireTime = DateTime.UtcNow + _mExpireDelay;
 	}
 
-	public Point3D GetRedSkullLocation(int index)
+	private Point3D GetRedSkullLocation(int index)
 	{
 		int x, y;
 
@@ -867,7 +868,7 @@ public class ChampionSpawn : BaseItem
 		return new Point3D(X + x, Y + y, Z - 15);
 	}
 
-	public Point3D GetWhiteSkullLocation(int index)
+	private Point3D GetWhiteSkullLocation(int index)
 	{
 		int x, y;
 
@@ -1050,7 +1051,7 @@ public class ChampionSpawn : BaseItem
 		}
 	}
 
-	public void RegisterDamage(Mobile from, int amount)
+	private void RegisterDamage(Mobile from, int amount)
 	{
 		if (from is not {Player: true})
 			return;
@@ -1061,7 +1062,7 @@ public class ChampionSpawn : BaseItem
 			_mDamageEntries.Add(from, amount);
 	}
 
-	public void AwardArtifact(Item artifact)
+	private void AwardArtifact(Item artifact)
 	{
 		if (artifact == null)
 			return;
@@ -1092,7 +1093,7 @@ public class ChampionSpawn : BaseItem
 		artifact.Delete();
 	}
 
-	public static void GiveArtifact(Mobile to, Item artifact)
+	private static void GiveArtifact(Mobile to, Item artifact)
 	{
 		if (to == null || artifact == null)
 			return;
@@ -1107,7 +1108,7 @@ public class ChampionSpawn : BaseItem
 			to.SendLocalizedMessage(1062317); // For your valor in combating the fallen beast, a special artifact has been bestowed on you.
 	}
 
-	public bool IsEligible(Mobile m, Item artifact)
+	private bool IsEligible(Mobile m, Item artifact)
 	{
 		return m == null
 			? throw new ArgumentNullException(nameof(m))
@@ -1425,7 +1426,7 @@ public class ChampionSpawnRegion : BaseRegion
 		return base.OnMoveInto(m, d, newLocation, oldLocation);
 	}
 
-	public static void OnLogout(Mobile m)
+	private static void OnLogout(Mobile m)
 	{
 		if (m is PlayerMobile && m.Region.IsPartOf<ChampionSpawnRegion>() && m.AccessLevel == AccessLevel.Player && m.Map == Map.Felucca)
 		{
@@ -1461,7 +1462,7 @@ public class ChampionSpawnRegion : BaseRegion
 		}
 	}
 
-	public static void OnLogin(Mobile m)
+	private static void OnLogin(Mobile m)
 	{
 		if (m is not PlayerMobile || m.Alive || (m.Corpse != null && !m.Corpse.Deleted) ||
 		    !m.Region.IsPartOf<ChampionSpawnRegion>() || m.Map != Map.Felucca) return;

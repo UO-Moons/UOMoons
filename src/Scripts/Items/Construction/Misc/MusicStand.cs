@@ -1,66 +1,65 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Furniture]
+[Flipable(0xEBB, 0xEBC)]
+public class TallMusicStand : BaseItem
 {
-	[Furniture]
-	[Flipable(0xEBB, 0xEBC)]
-	public class TallMusicStand : BaseItem
+	[Constructable]
+	public TallMusicStand() : base(0xEBB)
 	{
-		[Constructable]
-		public TallMusicStand() : base(0xEBB)
-		{
-			Weight = 10.0;
-		}
-
-		public TallMusicStand(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 8.0)
-				Weight = 10.0;
-		}
+		Weight = 10.0;
 	}
 
-	[Furniture]
-	[Flipable(0xEB6, 0xEB8)]
-	public class ShortMusicStand : BaseItem
+	public TallMusicStand(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public ShortMusicStand() : base(0xEB6)
-		{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+
+		if (Weight == 8.0)
 			Weight = 10.0;
-		}
+	}
+}
 
-		public ShortMusicStand(Serial serial) : base(serial)
-		{
-		}
+[Furniture]
+[Flipable(0xEB6, 0xEB8)]
+public class ShortMusicStand : BaseItem
+{
+	[Constructable]
+	public ShortMusicStand() : base(0xEB6)
+	{
+		Weight = 10.0;
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public ShortMusicStand(Serial serial) : base(serial)
+	{
+	}
 
-			writer.Write(0);
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+		writer.Write(0);
+	}
 
-			int version = reader.ReadInt();
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			if (Weight == 6.0)
-				Weight = 10.0;
-		}
+		reader.ReadInt();
+
+		if (Weight == 6.0)
+			Weight = 10.0;
 	}
 }

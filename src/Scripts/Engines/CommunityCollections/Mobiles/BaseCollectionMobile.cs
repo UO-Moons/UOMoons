@@ -25,7 +25,6 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	private long _mStartTier;
 	private long _mNextTier;
 	private long _mDailyDecay;
-	private int _mTier;
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public long Points
@@ -38,10 +37,10 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 			if (_mPoints < 0)
 				_mPoints = 0;
 
-			while (_mTier > 0 && _mPoints < PreviousTier)
+			while (Tier > 0 && _mPoints < PreviousTier)
 				DecreaseTier();
 
-			while (_mTier < MaxTier && _mPoints > CurrentTier)
+			while (Tier < MaxTier && _mPoints > CurrentTier)
 				IncreaseTier();
 
 			InvalidateProperties();
@@ -53,10 +52,10 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	{
 		get
 		{
-			if (_mTier <= 2) return _mStartTier * _mTier;
+			if (Tier <= 2) return _mStartTier * Tier;
 			long tier = _mStartTier * 2;
 
-			for (var i = 0; i < _mTier - 2; i++)
+			for (var i = 0; i < Tier - 2; i++)
 				tier += (i + 3) * _mNextTier;
 
 			return tier;
@@ -69,10 +68,10 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	{
 		get
 		{
-			if (_mTier > 1)
-				return PreviousTier + (_mTier + 1) * _mNextTier;
+			if (Tier > 1)
+				return PreviousTier + (Tier + 1) * _mNextTier;
 
-			return _mStartTier + _mStartTier * _mTier;
+			return _mStartTier + _mStartTier * Tier;
 		}
 	}
 
@@ -102,7 +101,7 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	public long DailyDecay
 	{
 		get => _mDailyDecay;
-		set
+		init
 		{
 			_mDailyDecay = value;
 			InvalidateProperties();
@@ -110,7 +109,8 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int Tier => _mTier;
+	public int Tier { get; private set; }
+
 	#endregion
 
 	private object _mDonationTitle;
@@ -121,13 +121,13 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	public int DonationLabel
 	{
 		get => _mDonationTitle is int donationTitle ? donationTitle : 0;
-		set => _mDonationTitle = value;
+		init => _mDonationTitle = value;
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public string DonationString
+	private string DonationString
 	{
-		get => _mDonationTitle is string donationTitle ? donationTitle : null;
+		get => _mDonationTitle as string;
 		set => _mDonationTitle = value;
 	}
 
@@ -180,9 +180,9 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 	{
 		base.GetProperties(list);
 
-		list.Add(1072819, _mTier.ToString()); // Current Tier: ~1_TIER~
+		list.Add(1072819, Tier.ToString()); // Current Tier: ~1_TIER~
 		list.Add(1072820, _mPoints.ToString()); // Current Points: ~1_POINTS~
-		list.Add(1072821, _mTier > MaxTier ? 0.ToString() : CurrentTier.ToString()); // Points until next tier: ~1_POINTS~
+		list.Add(1072821, Tier > MaxTier ? 0.ToString() : CurrentTier.ToString()); // Points until next tier: ~1_POINTS~
 
 		if (DonationLabel > 0)
 			list.Add(DonationLabel);
@@ -213,7 +213,7 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 		_mStartTier = data.StartTier;
 		_mNextTier = data.NextTier;
 		_mDailyDecay = data.DailyDecay;
-		_mTier = data.Tier;
+		Tier = data.Tier;
 		_mDonationTitle = data.DonationTitle;
 		Tiers = data.Tiers;
 	}
@@ -239,7 +239,7 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 			_mStartTier = reader.ReadLong();
 			_mNextTier = reader.ReadLong();
 			_mDailyDecay = reader.ReadLong();
-			_mTier = reader.ReadInt();
+			Tier = reader.ReadInt();
 
 			_mDonationTitle = QuestReader.Object(reader);
 
@@ -319,12 +319,12 @@ public abstract class BaseCollectionMobile : BaseVendor, IComunityCollection
 
 	public virtual void IncreaseTier()
 	{
-		_mTier += 1;
+		Tier += 1;
 	}
 
 	public virtual void DecreaseTier()
 	{
-		_mTier -= 1;
+		Tier -= 1;
 
 		if (Tiers is not {Count: > 0}) return;
 		for (var i = 0; i < Tiers[^1].Count; i++)

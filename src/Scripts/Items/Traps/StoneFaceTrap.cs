@@ -1,161 +1,145 @@
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public enum StoneFaceTrapType
 {
-	public enum StoneFaceTrapType
+	NorthWestWall,
+	NorthWall,
+	WestWall
+}
+
+public class StoneFaceTrap : BaseTrap
+{
+	[CommandProperty(AccessLevel.GameMaster)]
+	public StoneFaceTrapType Type
 	{
-		NorthWestWall,
-		NorthWall,
-		WestWall
-	}
-
-	public class StoneFaceTrap : BaseTrap
-	{
-		[CommandProperty(AccessLevel.GameMaster)]
-		public StoneFaceTrapType Type
+		get
 		{
-			get
+			return ItemId switch
 			{
-				switch (ItemId)
-				{
-					case 0x10F5: case 0x10F6: case 0x10F7: return StoneFaceTrapType.NorthWestWall;
-					case 0x10FC: case 0x10FD: case 0x10FE: return StoneFaceTrapType.NorthWall;
-					case 0x110F: case 0x1110: case 0x1111: return StoneFaceTrapType.WestWall;
-				}
-
-				return StoneFaceTrapType.NorthWestWall;
-			}
-			set
-			{
-				bool breathing = Breathing;
-
-				ItemId = (breathing ? GetFireID(value) : GetBaseID(value));
-			}
+				0x10F5 or 0x10F6 or 0x10F7 => StoneFaceTrapType.NorthWestWall,
+				0x10FC or 0x10FD or 0x10FE => StoneFaceTrapType.NorthWall,
+				0x110F or 0x1110 or 0x1111 => StoneFaceTrapType.WestWall,
+				_ => StoneFaceTrapType.NorthWestWall,
+			};
 		}
-
-		public bool Breathing
+		init
 		{
-			get => (ItemId == GetFireID(Type));
-			set
-			{
-				if (value)
-					ItemId = GetFireID(Type);
-				else
-					ItemId = GetBaseID(Type);
-			}
-		}
+			bool breathing = Breathing;
 
-		public static int GetBaseID(StoneFaceTrapType type)
-		{
-			switch (type)
-			{
-				case StoneFaceTrapType.NorthWestWall: return 0x10F5;
-				case StoneFaceTrapType.NorthWall: return 0x10FC;
-				case StoneFaceTrapType.WestWall: return 0x110F;
-			}
-
-			return 0;
-		}
-
-		public static int GetFireID(StoneFaceTrapType type)
-		{
-			switch (type)
-			{
-				case StoneFaceTrapType.NorthWestWall: return 0x10F7;
-				case StoneFaceTrapType.NorthWall: return 0x10FE;
-				case StoneFaceTrapType.WestWall: return 0x1111;
-			}
-
-			return 0;
-		}
-
-		[Constructable]
-		public StoneFaceTrap() : base(0x10FC)
-		{
-			Light = LightType.Circle225;
-		}
-
-		public override bool PassivelyTriggered => true;
-		public override TimeSpan PassiveTriggerDelay => TimeSpan.Zero;
-		public override int PassiveTriggerRange => 2;
-		public override TimeSpan ResetDelay => TimeSpan.Zero;
-
-		public override void OnTrigger(Mobile from)
-		{
-			if (!from.Alive || from.AccessLevel > AccessLevel.Player)
-				return;
-
-			Effects.PlaySound(Location, Map, 0x359);
-
-			Breathing = true;
-
-			Timer.DelayCall(TimeSpan.FromSeconds(2.0), new TimerCallback(FinishBreath));
-			Timer.DelayCall(TimeSpan.FromSeconds(1.0), new TimerCallback(TriggerDamage));
-		}
-
-		public virtual void FinishBreath()
-		{
-			Breathing = false;
-		}
-
-		public virtual void TriggerDamage()
-		{
-			foreach (Mobile mob in GetMobilesInRange(1))
-			{
-				if (mob.Alive && !mob.IsDeadBondedPet && mob.AccessLevel == AccessLevel.Player)
-					Spells.SpellHelper.Damage(TimeSpan.FromTicks(1), mob, mob, Utility.Dice(3, 15, 0));
-			}
-		}
-
-		public StoneFaceTrap(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			Breathing = false;
+			ItemId = breathing ? GetFireId(value) : GetBaseId(value);
 		}
 	}
 
-	public class StoneFaceTrapNoDamage : StoneFaceTrap
+	private bool Breathing
 	{
-		[Constructable]
-		public StoneFaceTrapNoDamage()
+		get => ItemId == GetFireId(Type);
+		set => ItemId = value ? GetFireId(Type) : GetBaseId(Type);
+	}
+
+	private static int GetBaseId(StoneFaceTrapType type)
+	{
+		return type switch
 		{
-		}
+			StoneFaceTrapType.NorthWestWall => 0x10F5,
+			StoneFaceTrapType.NorthWall => 0x10FC,
+			StoneFaceTrapType.WestWall => 0x110F,
+			_ => 0
+		};
+	}
 
-		public StoneFaceTrapNoDamage(Serial serial) : base(serial)
+	private static int GetFireId(StoneFaceTrapType type)
+	{
+		return type switch
 		{
-		}
+			StoneFaceTrapType.NorthWestWall => 0x10F7,
+			StoneFaceTrapType.NorthWall => 0x10FE,
+			StoneFaceTrapType.WestWall => 0x1111,
+			_ => 0
+		};
+	}
 
-		public override void TriggerDamage()
+	[Constructable]
+	public StoneFaceTrap() : base(0x10FC)
+	{
+		Light = LightType.Circle225;
+	}
+
+	protected override bool PassivelyTriggered => true;
+	protected override TimeSpan PassiveTriggerDelay => TimeSpan.Zero;
+	protected override int PassiveTriggerRange => 2;
+	protected override TimeSpan ResetDelay => TimeSpan.Zero;
+
+	protected override void OnTrigger(Mobile from)
+	{
+		if (!from.Alive || from.AccessLevel > AccessLevel.Player)
+			return;
+
+		Effects.PlaySound(Location, Map, 0x359);
+
+		Breathing = true;
+
+		Timer.DelayCall(TimeSpan.FromSeconds(2.0), FinishBreath);
+		Timer.DelayCall(TimeSpan.FromSeconds(1.0), TriggerDamage);
+	}
+
+	public virtual void FinishBreath()
+	{
+		Breathing = false;
+	}
+
+	public virtual void TriggerDamage()
+	{
+		foreach (Mobile mob in GetMobilesInRange(1))
 		{
-			// nothing..
+			if (mob.Alive && !mob.IsDeadBondedPet && mob.AccessLevel == AccessLevel.Player)
+				Spells.SpellHelper.Damage(TimeSpan.FromTicks(1), mob, mob, Utility.Dice(3, 15, 0));
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public StoneFaceTrap(Serial serial) : base(serial)
+	{
+	}
 
-			writer.Write(0); // version
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
+		Breathing = false;
+	}
+}
 
-			int version = reader.ReadInt();
-		}
+public class StoneFaceTrapNoDamage : StoneFaceTrap
+{
+	[Constructable]
+	public StoneFaceTrapNoDamage()
+	{
+	}
+
+	public StoneFaceTrapNoDamage(Serial serial) : base(serial)
+	{
+	}
+
+	public override void TriggerDamage()
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.ReadInt();
 	}
 }

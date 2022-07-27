@@ -4,12 +4,12 @@ namespace Server.Spells;
 
 public class SpellInfo
 {
-	public int Action { get; set; }
-	public bool AllowTown { get; set; }
-	public int[] Amounts { get; set; }
-	public string Mantra { get; set; }
-	public string Name { get; set; }
-	public Type[] Reagents { get; set; }
+	public int Action { get; }
+	public bool AllowTown { get; }
+	public int[] Amounts { get; }
+	public string Mantra { get; }
+	public string Name { get; }
+	public Type[] Reagents { get; }
 	public int LeftHandEffect { get; set; }
 	public int RightHandEffect { get; set; }
 
@@ -37,7 +37,7 @@ public class SpellInfo
 	{
 	}
 
-	public SpellInfo(string name, string mantra, int action, int leftHandEffect, int rightHandEffect, bool allowTown, params Type[] regs)
+	private SpellInfo(string name, string mantra, int action, int leftHandEffect, int rightHandEffect, bool allowTown, params Type[] regs)
 	{
 		Name = name;
 		Mantra = mantra;

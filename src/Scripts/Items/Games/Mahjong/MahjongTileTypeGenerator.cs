@@ -1,33 +1,30 @@
 using System.Collections;
 
-namespace Server.Engines.Mahjong
+namespace Server.Engines.Mahjong;
+
+public class MahjongTileTypeGenerator
 {
-	public class MahjongTileTypeGenerator
+	private ArrayList LeftTileTypes { get; }
+
+	public MahjongTileTypeGenerator(int count)
 	{
-		private readonly ArrayList m_LeftTileTypes;
+		LeftTileTypes = new ArrayList(34 * count);
 
-		public ArrayList LeftTileTypes => m_LeftTileTypes;
-
-		public MahjongTileTypeGenerator(int count)
+		for (int i = 1; i <= 34; i++)
 		{
-			m_LeftTileTypes = new ArrayList(34 * count);
-
-			for (int i = 1; i <= 34; i++)
+			for (int j = 0; j < count; j++)
 			{
-				for (int j = 0; j < count; j++)
-				{
-					m_LeftTileTypes.Add((MahjongTileType)i);
-				}
+				LeftTileTypes.Add((MahjongTileType)i);
 			}
 		}
+	}
 
-		public MahjongTileType Next()
-		{
-			int random = Utility.Random(m_LeftTileTypes.Count);
-			MahjongTileType next = (MahjongTileType)m_LeftTileTypes[random];
-			m_LeftTileTypes.RemoveAt(random);
+	public MahjongTileType Next()
+	{
+		int random = Utility.Random(LeftTileTypes.Count);
+		MahjongTileType next = (MahjongTileType)LeftTileTypes[random]!;
+		LeftTileTypes.RemoveAt(random);
 
-			return next;
-		}
+		return next;
 	}
 }

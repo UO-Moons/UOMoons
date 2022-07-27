@@ -832,11 +832,11 @@ public class TownHouseSign : BaseItem
 
 		door.Open = false;
 
-		GenericHouseDoor newdoor = new(0, door.ClosedID, door.OpenedSound, door.ClosedSound)
+		GenericHouseDoor newdoor = new(0, door.ClosedId, door.OpenedSound, door.ClosedSound)
 		{
 			Offset = door.Offset,
-			ClosedID = door.ClosedID,
-			OpenedID = door.OpenedID,
+			ClosedId = door.ClosedId,
+			OpenedId = door.OpenedId,
 			Location = door.Location,
 			Map = door.Map
 		};
@@ -871,8 +871,8 @@ public class TownHouseSign : BaseItem
 			BaseDoor newdoor = new StrongWoodDoor(0)
 			{
 				ItemId = door.ItemId,
-				ClosedID = door.ClosedID,
-				OpenedID = door.OpenedID,
+				ClosedId = door.ClosedId,
+				OpenedId = door.OpenedId,
 				OpenedSound = door.OpenedSound,
 				ClosedSound = door.ClosedSound,
 				Offset = door.Offset,

@@ -12,12 +12,10 @@ public class Anatomy
 		SkillInfo.Table[(int)SkillName.Anatomy].Callback = OnUse;
 	}
 
-	public static TimeSpan OnUse(Mobile m)
+	private static TimeSpan OnUse(Mobile m)
 	{
 		m.Target = new InternalTarget();
-
 		m.SendLocalizedMessage(500321); // Whom shall I examine?
-
 		return TimeSpan.FromSeconds(1.0);
 	}
 
@@ -43,15 +41,15 @@ public class Anatomy
 					break;
 				case Mobile targ:
 				{
-					int marginOfError = Math.Max(0, 25 - (int)(from.Skills[SkillName.Anatomy].Value / 4));
+					var marginOfError = Math.Max(0, 25 - (int)(from.Skills[SkillName.Anatomy].Value / 4));
 
-					int str = targ.Str + Utility.RandomMinMax(-marginOfError, +marginOfError);
-					int dex = targ.Dex + Utility.RandomMinMax(-marginOfError, +marginOfError);
-					int stm = ((targ.Stam * 100) / Math.Max(targ.StamMax, 1)) + Utility.RandomMinMax(-marginOfError, +marginOfError);
+					var str = targ.Str + Utility.RandomMinMax(-marginOfError, +marginOfError);
+					var dex = targ.Dex + Utility.RandomMinMax(-marginOfError, +marginOfError);
+					var stm = targ.Stam * 100 / Math.Max(targ.StamMax, 1) + Utility.RandomMinMax(-marginOfError, +marginOfError);
 
-					int strMod = str / 10;
-					int dexMod = dex / 10;
-					int stmMod = stm / 10;
+					var strMod = str / 10;
+					var dexMod = dex / 10;
+					var stmMod = stm / 10;
 
 					strMod = strMod switch
 					{
@@ -76,7 +74,7 @@ public class Anatomy
 
 					if (from.CheckTargetSkill(SkillName.Anatomy, targ, 0, 100))
 					{
-						targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1038045 + (strMod * 11) + dexMod, from.NetState); // That looks [strong] and [dexterous].
+						targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1038045 + strMod * 11 + dexMod, from.NetState); // That looks [strong] and [dexterous].
 
 						if (from.Skills[SkillName.Anatomy].Base >= 65.0)
 							targ.PrivateOverheadMessage(MessageType.Regular, 0x3B2, 1038303 + stmMod, from.NetState); // That being is at [10,20,...] percent endurance.

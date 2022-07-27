@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Server.Items;
 
 public class BookContent
@@ -5,7 +7,7 @@ public class BookContent
 	public string Title { get; }
 	public string Author { get; }
 
-	public BookPageInfo[] Pages { get; }
+	private BookPageInfo[] Pages { get; }
 
 	public BookContent(string title, string author, params BookPageInfo[] pages)
 	{
@@ -38,13 +40,13 @@ public class BookContent
 			{
 				return false;
 			}
-			else if (a != b)
+
+			if (a == b)
+				continue;
+
+			if (a.Where((t, j) => t != b[j]).Any())
 			{
-				for (int j = 0; j < a.Length; ++j)
-				{
-					if (a[j] != b[j])
-						return false;
-				}
+				return false;
 			}
 		}
 		return true;

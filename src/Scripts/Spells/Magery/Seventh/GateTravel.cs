@@ -73,7 +73,7 @@ public class GateTravelSpell : MagerySpell
 		}
 	}
 
-	public void Target(object o)
+	private void Target(object o)
 	{
 		switch (o)
 		{
@@ -151,7 +151,7 @@ public class GateTravelSpell : MagerySpell
 		return gateFound;
 	}
 
-	public void Effect(Point3D loc, Map map, bool checkMulti)
+	private void Effect(Point3D loc, Map map, bool checkMulti)
 	{
 		if (Factions.Sigil.ExistsOn(Caster))
 		{
@@ -231,10 +231,20 @@ public class GateTravelSpell : MagerySpell
 			t.Start();
 		}
 
+		public InternalItem(Serial serial) : base(serial)
+		{
+		}
+
+		public override void Serialize(GenericWriter writer)
+		{
+			base.Serialize(writer);
+			writer.Write(0);
+		}
+
 		public override void Deserialize(GenericReader reader)
 		{
 			base.Deserialize(reader);
-
+			reader.ReadInt();
 			Delete();
 		}
 

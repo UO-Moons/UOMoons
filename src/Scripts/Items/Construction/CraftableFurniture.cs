@@ -1,149 +1,86 @@
 using Server.Engines.Craft;
 using System;
 
-namespace Server.Items
+namespace Server.Items;
+
+public class CraftableFurniture : BaseItem, IResource, IQuality
 {
-    public class CraftableFurniture : Item, IResource/*, IQuality*/
-    {
-        public virtual bool ShowCrafterName => true;
+	public virtual bool ShowCrafterName => true;
 
-        private Mobile m_Crafter;
-        private CraftResource m_Resource;
-        private ItemQuality m_Quality;
+	public CraftableFurniture(int itemId)
+		: base(itemId)
+	{
+	}
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public ItemQuality Quality
-        {
-            get => m_Quality;
-            set
-            {
-                m_Quality = value;
-                InvalidateProperties();
-            }
-        }
+	public CraftableFurniture(Serial serial)
+		: base(serial)
+	{
+	}
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public CraftResource Resource
-        {
-            get => m_Resource;
-            set
-            {
-                if (m_Resource != value)
-                {
-                    m_Resource = value;
-                    Hue = CraftResources.GetHue(m_Resource);
+	public override void AddWeightProperty(ObjectPropertyList list)
+	{
+		base.AddWeightProperty(list);
 
-                    InvalidateProperties();
-                }
-            }
-        }
+		if (ShowCrafterName && Crafter != null)
+		{
+			list.Add(1050043, Crafter.TitleName); // crafted by ~1_NAME~
+		}
 
-        [CommandProperty(AccessLevel.GameMaster)]
-        public Mobile Crafter
-        {
-            get => m_Crafter;
-            set
-            {
-                m_Crafter = value;
-                InvalidateProperties();
-            }
-        }
+		if (Quality == ItemQuality.Exceptional)
+		{
+			list.Add(1060636); // exceptional
+		}
+	}
 
-        public virtual bool PlayerConstructed => true;
+	public override void AddCraftedProperties(ObjectPropertyList list)
+	{
+		CraftResourceInfo info = CraftResources.IsStandard(Resource) ? null : CraftResources.GetInfo(Resource);
 
-        public CraftableFurniture(int itemID)
-            : base(itemID)
-        {
-        }
+		if (info is { Number: > 0 })
+		{
+			list.Add(info.Number);
+		}
+	}
 
-        public CraftableFurniture(Serial serial)
-            : base(serial)
-        {
-        }
+	public override void OnSingleClick(Mobile from)
+	{
+		base.OnSingleClick(from);
 
-        public override void AddWeightProperty(ObjectPropertyList list)
-        {
-            base.AddWeightProperty(list);
+		if (Crafter != null)
+		{
+			LabelTo(from, 1050043, Crafter.TitleName); // crafted by ~1_NAME~
+		}
+	}
 
-            //if (ShowCrafterName && m_Crafter != null)
-            //{
-            //    list.Add(1050043, m_Crafter.TitleName); // crafted by ~1_NAME~
-            //}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+		writer.Write(0); // version
+	}
 
-            if (m_Quality == ItemQuality.Exceptional)
-            {
-                list.Add(1060636); // exceptional
-            }
-        }
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+		reader.PeekInt();
+	}
 
-        //public override void AddCraftedProperties(ObjectPropertyList list)
-        //{
-        //    CraftResourceInfo info = CraftResources.IsStandard(m_Resource) ? null : CraftResources.GetInfo(m_Resource);
+	#region ICraftable
+	public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
+	{
+		Quality = (ItemQuality)quality;
 
-        //    if (info != null && info.Number > 0)
-        //    {
-        //        list.Add(info.Number);
-        //    }
-        //}
+		if (makersMark)
+		{
+			Crafter = from;
+		}
 
-        /*public override void OnSingleClick(Mobile from)
-        {
-            base.OnSingleClick(from);
+		PlayerConstructed = true;
 
-            if (m_Crafter != null)
-            {
-                LabelTo(from, 1050043, m_Crafter.TitleName); // crafted by ~1_NAME~
-            }
-        }*/
+		Type resourceType = typeRes ?? craftItem.Resources.GetAt(0).ItemType;
 
-        public override void Serialize(GenericWriter writer)
-        {
-            base.Serialize(writer);
-            writer.Write(0); // version
+		Resource = CraftResources.GetFromType(resourceType);
 
-            writer.Write(m_Crafter);
-            writer.Write((int)m_Resource);
-            writer.Write((int)m_Quality);
-        }
-
-        public override void Deserialize(GenericReader reader)
-        {
-            base.Deserialize(reader);
-
-            int version = reader.PeekInt();
-
-            switch (version)
-            {
-                case 0:
-                    reader.ReadInt();
-                    m_Crafter = reader.ReadMobile();
-                    m_Resource = (CraftResource)reader.ReadInt();
-                    m_Quality = (ItemQuality)reader.ReadInt();
-                    break;
-            }
-        }
-
-        #region ICraftable
-        public virtual int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
-        {
-            Quality = (ItemQuality)quality;
-
-            if (makersMark)
-            {
-                Crafter = from;
-            }
-
-            Type resourceType = typeRes;
-
-            if (resourceType == null)
-            {
-                resourceType = craftItem.Resources.GetAt(0).ItemType;
-            }
-
-            Resource = CraftResources.GetFromType(resourceType);
-
-            return quality;
-        }
-        #endregion
-    }
+		return quality;
+	}
+	#endregion
 }

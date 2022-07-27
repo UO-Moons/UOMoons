@@ -32,14 +32,14 @@ public class BaseRegion : Region
 	private SpawnEntry[] _mSpawns;
 	private bool _mExcludeFromParentSpawns;
 
-	public string RuneName { get => _mRuneName; set => _mRuneName = value; }
+	private string RuneName { get => _mRuneName; set => _mRuneName = value; }
 
-	public bool NoLogoutDelay { get; set; }
+	private bool NoLogoutDelay { get; }
 
 	public SpawnEntry[] Spawns
 	{
 		get => _mSpawns;
-		set
+		private set
 		{
 			if (_mSpawns != null)
 			{
@@ -51,9 +51,9 @@ public class BaseRegion : Region
 		}
 	}
 
-	public SpawnZLevel SpawnZLevel { get; set; }
+	private SpawnZLevel SpawnZLevel { get; }
 
-	public bool ExcludeFromParentSpawns { get => _mExcludeFromParentSpawns; set => _mExcludeFromParentSpawns = value; }
+	private bool ExcludeFromParentSpawns { get => _mExcludeFromParentSpawns; set => _mExcludeFromParentSpawns = value; }
 
 	public override void OnUnregister()
 	{
@@ -77,11 +77,11 @@ public class BaseRegion : Region
 
 	public override TimeSpan GetLogoutDelay(Mobile m)
 	{
-		if (NoLogoutDelay)
-		{
-			if (m.Aggressors.Count == 0 && m.Aggressed.Count == 0 && !m.Criminal)
-				return TimeSpan.Zero;
-		}
+		if (!NoLogoutDelay)
+			return base.GetLogoutDelay(m);
+
+		if (m.Aggressors.Count == 0 && m.Aggressed.Count == 0 && !m.Criminal)
+			return TimeSpan.Zero;
 
 		return base.GetLogoutDelay(m);
 	}
@@ -118,12 +118,12 @@ public class BaseRegion : Region
 
 	public override void OnEnter(Mobile m)
 	{
-		if (m is PlayerMobile mobile && mobile.Young)
+		if (m is not PlayerMobile { Young: true })
+			return;
+
+		if (!YoungProtected)
 		{
-			if (!YoungProtected)
-			{
-				m.SendGump(new YoungDungeonWarning());
-			}
+			m.SendGump(new YoungDungeonWarning());
 		}
 	}
 
@@ -323,25 +323,25 @@ public class BaseRegion : Region
 			{
 				Item item = sector.Items[j];
 
-				if (item is not BaseMulti && item.ItemId <= TileData.MaxItemValue && item.AtWorldPoint(x, y))
+				if (item is BaseMulti || item.ItemId > TileData.MaxItemValue || !item.AtWorldPoint(x, y))
+					continue;
+
+				MSpawnBuffer2.Add(item);
+
+				if (item.Movable)
+					continue;
+
+				ItemData id = item.ItemData;
+				int itemZ = item.Z + id.CalcHeight;
+
+				if (itemZ < minZ || itemZ >= maxZ) continue;
+				if ((id.Flags & TileFlag.Wet) != 0)
 				{
-					MSpawnBuffer2.Add(item);
-
-					if (!item.Movable)
-					{
-						ItemData id = item.ItemData;
-						int itemZ = item.Z + id.CalcHeight;
-
-						if (itemZ < minZ || itemZ >= maxZ) continue;
-						if ((id.Flags & TileFlag.Wet) != 0)
-						{
-							if (water)
-								MSpawnBuffer1.Add(itemZ);
-						}
-						else if (land && id.Surface && !id.Impassable)
-							MSpawnBuffer1.Add(itemZ);
-					}
+					if (water)
+						MSpawnBuffer1.Add(itemZ);
 				}
+				else if (land && id.Surface && !id.Impassable)
+					MSpawnBuffer1.Add(itemZ);
 			}
 
 
@@ -462,9 +462,8 @@ public class BaseRegion : Region
 	{
 		if (Name != null)
 			return Name;
-		if (RuneName != null)
-			return RuneName;
-		return GetType().Name;
+
+		return RuneName ?? GetType().Name;
 	}
 
 	public BaseRegion(string name, Map map, int priority, params Rectangle2D[] area)

@@ -23,24 +23,47 @@ public class MapItem : BaseItem, ICraftable
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
+	public Map Facet { get; set; }
+
+	[CommandProperty(AccessLevel.GameMaster)]
 	public int Width { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public int Height { get; set; }
 
-	public List<Point2D> Pins { get; } = new List<Point2D>();
+	public List<Point2D> Pins { get; } = new();
 
 	[Constructable]
-	public MapItem() : base(0x14EC)
+	public MapItem()
+		: this(Map.Trammel)
+	{
+	}
+
+	[Constructable]
+	public MapItem(Map map) : base(0x14EC)
 	{
 		Weight = 1.0;
 
 		Width = 200;
 		Height = 200;
+
+		Facet = map;
 	}
 
 	public virtual void CraftInit(Mobile from)
 	{
+	}
+
+	public virtual void SetDisplayByFacet()
+	{
+		if (Facet == Map.Tokuno)
+			SetDisplay(0, 0, 1448, 1430, 400, 400);
+		else if (Facet == Map.Malas)
+			SetDisplay(520, 0, 2580, 2050, 400, 400);
+		else if (Facet == Map.Ilshenar)
+			SetDisplay(130, 136, 1927, 1468, 400, 400);
+		else if (Facet == Map.TerMur)
+			SetDisplay(260, 2780, 1280, 4090, 400, 400);
 	}
 
 	public void SetDisplay(int x1, int y1, int x2, int y2, int w, int h)
@@ -92,7 +115,7 @@ public class MapItem : BaseItem, ICraftable
 	{
 		if (!ValidateEdit(from))
 			return;
-		else if (Pins.Count >= MaxUserPins)
+		if (Pins.Count >= MaxUserPins)
 			return;
 
 		Validate(ref x, ref y);
@@ -120,7 +143,8 @@ public class MapItem : BaseItem, ICraftable
 	{
 		if (!ValidateEdit(from))
 			return;
-		else if (Pins.Count >= MaxUserPins)
+
+		if (Pins.Count >= MaxUserPins)
 			return;
 
 		Validate(ref x, ref y);
@@ -165,34 +189,43 @@ public class MapItem : BaseItem, ICraftable
 	{
 		if (!from.CanSee(this) || from.Map != Map || !from.Alive || InSecureTrade)
 			return false;
-		else if (from.AccessLevel >= AccessLevel.GameMaster)
+		if (from.IsStaff())
 			return true;
-		else if (!Movable || Protected || !from.InRange(GetWorldLocation(), 2))
+		if (!Movable || Protected || !from.InRange(GetWorldLocation(), 2))
 			return false;
 
 		object root = RootParent;
 
-		if (root is Mobile && root != from)
-			return false;
-
-		return true;
+		return root is not Mobile || root == from;
 	}
 
 	public void ConvertToWorld(int x, int y, out int worldX, out int worldY)
 	{
-		worldX = (m_Bounds.Width * x / Width) + m_Bounds.X;
-		worldY = (m_Bounds.Height * y / Height) + m_Bounds.Y;
+		if (Width == 0 || Height == 0)
+		{
+			worldX = worldY = 0;
+			return;
+		}
+
+		worldX = m_Bounds.Width * x / Width + m_Bounds.X;
+		worldY = m_Bounds.Height * y / Height + m_Bounds.Y;
 	}
 
 	public void ConvertToMap(int x, int y, out int mapX, out int mapY)
 	{
+		if (Bounds.Width == 0 || Bounds.Height == 0)
+		{
+			mapX = mapY = 0;
+			return;
+		}
+
 		mapX = (x - m_Bounds.X) * Width / m_Bounds.Width;
 		mapY = (y - m_Bounds.Y) * Width / m_Bounds.Height;
 	}
 
 	public virtual void AddWorldPin(int x, int y)
 	{
-		ConvertToMap(x, y, out int mapX, out int mapY);
+		ConvertToMap(x, y, out var mapX, out var mapY);
 
 		AddPin(mapX, mapY);
 	}
@@ -231,6 +264,7 @@ public class MapItem : BaseItem, ICraftable
 	{
 		base.Serialize(writer);
 		writer.Write(0);
+		writer.Write(Facet);
 		writer.Write(m_Bounds);
 		writer.Write(Width);
 		writer.Write(Height);
@@ -250,6 +284,7 @@ public class MapItem : BaseItem, ICraftable
 		{
 			case 0:
 				{
+					Facet = reader.ReadMap();
 					m_Bounds = reader.ReadRect2D();
 					Width = reader.ReadInt();
 					Height = reader.ReadInt();
@@ -266,7 +301,7 @@ public class MapItem : BaseItem, ICraftable
 
 	public static void Initialize()
 	{
-		PacketHandlers.Register(0x56, 11, true, new OnPacketReceive(OnMapCommand));
+		PacketHandlers.Register(0x56, 11, true, OnMapCommand);
 	}
 
 	private static void OnMapCommand(NetState state, PacketReader pvSrc)
@@ -295,7 +330,7 @@ public class MapItem : BaseItem, ICraftable
 
 	private sealed class MapDetails : Packet
 	{
-		public MapDetails(MapItem map) : base(0x90, 19)
+		public MapDetails(MapItem map) : base(Core.TOL ? 0xF5 : 0x90, Core.TOL ? 21 : 19)
 		{
 			m_Stream.Write(map.Serial);
 			m_Stream.Write((short)0x139D);
@@ -305,10 +340,61 @@ public class MapItem : BaseItem, ICraftable
 			m_Stream.Write((short)map.Bounds.End.Y);
 			m_Stream.Write((short)map.Width);
 			m_Stream.Write((short)map.Height);
+
+			if (!Core.TOL)
+				return;
+
+			short mapValue = 0x00;
+			if (map.Facet == Map.Felucca)
+				mapValue = 0x00;
+			else if (map.Facet == Map.Trammel)
+				mapValue = 0x01;
+			else if (map.Facet == Map.Ilshenar)
+				mapValue = 0x02;
+			else if (map.Facet == Map.Malas)
+				mapValue = 0x03;
+			else if (map.Facet == Map.Tokuno)
+				mapValue = 0x04;
+			else if (map.Facet == Map.TerMur)
+				mapValue = 0x05;
+
+			m_Stream.Write(mapValue);
+		}
+	}
+	/*
+	private sealed class MapDetailsNew : Packet
+	{
+		public MapDetailsNew(MapItem map)
+			: base(0xF5, 21)
+		{
+			m_Stream.Write(map.Serial);
+			m_Stream.Write((short)0x139D);
+			m_Stream.Write((short)map.Bounds.Start.X);
+			m_Stream.Write((short)map.Bounds.Start.Y);
+			m_Stream.Write((short)map.Bounds.End.X);
+			m_Stream.Write((short)map.Bounds.End.Y);
+			m_Stream.Write((short)map.Width);
+			m_Stream.Write((short)map.Height);
+
+			short mapValue = 0x00;
+			if (map.Facet == Map.Felucca)
+				mapValue = 0x00;
+			else if (map.Facet == Map.Trammel)
+				mapValue = 0x01;
+			else if (map.Facet == Map.Ilshenar)
+				mapValue = 0x02;
+			else if (map.Facet == Map.Malas)
+				mapValue = 0x03;
+			else if (map.Facet == Map.Tokuno)
+				mapValue = 0x04;
+			else if (map.Facet == Map.TerMur)
+				mapValue = 0x05;
+
+			m_Stream.Write(mapValue);
 		}
 	}
 
-	/*
+	
 	private sealed class MapDetailsNew : Packet
 	{
 		public MapDetailsNew( MapItem map ) : base ( 0xF5, 21 )
@@ -328,7 +414,7 @@ public class MapItem : BaseItem, ICraftable
 
 	private abstract class MapCommand : Packet
 	{
-		public MapCommand(MapItem map, int command, int number, int x, int y) : base(0x56, 11)
+		public MapCommand(IEntity map, int command, int number, int x, int y) : base(0x56, 11)
 		{
 			m_Stream.Write(map.Serial);
 			m_Stream.Write((byte)command);
@@ -340,31 +426,28 @@ public class MapItem : BaseItem, ICraftable
 
 	private sealed class MapDisplay : MapCommand
 	{
-		public MapDisplay(MapItem map) : base(map, 5, 0, 0, 0)
+		public MapDisplay(IEntity map) : base(map, 5, 0, 0, 0)
 		{
 		}
 	}
 
 	private sealed class MapAddPin : MapCommand
 	{
-		public MapAddPin(MapItem map, Point2D point) : base(map, 1, 0, point.X, point.Y)
+		public MapAddPin(IEntity map, Point2D point) : base(map, 1, 0, point.X, point.Y)
 		{
 		}
 	}
 
 	private sealed class MapSetEditable : MapCommand
 	{
-		public MapSetEditable(MapItem map, bool editable) : base(map, 7, editable ? 1 : 0, 0, 0)
+		public MapSetEditable(IEntity map, bool editable) : base(map, 7, editable ? 1 : 0, 0, 0)
 		{
 		}
 	}
 
-	#region ICraftable Members
 	public int OnCraft(int quality, bool makersMark, Mobile from, CraftSystem craftSystem, Type typeRes, ITool tool, CraftItem craftItem, int resHue)
 	{
 		CraftInit(from);
 		return quality;
 	}
-
-	#endregion
 }

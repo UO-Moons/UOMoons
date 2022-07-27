@@ -8,20 +8,20 @@ namespace Server.Commands
 	public class ExportEmail
 	{
 		private const string FileName = "Email Addresses";
-		static bool Exporting = false;
+		private static bool _exporting;
 		public static void Initialize()
 		{
-			CommandSystem.Register("ExportEmails", AccessLevel.Administrator, new CommandEventHandler(ExportEmails_OnCommand));
+			CommandSystem.Register("ExportEmails", AccessLevel.Administrator, ExportEmails_OnCommand);
 			//Timer.DelayCall(TimeSpan.FromMinutes(10.0), TimeSpan.FromMinutes(10.0), new TimerCallback(ProcessOne));
 		}
 
-		private static StreamWriter m_EmailData;
+		private static StreamWriter _emailData;
 
-		public const string EntrySep = "; ";
+		private const string EntrySep = "; ";
 
-		public static void ExportEmails_OnCommand(CommandEventArgs e)
+		private static void ExportEmails_OnCommand(CommandEventArgs e)
 		{
-			if (Exporting)
+			if (_exporting)
 			{
 				e.Mobile.SendMessage("Emails Are Already Being Exported to Logs, Please Wait...");
 				return;
@@ -32,45 +32,47 @@ namespace Server.Commands
 			e.Mobile.SendMessage("Done Exporting Valid Email Addresses to Logs Folder");
 		}
 
-		public static void ProcessOne()
+		private static void ProcessOne()
 		{
-			if (Exporting)
+			if (_exporting)
 			{
 				Console.WriteLine("Could Not Export Email Addresses... Exporting Already In Progress...");
 				return;
 			}
 
 			//Console.Write("Exporting All Valid Email Addresses...");
-			Exporting = true;
+			_exporting = true;
 
 			ProcessTwo();
 
 			ArrayList toExport = new();
 
-			foreach (Account acc in Accounts.GetAccounts())
+			foreach (var account in Accounts.GetAccounts())
+			{
+				var acc = (Account)account;
 				toExport.Add(acc);
+			}
 
 			foreach (Account a in toExport)
 			{
-				if (a != null && (a.GetTag("Email") != null))
-				{
-					string emailaddress = a.GetTag("Email");
-					m_EmailData.Write(emailaddress);
-					m_EmailData.Write(EntrySep);
-				}
+				if (a?.GetTag("Email") == null)
+					continue;
+				string emailaddress = a.GetTag("Email");
+				_emailData.Write(emailaddress);
+				_emailData.Write(EntrySep);
 			}
 
-			m_EmailData.Close();
-			Exporting = false;
+			_emailData.Close();
+			_exporting = false;
 			//Console.Write("Done!");
 		}
 
-		public static void ProcessTwo()
+		private static void ProcessTwo()
 		{
-			m_EmailData = UseUniqueWriter();
+			_emailData = UseUniqueWriter();
 		}
 
-		public static StreamWriter UseUniqueWriter()
+		private static StreamWriter UseUniqueWriter()
 		{
 			string filePath = Path.Combine(Core.BaseDirectory, $"Logs/{FileName}.txt").Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 			try
@@ -88,6 +90,7 @@ namespace Server.Commands
 					}
 					catch
 					{
+						// ignored
 					}
 				}
 			}

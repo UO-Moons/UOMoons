@@ -34,7 +34,7 @@ public abstract class SpawnDefinition
 					return SpawnItem.Get(type);
 				}
 
-				Console.WriteLine("Invalid type '{0}' in a SpawnDefinition", type.FullName);
+				if (type != null) Console.WriteLine("Invalid type '{0}' in a SpawnDefinition", type.FullName);
 				return null;
 			}
 			case "group":
@@ -128,7 +128,7 @@ public abstract class SpawnType : SpawnDefinition
 	}
 }
 
-public class SpawnMobile : SpawnType
+public sealed class SpawnMobile : SpawnType
 {
 	private static readonly Hashtable m_Table = new();
 
@@ -136,23 +136,21 @@ public class SpawnMobile : SpawnType
 	{
 		SpawnMobile sm = (SpawnMobile)m_Table[type];
 
-		if (sm == null)
-		{
-			sm = new SpawnMobile(type);
-			m_Table[type] = sm;
-		}
+		if (sm != null) return sm;
+		sm = new SpawnMobile(type);
+		m_Table[type] = sm;
 
 		return sm;
 	}
 
-	protected bool MLand;
-	protected bool MWater;
+	private bool m_MLand;
+	private bool m_MWater;
 
 	public override int Height => 16;
-	public override bool Land { get { EnsureInit(); return MLand; } }
-	public override bool Water { get { EnsureInit(); return MWater; } }
+	public override bool Land { get { EnsureInit(); return m_MLand; } }
+	public override bool Water { get { EnsureInit(); return m_MWater; } }
 
-	protected SpawnMobile(Type type) : base(type)
+	private SpawnMobile(Type type) : base(type)
 	{
 	}
 
@@ -160,13 +158,11 @@ public class SpawnMobile : SpawnType
 	{
 		Mobile mob = (Mobile)Activator.CreateInstance(Type);
 
-		if (mob != null)
-		{
-			MLand = !mob.CantWalk;
-			MWater = mob.CanSwim;
+		if (mob == null) return;
+		m_MLand = !mob.CantWalk;
+		m_MWater = mob.CanSwim;
 
-			mob.Delete();
-		}
+		mob.Delete();
 	}
 
 	protected override ISpawnable Construct(SpawnEntry entry, Point3D loc, Map map)
@@ -189,7 +185,7 @@ public class SpawnMobile : SpawnType
 		return mobile;
 	}
 
-	protected virtual Mobile CreateMobile()
+	private Mobile CreateMobile()
 	{
 		return (Mobile)Activator.CreateInstance(Type);
 	}
@@ -253,8 +249,8 @@ public class SpawnItem : SpawnType
 
 public class SpawnTreasureChest : SpawnItem
 {
-	public int ItemId { get; }
-	public BaseTreasureChest.TreasureLevel Level { get; }
+	private int ItemId { get; }
+	private BaseTreasureChest.TreasureLevel Level { get; }
 
 	public SpawnTreasureChest(int itemId, BaseTreasureChest.TreasureLevel level) : base(typeof(BaseTreasureChest))
 	{
@@ -287,9 +283,9 @@ public class SpawnGroupElement
 
 public class SpawnGroup : SpawnDefinition
 {
-	public static Hashtable Table { get; } = new Hashtable();
+	public static Hashtable Table { get; } = new();
 
-	public static void Register(SpawnGroup group)
+	private static void Register(SpawnGroup group)
 	{
 		if (Table.Contains(group.Name))
 			Console.WriteLine("Warning: Double SpawnGroup name '{0}'", group.Name);
@@ -312,7 +308,7 @@ public class SpawnGroup : SpawnDefinition
 			if (root == null)
 				return;
 
-			foreach (XmlElement xmlDef in root.SelectNodes("spawnGroup"))
+			foreach (XmlElement xmlDef in root.SelectNodes("spawnGroup")!)
 			{
 				string name = null;
 				if (!Region.ReadString(xmlDef, "name", ref name))
@@ -348,10 +344,10 @@ public class SpawnGroup : SpawnDefinition
 
 	private readonly int _mTotalWeight;
 
-	public string Name { get; }
-	public SpawnGroupElement[] Elements { get; }
+	private string Name { get; }
+	private SpawnGroupElement[] Elements { get; }
 
-	public SpawnGroup(string name, SpawnGroupElement[] elements)
+	private SpawnGroup(string name, SpawnGroupElement[] elements)
 	{
 		Name = name;
 		Elements = elements;

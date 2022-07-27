@@ -1,35 +1,34 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class AlchemistsBauble : GoldBracelet
 {
-	public class AlchemistsBauble : GoldBracelet
+	public override int LabelNumber => 1070638;
+
+	[Constructable]
+	public AlchemistsBauble()
 	{
-		public override int LabelNumber => 1070638;
+		Hue = 0x290;
+		SkillBonuses.SetValues(0, SkillName.Magery, 10.0);
+		Attributes.EnhancePotions = 30;
+		Attributes.LowerRegCost = 20;
+		Resistances.Poison = 10;
+	}
 
-		[Constructable]
-		public AlchemistsBauble()
-		{
-			Hue = 0x290;
-			SkillBonuses.SetValues(0, SkillName.Magery, 10.0);
-			Attributes.EnhancePotions = 30;
-			Attributes.LowerRegCost = 20;
-			Resistances.Poison = 10;
-		}
+	public AlchemistsBauble(Serial serial) : base(serial)
+	{
+	}
 
-		public AlchemistsBauble(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0);
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

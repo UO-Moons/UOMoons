@@ -27,7 +27,7 @@ public class BlessSpell : MagerySpell
 		return _table != null && _table.ContainsKey(m);
 	}
 
-	public static void AddBless(Mobile m, TimeSpan duration)
+	private static void AddBless(Mobile m, TimeSpan duration)
 	{
 		_table ??= new Dictionary<Mobile, InternalTimer>();
 
@@ -39,15 +39,15 @@ public class BlessSpell : MagerySpell
 		_table[m] = new InternalTimer(m, duration);
 	}
 
-	public static void RemoveBless(Mobile m, bool early = false)
+	public static void RemoveBless(Mobile m)
 	{
-		if (_table != null && _table.ContainsKey(m))
-		{
-			_table[m].Stop();
-			m.Delta(MobileDelta.Stat);
+		if (_table == null || !_table.ContainsKey(m))
+			return;
 
-			_table.Remove(m);
-		}
+		_table[m].Stop();
+		m.Delta(MobileDelta.Stat);
+
+		_table.Remove(m);
 	}
 
 	public override bool CheckCast()
@@ -76,7 +76,7 @@ public class BlessSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{
@@ -145,7 +145,7 @@ public class BlessSpell : MagerySpell
 
 	private class InternalTimer : Timer
 	{
-		public Mobile Mobile { get; }
+		private Mobile Mobile { get; }
 
 		public InternalTimer(Mobile m, TimeSpan duration)
 			: base(duration)

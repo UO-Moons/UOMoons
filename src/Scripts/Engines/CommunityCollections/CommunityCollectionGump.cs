@@ -22,17 +22,12 @@ public class CommunityCollectionGump : Gump
 	private int _mPage;
 	private int _mMax;
 
-	public CommunityCollectionGump(PlayerMobile from, IComunityCollection collection, Point3D location)
-		: this(from, collection, location, Section.Donates)
-	{
-	}
-
-	public CommunityCollectionGump(PlayerMobile from, IComunityCollection collection, Point3D location, Section section)
+	public CommunityCollectionGump(PlayerMobile from, IComunityCollection collection, Point3D location, Section section = Section.Donates)
 		: this(from, collection, location, section, null)
 	{
 	}
 
-	public CommunityCollectionGump(PlayerMobile from, IComunityCollection collection, Point3D location, Section section, CollectionHuedItem item)
+	private CommunityCollectionGump(PlayerMobile from, IComunityCollection collection, Point3D location, Section section, CollectionHuedItem item)
 		: base(250, 50)
 	{
 		_mOwner = from;
@@ -102,7 +97,8 @@ public class CommunityCollectionGump : Gump
 		Status,
 		Next,
 	}
-	public void GetMax(List<CollectionItem> list)
+
+	private void GetMax(List<CollectionItem> list)
 	{
 		_mMax = 0;
 
@@ -114,7 +110,7 @@ public class CommunityCollectionGump : Gump
 		}
 	}
 
-	public void DisplayDonationPage()
+	private void DisplayDonationPage()
 	{
 		AddPage(_mPage);
 
@@ -207,7 +203,7 @@ public class CommunityCollectionGump : Gump
 		AddHtmlLocalized(240, 335, 60, 20, 1072854, 0x1, false, false); // <div align=right>Next</div>
 	}
 
-	public void DisplayRewardPage()
+	private void DisplayRewardPage()
 	{
 		int points = _mOwner.GetCollectionPoints(_mCollection.CollectionId);
 
@@ -274,7 +270,7 @@ public class CommunityCollectionGump : Gump
 		AddHtmlLocalized(240, 335, 60, 20, 1072854, 0x1, false, false); // <div align=right>Next</div>
 	}
 
-	public void DisplayHuePage()
+	private void DisplayHuePage()
 	{
 		int points = _mOwner.GetCollectionPoints(_mCollection.CollectionId);
 
@@ -328,7 +324,7 @@ public class CommunityCollectionGump : Gump
 				_mOwner.SendGump(new CommunityCollectionGump(_mOwner, _mCollection, _mLocation, Section.Rewards));
 				break;
 			case (int)Buttons.Status:
-				_mOwner.SendGump(new CommunityCollectionGump(_mOwner, _mCollection, _mLocation, Section.Donates));
+				_mOwner.SendGump(new CommunityCollectionGump(_mOwner, _mCollection, _mLocation));
 				break;
 			case >= 300 when _mCollection.Donations != null && info.ButtonID - 300 < _mCollection.Donations.Count && _mSection == Section.Donates:
 			{
@@ -354,7 +350,7 @@ public class CommunityCollectionGump : Gump
 						else
 						{
 							_mOwner.CloseGump(typeof(ConfirmRewardGump));
-							_mOwner.SendGump(new ConfirmRewardGump(_mCollection, _mLocation, item, 0));
+							_mOwner.SendGump(new ConfirmRewardGump(_mCollection, _mLocation, item));
 						}
 					}
 					else
@@ -576,7 +572,7 @@ public class CommunityCollectionGump : Gump
 		return true;
 	}
 
-	public static bool CheckType(Item item, Type type, bool checkDerives)
+	private static bool CheckType(Item item, Type type, bool checkDerives)
 	{
 		if (item is CommodityDeed {Commodity: { }} deed)
 		{
@@ -613,7 +609,7 @@ public class CommunityCollectionGump : Gump
 		//}
 	}
 
-	public static int GetTypes(PlayerMobile pm, CollectionItem colItem)
+	private static int GetTypes(PlayerMobile pm, CollectionItem colItem)
 	{
 		var type = colItem.Type;
 		bool derives = type == typeof(BaseScales) || type == typeof(Fish) /*|| type == typeof(Crab) || type == typeof(Lobster)*/;
@@ -641,7 +637,7 @@ public class CommunityCollectionGump : Gump
 		return count;
 	}
 
-	public static List<Item> FindTypes(PlayerMobile pm, CollectionItem colItem)
+	private static List<Item> FindTypes(PlayerMobile pm, CollectionItem colItem)
 	{
 		var type = colItem.Type;
 		bool derives = type == typeof(BaseScales) || type == typeof(Fish) /*|| type == typeof(Crab) || type == typeof(Lobster)*/;
@@ -649,7 +645,7 @@ public class CommunityCollectionGump : Gump
 		return pm.Backpack.Items.Where(item => CheckType(item, type, derives) && colItem.Validate(pm, GetActual(item))).ToList();
 	}
 
-	public static Item GetActual(Item item)
+	private static Item GetActual(Item item)
 	{
 		if (item is CommodityDeed deed)
 		{

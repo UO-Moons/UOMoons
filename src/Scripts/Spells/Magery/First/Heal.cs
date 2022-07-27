@@ -25,13 +25,12 @@ public class HealSpell : MagerySpell
 
 	public override bool CheckCast()
 	{
-		if (Engines.ConPVP.DuelContext.CheckSuddenDeath(Caster))
-		{
-			Caster.SendMessage(0x22, "You cannot cast this spell when in sudden death.");
-			return false;
-		}
+		if (!Engines.ConPVP.DuelContext.CheckSuddenDeath(Caster))
+			return base.CheckCast();
 
-		return base.CheckCast();
+		Caster.SendMessage(0x22, "You cannot cast this spell when in sudden death.");
+		return false;
+
 	}
 
 	public override void OnCast()
@@ -49,7 +48,7 @@ public class HealSpell : MagerySpell
 		}
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{

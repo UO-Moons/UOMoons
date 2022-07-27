@@ -1,39 +1,38 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class LunaLance : Lance
 {
-	public class LunaLance : Lance
+	public override int LabelNumber => 1063469;
+
+	public override int InitMinHits => 255;
+	public override int InitMaxHits => 255;
+
+	[Constructable]
+	public LunaLance()
 	{
-		public override int LabelNumber => 1063469;
+		Hue = 0x47E;
+		SkillBonuses.SetValues(0, SkillName.Chivalry, 10.0);
+		Attributes.BonusStr = 5;
+		Attributes.WeaponSpeed = 20;
+		Attributes.WeaponDamage = 35;
+		WeaponAttributes.UseBestSkill = 1;
+	}
 
-		public override int InitMinHits => 255;
-		public override int InitMaxHits => 255;
+	public LunaLance(Serial serial) : base(serial)
+	{
+	}
 
-		[Constructable]
-		public LunaLance()
-		{
-			Hue = 0x47E;
-			SkillBonuses.SetValues(0, SkillName.Chivalry, 10.0);
-			Attributes.BonusStr = 5;
-			Attributes.WeaponSpeed = 20;
-			Attributes.WeaponDamage = 35;
-			WeaponAttributes.UseBestSkill = 1;
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public LunaLance(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0);
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

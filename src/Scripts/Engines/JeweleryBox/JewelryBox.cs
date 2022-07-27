@@ -14,9 +14,9 @@ public class JewelryBox : Container, IDyable
 	public override int LabelNumber => 1157694;  // Jewelry Box
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public SecureLevel Level { get; set; }
+	private SecureLevel Level { get; set; }
 
-	public JewelryBoxFilter Filter { get; set; }
+	public JewelryBoxFilter Filter { get; private set; }
 
 	public override int DefaultMaxItems => 500;
 

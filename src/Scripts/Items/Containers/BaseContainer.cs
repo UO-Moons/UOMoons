@@ -244,30 +244,29 @@ public abstract class BaseContainer : Container, IEngravable
 		DisplayTo(from);
 	}
 
-	public void CheckBank(BankBox bank, Mobile from)
+	private void CheckBank(BankBox bank, Mobile from)
 	{
-		if (AccountGold.Enabled && bank.Owner == from && from.Account != null)
+		if (!AccountGold.Enabled || bank.Owner != from || from.Account == null)
+			return;
+		List<BankCheck> checks = new(Items.OfType<BankCheck>());
+
+		foreach (BankCheck check in checks)
 		{
-			List<BankCheck> checks = new(Items.OfType<BankCheck>());
-
-			foreach (BankCheck check in checks)
+			if (from.Account.DepositGold(check.Worth))
 			{
-				if (from.Account.DepositGold(check.Worth))
-				{
-					from.SendLocalizedMessage(1042672, true, check.Worth.ToString("#,0"));
-					check.Delete();
-				}
-				else
-				{
-					from.AddToBackpack(check);
-				}
+				from.SendLocalizedMessage(1042672, true, check.Worth.ToString("#,0"));
+				check.Delete();
 			}
-
-			checks.Clear();
-			checks.TrimExcess();
-
-			UpdateTotals();
+			else
+			{
+				from.AddToBackpack(check);
+			}
 		}
+
+		checks.Clear();
+		checks.TrimExcess();
+
+		UpdateTotals();
 	}
 
 	public override void Serialize(GenericWriter writer)
@@ -602,6 +601,29 @@ public class Barrel : BaseContainer
 	public Barrel() : base(0xE77)
 	{
 		Weight = 25.0;
+	}
+
+	public void Pour(Mobile from, BaseBeverage beverage)
+	{
+		if (beverage.Content == BeverageType.Water)
+		{
+			if (Items.Count > 0)
+			{
+				from.SendLocalizedMessage(500848); // Couldn't pour it there.  It was already full.
+				beverage.PrivateOverheadMessage(MessageType.Regular, 0, 500841, from.NetState); // that has something in it.
+			}
+			else
+			{
+				WaterBarrel barrel = new WaterBarrel
+				{
+					Movable = false
+				};
+				barrel.MoveToWorld(Location, Map);
+
+				beverage.Pour_OnTarget(from, barrel);
+				Delete();
+			}
+		}
 	}
 
 	public Barrel(Serial serial) : base(serial)

@@ -170,7 +170,7 @@ public class DonationStore
 		return gift;
 	}
 
-	public static string GetClassNameByType(int typeId)
+	private static string GetClassNameByType(int typeId)
 	{
 		IDbConnection connection = null;
 		IDbCommand command = null;
@@ -223,7 +223,7 @@ public class DonationStore
 		return className.Trim();
 	}
 
-	public static IEntity GetGiftInstance(string classConstructString)
+	private static IEntity GetGiftInstance(string classConstructString)
 	{
 		IEntity gift = null;
 		//create the object of the gift by its name

@@ -1,31 +1,30 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class Obelisk : BaseItem
 {
-	public class Obelisk : BaseItem
+	public override int LabelNumber => 1016474;  // an obelisk
+
+	[Constructable]
+	public Obelisk() : base(0x1184)
 	{
-		public override int LabelNumber => 1016474;  // an obelisk
+		Movable = false;
+	}
 
-		[Constructable]
-		public Obelisk() : base(0x1184)
-		{
-			Movable = false;
-		}
+	public Obelisk(Serial serial) : base(serial)
+	{
+	}
 
-		public Obelisk(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.Write(0);
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

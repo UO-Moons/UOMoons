@@ -28,8 +28,7 @@ public class ScrollOfAlacrityBook : BaseSpecialScrollBook
 	public override void Serialize(GenericWriter writer)
 	{
 		base.Serialize(writer);
-
-		writer.Write(0); // version
+		writer.Write(0);
 	}
 
 	public override void Deserialize(GenericReader reader)
@@ -39,15 +38,15 @@ public class ScrollOfAlacrityBook : BaseSpecialScrollBook
 		reader.ReadInt();
 	}
 
-	public override Dictionary<SkillCat, List<SkillName>> SkillInfo => _SkillInfo;
-	public override Dictionary<int, double> ValueInfo => _ValueInfo;
+	public override Dictionary<SkillCat, List<SkillName>> SkillInfo => m_SkillInfo;
+	public override Dictionary<int, double> ValueInfo => m_ValueInfo;
 
-	public static Dictionary<SkillCat, List<SkillName>> _SkillInfo;
-	public static Dictionary<int, double> _ValueInfo;
+	public static Dictionary<SkillCat, List<SkillName>> m_SkillInfo;
+	private static Dictionary<int, double> m_ValueInfo;
 
 	public static void Initialize()
 	{
-		_SkillInfo = new Dictionary<SkillCat, List<SkillName>>
+		m_SkillInfo = new Dictionary<SkillCat, List<SkillName>>
 		{
 			[SkillCat.Miscellaneous] = new() { SkillName.ArmsLore, SkillName.Begging, SkillName.Camping, SkillName.Cartography, SkillName.Forensics, SkillName.ItemID, SkillName.TasteID },
 			[SkillCat.Combat] = new() { SkillName.Anatomy, SkillName.Archery, SkillName.Fencing, SkillName.Focus, SkillName.Healing, SkillName.Macing, SkillName.Parry, SkillName.Swords, SkillName.Tactics, SkillName.Throwing, SkillName.Wrestling },
@@ -58,7 +57,7 @@ public class ScrollOfAlacrityBook : BaseSpecialScrollBook
 			[SkillCat.Bard] = new() { SkillName.Discordance, SkillName.Musicianship, SkillName.Peacemaking, SkillName.Provocation }
 		};
 
-		_ValueInfo = new Dictionary<int, double>
+		m_ValueInfo = new Dictionary<int, double>
 		{
 			[1154324] = 0.0
 		};

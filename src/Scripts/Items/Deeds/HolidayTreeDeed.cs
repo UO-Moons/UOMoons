@@ -31,10 +31,10 @@ public class HolidayTreeDeed : BaseItem
 	public override void Deserialize(GenericReader reader)
 	{
 		base.Deserialize(reader);
-		_ = reader.ReadInt();
+		reader.ReadInt();
 	}
 
-	public bool ValidatePlacement(Mobile from, Point3D loc)
+	private bool ValidatePlacement(Mobile from, Point3D loc)
 	{
 		if (from.AccessLevel >= AccessLevel.GameMaster)
 			return true;
@@ -64,13 +64,12 @@ public class HolidayTreeDeed : BaseItem
 			return false;
 		}
 
-		if (!map.CanFit(loc, 20))
-		{
-			from.SendLocalizedMessage(500269); // You cannot build that there.
-			return false;
-		}
+		if (map.CanFit(loc, 20))
+			return true;
 
-		return true;
+		from.SendLocalizedMessage(500269); // You cannot build that there.
+		return false;
+
 	}
 
 	public void BeginPlace(Mobile from, HolidayTreeType type)
@@ -78,7 +77,7 @@ public class HolidayTreeDeed : BaseItem
 		from.BeginTarget(-1, true, TargetFlags.None, new TargetStateCallback(Placement_OnTarget), type);
 	}
 
-	public void Placement_OnTarget(Mobile from, object targeted, object state)
+	private void Placement_OnTarget(Mobile from, object targeted, object state)
 	{
 		if (targeted is not IPoint3D p)
 			return;
@@ -95,7 +94,7 @@ public class HolidayTreeDeed : BaseItem
 			EndPlace(from, (HolidayTreeType)state, loc);
 	}
 
-	public void EndPlace(Mobile from, HolidayTreeType type, Point3D loc)
+	private void EndPlace(Mobile from, HolidayTreeType type, Point3D loc)
 	{
 		Delete();
 		HolidayTree tree = new(from, type, loc);

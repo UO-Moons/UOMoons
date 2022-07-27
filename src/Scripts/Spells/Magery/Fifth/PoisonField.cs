@@ -41,7 +41,7 @@ public class PoisonFieldSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -58,30 +58,18 @@ public class PoisonFieldSpell : MagerySpell
 			int rx = (dx - dy) * 44;
 			int ry = (dx + dy) * 44;
 
-			bool eastToWest;
-
-			switch (rx)
+			bool eastToWest = rx switch
 			{
-				case >= 0 when ry >= 0:
-					eastToWest = false;
-					break;
-				case >= 0:
-					eastToWest = true;
-					break;
-				default:
-				{
-					eastToWest = ry >= 0;
-
-					break;
-				}
-			}
+				>= 0 when ry >= 0 => false,
+				>= 0 => true,
+				_ => ry >= 0
+			};
 
 			Effects.PlaySound(p, Caster.Map, 0x20B);
 			int itemId = eastToWest ? 0x3915 : 0x3922;
 
 			Point3D pnt = new(p);
 			TimeSpan duration = TimeSpan.FromSeconds(3 + Caster.Skills.Magery.Fixed / 25);
-
 			if (SpellHelper.CheckField(pnt, Caster.Map))
 			{
 				new InternalItem(itemId, pnt, Caster, Caster.Map, duration);
@@ -182,7 +170,7 @@ public class PoisonFieldSpell : MagerySpell
 			}
 		}
 
-		public void ApplyPoisonTo(Mobile m)
+		private void ApplyPoisonTo(Mobile m)
 		{
 			if (Caster == null)
 			{
@@ -268,30 +256,30 @@ public class PoisonFieldSpell : MagerySpell
 					Map map = _item.Map;
 					Mobile caster = _item.Caster;
 
-					if (map != null && caster != null)
+					if (map == null || caster == null)
+						return;
+
+					bool eastToWest = _item.ItemId == 0x3915;
+					IPooledEnumerable eable = map.GetMobilesInBounds(new Rectangle2D(_item.X - (eastToWest ? 0 : 1), _item.Y - (eastToWest ? 1 : 0), eastToWest ? 1 : 2, eastToWest ? 2 : 1));
+
+					foreach (Mobile m in eable)
 					{
-						bool eastToWest = _item.ItemId == 0x3915;
-						IPooledEnumerable eable = map.GetMobilesInBounds(new Rectangle2D(_item.X - (eastToWest ? 0 : 1), _item.Y - (eastToWest ? 1 : 0), eastToWest ? 1 : 2, eastToWest ? 2 : 1));
-
-						foreach (Mobile m in eable)
+						if (m.Z + 16 > _item.Z && _item.Z + 12 > m.Z && (!Core.AOS || m != caster) && SpellHelper.ValidIndirectTarget(caster, m) && caster.CanBeHarmful(m, false))
 						{
-							if (m.Z + 16 > _item.Z && _item.Z + 12 > m.Z && (!Core.AOS || m != caster) && SpellHelper.ValidIndirectTarget(caster, m) && caster.CanBeHarmful(m, false))
-							{
-								m_Queue.Enqueue(m);
-							}
+							m_Queue.Enqueue(m);
 						}
+					}
 
-						eable.Free();
+					eable.Free();
 
-						while (m_Queue.Count > 0)
-						{
-							Mobile m = (Mobile)m_Queue.Dequeue();
+					while (m_Queue.Count > 0)
+					{
+						Mobile m = (Mobile)m_Queue.Dequeue();
 
-							caster.DoHarmful(m);
+						caster.DoHarmful(m);
 
-							_item.ApplyPoisonTo(m);
-							m?.PlaySound(0x474);
-						}
+						_item.ApplyPoisonTo(m);
+						m?.PlaySound(0x474);
 					}
 				}
 			}
@@ -309,9 +297,9 @@ public class PoisonFieldSpell : MagerySpell
 
 		protected override void OnTarget(Mobile from, object o)
 		{
-			if (o is IPoint3D)
+			if (o is IPoint3D point3D)
 			{
-				_owner.Target((IPoint3D)o);
+				_owner.Target(point3D);
 			}
 		}
 

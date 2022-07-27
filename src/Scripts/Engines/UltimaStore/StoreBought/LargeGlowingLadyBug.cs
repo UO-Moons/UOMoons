@@ -6,9 +6,9 @@ public class LargeGlowingLadyBug : BaseLight
 {
 	public override int LabelNumber => 1071400;  // Large Glowing Lady Bug
 
-	public override int LitItemID => SouthFacing ? 0x2CFE : 0x2D00;
+	public override int LitItemId => SouthFacing ? 0x2CFE : 0x2D00;
 
-	public override int UnlitItemID => SouthFacing ? 0x2CFD : 0x2CFF;
+	public override int UnlitItemId => SouthFacing ? 0x2CFD : 0x2CFF;
 
 	public bool SouthFacing => ItemId == 0x2CFD || ItemId == 0x2CFE;
 

@@ -33,69 +33,55 @@ public class DamageableItem : Item, IDamageableItem
 	private ItemLevel _mItemLevel;
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public ItemLevel Level
+	private ItemLevel Level
 	{
 		get => _mItemLevel;
 		set
 		{
 			_mItemLevel = value;
 
-			double bonus = ((int)_mItemLevel * 100.0) * ((int)_mItemLevel * 5);
+			double bonus = (int)_mItemLevel * 100.0 * ((int)_mItemLevel * 5);
 
-			HitsMax = ((int)(100 + bonus));
-			Hits = ((int)(100 + bonus));
+			HitsMax = (int)(100 + bonus);
+			Hits = (int)(100 + bonus);
 		}
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int IdStart
+	private int IdStart
 	{
 		get => _mStartId;
-		set
+		init
 		{
-			if (value < 0)
-				_mStartId = 0;
-			else if (value > int.MaxValue)
-				_mStartId = int.MaxValue;
-			else
-				_mStartId = value;
+			_mStartId = value < 0 ? 0 : value;
 
-			if (_mHits >= (_mHitsMax * IdChange))
-			{
-				if (ItemId != _mStartId)
-					ItemId = _mStartId;
-			}
+			if (!(_mHits >= _mHitsMax * IdChange)) return;
+			if (ItemId != _mStartId)
+				ItemId = _mStartId;
 		}
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int IdHalfHits
+	private int IdHalfHits
 	{
 		get => _mHalfHitsId;
-		set
+		init
 		{
-			if (value < 0)
-				_mHalfHitsId = 0;
-			else if (value > int.MaxValue)
-				_mHalfHitsId = int.MaxValue;
-			else
-				_mHalfHitsId = value;
+			_mHalfHitsId = value < 0 ? 0 : value;
 
-			if (_mHits < (_mHitsMax * IdChange))
-			{
-				if (ItemId != _mHalfHitsId)
-					ItemId = _mHalfHitsId;
-			}
+			if (!(_mHits < _mHitsMax * IdChange)) return;
+			if (ItemId != _mHalfHitsId)
+				ItemId = _mHalfHitsId;
 		}
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int IdDestroyed
+	private int IdDestroyed
 	{
 		get => _mDestroyedId;
-		set
+		init
 		{
-			if (value < 0 || value > int.MaxValue)
+			if (value is < 0 or > int.MaxValue)
 				_mDestroyedId = -1;
 			else
 				_mDestroyedId = value;
@@ -123,12 +109,12 @@ public class DamageableItem : Item, IDamageableItem
 
 			int id = ItemId;
 
-			if (_mHits >= (_mHitsMax * IdChange) && id != _mStartId)
+			if (_mHits >= _mHitsMax * IdChange && id != _mStartId)
 			{
 				ItemId = _mStartId;
 				OnIDChange(id);
 			}
-			else if (_mHits <= (_mHitsMax * IdChange) && id == _mStartId)
+			else if (_mHits <= _mHitsMax * IdChange && id == _mStartId)
 			{
 				ItemId = _mHalfHitsId;
 				OnIDChange(id);
@@ -145,9 +131,9 @@ public class DamageableItem : Item, IDamageableItem
 	public int HitsMax
 	{
 		get => _mHitsMax;
-		set
+		private set
 		{
-			_mHitsMax = value > int.MaxValue ? int.MaxValue : value;
+			_mHitsMax = value;
 
 			if (Hits > _mHitsMax)
 				Hits = _mHitsMax;
@@ -155,24 +141,24 @@ public class DamageableItem : Item, IDamageableItem
 	}
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public bool Destroyed { get; set; }
+	private bool Destroyed { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ResistBasePhys { get; set; }
+	private int ResistBasePhys { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ResistBaseFire { get; set; }
+	private int ResistBaseFire { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ResistBaseCold { get; set; }
+	private int ResistBaseCold { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ResistBasePoison { get; set; }
+	private int ResistBasePoison { get; set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public int ResistBaseEnergy { get; set; }
+	private int ResistBaseEnergy { get; set; }
 
-	public Dictionary<Mobile, int> DamageStore { get; set; }
+	private Dictionary<Mobile, int> DamageStore { get; set; }
 
 	public virtual int HitEffect => -1;
 	public virtual int DestroySound => 0x3B3;
@@ -202,7 +188,7 @@ public class DamageableItem : Item, IDamageableItem
 	}
 
 	[Constructable]
-	public DamageableItem(int startId, int halfId, int destroyId = -1)
+	private DamageableItem(int startId, int halfId, int destroyId = -1)
 		: base(startId)
 	{
 		Hue = 0;
@@ -326,13 +312,12 @@ public class DamageableItem : Item, IDamageableItem
 		}
 	}
 
-	public void RegisterDamage(Mobile m, int damage)
+	private void RegisterDamage(Mobile m, int damage)
 	{
 		if (m == null)
 			return;
 
-		if (DamageStore == null)
-			DamageStore = new Dictionary<Mobile, int>();
+		DamageStore ??= new Dictionary<Mobile, int>();
 
 		if ((m as BaseCreature)?.GetMaster() is PlayerMobile)
 			m = ((BaseCreature)m).GetMaster();
@@ -352,7 +337,7 @@ public class DamageableItem : Item, IDamageableItem
 	{
 	}
 
-	public bool Destroy()
+	private bool Destroy()
 	{
 		if (Deleted || Destroyed)
 			return false;

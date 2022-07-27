@@ -36,13 +36,13 @@ public class SurpriseAttack : NinjaMove
 	{
 		bool valid = Validate(attacker) && CheckMana(attacker, true);
 
-		if (valid)
-		{
-			attacker.BeginAction(typeof(Stealth));
-			Timer.DelayCall(TimeSpan.FromSeconds(5.0), delegate { attacker.EndAction(typeof(Stealth)); });
-		}
+		if (!valid)
+			return false;
 
-		return valid;
+		attacker.BeginAction(typeof(Stealth));
+		Timer.DelayCall(TimeSpan.FromSeconds(5.0), delegate { attacker.EndAction(typeof(Stealth)); });
+
+		return true;
 	}
 
 	public override void OnHit(Mobile attacker, Mobile defender, int damage)

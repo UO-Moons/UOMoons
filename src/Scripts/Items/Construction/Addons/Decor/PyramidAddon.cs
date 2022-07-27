@@ -1,53 +1,52 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class PyramidAddon : BaseAddon
 {
-	public class PyramidAddon : BaseAddon
+	public override bool ShareHue => false;
+
+	[Constructable]
+	public PyramidAddon()
 	{
-		public override bool ShareHue => false;
+		AddComponent(new AddonComponent(1006), 0, 0, 5);
 
-		[Constructable]
-		public PyramidAddon()
+		for (int o = 1; o <= 2; ++o)
 		{
-			AddComponent(new AddonComponent(1006), 0, 0, 5);
-
-			for (int o = 1; o <= 2; ++o)
-			{
-				AddComponent(new AddonComponent(1011), -o, -o, (2 - o) * 5);
-				AddComponent(new AddonComponent(1012), +o, +o, (2 - o) * 5);
-				AddComponent(new AddonComponent(1013), +o, -o, (2 - o) * 5);
-				AddComponent(new AddonComponent(1014), -o, +o, (2 - o) * 5);
-			}
-
-			for (int o = -1; o <= 1; ++o)
-			{
-				AddComponent(new AddonComponent(1007), o, 2, 0);
-				AddComponent(new AddonComponent(1008), 2, o, 0);
-				AddComponent(new AddonComponent(1009), o, -2, 0);
-				AddComponent(new AddonComponent(1010), -2, o, 0);
-			}
-
-			AddComponent(new AddonComponent(1007), 0, 1, 5);
-			AddComponent(new AddonComponent(1008), 1, 0, 5);
-			AddComponent(new AddonComponent(1009), 0, -1, 5);
-			AddComponent(new AddonComponent(1010), -1, 0, 5);
+			AddComponent(new AddonComponent(1011), -o, -o, (2 - o) * 5);
+			AddComponent(new AddonComponent(1012), +o, +o, (2 - o) * 5);
+			AddComponent(new AddonComponent(1013), +o, -o, (2 - o) * 5);
+			AddComponent(new AddonComponent(1014), -o, +o, (2 - o) * 5);
 		}
 
-		public PyramidAddon(Serial serial)
-			: base(serial)
+		for (int o = -1; o <= 1; ++o)
 		{
+			AddComponent(new AddonComponent(1007), o, 2, 0);
+			AddComponent(new AddonComponent(1008), 2, o, 0);
+			AddComponent(new AddonComponent(1009), o, -2, 0);
+			AddComponent(new AddonComponent(1010), -2, o, 0);
 		}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		AddComponent(new AddonComponent(1007), 0, 1, 5);
+		AddComponent(new AddonComponent(1008), 1, 0, 5);
+		AddComponent(new AddonComponent(1009), 0, -1, 5);
+		AddComponent(new AddonComponent(1010), -1, 0, 5);
+	}
 
-			writer.Write((byte)0); // version
-		}
+	public PyramidAddon(Serial serial)
+		: base(serial)
+	{
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			int version = reader.ReadByte();
-		}
+		writer.Write((byte)0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadByte();
 	}
 }

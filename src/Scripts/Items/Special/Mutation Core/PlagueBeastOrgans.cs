@@ -173,10 +173,11 @@ namespace Server.Items
 		{
 		}
 
-		public override void Carve(Mobile from, Item with)
+		public override bool Carve(Mobile from, Item with)
 		{
 			if (IsAccessibleTo(from))
 				with.PublicOverheadMessage(MessageType.Regular, 0x3B2, 1071896); // This is too crude an implement for such a procedure.
+			return true;
 		}
 
 		public override bool OnLifted(Mobile from, PlagueBeastComponent c)
@@ -356,10 +357,11 @@ namespace Server.Items
 			AddComponent(new PlagueBeastComponent(0x1360, 0x42), 70, 68);
 		}
 
-		public override void Carve(Mobile from, Item with)
+		public override bool Carve(Mobile from, Item with)
 		{
 			if (IsAccessibleTo(from))
 				with.PublicOverheadMessage(MessageType.Regular, 0x3B2, 1071896); // This is too crude an implement for such a procedure.
+			return true;
 		}
 
 		public override bool OnLifted(Mobile from, PlagueBeastComponent c)

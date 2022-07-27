@@ -104,33 +104,26 @@ public class VendorRentalContract : BaseItem
 		if (byBackpack && IsChildOf(from.Backpack))
 			return true;
 
-		if (byLandlord && IsLandlord(from))
-		{
-			if (from.Map != Map || !from.InRange(this, 5))
-			{
-				if (sendMessage)
-					from.SendLocalizedMessage(501853); // Target is too far away.
+		if (!byLandlord || !IsLandlord(from))
+			return false;
 
-				return false;
-			}
-
+		if (from.Map == Map && from.InRange(this, 5))
 			return true;
-		}
+
+		if (sendMessage)
+			from.SendLocalizedMessage(501853); // Target is too far away.
 
 		return false;
+
 	}
 
 	public override void OnDelete()
 	{
-		if (IsLockedDown)
-		{
-			BaseHouse house = BaseHouse.FindHouseAt(this);
+		if (!IsLockedDown)
+			return;
+		BaseHouse house = BaseHouse.FindHouseAt(this);
 
-			if (house != null)
-			{
-				house.VendorRentalContracts.Remove(this);
-			}
-		}
+		house?.VendorRentalContracts.Remove(this);
 	}
 
 	public override void OnDoubleClick(Mobile from)
@@ -163,7 +156,7 @@ public class VendorRentalContract : BaseItem
 			}
 			else if (!house.CanPlaceNewVendor())
 			{
-				from.SendLocalizedMessage(1062352); // You do not have enought storage available to place this contract.
+				from.SendLocalizedMessage(1062352); // You do not have enough storage available to place this contract.
 			}
 			else
 			{
@@ -208,11 +201,11 @@ public class VendorRentalContract : BaseItem
 		{
 			Mobile from = Owner.From;
 
-			if (_mContract.IsUsableBy(from, true, true, true, true))
-			{
-				from.CloseGump(typeof(VendorRentalContractGump));
-				from.SendGump(new VendorRentalContractGump(_mContract, from));
-			}
+			if (!_mContract.IsUsableBy(from, true, true, true, true))
+				return;
+
+			from.CloseGump(typeof(VendorRentalContractGump));
+			from.SendGump(new VendorRentalContractGump(_mContract, from));
 		}
 	}
 

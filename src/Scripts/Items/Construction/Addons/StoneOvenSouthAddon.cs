@@ -1,61 +1,60 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class StoneOvenSouthAddon : BaseAddon
 {
-	public class StoneOvenSouthAddon : BaseAddon
+	public override BaseAddonDeed Deed => new StoneOvenSouthDeed();
+
+	[Constructable]
+	public StoneOvenSouthAddon()
 	{
-		public override BaseAddonDeed Deed => new StoneOvenSouthDeed();
-
-		[Constructable]
-		public StoneOvenSouthAddon()
-		{
-			AddComponent(new AddonComponent(0x931), -1, 0, 0);
-			AddComponent(new AddonComponent(0x930), 0, 0, 0);
-		}
-
-		public StoneOvenSouthAddon(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		AddComponent(new AddonComponent(0x931), -1, 0, 0);
+		AddComponent(new AddonComponent(0x930), 0, 0, 0);
 	}
 
-	public class StoneOvenSouthDeed : BaseAddonDeed
+	public StoneOvenSouthAddon(Serial serial) : base(serial)
 	{
-		public override BaseAddon Addon => new StoneOvenSouthAddon();
-		public override int LabelNumber => 1044346;  // stone oven (south)
+	}
 
-		[Constructable]
-		public StoneOvenSouthDeed()
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public StoneOvenSouthDeed(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class StoneOvenSouthDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new StoneOvenSouthAddon();
+	public override int LabelNumber => 1044346;  // stone oven (south)
 
-			int version = reader.ReadInt();
-		}
+	[Constructable]
+	public StoneOvenSouthDeed()
+	{
+	}
+
+	public StoneOvenSouthDeed(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

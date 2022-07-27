@@ -9,7 +9,7 @@ namespace Server.Engines.Champions;
 
 public class ChampionSystem
 {
-	private static bool _enabled;
+	public static bool Enabled;
 	private static bool _initialized;
 	private static readonly string Path = System.IO.Path.Combine("Saves", "Champions", "ChampionSystem.bin");
 	private static readonly string ConfigPath = System.IO.Path.Combine("Data", "ChampionSpawns.xml");
@@ -25,8 +25,8 @@ public class ChampionSystem
 	public static int HarrowerGoldShowerPiles { get; private set; }
 	public static int HarrowerGoldShowerMinAmount { get; private set; }
 	public static int HarrowerGoldShowerMaxAmount { get; private set; }
-	public static int PowerScrollAmount { get; private set; }
-	public static int StatScrollAmount { get; private set; }
+	private static int PowerScrollAmount { get; set; }
+	private static int StatScrollAmount { get; set; }
 
 	public static List<ChampionSpawn> AllSpawns { get; } = new();
 
@@ -55,7 +55,7 @@ public class ChampionSystem
 
 	public static void Configure()
 	{
-		_enabled = true;
+		Enabled = true;
 		_rotateDelay = TimeSpan.FromDays(1.0);
 		GoldShowerPiles = 50;
 		GoldShowerMinAmount = 4000;
@@ -120,16 +120,11 @@ public class ChampionSystem
 
 	public static void Initialize()
 	{
-		CommandSystem.Register("GenChampSpawns", AccessLevel.GameMaster, GenSpawns_OnCommand);
-		CommandSystem.Register("DelChampSpawns", AccessLevel.GameMaster, DelSpawns_OnCommand);
-
-		CommandSystem.Register("ChampionInfo", AccessLevel.GameMaster, ChampionInfo_OnCommand);
-
-		if (!_enabled || ForceGenerate)
+		if (!Enabled || ForceGenerate)
 		{
 			_initialized = false;
 
-			if (_enabled)
+			if (Enabled)
 			{
 				LoadSpawns();
 			}
@@ -139,7 +134,7 @@ public class ChampionSystem
 			}
 		}
 
-		if (!_enabled)
+		if (!Enabled)
 			return;
 		var internalTimer = new InternalTimer();
 		if (internalTimer == null) throw new ArgumentNullException(nameof(internalTimer));
@@ -149,12 +144,6 @@ public class ChampionSystem
 	{
 		LoadSpawns();
 		e.Mobile.SendMessage("Champ Spawns Generated!");
-	}
-
-	public static void DelSpawns_OnCommand(CommandEventArgs e)
-	{
-		RemoveSpawns();
-		e.Mobile.SendMessage("Champ Spawns Removed!");
 	}
 
 	public static void LoadSpawns()
@@ -225,7 +214,7 @@ public class ChampionSystem
 
 	public static void RemoveSpawns()
 	{
-		if (AllSpawns == null || AllSpawns.Count <= 0)
+		if (AllSpawns is not { Count: > 0 })
 			return;
 
 		foreach (var s in AllSpawns.Where(sp => sp is {Deleted: false}))
@@ -240,23 +229,6 @@ public class ChampionSystem
 	{
 		var attr = node.Attributes?[name];
 		return attr != null ? attr.Value : def;
-	}
-
-	[Usage("ChampionInfo")]
-	[Description("Opens a UI that displays information about the champion system")]
-	private static void ChampionInfo_OnCommand(CommandEventArgs e)
-	{
-		if (!_enabled)
-		{
-			e.Mobile.SendMessage("The champion system is not enabled.");
-			return;
-		}
-		if (AllSpawns.Count <= 0)
-		{
-			e.Mobile.SendMessage("The champion system is enabled but no altars exist");
-			return;
-		}
-		e.Mobile.SendGump(new ChampionSystemGump());
 	}
 
 	private static void Rotate()
@@ -315,7 +287,7 @@ public class ChampionSystem
 		}
 	}
 
-	private class ChampionSystemGump : Gump
+	public class ChampionSystemGump : Gump
 	{
 		private const int GBoarder = 20;
 		private const int GRowHeight = 25;

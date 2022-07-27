@@ -41,7 +41,7 @@ public class MarkSpell : MagerySpell
 		return base.CheckCast() && SpellHelper.CheckTravel(Caster, TravelCheckType.Mark);
 	}
 
-	public void Target(RecallRune rune)
+	private void Target(RecallRune rune)
 	{
 		if (!Caster.CanSee(rune))
 		{

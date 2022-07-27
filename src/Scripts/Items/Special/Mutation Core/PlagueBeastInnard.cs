@@ -20,8 +20,9 @@ namespace Server.Items
 			return false;
 		}
 
-		public virtual void Carve(Mobile from, Item with)
+		public virtual bool Carve(Mobile from, Item with)
 		{
+			return true;
 		}
 
 		public virtual bool OnBandage(Mobile from)

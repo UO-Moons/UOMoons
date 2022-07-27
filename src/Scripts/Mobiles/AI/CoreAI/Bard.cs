@@ -5,7 +5,7 @@ using Server.Targeting;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
+    public sealed partial class CoreAi : BaseAI
 	{
         public void BardPower()
         {

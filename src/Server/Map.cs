@@ -643,6 +643,11 @@ namespace Server
 			return GetItemsInBounds(new Rectangle2D(p.m_X - range, p.m_Y - range, range * 2 + 1, range * 2 + 1));
 		}
 
+		public IPooledEnumerable<Item> GetItemsInBounds(Rectangle3D bounds)
+		{
+			return GetItemsInBounds(new Rectangle2D(bounds.Start, bounds.End));
+		}
+
 		public IPooledEnumerable<Item> GetItemsInBounds(Rectangle2D bounds)
 		{
 			return PooledEnumeration.GetItems(this, bounds);

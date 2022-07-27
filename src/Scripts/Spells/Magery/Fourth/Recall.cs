@@ -25,13 +25,9 @@ public class RecallSpell : MagerySpell
 	private readonly RunebookEntry _entry;
 	private readonly Runebook _book;
 
-	public bool NoSkillRequirement => (Core.SE && _book != null) || TransformationSpellHelper.UnderTransformation(Caster, typeof(WraithFormSpell));
+	private bool NoSkillRequirement => (Core.SE && _book != null) || TransformationSpellHelper.UnderTransformation(Caster, typeof(WraithFormSpell));
 
-	public RecallSpell(Mobile caster, Item scroll) : this(caster, scroll, null, null)
-	{
-	}
-
-	public RecallSpell(Mobile caster, Item scroll, RunebookEntry entry, Runebook book) : base(caster, scroll, m_Info)
+	public RecallSpell(Mobile caster, Item scroll, RunebookEntry entry = null, Runebook book = null) : base(caster, scroll, m_Info)
 	{
 		_entry = entry;
 		_book = book;
@@ -90,7 +86,7 @@ public class RecallSpell : MagerySpell
 		}
 	}
 
-	public void Target(object o)
+	private void Target(object o)
 	{
 		switch (o)
 		{
@@ -162,7 +158,7 @@ public class RecallSpell : MagerySpell
 		return SpellHelper.CheckTravel(Caster, TravelCheckType.RecallFrom);
 	}
 
-	public void Effect(Point3D loc, Map map, bool checkMulti)
+	private void Effect(Point3D loc, Map map, bool checkMulti)
 	{
 		if (Factions.Sigil.ExistsOn(Caster))
 		{

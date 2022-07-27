@@ -3,9 +3,9 @@ using Server.Spells.Mysticism;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
-	{
-        public void MysticPower()
+    public sealed partial class CoreAi
+    {
+	    private void MysticPower()
         {
             Spell spell = GetMysticSpell();
 
@@ -13,11 +13,9 @@ namespace Server.Mobiles
             {
                 spell.Cast();
             }
-
-            return;
         }
 
-        public Spell GetMysticSpell()
+	    private Spell GetMysticSpell()
         {
             Spell spell = null;
 
@@ -25,113 +23,94 @@ namespace Server.Mobiles
             {
                 case 0:
                 case 1:
-                    {
-                        if (CheckForSleep((Mobile)m_Mobile.Combatant))
-                        {
-                            m_Mobile.DebugSay("Casting Sleep");
-                            spell = new SleepSpell(m_Mobile, null);
-                            break;
-                        }
-                        else
-                            goto case 7;
-                    }
+                {
+	                if (CheckForSleep((Mobile)m_Mobile.Combatant))
+	                {
+		                m_Mobile.DebugSay("Casting Sleep");
+		                spell = new SleepSpell(m_Mobile, null);
+		                break;
+	                }
+
+	                goto case 7;
+                }
                 case 2:
                     {
                         if (m_Mobile.Followers < 2)
                         {
-                            int whichone = Utility.Random(3);
+	                        int whichone = Utility.Random(3);
 
-                            if (m_Mobile.Skills[SkillName.Mysticism].Value > 80.0 && whichone > 0)
-                            {
-                                m_Mobile.DebugSay("Casting Rising Colossus");
-                                spell = new RisingColossusSpell(m_Mobile, null);
-                            }
-                            else if (m_Mobile.Skills[SkillName.Mysticism].Value > 30.0)
-                            {
-                                m_Mobile.DebugSay("Casting Animated Weapon");
-                                spell = new AnimatedWeaponSpell(m_Mobile, null);
-                            }
+	                        switch (m_Mobile.Skills[SkillName.Mysticism].Value)
+	                        {
+		                        case > 80.0 when whichone > 0:
+			                        m_Mobile.DebugSay("Casting Rising Colossus");
+			                        spell = new RisingColossusSpell(m_Mobile, null);
+			                        break;
+		                        case > 30.0:
+			                        m_Mobile.DebugSay("Casting Animated Weapon");
+			                        spell = new AnimatedWeaponSpell(m_Mobile, null);
+			                        break;
+	                        }
                         }
 
                         if (spell != null)
                         {
                             break;
                         }
-                        else
-                        {
-                            goto case 7;
-                        }
+
+                        goto case 7;
                     }
                 case 3:
-                    {
-                        if (CanShapeShift && m_Mobile.Skills[SkillName.Mysticism].Value > 30.0)
-                        {
-                            m_Mobile.DebugSay("Casting Stone Form");
-                            spell = new StoneFormSpell(m_Mobile, null);
-                            break;
-                        }
-                        else
-                        {
-                            goto case 7;
-                        }
-                    }
+                {
+	                if (CanShapeShift && m_Mobile.Skills[SkillName.Mysticism].Value > 30.0)
+	                {
+		                m_Mobile.DebugSay("Casting Stone Form");
+		                spell = new StoneFormSpell(m_Mobile, null);
+		                break;
+	                }
+
+	                goto case 7;
+                }
                 case 4:
                 case 5:
-                    {
-                        if (m_Mobile.Skills[SkillName.Mysticism].Value > 70.0)
-                        {
-                            m_Mobile.DebugSay("Casting Spell Plague");
-                            spell = new SpellPlagueSpell(m_Mobile, null);
-                            break;
-                        }
-                        else
-                        {
-                            goto case 7;
-                        }
-                    }
+                {
+	                if (m_Mobile.Skills[SkillName.Mysticism].Value > 70.0)
+	                {
+		                m_Mobile.DebugSay("Casting Spell Plague");
+		                spell = new SpellPlagueSpell(m_Mobile, null);
+		                break;
+	                }
+
+	                goto case 7;
+                }
                 case 6:
                 case 7:
-                    {
-                        switch( Utility.Random((int)(m_Mobile.Skills[SkillName.Mysticism].Value / 20)) )
-                        {
-                            default: spell = new NetherBoltSpell(m_Mobile, null); break;
-                            case 1: spell = new EagleStrikeSpell(m_Mobile, null); break;
-                            case 2: spell = new BombardSpell(m_Mobile, null); break;
-                            case 3: spell = new HailStormSpell(m_Mobile, null); break;
-                            case 4: spell = new NetherCycloneSpell(m_Mobile, null); break;
-                        }
+                {
+	                spell = Utility.Random((int)(m_Mobile.Skills[SkillName.Mysticism].Value / 20)) switch
+	                {
+		                1 => new EagleStrikeSpell(m_Mobile, null),
+		                2 => new BombardSpell(m_Mobile, null),
+		                3 => new HailStormSpell(m_Mobile, null),
+		                4 => new NetherCycloneSpell(m_Mobile, null),
+		                _ => new NetherBoltSpell(m_Mobile, null)
+	                };
 
-                        break;
-                    }
+	                break;
+                }
             }
 
             return spell;
         }
 
-        public bool CheckForSleep(Mobile m)
+	    private static bool CheckForSleep(Mobile m)
         {
             PlayerMobile pm = m as PlayerMobile;
 
-            if (pm == null && m is BaseCreature)
+            if (pm == null && m is BaseCreature bc)
             {
-                BaseCreature bc = (BaseCreature)m;
-
-                pm = bc.ControlMaster as PlayerMobile;
-
-                if (pm == null)
-                {
-                    pm = bc.SummonMaster as PlayerMobile;
-                }
+	            pm = bc.ControlMaster as PlayerMobile ?? bc.SummonMaster as PlayerMobile;
             }
 
-            if (pm != null && !SleepSpell.m_Table.ContainsKey(pm))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return pm != null && !SleepSpell.Table.ContainsKey(pm);
         }
     }
 }

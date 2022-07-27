@@ -12,7 +12,7 @@ public class TransformationSpellHelper
 	#region Context Stuff
 	private static readonly Dictionary<Mobile, TransformContext> m_Table = new();
 
-	public static void AddContext(Mobile m, TransformContext context)
+	private static void AddContext(Mobile m, TransformContext context)
 	{
 		m_Table[m] = context;
 	}
@@ -66,14 +66,14 @@ public class TransformationSpellHelper
 
 	public static void CheckCastSkill(Mobile m, TransformContext context)
 	{
-		if (context.Spell is Spell spell)
-		{
-			spell.GetCastSkills(out double min, out _);
+		if (context.Spell is not Spell spell)
+			return;
 
-			if (m.Skills[spell.CastSkill].Value < min)
-			{
-				RemoveContext(m, context, true);
-			}
+		spell.GetCastSkills(out double min, out _);
+
+		if (m.Skills[spell.CastSkill].Value < min)
+		{
+			RemoveContext(m, context, true);
 		}
 	}
 	#endregion
@@ -92,19 +92,18 @@ public class TransformationSpellHelper
 			return false;
 		}
 
-		if (AnimalForm.UnderTransformation(caster))
-		{
-			caster.SendLocalizedMessage(1061091); // You cannot cast that spell in this form.
-			return false;
-		}
+		if (!AnimalForm.UnderTransformation(caster))
+			return true;
 
-		return true;
+		caster.SendLocalizedMessage(1061091); // You cannot cast that spell in this form.
+		return false;
+
 	}
 
-	public static bool OnCast(Mobile caster, Spell spell)
+	public static void OnCast(Mobile caster, Spell spell)
 	{
 		if (spell is not ITransformationSpell transformSpell)
-			return false;
+			return;
 
 		if (Factions.Sigil.ExistsOn(caster))
 		{
@@ -117,7 +116,6 @@ public class TransformationSpellHelper
 		else if (DisguiseTimers.IsDisguised(caster))
 		{
 			caster.SendLocalizedMessage(1061631); // You can't do that while disguised.
-			return false;
 		}
 		else if (AnimalForm.UnderTransformation(caster))
 		{
@@ -146,49 +144,46 @@ public class TransformationSpellHelper
 				}
 			}
 
-			if (!ourTransform)
+			if (ourTransform)
+				return;
+
+			List<ResistanceMod> mods = new();
+
+			if (transformSpell.PhysResistOffset != 0)
+				mods.Add(new ResistanceMod(ResistanceType.Physical, transformSpell.PhysResistOffset));
+
+			if (transformSpell.FireResistOffset != 0)
+				mods.Add(new ResistanceMod(ResistanceType.Fire, transformSpell.FireResistOffset));
+
+			if (transformSpell.ColdResistOffset != 0)
+				mods.Add(new ResistanceMod(ResistanceType.Cold, transformSpell.ColdResistOffset));
+
+			if (transformSpell.PoisResistOffset != 0)
+				mods.Add(new ResistanceMod(ResistanceType.Poison, transformSpell.PoisResistOffset));
+
+			if (transformSpell.NrgyResistOffset != 0)
+				mods.Add(new ResistanceMod(ResistanceType.Energy, transformSpell.NrgyResistOffset));
+
+			if (!((Body)transformSpell.Body).IsHuman)
 			{
-				List<ResistanceMod> mods = new();
+				var mt = caster.Mount;
 
-				if (transformSpell.PhysResistOffset != 0)
-					mods.Add(new ResistanceMod(ResistanceType.Physical, transformSpell.PhysResistOffset));
-
-				if (transformSpell.FireResistOffset != 0)
-					mods.Add(new ResistanceMod(ResistanceType.Fire, transformSpell.FireResistOffset));
-
-				if (transformSpell.ColdResistOffset != 0)
-					mods.Add(new ResistanceMod(ResistanceType.Cold, transformSpell.ColdResistOffset));
-
-				if (transformSpell.PoisResistOffset != 0)
-					mods.Add(new ResistanceMod(ResistanceType.Poison, transformSpell.PoisResistOffset));
-
-				if (transformSpell.NrgyResistOffset != 0)
-					mods.Add(new ResistanceMod(ResistanceType.Energy, transformSpell.NrgyResistOffset));
-
-				if (!((Body)transformSpell.Body).IsHuman)
-				{
-					var mt = caster.Mount;
-
-					if (mt != null)
-						mt.Rider = null;
-				}
-
-				caster.BodyMod = transformSpell.Body;
-				caster.HueMod = transformSpell.Hue;
-
-				for (int i = 0; i < mods.Count; ++i)
-					caster.AddResistanceMod(mods[i]);
-
-				transformSpell.DoEffect(caster);
-
-				Timer timer = new TransformTimer(caster, transformSpell);
-				timer.Start();
-
-				AddContext(caster, new TransformContext(timer, mods, ourType, transformSpell));
-				return true;
+				if (mt != null)
+					mt.Rider = null;
 			}
-		}
 
-		return false;
+			caster.BodyMod = transformSpell.Body;
+			caster.HueMod = transformSpell.Hue;
+
+			for (int i = 0; i < mods.Count; ++i)
+				caster.AddResistanceMod(mods[i]);
+
+			transformSpell.DoEffect(caster);
+
+			Timer timer = new TransformTimer(caster, transformSpell);
+			timer.Start();
+
+			AddContext(caster, new TransformContext(timer, mods, ourType, transformSpell));
+		}
 	}
 }

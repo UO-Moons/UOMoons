@@ -2,7 +2,6 @@ using Server.Mobiles;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.BalmOfStrength")]
 public class BalmOfStrength : BaseBalmOrLotion
 {
 	public override int LabelNumber => 1094940;  // Balm of Strength

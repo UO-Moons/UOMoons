@@ -19,37 +19,27 @@ public class UltimaStoreGump : BaseGump
 		new[] { 541, 294 }
 	};
 
-	public StoreCategory Category
+	private StoreCategory Category
 	{
 		get
 		{
 			PlayerProfile profile = UltimaStore.GetProfile(User, false);
 
-			if (profile != null)
-			{
-				return profile.Category;
-			}
-
-			return PlayerProfile.DefaultCategory;
+			return profile?.Category ?? PlayerProfile.DefaultCategory;
 		}
 	}
 
-	public SortBy SortBy
+	private SortBy SortBy
 	{
 		get
 		{
 			PlayerProfile profile = UltimaStore.GetProfile(User, false);
 
-			if (profile != null)
-			{
-				return profile.SortBy;
-			}
-
-			return PlayerProfile.DefaultSortBy;
+			return profile?.SortBy ?? PlayerProfile.DefaultSortBy;
 		}
 	}
 
-	public Dictionary<StoreEntry, int> Cart
+	private Dictionary<StoreEntry, int> Cart
 	{
 		get
 		{
@@ -59,11 +49,11 @@ public class UltimaStoreGump : BaseGump
 		}
 	}
 
-	public int Page { get; private set; }
-	public string SearchText { get; private set; }
-	public List<StoreEntry> StoreList { get; private set; }
+	private int Page { get; set; }
+	private string SearchText { get; set; }
+	private List<StoreEntry> StoreList { get; set; }
 
-	public bool Search { get; private set; }
+	private bool Search { get; set; }
 
 	public UltimaStoreGump(PlayerMobile pm, StoreEntry forcedEntry = null)
 		: base(pm, 100, 200)
@@ -321,7 +311,7 @@ public class UltimaStoreGump : BaseGump
 		}
 	}
 
-	public bool IsFeatured(StoreEntry entry)
+	private static bool IsFeatured(StoreEntry entry)
 	{
 		return entry.Category == StoreCategory.Featured ||
 		       UltimaStore.Entries.Any(e => e.ItemType == entry.ItemType && e.Category == StoreCategory.Featured);
@@ -560,9 +550,9 @@ public class UltimaStoreGump : BaseGump
 
 public class ConfirmCartGump : BaseGump
 {
-	public UltimaStoreGump Gump { get; private set; }
-	public StoreEntry Entry { get; private set; }
-	public int Current { get; private set; }
+	private UltimaStoreGump Gump { get; }
+	private StoreEntry Entry { get; }
+	private int Current { get; }
 
 	public ConfirmCartGump(PlayerMobile pm, UltimaStoreGump gump, StoreEntry entry, int current = 0)
 		: base(pm, gump.X + 760 / 2 - 205, gump.Y + 574 / 2 - 100)
@@ -758,7 +748,7 @@ public class NoFundsGump : BaseGump
 
 public class PromoCodeGump : BaseGump
 {
-	public BaseGump Gump { get; }
+	private BaseGump Gump { get; }
 
 	public PromoCodeGump(PlayerMobile pm, BaseGump gump)
 		: base(pm, 10, 10)
@@ -818,8 +808,8 @@ public class PromoCodeGump : BaseGump
 
 public class PromoItemGump : BaseGump
 {
-	public int Image { get; }
-	public StoreEntry Entry { get; }
+	private int Image { get; }
+	private StoreEntry Entry { get; }
 
 	public PromoItemGump(PlayerMobile pm, StoreEntry entry, int image)
 		: base(pm, 150, 200)
@@ -854,7 +844,7 @@ public class PromoItemGump : BaseGump
 		{
 			if (Entry.Name[j].Number > 0)
 			{
-				AddHtmlLocalized(76, 92 + j * 14 + 4, 183, 25, 1114513, $"#{Entry.Name[j].Number.ToString()}", 0x7FFF, false, false);
+				AddHtmlLocalized(76, 92 + j * 14 + 4, 183, 25, 1114513, $"#{Entry.Name[j].Number}", 0x7FFF, false, false);
 			}
 			else
 			{
@@ -872,16 +862,16 @@ public class PromoItemGump : BaseGump
 
 	public override void OnResponse(RelayInfo info)
 	{
-		if (info.ButtonID == 1198)
+		if (info.ButtonID != 1198)
+			return;
+
+		PlayerProfile profile = UltimaStore.GetProfile(User, false);
+
+		if (profile != null)
 		{
-			PlayerProfile profile = UltimaStore.GetProfile(User, false);
-
-			if (profile != null)
-			{
-				profile.Category = StoreCategory.None;
-			}
-
-			UltimaStore.OpenStore(User, Entry);
+			profile.Category = StoreCategory.None;
 		}
+
+		UltimaStore.OpenStore(User, Entry);
 	}
 }

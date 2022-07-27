@@ -52,7 +52,7 @@ namespace Server.Items
             }
         }
 
-        public override int EffectID => ItemId;
+        public override int EffectId => ItemId;
 
         public override Type AmmoType => null;
 
@@ -71,7 +71,7 @@ namespace Server.Items
 
             if (!attacker.InRange(damageable, 1))
             {
-                attacker.MovingEffect(damageable, EffectID, 18, 1, false, false, Hue, 0);
+                attacker.MovingEffect(damageable, EffectId, 18, 1, false, false, Hue, 0);
             }
 
             return true;
@@ -100,7 +100,7 @@ namespace Server.Items
         public virtual void ThrowBack()
         {
             if (m_Target != null)
-                m_Target.MovingEffect(m_Thrower, EffectID, 18, 1, false, false, Hue, 0);
+                m_Target.MovingEffect(m_Thrower, EffectId, 18, 1, false, false, Hue, 0);
             else if (m_Thrower != null)
                 Effects.SendMovingParticles(new Entity(Serial.Zero, m_KillSave, m_Thrower.Map), m_Thrower, ItemId, 18, 0, false, false, Hue, 0, 9502, 1, 0, (EffectLayer)255, 0x100);
         }

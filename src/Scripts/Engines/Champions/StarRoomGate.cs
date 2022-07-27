@@ -22,7 +22,7 @@ public sealed class StarRoomGate : Moongate
 	}
 
 	[Constructable]
-	public StarRoomGate(bool decays)
+	private StarRoomGate(bool decays)
 		: base(new Point3D(5143, 1774, 0), Map.Felucca)
 	{
 		Dispellable = false;

@@ -38,7 +38,7 @@ namespace Server.Misc
 				if (now < giver.Start || now >= giver.Finish)
 					continue; // not in the correct timefream
 
-				if (acct.Created > (giver.Start - giver.MinimumAge))
+				if (acct.Created > giver.Start - giver.MinimumAge)
 					continue; // newly created account
 
 				if (acct.LastLogin >= giver.Start)

@@ -39,7 +39,7 @@ public class WallOfStoneSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -58,21 +58,20 @@ public class WallOfStoneSpell : MagerySpell
 
 			bool eastToWest;
 
-			if (rx >= 0 && ry >= 0)
+			switch (rx)
 			{
-				eastToWest = false;
-			}
-			else if (rx >= 0)
-			{
-				eastToWest = true;
-			}
-			else if (ry >= 0)
-			{
-				eastToWest = true;
-			}
-			else
-			{
-				eastToWest = false;
+				case >= 0 when ry >= 0:
+					eastToWest = false;
+					break;
+				case >= 0:
+					eastToWest = true;
+					break;
+				default:
+				{
+					eastToWest = ry >= 0;
+
+					break;
+				}
 			}
 
 			Effects.PlaySound(p, Caster.Map, 0x1F6);
@@ -130,12 +129,14 @@ public class WallOfStoneSpell : MagerySpell
 			_end = DateTime.UtcNow + TimeSpan.FromSeconds(10.0);
 		}
 
+		public InternalItem(Serial serial) : base(serial)
+		{
+		}
+
 		public override void Serialize(GenericWriter writer)
 		{
 			base.Serialize(writer);
-
-			writer.Write(0); // version
-
+			writer.Write(0);
 			writer.WriteDeltaTime(_end);
 		}
 
@@ -161,13 +162,9 @@ public class WallOfStoneSpell : MagerySpell
 
 		public override bool OnMoveOver(Mobile m)
 		{
-			if (m is PlayerMobile)
-			{
-				var noto = Notoriety.Compute(_caster, m);
-				if (noto is Notoriety.Enemy or Notoriety.Ally)
-					return false;
-			}
-			return base.OnMoveOver(m);
+			if (m is not PlayerMobile) return base.OnMoveOver(m);
+			var noto = Notoriety.Compute(_caster, m);
+			return noto is not (Notoriety.Enemy or Notoriety.Ally) && base.OnMoveOver(m);
 		}
 
 		public override void OnAfterDelete()

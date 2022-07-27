@@ -1,1215 +1,1214 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Flipable(0x182E, 0x182F, 0x1830, 0x1831)]
+public class SmallFlask : BaseItem
 {
-	[Flipable(0x182E, 0x182F, 0x1830, 0x1831)]
-	public class SmallFlask : BaseItem
+	[Constructable]
+	public SmallFlask() : base(0x182E)
 	{
-		[Constructable]
-		public SmallFlask() : base(0x182E)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public SmallFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	[Flipable(0x182A, 0x182B, 0x182C, 0x182D)]
-	public class MediumFlask : BaseItem
+	public SmallFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public MediumFlask() : base(0x182A)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public MediumFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	[Flipable(0x183B, 0x183C, 0x183D)]
-	public class LargeFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public LargeFlask() : base(0x183B)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public LargeFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	[Flipable(0x1832, 0x1833, 0x1834, 0x1835, 0x1836, 0x1837)]
-	public class CurvedFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public CurvedFlask() : base(0x1832)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public CurvedFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+[Flipable(0x182A, 0x182B, 0x182C, 0x182D)]
+public class MediumFlask : BaseItem
+{
+	[Constructable]
+	public MediumFlask() : base(0x182A)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	[Flipable(0x1838, 0x1839, 0x183A)]
-	public class LongFlask : BaseItem
+	public MediumFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public LongFlask() : base(0x1838)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public LongFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	[Flipable(0x1810, 0x1811)]
-	public class SpinningHourglass : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public SpinningHourglass() : base(0x1810)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public SpinningHourglass(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class GreenBottle : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public GreenBottle() : base(0x0EFB)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public GreenBottle(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+[Flipable(0x183B, 0x183C, 0x183D)]
+public class LargeFlask : BaseItem
+{
+	[Constructable]
+	public LargeFlask() : base(0x183B)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class RedBottle : BaseItem
+	public LargeFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public RedBottle() : base(0x0EFC)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public RedBottle(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class SmallBrownBottle : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public SmallBrownBottle() : base(0x0EFD)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public SmallBrownBottle(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class SmallGreenBottle : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public SmallGreenBottle() : base(0x0F01)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public SmallGreenBottle(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+[Flipable(0x1832, 0x1833, 0x1834, 0x1835, 0x1836, 0x1837)]
+public class CurvedFlask : BaseItem
+{
+	[Constructable]
+	public CurvedFlask() : base(0x1832)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class SmallVioletBottle : BaseItem
+	public CurvedFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public SmallVioletBottle() : base(0x0F02)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public SmallVioletBottle(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class TinyYellowBottle : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public TinyYellowBottle() : base(0x0F03)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public TinyYellowBottle(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-	}
-	//remove
-	public class SmallBlueFlask : BaseItem
-	{
-		[Constructable]
-		public SmallBlueFlask() : base(0x182A)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public SmallBlueFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class SmallYellowFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public SmallYellowFlask() : base(0x182B)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public SmallYellowFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+[Flipable(0x1838, 0x1839, 0x183A)]
+public class LongFlask : BaseItem
+{
+	[Constructable]
+	public LongFlask() : base(0x1838)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class SmallRedFlask : BaseItem
+	public LongFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public SmallRedFlask() : base(0x182C)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public SmallRedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class SmallEmptyFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public SmallEmptyFlask() : base(0x182D)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public SmallEmptyFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class YellowBeaker : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public YellowBeaker() : base(0x182E)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public YellowBeaker(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+[Flipable(0x1810, 0x1811)]
+public class SpinningHourglass : BaseItem
+{
+	[Constructable]
+	public SpinningHourglass() : base(0x1810)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class RedBeaker : BaseItem
+	public SpinningHourglass(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public RedBeaker() : base(0x182F)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public RedBeaker(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class BlueBeaker : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public BlueBeaker() : base(0x1830)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public BlueBeaker(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class GreenBeaker : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public GreenBeaker() : base(0x1831)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public GreenBeaker(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class GreenBottle : BaseItem
+{
+	[Constructable]
+	public GreenBottle() : base(0x0EFB)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class EmptyCurvedFlaskW : BaseItem
+	public GreenBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public EmptyCurvedFlaskW() : base(0x1832)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public EmptyCurvedFlaskW(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class RedCurvedFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public RedCurvedFlask() : base(0x1833)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public RedCurvedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class LtBlueCurvedFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public LtBlueCurvedFlask() : base(0x1834)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public LtBlueCurvedFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class RedBottle : BaseItem
+{
+	[Constructable]
+	public RedBottle() : base(0x0EFC)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class EmptyCurvedFlaskE : BaseItem
+	public RedBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public EmptyCurvedFlaskE() : base(0x1835)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public EmptyCurvedFlaskE(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class BlueCurvedFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public BlueCurvedFlask() : base(0x1836)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public BlueCurvedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class GreenCurvedFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public GreenCurvedFlask() : base(0x1837)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public GreenCurvedFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class SmallBrownBottle : BaseItem
+{
+	[Constructable]
+	public SmallBrownBottle() : base(0x0EFD)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class RedRibbedFlask : BaseItem
+	public SmallBrownBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public RedRibbedFlask() : base(0x1838)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public RedRibbedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class VioletRibbedFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public VioletRibbedFlask() : base(0x1839)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public VioletRibbedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class EmptyRibbedFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public EmptyRibbedFlask() : base(0x183A)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public EmptyRibbedFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class SmallGreenBottle : BaseItem
+{
+	[Constructable]
+	public SmallGreenBottle() : base(0x0F01)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class LargeYellowFlask : BaseItem
+	public SmallGreenBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public LargeYellowFlask() : base(0x183B)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public LargeYellowFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class LargeVioletFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public LargeVioletFlask() : base(0x183C)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public LargeVioletFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class LargeEmptyFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public LargeEmptyFlask() : base(0x183D)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public LargeEmptyFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class SmallVioletBottle : BaseItem
+{
+	[Constructable]
+	public SmallVioletBottle() : base(0x0F02)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class AniRedRibbedFlask : BaseItem
+	public SmallVioletBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public AniRedRibbedFlask() : base(0x183E)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public AniRedRibbedFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class AniLargeVioletFlask : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public AniLargeVioletFlask() : base(0x1841)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public AniLargeVioletFlask(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class AniSmallBlueFlask : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public AniSmallBlueFlask() : base(0x1844)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public AniSmallBlueFlask(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class TinyYellowBottle : BaseItem
+{
+	[Constructable]
+	public TinyYellowBottle() : base(0x0F03)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class SmallBlueBottle : BaseItem
+	public TinyYellowBottle(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public SmallBlueBottle() : base(0x1847)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public SmallBlueBottle(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class SmallGreenBottle2 : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public SmallGreenBottle2() : base(0x1848)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public SmallGreenBottle2(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	[Flipable(0x185B, 0x185C)]
-	public class EmptyVialsWRack : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public EmptyVialsWRack() : base(0x185B)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public EmptyVialsWRack(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
+	}
+}
+//remove
+public class SmallBlueFlask : BaseItem
+{
+	[Constructable]
+	public SmallBlueFlask() : base(0x182A)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	[Flipable(0x185D, 0x185E)]
-	public class FullVialsWRack : BaseItem
+	public SmallBlueFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public FullVialsWRack() : base(0x185D)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public FullVialsWRack(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-
-	public class EmptyVial : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public EmptyVial() : base(0x0E24)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public EmptyVial(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+		writer.Write(0); // version
 	}
 
-	public class HourglassAni : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public HourglassAni() : base(0x1811)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Deserialize(reader);
 
-		public HourglassAni(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
+public class SmallYellowFlask : BaseItem
+{
+	[Constructable]
+	public SmallYellowFlask() : base(0x182B)
+	{
+		Weight = 1.0;
+		Movable = true;
 	}
 
-	public class Hourglass : BaseItem
+	public SmallYellowFlask(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public Hourglass() : base(0x1810)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
-
-		public Hourglass(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	public class TinyRedBottle : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public TinyRedBottle() : base(0x0F04)
-		{
-			Weight = 1.0;
-			Movable = true;
-		}
+		base.Serialize(writer);
 
-		public TinyRedBottle(Serial serial) : base(serial)
-		{
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.Write(0); // version
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class SmallRedFlask : BaseItem
+{
+	[Constructable]
+	public SmallRedFlask() : base(0x182C)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
 
-			int version = reader.ReadInt();
-		}
+	public SmallRedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class SmallEmptyFlask : BaseItem
+{
+	[Constructable]
+	public SmallEmptyFlask() : base(0x182D)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public SmallEmptyFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class YellowBeaker : BaseItem
+{
+	[Constructable]
+	public YellowBeaker() : base(0x182E)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public YellowBeaker(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class RedBeaker : BaseItem
+{
+	[Constructable]
+	public RedBeaker() : base(0x182F)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public RedBeaker(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class BlueBeaker : BaseItem
+{
+	[Constructable]
+	public BlueBeaker() : base(0x1830)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public BlueBeaker(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class GreenBeaker : BaseItem
+{
+	[Constructable]
+	public GreenBeaker() : base(0x1831)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public GreenBeaker(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class EmptyCurvedFlaskW : BaseItem
+{
+	[Constructable]
+	public EmptyCurvedFlaskW() : base(0x1832)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public EmptyCurvedFlaskW(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class RedCurvedFlask : BaseItem
+{
+	[Constructable]
+	public RedCurvedFlask() : base(0x1833)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public RedCurvedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class LtBlueCurvedFlask : BaseItem
+{
+	[Constructable]
+	public LtBlueCurvedFlask() : base(0x1834)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public LtBlueCurvedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class EmptyCurvedFlaskE : BaseItem
+{
+	[Constructable]
+	public EmptyCurvedFlaskE() : base(0x1835)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public EmptyCurvedFlaskE(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class BlueCurvedFlask : BaseItem
+{
+	[Constructable]
+	public BlueCurvedFlask() : base(0x1836)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public BlueCurvedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class GreenCurvedFlask : BaseItem
+{
+	[Constructable]
+	public GreenCurvedFlask() : base(0x1837)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public GreenCurvedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class RedRibbedFlask : BaseItem
+{
+	[Constructable]
+	public RedRibbedFlask() : base(0x1838)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public RedRibbedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class VioletRibbedFlask : BaseItem
+{
+	[Constructable]
+	public VioletRibbedFlask() : base(0x1839)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public VioletRibbedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class EmptyRibbedFlask : BaseItem
+{
+	[Constructable]
+	public EmptyRibbedFlask() : base(0x183A)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public EmptyRibbedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class LargeYellowFlask : BaseItem
+{
+	[Constructable]
+	public LargeYellowFlask() : base(0x183B)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public LargeYellowFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class LargeVioletFlask : BaseItem
+{
+	[Constructable]
+	public LargeVioletFlask() : base(0x183C)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public LargeVioletFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class LargeEmptyFlask : BaseItem
+{
+	[Constructable]
+	public LargeEmptyFlask() : base(0x183D)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public LargeEmptyFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class AniRedRibbedFlask : BaseItem
+{
+	[Constructable]
+	public AniRedRibbedFlask() : base(0x183E)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public AniRedRibbedFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class AniLargeVioletFlask : BaseItem
+{
+	[Constructable]
+	public AniLargeVioletFlask() : base(0x1841)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public AniLargeVioletFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class AniSmallBlueFlask : BaseItem
+{
+	[Constructable]
+	public AniSmallBlueFlask() : base(0x1844)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public AniSmallBlueFlask(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class SmallBlueBottle : BaseItem
+{
+	[Constructable]
+	public SmallBlueBottle() : base(0x1847)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public SmallBlueBottle(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class SmallGreenBottle2 : BaseItem
+{
+	[Constructable]
+	public SmallGreenBottle2() : base(0x1848)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public SmallGreenBottle2(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[Flipable(0x185B, 0x185C)]
+public class EmptyVialsWRack : BaseItem
+{
+	[Constructable]
+	public EmptyVialsWRack() : base(0x185B)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public EmptyVialsWRack(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[Flipable(0x185D, 0x185E)]
+public class FullVialsWRack : BaseItem
+{
+	[Constructable]
+	public FullVialsWRack() : base(0x185D)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public FullVialsWRack(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+
+public class EmptyVial : BaseItem
+{
+	[Constructable]
+	public EmptyVial() : base(0x0E24)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public EmptyVial(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class HourglassAni : BaseItem
+{
+	[Constructable]
+	public HourglassAni() : base(0x1811)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public HourglassAni(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class Hourglass : BaseItem
+{
+	[Constructable]
+	public Hourglass() : base(0x1810)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public Hourglass(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+public class TinyRedBottle : BaseItem
+{
+	[Constructable]
+	public TinyRedBottle() : base(0x0F04)
+	{
+		Weight = 1.0;
+		Movable = true;
+	}
+
+	public TinyRedBottle(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

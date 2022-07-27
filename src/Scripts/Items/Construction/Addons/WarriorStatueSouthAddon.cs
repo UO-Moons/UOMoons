@@ -1,60 +1,59 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class WarriorStatueSouthAddon : BaseAddon
 {
-	public class WarriorStatueSouthAddon : BaseAddon
+	public override BaseAddonDeed Deed => new WarriorStatueSouthDeed();
+
+	[Constructable]
+	public WarriorStatueSouthAddon()
 	{
-		public override BaseAddonDeed Deed => new WarriorStatueSouthDeed();
-
-		[Constructable]
-		public WarriorStatueSouthAddon()
-		{
-			AddComponent(new AddonComponent(0x2D13), 0, 0, 0);
-		}
-
-		public WarriorStatueSouthAddon(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		AddComponent(new AddonComponent(0x2D13), 0, 0, 0);
 	}
 
-	public class WarriorStatueSouthDeed : BaseAddonDeed
+	public WarriorStatueSouthAddon(Serial serial) : base(serial)
 	{
-		public override BaseAddon Addon => new WarriorStatueSouthAddon();
-		public override int LabelNumber => 1072887;  // warrior statue (south)
+	}
 
-		[Constructable]
-		public WarriorStatueSouthDeed()
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public WarriorStatueSouthDeed(Serial serial) : base(serial)
-		{
-		}
+		writer.WriteEncodedInt(0); // version
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			writer.WriteEncodedInt(0); // version
-		}
+		reader.ReadEncodedInt();
+	}
+}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+public class WarriorStatueSouthDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new WarriorStatueSouthAddon();
+	public override int LabelNumber => 1072887;  // warrior statue (south)
 
-			int version = reader.ReadEncodedInt();
-		}
+	[Constructable]
+	public WarriorStatueSouthDeed()
+	{
+	}
+
+	public WarriorStatueSouthDeed(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.WriteEncodedInt(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadEncodedInt();
 	}
 }

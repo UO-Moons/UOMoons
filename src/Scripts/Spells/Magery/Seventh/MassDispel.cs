@@ -39,7 +39,7 @@ public class MassDispelSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -68,9 +68,7 @@ public class MassDispelSpell : MagerySpell
 			{
 				Mobile m = targets[i];
 
-				BaseCreature bc = m as BaseCreature;
-
-				if (bc == null)
+				if (m is not BaseCreature bc)
 					continue;
 
 				double dispelChance = (50.0 + 100 * (Caster.Skills.Magery.Value - bc.DispelDifficulty) / (bc.DispelFocus * 2)) / 100;

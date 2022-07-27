@@ -609,6 +609,23 @@ public class Region : IComparable<Region>
 		}
 	}
 
+	private IEnumerable<Item> InternalItems
+	{
+		get
+		{
+			for (var i = 0; i < Area.Length; i++)
+			{
+				foreach (var o in Map.GetItemsInBounds(Area[i]))
+					yield return o;
+			}
+		}
+	}
+
+	public IEnumerable<Item> AllItems => InternalItems.Distinct();
+
+	[CommandProperty(AccessLevel.Counselor, true)]
+	public int ItemCount => AllItems.Count();
+
 	public IEnumerable<Mobile> AllPlayers => InternalPlayers.Distinct();
 
 	[CommandProperty(AccessLevel.Counselor, true)]

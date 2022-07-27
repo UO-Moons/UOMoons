@@ -35,7 +35,7 @@ public class UnlockSpell : MagerySpell
 		}
 	}
 
-	public void Target(LockableContainer cont)
+	private void Target(LockableContainer cont)
 	{
 		if (cont is not null && cont is IPoint3D loc)
 		{

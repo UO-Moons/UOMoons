@@ -48,21 +48,16 @@ public class GardenShedAddon : BaseAddonContainer
 	public override int LabelNumber => 1153492;  // garden shed
 	public override int DefaultGumpID => 0x10B;
 	public override int DefaultDropSound => 0x42;
-	public BaseAddonContainer MSecondContainer;
 	private Point3D _mOffset;
 
 	[CommandProperty(AccessLevel.GameMaster)]
-	public BaseAddonContainer SecondContainer
-	{
-		get => MSecondContainer;
-		set => MSecondContainer = value;
-	}
+	public BaseAddonContainer SecondContainer { get; private set; }
 
 	[CommandProperty(AccessLevel.GameMaster)]
 	public Point3D Offset
 	{
 		get => _mOffset;
-		set => _mOffset = value;
+		private init => _mOffset = value;
 	}
 
 	[Constructable]
@@ -147,7 +142,7 @@ public class GardenShedAddon : BaseAddonContainer
 		base.Serialize(writer);
 		writer.Write(0);
 
-		writer.Write(MSecondContainer);
+		writer.Write(SecondContainer);
 		writer.Write(_mOffset);
 	}
 
@@ -156,7 +151,7 @@ public class GardenShedAddon : BaseAddonContainer
 		base.Deserialize(reader);
 		_ = reader.ReadInt();
 
-		MSecondContainer = reader.ReadItem() as BaseAddonContainer;
+		SecondContainer = reader.ReadItem() as BaseAddonContainer;
 		_mOffset = reader.ReadPoint3D();
 	}
 }
@@ -164,13 +159,13 @@ public class GardenShedAddon : BaseAddonContainer
 [TypeAlias("Server.Items.GardenShedAddonSecond")]
 public class GardenShedBarrel : BaseAddonContainer
 {
-	public GardenShedAddon MMainContainer;
+	private GardenShedAddon m_MMainContainer;
 
 	[Constructable]
 	public GardenShedBarrel(GardenShedAddon container, bool east)
 		: base(east ? 0x4BED : 0x4BE9)
 	{
-		MMainContainer = container;
+		m_MMainContainer = container;
 	}
 
 	public GardenShedBarrel(Serial serial)
@@ -178,37 +173,37 @@ public class GardenShedBarrel : BaseAddonContainer
 	{
 	}
 
-	public override BaseAddonContainerDeed Deed => MMainContainer.Deed;
+	public override BaseAddonContainerDeed Deed => m_MMainContainer.Deed;
 	public override int LabelNumber => 1153492;  // garden shed
 	public override int DefaultGumpID => 0x3E;
 	public override int DefaultDropSound => 0x42;
 
 	public override void OnLocationChange(Point3D old)
 	{
-		MMainContainer.Location = new Point3D(X - MMainContainer.Offset.X, Y - MMainContainer.Offset.Y, Z - MMainContainer.Offset.Z);
+		m_MMainContainer.Location = new Point3D(X - m_MMainContainer.Offset.X, Y - m_MMainContainer.Offset.Y, Z - m_MMainContainer.Offset.Z);
 	}
 
 	public override void OnMapChange()
 	{
-		if (MMainContainer != null)
-			MMainContainer.Map = Map;
+		if (m_MMainContainer != null)
+			m_MMainContainer.Map = Map;
 	}
 
 	public override void OnAfterDelete()
 	{
 		base.OnAfterDelete();
 
-		MMainContainer?.Delete();
+		m_MMainContainer?.Delete();
 	}
 
 	public override void OnChop(Mobile from)
 	{
-		if (MMainContainer == null)
+		if (m_MMainContainer == null)
 			return;
 
-		if (!MMainContainer.IsSecure)
+		if (!m_MMainContainer.IsSecure)
 		{
-			MMainContainer.DropItemsToGround();
+			m_MMainContainer.DropItemsToGround();
 			base.OnChop(from);
 		}
 		else
@@ -222,7 +217,7 @@ public class GardenShedBarrel : BaseAddonContainer
 		base.Serialize(writer);
 		writer.Write(0);
 
-		writer.Write(MMainContainer);
+		writer.Write(m_MMainContainer);
 	}
 
 	public override void Deserialize(GenericReader reader)
@@ -230,7 +225,7 @@ public class GardenShedBarrel : BaseAddonContainer
 		base.Deserialize(reader);
 		_ = reader.ReadInt();
 
-		MMainContainer = reader.ReadItem() as GardenShedAddon;
+		m_MMainContainer = reader.ReadItem() as GardenShedAddon;
 	}
 }
 

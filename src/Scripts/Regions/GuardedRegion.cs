@@ -12,7 +12,7 @@ public class GuardedRegion : BaseRegion
 	private readonly Type _mGuardType;
 
 	public bool Disabled { get; set; }
-	public bool PCsOnly { get; set; }
+	private bool PCsOnly { get; set; }
 	public virtual RegionFragment Fragment => RegionFragment.Wilderness;
 
 	public virtual bool IsDisabled()
@@ -61,10 +61,9 @@ public class GuardedRegion : BaseRegion
 			{
 				reg.Disabled = !e.GetBoolean(0);
 
-				if (reg.Disabled)
-					from.SendMessage("The guards in this region have been disabled.");
-				else
-					from.SendMessage("The guards in this region have been enabled.");
+				from.SendMessage(reg.Disabled
+					? "The guards in this region have been disabled."
+					: "The guards in this region have been enabled.");
 			}
 		}
 		else
@@ -88,10 +87,9 @@ public class GuardedRegion : BaseRegion
 		{
 			reg.Disabled = !reg.Disabled;
 
-			if (reg.Disabled)
-				from.SendMessage("The guards in this region have been disabled.");
-			else
-				from.SendMessage("The guards in this region have been enabled.");
+			from.SendMessage(reg.Disabled
+				? "The guards in this region have been disabled."
+				: "The guards in this region have been enabled.");
 		}
 	}
 
@@ -146,8 +144,7 @@ public class GuardedRegion : BaseRegion
 		{
 			if (Map == Map.Ilshenar || Map == Map.Malas)
 				return typeof(ArcherGuard);
-			else
-				return typeof(WarriorGuard);
+			return typeof(WarriorGuard);
 		}
 	}
 
@@ -209,15 +206,14 @@ public class GuardedRegion : BaseRegion
 			IPooledEnumerable eable = focus.GetMobilesInRange(12);
 			foreach (Mobile m in eable)
 			{
-				if (m is WeakWarriorGuard g)
-				{
-					if ((g.Focus is not {Alive: true} || g.Focus.Deleted) &&
-					    (useGuard == null || g.GetDistanceToSqrt(focus) < useGuard.GetDistanceToSqrt(focus)))
-					{
-						useGuard = g;
-						break;
-					}
-				}
+				if (m is not WeakWarriorGuard g)
+					continue;
+				if (g.Focus is { Alive: true, Deleted: false } || (useGuard != null &&
+				                                                   !(g.GetDistanceToSqrt(focus) <
+				                                                     useGuard.GetDistanceToSqrt(focus))))
+					continue;
+				useGuard = g;
+				break;
 			}
 			eable.Free();
 
@@ -226,25 +222,22 @@ public class GuardedRegion : BaseRegion
 		}
 		else
 		{
-			BaseGuard useGuard = null, curGuard = null;
+			BaseGuard useGuard = null;
 			IPooledEnumerable eable = focus.GetMobilesInRange(8);
 			foreach (Mobile m in eable)
 			{
-				if (m is BaseGuard g and not WeakWarriorGuard)
+				if (m is not (BaseGuard g and not WeakWarriorGuard)) continue;
+				if (g.Focus == null) // idling
 				{
-					if (g.Focus == null) // idling
-					{
-						curGuard = g;
-						break;
-					}
-
-					if ((g.Focus is not {Alive: true} || g.Focus.Deleted) &&
-					    (useGuard == null || g.GetDistanceToSqrt(focus) < useGuard.GetDistanceToSqrt(focus)))
-					{
-						useGuard = g;
-						break;
-					}
+					break;
 				}
+
+				if (g.Focus is { Alive: true, Deleted: false } || (useGuard != null &&
+				                                                   !(g.GetDistanceToSqrt(focus) <
+				                                                     useGuard.GetDistanceToSqrt(focus))))
+					continue;
+				useGuard = g;
+				break;
 			}
 			eable.Free();
 
@@ -336,16 +329,16 @@ public class GuardedRegion : BaseRegion
 
 	public override void SpellDamageScalar(Mobile caster, Mobile target, ref double scalar)
 	{
-		if (!IsDisabled())
-		{
-			if (target == caster)
-				return;
+		if (IsDisabled())
+			return;
 
-			if (PCsOnly && (!caster.Player || !target.Player))
-				return;
+		if (target == caster)
+			return;
 
-			scalar = 0;
-		}
+		if (PCsOnly && (!caster.Player || !target.Player))
+			return;
+
+		scalar = 0;
 	}
 
 	private readonly Dictionary<Mobile, GuardTimer> _mGuardCandidates = new();
@@ -355,45 +348,46 @@ public class GuardedRegion : BaseRegion
 		if (IsDisabled())
 			return;
 
-		if (IsGuardCandidate(m))
+		if (!IsGuardCandidate(m))
+			return;
+
+		if (!AddGuardCandidate(m))
+			return;
+
+		Map map = m.Map;
+
+		if (map == null)
+			return;
+
+		Mobile fakeCall = null;
+		double prio = 0.0;
+
+		foreach (Mobile v in m.GetMobilesInRange(8))
 		{
-			if (AddGuardCandidate(m))
-			{
-				Map map = m.Map;
+			if (v.Player || v == m || IsGuardCandidate(v) || ((v is BaseCreature creature)
+				    ? !creature.IsHumanInTown()
+				    : !v.Body.IsHuman || !v.Region.IsPartOf(this)))
+				continue;
 
-				if (map != null)
-				{
-					Mobile fakeCall = null;
-					double prio = 0.0;
+			double dist = m.GetDistanceToSqrt(v);
 
-					foreach (Mobile v in m.GetMobilesInRange(8))
-					{
-						if (!v.Player && v != m && !IsGuardCandidate(v) && ((v is BaseCreature creature) ? creature.IsHumanInTown() : (v.Body.IsHuman && v.Region.IsPartOf(this))))
-						{
-							double dist = m.GetDistanceToSqrt(v);
-
-							if (fakeCall == null || dist < prio)
-							{
-								fakeCall = v;
-								prio = dist;
-							}
-						}
-					}
-
-					if (fakeCall != null)
-					{
-						if (fakeCall is not BaseGuard)
-							fakeCall.Say(Utility.RandomList(1007037, 501603, 1013037, 1013038, 1013039, 1013041, 1013042, 1013043, 1013052));
-
-						MakeGuard(m);
-						RemoveGuardCandidate(m);
-					}
-				}
-			}
+			if (fakeCall != null && !(dist < prio))
+				continue;
+			fakeCall = v;
+			prio = dist;
 		}
+
+		if (fakeCall == null)
+			return;
+
+		if (fakeCall is not BaseGuard)
+			fakeCall.Say(Utility.RandomList(1007037, 501603, 1013037, 1013038, 1013039, 1013041, 1013042, 1013043, 1013052));
+
+		MakeGuard(m);
+		RemoveGuardCandidate(m);
 	}
 
-	public bool AddGuardCandidate(Mobile m)
+	private bool AddGuardCandidate(Mobile m)
 	{
 		GuardTimer timer = _mGuardCandidates[m];
 
@@ -414,9 +408,9 @@ public class GuardedRegion : BaseRegion
 		return false;
 	}
 
-	public void RemoveGuardCandidate(Mobile m)
+	private void RemoveGuardCandidate(Mobile m)
 	{
-		GuardTimer timer = (GuardTimer)_mGuardCandidates[m];
+		GuardTimer timer = _mGuardCandidates[m];
 
 		if (timer != null)
 		{
@@ -435,20 +429,20 @@ public class GuardedRegion : BaseRegion
 
 		foreach (Mobile m in eable)
 		{
-			if (IsGuardCandidate(m) && ((!AllowReds && m.Murderer && m.Region.IsPartOf(this)) || _mGuardCandidates.ContainsKey(m)))
+			if (!IsGuardCandidate(m) || ((AllowReds || !m.Murderer || !m.Region.IsPartOf(this)) &&
+			                             !_mGuardCandidates.ContainsKey(m)))
+				continue;
+			_mGuardCandidates.TryGetValue(m, out GuardTimer timer);
+
+			if (timer != null)
 			{
-				_mGuardCandidates.TryGetValue(m, out GuardTimer timer);
-
-				if (timer != null)
-				{
-					timer.Stop();
-					_mGuardCandidates.Remove(m);
-				}
-
-				MakeGuard(m);
-				m.SendLocalizedMessage(502276); // Guards can no longer be called on you.
-				break;
+				timer.Stop();
+				_mGuardCandidates.Remove(m);
 			}
+
+			MakeGuard(m);
+			m.SendLocalizedMessage(502276); // Guards can no longer be called on you.
+			break;
 		}
 
 		eable.Free();
@@ -458,21 +452,19 @@ public class GuardedRegion : BaseRegion
 	{
 		if (Core.AOS)
 		{
-			if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || (m is BaseCreature creature && creature.IsInvulnerable) || IsDisabled())
+			if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || m is BaseCreature { IsInvulnerable: true } || IsDisabled())
 				return false;
 
 			return (!AllowReds && m.Murderer) || m.Criminal;
 		}
-		else
-		{
-			if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || (m is BaseCreature creature && creature.IsInvulnerable) || IsDisabled())
-				return false;
 
-			if (PCsOnly && !m.Player)
-				return false;
+		if (m is BaseGuard || !m.Alive || m.IsStaff() || m.Blessed || m is BaseCreature { IsInvulnerable: true } || IsDisabled())
+			return false;
 
-			return IsEvil(m) || m.Criminal;
-		}
+		if (PCsOnly && !m.Player)
+			return false;
+
+		return IsEvil(m) || m.Criminal;
 	}
 
 	private class GuardTimer : Timer

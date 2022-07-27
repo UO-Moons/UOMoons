@@ -182,7 +182,7 @@ public abstract class BasePigmentsOfTokuno : BaseItem, IUsesRemaining
 			|| IsInTypeList(t, StealableArtifactsSpawner.TypesOfEntires)
 			|| IsInTypeList(t, Paragon.Artifacts)
 			|| IsInTypeList(t, Leviathan.Artifacts)
-			|| IsInTypeList(t, TreasureMapChest.Artifacts)
+			|| IsInTypeList(t, LootHelpers.Artifacts)
 			|| IsInTypeList(t, m_Replicas)
 			|| IsInTypeList(t, m_DyableHeritageItems)
 			|| IsInTypeList(t, m_Glasses)

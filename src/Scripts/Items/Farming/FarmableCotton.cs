@@ -1,43 +1,42 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class FarmableCotton : FarmableCrop
 {
-	public class FarmableCotton : FarmableCrop
+	private static int GetCropId()
 	{
-		public static int GetCropID()
-		{
-			return Utility.Random(3153, 4);
-		}
+		return Utility.Random(3153, 4);
+	}
 
-		public override Item GetCropObject()
-		{
-			return new Cotton();
-		}
+	public override Item GetCropObject()
+	{
+		return new Cotton();
+	}
 
-		public override int GetPickedID()
-		{
-			return 3254;
-		}
+	public override int GetPickedId()
+	{
+		return 3254;
+	}
 
-		[Constructable]
-		public FarmableCotton() : base(GetCropID())
-		{
-		}
+	[Constructable]
+	public FarmableCotton() : base(GetCropId())
+	{
+	}
 
-		public FarmableCotton(Serial serial) : base(serial)
-		{
-		}
+	public FarmableCotton(Serial serial) : base(serial)
+	{
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.WriteEncodedInt(0); // version
-		}
+		writer.WriteEncodedInt(0); // version
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

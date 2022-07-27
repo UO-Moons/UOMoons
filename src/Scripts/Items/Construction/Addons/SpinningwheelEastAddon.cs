@@ -1,46 +1,83 @@
 using System;
 
-namespace Server.Items
-{
-	public delegate void SpinCallback(ISpinningWheel sender, Mobile from, int hue);
+namespace Server.Items;
 
-	public interface ISpinningWheel
+public delegate void SpinCallback(ISpinningWheel sender, Mobile from, int hue);
+
+public interface ISpinningWheel
+{
+	bool Spinning { get; }
+	void BeginSpin(SpinCallback callback, Mobile from, int hue);
+}
+
+public class SpinningwheelEastAddon : BaseAddon, ISpinningWheel
+{
+	public override BaseAddonDeed Deed => new SpinningwheelEastDeed();
+
+	[Constructable]
+	public SpinningwheelEastAddon()
 	{
-		bool Spinning { get; }
-		void BeginSpin(SpinCallback callback, Mobile from, int hue);
+		AddComponent(new AddonComponent(0x1019), 0, 0, 0);
 	}
 
-	public class SpinningwheelEastAddon : BaseAddon, ISpinningWheel
+	public SpinningwheelEastAddon(Serial serial) : base(serial)
 	{
-		public override BaseAddonDeed Deed => new SpinningwheelEastDeed();
+	}
 
-		[Constructable]
-		public SpinningwheelEastAddon()
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+
+	private Timer m_Timer;
+
+	public override void OnComponentLoaded(AddonComponent c)
+	{
+		switch (c.ItemId)
 		{
-			AddComponent(new AddonComponent(0x1019), 0, 0, 0);
+			case 0x1016:
+			case 0x101A:
+			case 0x101D:
+			case 0x10A5: --c.ItemId; break;
 		}
+	}
 
-		public SpinningwheelEastAddon(Serial serial) : base(serial)
+	public bool Spinning => m_Timer != null;
+
+	public void BeginSpin(SpinCallback callback, Mobile from, int hue)
+	{
+		m_Timer = new SpinTimer(this, callback, from, hue);
+		m_Timer.Start();
+
+		foreach (AddonComponent c in Components)
 		{
+			switch (c.ItemId)
+			{
+				case 0x1015:
+				case 0x1019:
+				case 0x101C:
+				case 0x10A4: ++c.ItemId; break;
+			}
 		}
+	}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public void EndSpin(SpinCallback callback, Mobile from, int hue)
+	{
+		if (m_Timer != null)
+			m_Timer.Stop();
 
-			writer.Write(0); // version
-		}
+		m_Timer = null;
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
-
-		private Timer m_Timer;
-
-		public override void OnComponentLoaded(AddonComponent c)
+		foreach (AddonComponent c in Components)
 		{
 			switch (c.ItemId)
 			{
@@ -51,95 +88,57 @@ namespace Server.Items
 			}
 		}
 
-		public bool Spinning => m_Timer != null;
-
-		public void BeginSpin(SpinCallback callback, Mobile from, int hue)
-		{
-			m_Timer = new SpinTimer(this, callback, from, hue);
-			m_Timer.Start();
-
-			foreach (AddonComponent c in Components)
-			{
-				switch (c.ItemId)
-				{
-					case 0x1015:
-					case 0x1019:
-					case 0x101C:
-					case 0x10A4: ++c.ItemId; break;
-				}
-			}
-		}
-
-		public void EndSpin(SpinCallback callback, Mobile from, int hue)
-		{
-			if (m_Timer != null)
-				m_Timer.Stop();
-
-			m_Timer = null;
-
-			foreach (AddonComponent c in Components)
-			{
-				switch (c.ItemId)
-				{
-					case 0x1016:
-					case 0x101A:
-					case 0x101D:
-					case 0x10A5: --c.ItemId; break;
-				}
-			}
-
-			callback?.Invoke(this, from, hue);
-		}
-
-		private class SpinTimer : Timer
-		{
-			private readonly SpinningwheelEastAddon m_Wheel;
-			private readonly SpinCallback m_Callback;
-			private readonly Mobile m_From;
-			private readonly int m_Hue;
-
-			public SpinTimer(SpinningwheelEastAddon wheel, SpinCallback callback, Mobile from, int hue) : base(TimeSpan.FromSeconds(3.0))
-			{
-				m_Wheel = wheel;
-				m_Callback = callback;
-				m_From = from;
-				m_Hue = hue;
-				Priority = TimerPriority.TwoFiftyMs;
-			}
-
-			protected override void OnTick()
-			{
-				m_Wheel.EndSpin(m_Callback, m_From, m_Hue);
-			}
-		}
+		callback?.Invoke(this, from, hue);
 	}
 
-	public class SpinningwheelEastDeed : BaseAddonDeed
+	private class SpinTimer : Timer
 	{
-		public override BaseAddon Addon => new SpinningwheelEastAddon();
-		public override int LabelNumber => 1044341;  // spining wheel (east)
+		private readonly SpinningwheelEastAddon m_Wheel;
+		private readonly SpinCallback m_Callback;
+		private readonly Mobile m_From;
+		private readonly int m_Hue;
 
-		[Constructable]
-		public SpinningwheelEastDeed()
+		public SpinTimer(SpinningwheelEastAddon wheel, SpinCallback callback, Mobile from, int hue) : base(TimeSpan.FromSeconds(3.0))
 		{
+			m_Wheel = wheel;
+			m_Callback = callback;
+			m_From = from;
+			m_Hue = hue;
+			Priority = TimerPriority.TwoFiftyMs;
 		}
 
-		public SpinningwheelEastDeed(Serial serial) : base(serial)
+		protected override void OnTick()
 		{
+			m_Wheel.EndSpin(m_Callback, m_From, m_Hue);
 		}
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+public class SpinningwheelEastDeed : BaseAddonDeed
+{
+	public override BaseAddon Addon => new SpinningwheelEastAddon();
+	public override int LabelNumber => 1044341;  // spining wheel (east)
 
-			writer.Write(0); // version
-		}
+	[Constructable]
+	public SpinningwheelEastDeed()
+	{
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public SpinningwheelEastDeed(Serial serial) : base(serial)
+	{
+	}
 
-			int version = reader.ReadInt();
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
 	}
 }

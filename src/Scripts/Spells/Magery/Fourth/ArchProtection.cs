@@ -39,7 +39,7 @@ public class ArchProtectionSpell : MagerySpell
 		}
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		if (!Caster.CanSee(p))
 		{
@@ -123,15 +123,15 @@ public class ArchProtectionSpell : MagerySpell
 
 	public static void RemoveEntry(Mobile m)
 	{
-		if (m_Table.ContainsKey(m))
-		{
-			int v = m_Table[m];
-			m_Table.Remove(m);
-			m.EndAction(typeof(ArchProtectionSpell));
-			m.VirtualArmorMod -= v;
-			if (m.VirtualArmorMod < 0)
-				m.VirtualArmorMod = 0;
-		}
+		if (!m_Table.ContainsKey(m))
+			return;
+
+		int v = m_Table[m];
+		m_Table.Remove(m);
+		m.EndAction(typeof(ArchProtectionSpell));
+		m.VirtualArmorMod -= v;
+		if (m.VirtualArmorMod < 0)
+			m.VirtualArmorMod = 0;
 	}
 
 	private class InternalTimer : Timer
@@ -151,7 +151,7 @@ public class ArchProtectionSpell : MagerySpell
 
 		protected override void OnTick()
 		{
-			ArchProtectionSpell.RemoveEntry(_owner);
+			RemoveEntry(_owner);
 		}
 	}
 

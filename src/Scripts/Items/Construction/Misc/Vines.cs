@@ -1,40 +1,39 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class Vines : BaseItem
 {
-	public class Vines : BaseItem
+	[Constructable]
+	public Vines() : this(Utility.Random(8))
 	{
-		[Constructable]
-		public Vines() : this(Utility.Random(8))
-		{
-		}
+	}
 
-		[Constructable]
-		public Vines(int v) : base(0xCEB)
-		{
-			if (v < 0 || v > 7)
-				v = 0;
+	[Constructable]
+	public Vines(int v) : base(0xCEB)
+	{
+		if (v < 0 || v > 7)
+			v = 0;
 
-			ItemId += v;
-			Weight = 1.0;
-		}
+		ItemId += v;
+		Weight = 1.0;
+	}
 
-		public Vines(Serial serial) : base(serial)
-		{
-		}
+	public Vines(Serial serial) : base(serial)
+	{
+	}
 
-		public override bool ForceShowProperties => ObjectPropertyList.Enabled;
+	public override bool ForceShowProperties => ObjectPropertyList.Enabled;
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-			writer.Write(0); // version
-		}
+		writer.Write(0); // version
+	}
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-			int version = reader.ReadInt();
-		}
+		reader.ReadInt();
 	}
 }

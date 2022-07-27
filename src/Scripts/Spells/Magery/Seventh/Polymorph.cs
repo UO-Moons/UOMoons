@@ -22,13 +22,9 @@ public class PolymorphSpell : MagerySpell
 
 	private readonly int _newBody;
 
-	public PolymorphSpell(Mobile caster, Item scroll, int body) : base(caster, scroll, m_Info)
+	public PolymorphSpell(Mobile caster, Item scroll, int body = 0) : base(caster, scroll, m_Info)
 	{
 		_newBody = body;
-	}
-
-	public PolymorphSpell(Mobile caster, Item scroll) : this(caster, scroll, 0)
-	{
 	}
 
 	public override bool CheckCast()
@@ -182,14 +178,13 @@ public class PolymorphSpell : MagerySpell
 
 	private static void EndPolymorph(Mobile m)
 	{
-		if (!m.CanBeginAction(typeof(PolymorphSpell)))
-		{
-			m.BodyMod = 0;
-			m.HueMod = -1;
-			m.EndAction(typeof(PolymorphSpell));
+		if (m.CanBeginAction(typeof(PolymorphSpell)))
+			return;
+		m.BodyMod = 0;
+		m.HueMod = -1;
+		m.EndAction(typeof(PolymorphSpell));
 
-			BaseEquipment.ValidateMobile(m);
-		}
+		BaseEquipment.ValidateMobile(m);
 	}
 
 	private class InternalTimer : Timer

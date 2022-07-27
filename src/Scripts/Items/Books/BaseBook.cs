@@ -76,17 +76,12 @@ public class BaseBook : BaseItem, ISecurable
 	public BookPageInfo[] Pages { get; private set; }
 
 	[Constructable]
-	public BaseBook(int itemID) : this(itemID, 20, true)
+	public BaseBook(int itemId, int pageCount = 20, bool writable = true) : this(itemId, null, null, pageCount, writable)
 	{
 	}
 
 	[Constructable]
-	public BaseBook(int itemID, int pageCount, bool writable) : this(itemID, null, null, pageCount, writable)
-	{
-	}
-
-	[Constructable]
-	public BaseBook(int itemID, string title, string author, int pageCount, bool writable) : base(itemID)
+	public BaseBook(int itemId, string title, string author, int pageCount, bool writable) : base(itemId)
 	{
 		m_Title = title;
 		m_Author = author;
@@ -108,7 +103,7 @@ public class BaseBook : BaseItem, ISecurable
 	}
 
 	// Intended for defined books only
-	public BaseBook(int itemID, bool writable) : base(itemID)
+	public BaseBook(int itemId, bool writable) : base(itemId)
 	{
 		Writable = writable;
 
@@ -128,7 +123,7 @@ public class BaseBook : BaseItem, ISecurable
 
 	public virtual BookContent DefaultContent => null;
 
-	public void BuildBookFromString(string content)
+	private void BuildBookFromString(string content)
 	{
 		if (content == null)
 		{
@@ -137,27 +132,11 @@ public class BaseBook : BaseItem, ISecurable
 
 		//const int cpl = 22; //characters per line
 		//const int cplEj = 25; //characters per line EJ Client
-		int cpl;
-		if (Core.SA) //needs to be EJ
-		{
-			cpl = 26; //characters per line EJ Client
-		}
-		else
-		{
-			cpl = 22; //characters per line
-		}
+		var cpl = Core.SA ? 26 : 22;
 
-		int lns;
-		if (Core.SA)//needs to be EJ
-		{
-			lns = 10; //line per page EJ Client
-		}
-		else
-		{
-			lns = 8; //line per page
-		}
+		var lns = Core.SA ? 10 : 8;
 
-		int pos = 0, nextpos;
+		int pos = 0;
 		List<string[]> newpages = new();
 
 		while (newpages.Count < Pages.Length && pos < content.Length)
@@ -172,18 +151,17 @@ public class BaseBook : BaseItem, ISecurable
 					pos = content.Length;
 					break;
 				}
+
+				int nextpos;
+				if ((nextpos = content.LastIndexOfAny(" /|\\.!@#$%^&*()_+=-".ToCharArray(), pos + cpl, cpl)) > 0)
+				{
+					lines.Add(content.Substring(pos, nextpos - pos + 1));
+					pos = nextpos + 1;
+				}
 				else
 				{
-					if ((nextpos = content.LastIndexOfAny(" /|\\.!@#$%^&*()_+=-".ToCharArray(), pos + cpl, cpl)) > 0)
-					{
-						lines.Add(content.Substring(pos, nextpos - pos + 1));
-						pos = nextpos + 1;
-					}
-					else
-					{
-						lines.Add(content.Substring(pos, cpl));
-						pos += cpl;
-					}
+					lines.Add(content.Substring(pos, cpl));
+					pos += cpl;
 				}
 			}
 
@@ -231,10 +209,10 @@ public class BaseBook : BaseItem, ISecurable
 
 		SaveFlags flags = SaveFlags.None;
 
-		if (m_Title != (content?.Title))
+		if (m_Title != content?.Title)
 			flags |= SaveFlags.Title;
 
-		if (m_Author != (content?.Author))
+		if (m_Author != content?.Author)
 			flags |= SaveFlags.Author;
 
 		if (Writable)
@@ -301,23 +279,17 @@ public class BaseBook : BaseItem, ISecurable
 					}
 					else
 					{
-						if (content != null)
-							Pages = content.Copy();
-						else
-							Pages = Array.Empty<BookPageInfo>();
+						Pages = content != null ? content.Copy() : Array.Empty<BookPageInfo>();
 					}
 
 					break;
 				}
 		}
-
-		if (version < 3 && (Weight == 1 || Weight == 2))
-			Weight = -1;
 	}
 
 	public override void AddNameProperty(ObjectPropertyList list)
 	{
-		if (m_Title != null && m_Title.Length > 0)
+		if (m_Title is { Length: > 0 })
 			list.Add(m_Title);
 		else
 			base.AddNameProperty(list);
@@ -345,7 +317,7 @@ public class BaseBook : BaseItem, ISecurable
 
 	public override void OnDoubleClick(Mobile from)
 	{
-		if (m_Title == null && m_Author == null && Writable == true)
+		if (m_Title == null && m_Author == null && Writable)
 		{
 			Title = "a book";
 			Author = from.Name;
@@ -355,7 +327,7 @@ public class BaseBook : BaseItem, ISecurable
 		from.Send(new BookPageDetails(this));
 	}
 
-	public string ContentAsString
+	private string ContentAsString
 	{
 		get
 		{
@@ -388,7 +360,7 @@ public class BaseBook : BaseItem, ISecurable
 		}
 	}
 
-	public virtual void ContentChangeEC(NetState state, PacketReader pvSrc)
+	public virtual void ContentChangeEc(NetState state, PacketReader pvSrc)
 	{
 		int page = pvSrc.ReadUInt16();
 		int lineCount = pvSrc.ReadUInt16();
@@ -407,35 +379,31 @@ public class BaseBook : BaseItem, ISecurable
 		else if (Writable && state.Mobile != null && state.Mobile.InRange(GetWorldLocation(), 1))
 		{
 			// updates after page is moved away from
-			if (lineCount <= 19)
-			{
-				string[] lines = new string[lineCount];
-
-				for (int j = 0; j < lineCount; ++j)
-				{
-					if ((lines[j] = pvSrc.ReadUTF8StringSafe()).Length >= 80)
-					{
-						return;
-					}
-				}
-
-				Pages[index].Lines = lines;
-			}
-			else
-			{
+			if (lineCount > 19)
 				return;
+
+			string[] lines = new string[lineCount];
+
+			for (int j = 0; j < lineCount; ++j)
+			{
+				if ((lines[j] = pvSrc.ReadUTF8StringSafe()).Length >= 80)
+				{
+					return;
+				}
 			}
+
+			Pages[index].Lines = lines;
 		}
 	}
 
 	public static void Initialize()
 	{
-		PacketHandlers.Register(0xD4, 0, true, new OnPacketReceive(HeaderChange));
-		PacketHandlers.Register(0x66, 0, true, new OnPacketReceive(ContentChange));
-		PacketHandlers.Register(0x93, 99, true, new OnPacketReceive(OldHeaderChange));
+		PacketHandlers.Register(0xD4, 0, true, HeaderChange);
+		PacketHandlers.Register(0x66, 0, true, ContentChange);
+		PacketHandlers.Register(0x93, 99, true, OldHeaderChange);
 	}
 
-	public static void OldHeaderChange(NetState state, PacketReader pvSrc)
+	private static void OldHeaderChange(NetState state, PacketReader pvSrc)
 	{
 		Mobile from = state.Mobile;
 
@@ -451,7 +419,7 @@ public class BaseBook : BaseItem, ISecurable
 		book.Author = Utility.FixHtml(author);
 	}
 
-	public static void HeaderChange(NetState state, PacketReader pvSrc)
+	private static void HeaderChange(NetState state, PacketReader pvSrc)
 	{
 		Mobile from = state.Mobile;
 
@@ -478,7 +446,7 @@ public class BaseBook : BaseItem, ISecurable
 		book.Author = Utility.FixHtml(author);
 	}
 
-	public static void ContentChange(NetState state, PacketReader pvSrc)
+	private static void ContentChange(NetState state, PacketReader pvSrc)
 	{
 		Mobile from = state.Mobile;
 
@@ -499,15 +467,7 @@ public class BaseBook : BaseItem, ISecurable
 				--index;
 
 				int lineCount = pvSrc.ReadUInt16();
-				int lns;
-				if (Core.SA)// needs to be EJ
-				{
-					lns = 10; //line per page EJ Client
-				}
-				else
-				{
-					lns = 8; //line per page
-				}
+				var lns = Core.SA ? 10 : 8;
 
 				if (lineCount <= lns)
 				{

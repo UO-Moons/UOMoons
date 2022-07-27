@@ -45,7 +45,7 @@ public abstract class BaseMobile : Mobile
 		{
 			AggressorInfo info = Aggressed[i];
 
-			if (info.Defender.Player && (DateTime.UtcNow - info.LastCombatTime) < CombatHeatDelay)
+			if (info.Defender.Player && DateTime.UtcNow - info.LastCombatTime < CombatHeatDelay)
 				return true;
 		}
 
@@ -55,7 +55,7 @@ public abstract class BaseMobile : Mobile
 			{
 				AggressorInfo info = Aggressors[i];
 
-				if (info.Attacker.Player && (DateTime.UtcNow - info.LastCombatTime) < CombatHeatDelay)
+				if (info.Attacker.Player && DateTime.UtcNow - info.LastCombatTime < CombatHeatDelay)
 					return true;
 			}
 		}
@@ -178,7 +178,7 @@ public abstract class BaseMobile : Mobile
 		int damageBonus = base.GetSpellDamageBonus(inPvP);
 
 		int inscribeSkill = Skills[SkillName.Inscribe].Fixed;
-		int inscribeBonus = (inscribeSkill + (1000 * (inscribeSkill / 1000))) / 200;
+		int inscribeBonus = (inscribeSkill + 1000 * (inscribeSkill / 1000)) / 200;
 		damageBonus += inscribeBonus;
 
 		int intBonus = Int / 10;
@@ -221,7 +221,7 @@ public abstract class BaseMobile : Mobile
 			castSpeed -= 2;
 
 		if (EssenceOfWindSpell.IsDebuffed(this))
-			castSpeed -= EssenceOfWindSpell.GetFCMalus(this);
+			castSpeed -= EssenceOfWindSpell.GetFcMalus(this);
 
 		return castSpeed;
 	}
@@ -287,7 +287,7 @@ public abstract class BaseMobile : Mobile
 				bonus -= discordanceEffect;
 
 			if (EssenceOfWindSpell.IsDebuffed(this))
-				bonus -= EssenceOfWindSpell.GetSSIMalus(this);
+				bonus -= EssenceOfWindSpell.GetSsiMalus(this);
 
 			if (bonus > 60)
 				bonus = 60;
@@ -364,7 +364,7 @@ public abstract class BaseMobile : Mobile
 	/// </summary>
 	/// <param name="from"></param>
 	/// <param name="spell"></param>
-	public virtual void OnHarmfulSpell(Mobile from, Spell spell = null)
+	public virtual void OnHarmfulSpell(Mobile from, Spell spell)
 	{
 	}
 

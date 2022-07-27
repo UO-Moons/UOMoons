@@ -4,12 +4,13 @@ using Server.Spells.Ninjitsu;
 
 namespace Server.Mobiles
 {
-    public partial class CoreAI : BaseAI
-	{
-        public DateTime m_NextShurikenThrow;
-        public int m_SmokeBombs;
-        public bool m_HasSetSmokeBombs;
-        public void NinjitsuPower()
+    public sealed partial class CoreAi
+    {
+	    private DateTime m_NextShurikenThrow;
+	    private int m_SmokeBombs;
+	    private bool m_HasSetSmokeBombs;
+
+	    private void NinjitsuPower()
         {
             if (!m_HasSetSmokeBombs)
             {
@@ -59,13 +60,13 @@ namespace Server.Mobiles
                 m_Mobile.PlaySound(0x23A);
                 m_Mobile.MovingEffect(m_Mobile.Combatant, 0x27AC, 1, 0, false, false);
 
-                Timer.DelayCall(TimeSpan.FromSeconds(1), new TimerCallback(ShurikenDamage));
+                Timer.DelayCall(TimeSpan.FromSeconds(1), ShurikenDamage);
 
                 m_NextShurikenThrow = DateTime.UtcNow + TimeSpan.FromSeconds(Utility.RandomMinMax(5, 15));
             }
         }
 
-        public void GetHiddenNinjaMove()
+	    private void GetHiddenNinjaMove()
         {
             if (m_Mobile.Debug)
             {
@@ -74,68 +75,74 @@ namespace Server.Mobiles
 
             int whichone = Utility.RandomMinMax(1, 3);
 
-            if (whichone == 3 && m_Mobile.Skills[SkillName.Ninjitsu].Value >= 80.0)
+            switch (whichone)
             {
-                SpecialMove.SetCurrentMove(m_Mobile, new KiAttack());
-            }
-            else if (whichone >= 2 && m_Mobile.Skills[SkillName.Ninjitsu].Value >= 30.0)
-            {
-                SpecialMove.SetCurrentMove(m_Mobile, new SurpriseAttack());
-            }
-            else if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 20.0)
-            {
-                SpecialMove.SetCurrentMove(m_Mobile, new Backstab());
+	            case 3 when m_Mobile.Skills[SkillName.Ninjitsu].Value >= 80.0:
+		            SpecialMove.SetCurrentMove(m_Mobile, new KiAttack());
+		            break;
+	            case >= 2 when m_Mobile.Skills[SkillName.Ninjitsu].Value >= 30.0:
+		            SpecialMove.SetCurrentMove(m_Mobile, new SurpriseAttack());
+		            break;
+	            default:
+	            {
+		            if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 20.0)
+		            {
+			            SpecialMove.SetCurrentMove(m_Mobile, new Backstab());
+		            }
+
+		            break;
+	            }
             }
         }
 
-        public void GetNinjaMove()
+	    private void GetNinjaMove()
         {
             if (m_Mobile.Debug)
                 m_Mobile.Say(995, "Using a ninja strike");
 
             int whichone = Utility.RandomMinMax(1, 3);
 
-            if (whichone == 3 && m_Mobile.Skills[SkillName.Ninjitsu].Value >= 85.0)
+            switch (whichone)
             {
-                SpecialMove.SetCurrentMove(m_Mobile, new DeathStrike());
+	            case 3 when m_Mobile.Skills[SkillName.Ninjitsu].Value >= 85.0:
+		            SpecialMove.SetCurrentMove(m_Mobile, new DeathStrike());
+		            break;
+	            case >= 2 when m_Mobile.Skills[SkillName.Ninjitsu].Value >= 60.0:
+		            SpecialMove.SetCurrentMove(m_Mobile, new FocusAttack());
+		            break;
+	            default:
+		            UseWeaponStrike();
+		            break;
             }
-            else if (whichone >= 2 && m_Mobile.Skills[SkillName.Ninjitsu].Value >= 60.0)
-            {
-                SpecialMove.SetCurrentMove(m_Mobile, new FocusAttack());
-            }
-            else
-                UseWeaponStrike();
         }
 
-        public virtual void ShurikenDamage()
+	    private void ShurikenDamage()
         {
             Mobile target = (Mobile)m_Mobile.Combatant;
 
-            if (target != null)
-            {
-                m_Mobile.DoHarmful(target);
-                AOS.Damage(target, m_Mobile, Utility.RandomMinMax(3, 5), 100, 0, 0, 0, 0);
+            if (target == null)
+	            return;
 
-                if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 120.0)
-                {
-                    target.ApplyPoison(m_Mobile, Poison.Lethal);
-                }
-                else if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 101.0)
-                {
-                    target.ApplyPoison(m_Mobile, Poison.Deadly);
-                }
-                else if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 100.0)
-                {
-                    target.ApplyPoison(m_Mobile, Poison.Greater);
-                }
-                else if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 70.0)
-                {
-                    target.ApplyPoison(m_Mobile, Poison.Regular);
-                }
-                else if (m_Mobile.Skills[SkillName.Ninjitsu].Value >= 50.0)
-                {
-                    target.ApplyPoison(m_Mobile, Poison.Lesser);
-                }
+            m_Mobile.DoHarmful(target);
+            AOS.Damage(target, m_Mobile, Utility.RandomMinMax(3, 5), 100, 0, 0, 0, 0);
+
+            switch (m_Mobile.Skills[SkillName.Ninjitsu].Value)
+            {
+	            case >= 120.0:
+		            target.ApplyPoison(m_Mobile, Poison.Lethal);
+		            break;
+	            case >= 101.0:
+		            target.ApplyPoison(m_Mobile, Poison.Deadly);
+		            break;
+	            case >= 100.0:
+		            target.ApplyPoison(m_Mobile, Poison.Greater);
+		            break;
+	            case >= 70.0:
+		            target.ApplyPoison(m_Mobile, Poison.Regular);
+		            break;
+	            case >= 50.0:
+		            target.ApplyPoison(m_Mobile, Poison.Lesser);
+		            break;
             }
         }
     }

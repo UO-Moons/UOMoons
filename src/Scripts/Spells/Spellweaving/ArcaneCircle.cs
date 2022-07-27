@@ -4,176 +4,167 @@ using Server.Items;
 using Server.Mobiles;
 using System.Linq;
 
-namespace Server.Spells.Spellweaving
+namespace Server.Spells.Spellweaving;
+
+public class ArcaneCircleSpell : ArcanistSpell
 {
-    public class ArcaneCircleSpell : ArcanistSpell
-    {
-        private static readonly SpellInfo m_Info = new SpellInfo(
-            "Arcane Circle", "Myrshalee",
-            -1);
-        public ArcaneCircleSpell(Mobile caster, Item scroll)
-            : base(caster, scroll, m_Info)
-        {
-        }
+	private static readonly SpellInfo m_Info = new(
+		"Arcane Circle", "Myrshalee",
+		-1);
+	public ArcaneCircleSpell(Mobile caster, Item scroll)
+		: base(caster, scroll, m_Info)
+	{
+	}
 
-        public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(0.5);
-        public override double RequiredSkill => 0.0;
-        public override int RequiredMana => 24;
-        public static bool IsValidTile(int itemID)
-        {
-            //Per OSI, Center tile only
-            return (itemID == 0xFEA || itemID == 0x1216 || itemID == 0x307F || itemID == 0x1D10 || itemID == 0x1D0F || itemID == 0x1D1F || itemID == 0x1D12);	// Pentagram center, Abbatoir center, Arcane Circle Center, Bloody Pentagram has 4 tiles at center
-        }
+	public override TimeSpan CastDelayBase => TimeSpan.FromSeconds(0.5);
+	public override double RequiredSkill => 0.0;
+	public override int RequiredMana => 24;
 
-        public override bool CheckCast()
-        {
-            if (!IsValidLocation(Caster.Location, Caster.Map))
-            {
-                Caster.SendLocalizedMessage(1072705); // You must be standing on an arcane circle, pentagram or abbatoir to use this spell.
-                return false;
-            }
+	private static bool IsValidTile(int itemId)
+	{
+		//Per OSI, Center tile only
+		return itemId is 0xFEA or 0x1216 or 0x307F or 0x1D10 or 0x1D0F or 0x1D1F or 0x1D12;	// Pentagram center, Abbatoir center, Arcane Circle Center, Bloody Pentagram has 4 tiles at center
+	}
 
-            if (GetArcanists().Count < 2)
-            {
-                Caster.SendLocalizedMessage(1080452); //There are not enough spellweavers present to create an Arcane Focus.
-                return false;
-            }
+	public override bool CheckCast()
+	{
+		if (!IsValidLocation(Caster.Location, Caster.Map))
+		{
+			Caster.SendLocalizedMessage(1072705); // You must be standing on an arcane circle, pentagram or abbatoir to use this spell.
+			return false;
+		}
 
-            return base.CheckCast();
-        }
+		if (GetArcanists().Count >= 2)
+			return base.CheckCast();
 
-        public override void OnCast()
-        {
-            if (CheckSequence())
-            {
-                Caster.FixedParticles(0x3779, 10, 20, 0x0, EffectLayer.Waist);
-                Caster.PlaySound(0x5C0);
+		Caster.SendLocalizedMessage(1080452); //There are not enough spellweavers present to create an Arcane Focus.
+		return false;
 
-                List<Mobile> Arcanists = GetArcanists();
+	}
 
-                TimeSpan duration = TimeSpan.FromHours(Math.Max(1, (int)(Caster.Skills.Spellweaving.Value / 24)));
+	public override void OnCast()
+	{
+		if (CheckSequence())
+		{
+			Caster.FixedParticles(0x3779, 10, 20, 0x0, EffectLayer.Waist);
+			Caster.PlaySound(0x5C0);
 
-                duration += TimeSpan.FromHours(Math.Min(6, Arcanists.Count));
+			List<Mobile> arcanists = GetArcanists();
 
-                int strengthBonus = Math.Min(IsBonus(Caster.Location, Caster.Map) ? 6 : 5, Arcanists.Sum(m => GetStrength(m))); // Math.Min(Arcanists.Count, IsBonus(Caster.Location, Caster.Map) ? 6 : 5);	//The Sanctuary is a special, single location place
+			TimeSpan duration = TimeSpan.FromHours(Math.Max(1, (int)(Caster.Skills.Spellweaving.Value / 24)));
 
-                for (int i = 0; i < Arcanists.Count; i++)
-                {
-                    GiveArcaneFocus(Arcanists[i], duration, strengthBonus);
-                }
-            }
+			duration += TimeSpan.FromHours(Math.Min(6, arcanists.Count));
 
-            FinishSequence();
-        }
+			int strengthBonus = Math.Min(IsBonus(Caster.Location, Caster.Map) ? 6 : 5, arcanists.Sum(_ => GetStrength())); // Math.Min(Arcanists.Count, IsBonus(Caster.Location, Caster.Map) ? 6 : 5);	//The Sanctuary is a special, single location place
 
-        private static bool IsBonus(Point3D p, Map m)
-        {
-            return (m == Map.Trammel || m == Map.Felucca) &&
-                (p.X == 6267 && p.Y == 131) ||
-                (p.X == 6589 && p.Y == 178) ||
-                (p.X == 1431 && p.Y == 1696); // new brit bank
-        }
-
-        private static int GetStrength(Mobile m)
-        {
-            return 1;
-        }
-
-        private static bool IsValidLocation(Point3D location, Map map)
-        {
-            LandTile lt = map.Tiles.GetLandTile(location.X, location.Y);         // Land   Tiles            
-
-            if (IsValidTile(lt.Id) && lt.Z == location.Z)
-                return true;
-
-            StaticTile[] tiles = map.Tiles.GetStaticTiles(location.X, location.Y); // Static Tiles
-
-            for (int i = 0; i < tiles.Length; ++i)
-            {
-                StaticTile t = tiles[i];
-                ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
-
-                int tand = t.Id;
-
-                if (t.Z + id.CalcHeight != location.Z)
-                    continue;
-                else if (IsValidTile(tand))
-                    return true;
-            }
-
-            IPooledEnumerable eable = map.GetItemsInRange(location, 0);      // Added  Tiles
-
-            foreach (Item item in eable)
-            {
-                ItemData id = item.ItemData;
-
-                if (item == null || item.Z + id.CalcHeight != location.Z)
-                    continue;
-                else if (IsValidTile(item.ItemId))
-                {
-                    eable.Free();
-                    return true;
-                }
-            }
-
-            eable.Free();
-            return false;
-        }
-
-        private List<Mobile> GetArcanists()
-        {
-			List<Mobile> weavers = new()
+			for (int i = 0; i < arcanists.Count; i++)
 			{
-				Caster
-			};
+				GiveArcaneFocus(arcanists[i], duration, strengthBonus);
+			}
+		}
 
-			//OSI Verified: Even enemies/combatants count
-			IPooledEnumerable eable = Caster.GetMobilesInRange(1);
-            foreach (Mobile m in eable)	//Range verified as 1
-            {
-                if (m != Caster && m is PlayerMobile && Caster.CanBeBeneficial(m, false) && Math.Abs(Caster.Skills.Spellweaving.Value - m.Skills.Spellweaving.Value) <= 20 && !(m is Clone))
-                {
-                    weavers.Add(m);
-                }
-                // Everyone gets the Arcane Focus, power capped elsewhere
-            }
+		FinishSequence();
+	}
 
-            eable.Free();
+	private static bool IsBonus(Point3D p, Map m)
+	{
+		return (m == Map.Trammel || m == Map.Felucca) && p.X == 6267 && p.Y == 131 ||
+		       (p.X == 6589 && p.Y == 178) ||
+		       (p.X == 1431 && p.Y == 1696); // new brit bank
+	}
 
-            return weavers;
-        }
+	private static int GetStrength()
+	{
+		return 1;
+	}
 
-        private void GiveArcaneFocus(Mobile to, TimeSpan duration, int strengthBonus)
-        {
-            if (to == null)	//Sanity
-                return;
+	private static bool IsValidLocation(Point3D location, Map map)
+	{
+		LandTile lt = map.Tiles.GetLandTile(location.X, location.Y);         // Land   Tiles            
 
-            ArcaneFocus focus = FindArcaneFocus(to);
+		if (IsValidTile(lt.Id) && lt.Z == location.Z)
+			return true;
 
-            if (focus == null)
-            {
-                ArcaneFocus f = new ArcaneFocus(duration, strengthBonus);
-                if (to.PlaceInBackpack(f))
-                {
-                    to.AddStatMod(new StatMod(StatType.Str, "[ArcaneFocus]", strengthBonus, duration));
+		StaticTile[] tiles = map.Tiles.GetStaticTiles(location.X, location.Y); // Static Tiles
 
-                    f.SendTimeRemainingMessage(to);
-                    to.SendLocalizedMessage(1072740); // An arcane focus appears in your backpack.
-                }
-                else
-                {
-                    f.Delete();
-                }
-            }
-            else //OSI renewal rules: the new one will override the old one, always.
-            {
-                to.SendLocalizedMessage(1072828); // Your arcane focus is renewed.
-                focus.LifeSpan = duration;
-                focus.CreationTime = DateTime.UtcNow;
-                focus.StrengthBonus = strengthBonus;
-                focus.InvalidateProperties();
-                focus.SendTimeRemainingMessage(to);
-            }
-        }
-    }
+		for (int i = 0; i < tiles.Length; ++i)
+		{
+			StaticTile t = tiles[i];
+			ItemData id = TileData.ItemTable[t.Id & TileData.MaxItemValue];
+
+			int tand = t.Id;
+
+			if (t.Z + id.CalcHeight != location.Z)
+				continue;
+			if (IsValidTile(tand))
+				return true;
+		}
+
+		IPooledEnumerable eable = map.GetItemsInRange(location, 0);      // Added  Tiles
+
+		foreach (Item item in eable)
+		{
+			ItemData id = item.ItemData;
+
+			if (item.Z + id.CalcHeight != location.Z)
+				continue;
+			if (IsValidTile(item.ItemId))
+			{
+				eable.Free();
+				return true;
+			}
+		}
+
+		eable.Free();
+		return false;
+	}
+
+	private List<Mobile> GetArcanists()
+	{
+		List<Mobile> weavers = new()
+		{
+			Caster
+		};
+
+		//OSI Verified: Even enemies/combatants count
+		IPooledEnumerable eable = Caster.GetMobilesInRange(1);
+		weavers.AddRange(eable.Cast<Mobile>().Where(m => m != Caster && m is PlayerMobile && Caster.CanBeBeneficial(m, false) && Math.Abs(Caster.Skills.Spellweaving.Value - m.Skills.Spellweaving.Value) <= 20));
+
+		eable.Free();
+
+		return weavers;
+	}
+
+	private static void GiveArcaneFocus(Mobile to, TimeSpan duration, int strengthBonus)
+	{
+		if (to == null)	//Sanity
+			return;
+
+		ArcaneFocus focus = FindArcaneFocus(to);
+
+		if (focus == null)
+		{
+			ArcaneFocus f = new(duration, strengthBonus);
+			if (to.PlaceInBackpack(f))
+			{
+				to.AddStatMod(new StatMod(StatType.Str, "[ArcaneFocus]", strengthBonus, duration));
+
+				f.SendTimeRemainingMessage(to);
+				to.SendLocalizedMessage(1072740); // An arcane focus appears in your backpack.
+			}
+			else
+			{
+				f.Delete();
+			}
+		}
+		else //OSI renewal rules: the new one will override the old one, always.
+		{
+			to.SendLocalizedMessage(1072828); // Your arcane focus is renewed.
+			focus.LifeSpan = duration;
+			focus.CreationTime = DateTime.UtcNow;
+			focus.StrengthBonus = strengthBonus;
+			focus.InvalidateProperties();
+			focus.SendTimeRemainingMessage(to);
+		}
+	}
 }

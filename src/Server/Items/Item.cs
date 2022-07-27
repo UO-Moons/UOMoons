@@ -279,7 +279,6 @@ namespace Server
 			return info.MItems ??= new List<Item>();
 		}
 
-		#region Mondain's Legacy
 		public static Bitmap GetBitmap(int itemId)
 		{
 			try
@@ -315,7 +314,6 @@ namespace Server
 			Measure(bmp, out int xMin, out int yMin, out int xMax, out int yMax);
 			return new Size(xMax - xMin, yMax - yMin);
 		}
-		#endregion
 
 		private void SetFlag(ImplFlag flag, bool value)
 		{
@@ -551,7 +549,7 @@ namespace Server
 		}
 
 
-		public string GetItemRankColor()
+		private string GetItemRankColor()
 		{
 			string color = ItemRank switch
 			{
@@ -1083,27 +1081,27 @@ namespace Server
 
 		public void LabelTo(Mobile to, int number)
 		{
-			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", ""));
+			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", ""));
 		}
 		
 		public void LabelTo(Mobile to, int hue, int number)
 		{
-			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", ""));
+			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, hue, 3, number, "", ""));
 		}
 
 		public void LabelTo(Mobile to, int number, string args)
 		{
-			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", args));
+			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", args));
 		}
 
 		public void LabelTo(Mobile to, int hue, int number, string args)
 		{
-			_ = to.Send(new MessageLocalized(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", args));
+			_ = to.Send(new MessageLocalized(Serial, _mItemId, MessageType.Label, hue, 3, number, "", args));
 		}
 
 		public void LabelTo(Mobile to, string text)
 		{
-			_ = to.Send(new UnicodeMessage(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, "ENU", "", text));
+			_ = to.Send(new UnicodeMessage(Serial, _mItemId, MessageType.Label, DisplayColor, 3, "ENU", "", text));
 		}
 
 		public void LabelTo(Mobile to, string format, params object[] args)
@@ -1113,22 +1111,22 @@ namespace Server
 
 		public void LabelToAffix(Mobile to, int number, AffixType type, string affix)
 		{
-			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, ""));
+			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, ""));
 		}
 
 		public void LabelToAffix(Mobile to, int hue, int number, AffixType type, string affix)
 		{
-			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, ""));
+			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, ""));
 		}
 
 		public void LabelToAffix(Mobile to, int number, AffixType type, string affix, string args)
 		{
-			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, args));
+			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, DisplayColor, 3, number, "", type, affix, args));
 		}
 
 		public void LabelToAffix(Mobile to, int hue, int number, AffixType type, string affix, string args)
 		{
-			_ = to.Send(new MessageLocalizedAffix(m_Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, args));
+			_ = to.Send(new MessageLocalizedAffix(Serial, _mItemId, MessageType.Label, hue, 3, number, "", type, affix, args));
 		}
 
 		public virtual void LabelLootTypeTo(Mobile to)
@@ -1463,18 +1461,18 @@ namespace Server
 
 		public Rectangle2D GetGraphicBounds()
 		{
-			int itemID = _mItemId;
+			int itemId = _mItemId;
 			bool doubled = _mAmount > 1;
 
-			if (itemID >= 0xEEA && itemID <= 0xEF2) // Are we coins?
+			if (itemId is >= 0xEEA and <= 0xEF2) // Are we coins?
 			{
-				int coinBase = (itemID - 0xEEA) / 3;
+				int coinBase = (itemId - 0xEEA) / 3;
 				coinBase *= 3;
 				coinBase += 0xEEA;
 
 				doubled = false;
 
-				itemID = _mAmount switch
+				itemId = _mAmount switch
 				{
 					<= 1 => coinBase,
 					<= 5 => coinBase + 1,
@@ -1482,7 +1480,7 @@ namespace Server
 				};
 			}
 
-			Rectangle2D bounds = ItemBounds.Table[itemID & 0x3FFF];
+			Rectangle2D bounds = ItemBounds.Table[itemId & 0x3FFF];
 
 			if (doubled)
 			{
@@ -1612,7 +1610,7 @@ namespace Server
 		private readonly object _wplsa = new();
 		private readonly object _wplhs = new();
 
-		public Packet WorldPacket
+		private Packet WorldPacket
 		{
 			get
 			{
@@ -1638,7 +1636,7 @@ namespace Server
 			}
 		}
 
-		public Packet WorldPacketSa
+		private Packet WorldPacketSa
 		{
 			get
 			{
@@ -1664,7 +1662,7 @@ namespace Server
 			}
 		}
 
-		public Packet WorldPacketHs
+		private Packet WorldPacketHs
 		{
 			get
 			{
@@ -1692,7 +1690,7 @@ namespace Server
 			}
 		}
 
-		public void ReleaseWorldPackets()
+		private void ReleaseWorldPackets()
 		{
 			Packet.Release(ref _mWorldPacket);
 			Packet.Release(ref _mWorldPacketSa);
@@ -1878,7 +1876,7 @@ namespace Server
 
 		int ISerializable.TypeReference => MTypeRef;
 
-		int ISerializable.SerialIdentity => m_Serial;
+		int ISerializable.SerialIdentity => Serial;
 
 		public virtual void Serialize(GenericWriter writer)
 		{
@@ -1964,7 +1962,7 @@ namespace Server
 				}
 			}
 
-			ImplFlag implFlags = (_mFlags & (ImplFlag.Visible | ImplFlag.Movable | ImplFlag.Stackable | ImplFlag.Insured | ImplFlag.PayedInsurance | ImplFlag.QuestItem));
+			ImplFlag implFlags = _mFlags & (ImplFlag.Visible | ImplFlag.Movable | ImplFlag.Stackable | ImplFlag.Insured | ImplFlag.PayedInsurance | ImplFlag.QuestItem);
 
 			if (implFlags != (ImplFlag.Visible | ImplFlag.Movable))
 				flags |= SaveFlag.ImplFlags;
@@ -2466,7 +2464,7 @@ namespace Server
 
 				int weight = TileData.ItemTable[_mItemId].Weight;
 
-				if (weight == 255 || weight == 0)
+				if (weight is 255 or 0)
 					weight = 1;
 
 				return weight;
@@ -2748,10 +2746,7 @@ namespace Server
 						{
 							if (rootParent.CanSee(this) && rootParent.InRange(worldLoc, GetUpdateRange(rootParent)))
 							{
-								if (ns.ContainerGridLines)
-									ns.Send(new ContainerContentUpdate6017(this));
-								else
-									ns.Send(new ContainerContentUpdate(this));
+								ContainerContentUpdate.Send(ns, this);
 
 								if (ObjectPropertyList.Enabled)
 									ns.Send(OplPacket);
@@ -2781,10 +2776,7 @@ namespace Server
 						{
 							if (tradeRecip.CanSee(this) && tradeRecip.InRange(worldLoc, GetUpdateRange(tradeRecip)))
 							{
-								if (ns.ContainerGridLines)
-									ns.Send(new ContainerContentUpdate6017(this));
-								else
-									ns.Send(new ContainerContentUpdate(this));
+								ContainerContentUpdate.Send(ns, this);
 
 								if (ObjectPropertyList.Enabled)
 									ns.Send(OplPacket);
@@ -2815,12 +2807,13 @@ namespace Server
 
 									NetState ns = mob.NetState;
 
-									if (ns == null) continue;
-									if (!mob.CanSee(this)) continue;
-									if (ns.ContainerGridLines)
-										ns.Send(new ContainerContentUpdate6017(this));
-									else
-										ns.Send(new ContainerContentUpdate(this));
+									if (ns == null)
+										continue;
+
+									if (!mob.CanSee(this))
+										continue;
+
+									ContainerContentUpdate.Send(ns, this);
 
 									if (ObjectPropertyList.Enabled)
 										ns.Send(OplPacket);
@@ -2846,7 +2839,9 @@ namespace Server
 				{
 					Mobile m = state.Mobile;
 
-					if (!m.CanSee(this) || !m.InRange(worldLoc, GetUpdateRange(m))) continue;
+					if (!m.CanSee(this) || !m.InRange(worldLoc, GetUpdateRange(m)))
+						continue;
+
 					if (_mParent == null)
 					{
 						SendInfoTo(state, ObjectPropertyList.Enabled);
@@ -2857,16 +2852,12 @@ namespace Server
 						{
 							switch (_mParent)
 							{
-								case Item when state.ContainerGridLines:
-									state.Send(new ContainerContentUpdate6017(this));
-									break;
 								case Item:
-									state.Send(new ContainerContentUpdate(this));
+									ContainerContentUpdate.Send(state, this);
 									break;
 								case Mobile:
 									p = new EquipUpdate(this);
 									p.Acquire();
-
 									state.Send(p);
 									break;
 							}
@@ -2938,7 +2929,7 @@ namespace Server
 			}
 		}
 
-		private static bool _processing = false;
+		private static bool _processing;
 
 		public static void ProcessDeltaQueue()
 		{
@@ -3052,9 +3043,9 @@ namespace Server
 					if (p == null)
 					{
 						if (ascii)
-							p = new AsciiMessage(m_Serial, _mItemId, type, hue, 3, Name, text);
+							p = new AsciiMessage(Serial, _mItemId, type, hue, 3, Name, text);
 						else
-							p = new UnicodeMessage(m_Serial, _mItemId, type, hue, 3, "ENU", Name, text);
+							p = new UnicodeMessage(Serial, _mItemId, type, hue, 3, "ENU", Name, text);
 
 						p.Acquire();
 					}
@@ -3086,7 +3077,7 @@ namespace Server
 				Mobile m = state.Mobile;
 
 				if (!m.CanSee(this) || !m.InRange(worldLoc, GetUpdateRange(m))) continue;
-				p ??= Packet.Acquire(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
+				p ??= Packet.Acquire(new MessageLocalized(Serial, _mItemId, type, hue, 3, number, Name, args));
 
 				state.Send(p);
 			}
@@ -3106,7 +3097,7 @@ namespace Server
 
 			if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
 			{
-				p ??= Packet.Acquire(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
+				p ??= Packet.Acquire(new MessageLocalized(Serial, _mItemId, type, hue, 3, number, Name, args));
 
 				state.Send(p);
 			}
@@ -3127,13 +3118,13 @@ namespace Server
 			{
 				if (ascii)
 				{
-					asciip = Packet.Acquire(new AsciiMessage(m_Serial, _mItemId, type, hue, 3, Name, text));
+					asciip = Packet.Acquire(new AsciiMessage(Serial, _mItemId, type, hue, 3, Name, text));
 
 					state.Send(asciip);
 				}
 				else
 				{
-					p ??= Packet.Acquire(new UnicodeMessage(m_Serial, _mItemId, type, hue, 3, m.Language, Name, text));
+					p ??= Packet.Acquire(new UnicodeMessage(Serial, _mItemId, type, hue, 3, m.Language, Name, text));
 
 					state.Send(p);
 				}
@@ -3157,7 +3148,7 @@ namespace Server
 
 				if (m != null && m.CanSee(this) && m.InRange(worldLoc, GetUpdateRange(m)))
 				{
-					state.Send(new MessageLocalized(m_Serial, _mItemId, type, hue, 3, number, Name, args));
+					state.Send(new MessageLocalized(Serial, _mItemId, type, hue, 3, number, Name, args));
 				}
 			}
 		}
@@ -3174,17 +3165,17 @@ namespace Server
 			int xDelta = loc.X - p.X;
 			int yDelta = loc.Y - p.Y;
 
-			return Math.Sqrt((xDelta * xDelta) + (yDelta * yDelta));
+			return Math.Sqrt(xDelta * xDelta + yDelta * yDelta);
 		}
 
 		public bool InRange(IPoint3D p, int range)
 		{
 			Point3D loc = GetWorldLocation();
 
-			return (p.X >= (loc.X - range))
-				&& (p.X <= (loc.X + range))
-				&& (p.Y >= (loc.Y - range))
-				&& (p.Y <= (loc.Y + range));
+			return p.X >= loc.X - range
+				&& p.X <= loc.X + range
+				&& p.Y >= loc.Y - range
+				&& p.Y <= loc.Y + range;
 		}
 
 		public bool InLos(Point3D target)
@@ -3274,13 +3265,12 @@ namespace Server
 		public virtual int PoisonResistance => 0;
 		public virtual int EnergyResistance => 0;
 
-		private Serial m_Serial;
 		[CommandProperty(AccessLevel.Counselor)]
-		public Serial Serial => m_Serial;
+		public Serial Serial { get; private set; }
 
 		internal void NewSerial()
 		{
-			m_Serial = Serial.NewItem;
+			Serial = Serial.NewItem;
 		}
 
 		[CommandProperty(AccessLevel.GameMaster, AccessLevel.Developer)]
@@ -3820,7 +3810,7 @@ namespace Server
 
 			for (int i = 0; i < 20; ++i)
 			{
-				if ((i + height) > 20)
+				if (i + height > 20)
 					match >>= 1;
 
 				okay = ((_mOpenSlots >> i) & match) == match;
@@ -3867,7 +3857,7 @@ namespace Server
 				//int checkZ = item.Z;
 				//int checkTop = checkZ + id.CalcHeight;
 
-				if ((item.Z + id.CalcHeight) > z && (z + height) > item.Z)
+				if (item.Z + id.CalcHeight > z && z + height > item.Z)
 					return false;
 			}
 
@@ -4032,7 +4022,7 @@ namespace Server
 		{
 		}
 
-		public bool InSecureTrade => (GetSecureTradeCont() != null);
+		public bool InSecureTrade => GetSecureTradeCont() != null;
 
 		public SecureTradeContainer GetSecureTradeCont()
 		{
@@ -4327,7 +4317,7 @@ namespace Server
 		{
 			int amount = Amount;
 
-			if (amount > (60000 / amountPerOldItem)) // let's not go over 60000
+			if (amount > 60000 / amountPerOldItem) // let's not go over 60000
 				amount = 60000 / amountPerOldItem;
 
 			Amount -= amount;
@@ -4440,12 +4430,12 @@ namespace Server
 			if (_mLootType == LootType.Blessed || (Mobile.InsuranceEnabled && Insured))
 				return true;
 
-			return (m != null && m == BlessedFor);
+			return m != null && m == BlessedFor;
 		}
 
 		public virtual bool CheckNewbied()
 		{
-			return (_mLootType == LootType.Newbied);
+			return _mLootType == LootType.Newbied;
 		}
 
 		public virtual bool IsStandardLoot()
@@ -4456,7 +4446,7 @@ namespace Server
 			if (BlessedFor != null)
 				return false;
 
-			return (_mLootType == LootType.Regular);
+			return _mLootType == LootType.Regular;
 		}
 
 		public override string ToString()
@@ -4468,7 +4458,7 @@ namespace Server
 
 		public Item()
 		{
-			m_Serial = Serial.NewItem;
+			Serial = Serial.NewItem;
 
 			Visible = true;
 			Movable = true;
@@ -4505,7 +4495,7 @@ namespace Server
 
 		public Item(Serial serial)
 		{
-			m_Serial = serial;
+			Serial = serial;
 
 			Type ourType = GetType();
 			MTypeRef = World.m_ItemTypes.IndexOf(ourType);

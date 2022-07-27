@@ -28,29 +28,22 @@ public class SummonDaemonSpell : MagerySpell
 		if (!base.CheckCast())
 			return false;
 
-		if (Caster.Followers + (Core.SE ? 4 : 5) > Caster.FollowersMax)
-		{
-			Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
-			return false;
-		}
+		if (Caster.Followers + (Core.SE ? 4 : 5) <= Caster.FollowersMax)
+			return true;
+		Caster.SendLocalizedMessage(1049645); // You have too many followers to summon that creature.
+		return false;
 
-		return true;
 	}
 
 	public override void OnCast()
 	{
 		if (CheckSequence())
 		{
-			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5);
+			TimeSpan duration = TimeSpan.FromSeconds(2 * Caster.Skills.Magery.Fixed / 5.0);
 
-			if (Core.AOS)  /* Why two diff daemons? TODO: solve this */
-			{
-				BaseCreature daemon = new SummonedDaemon();
-				SpellHelper.Summon(daemon, Caster, 0x216, duration, false, false);
-				daemon.FixedParticles(0x3728, 8, 20, 5042, EffectLayer.Head);
-			}
-			else
-				SpellHelper.Summon(new Daemon(), Caster, 0x216, duration, false, false);
+			BaseCreature daemon = new SummonedDaemon();
+			SpellHelper.Summon(daemon, Caster, 0x216, duration, false, false);
+			daemon.FixedParticles(0x3728, 8, 20, 5042, EffectLayer.Head);
 		}
 
 		FinishSequence();

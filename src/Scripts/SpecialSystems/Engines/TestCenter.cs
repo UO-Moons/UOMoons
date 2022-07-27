@@ -13,50 +13,50 @@ namespace Server.Misc
 		public static void Initialize()
 		{
 			// Register our speech handler
-			if (Enabled)
-			{
-				AccountHandler.RestrictCharacterDeletion = false;
-				EventSink.OnSpeech += EventSink_Speech;
-			}
+			if (!Enabled)
+				return;
+			AccountHandler.RestrictCharacterDeletion = false;
+			EventSink.OnSpeech += EventSink_Speech;
 		}
 
 		private static void EventSink_Speech(SpeechEventArgs args)
 		{
-			if (!args.Handled)
+			if (args.Handled)
+				return;
+
+			if (Insensitive.StartsWith(args.Speech, "set"))
 			{
-				if (Insensitive.StartsWith(args.Speech, "set"))
+				Mobile from = args.Mobile;
+
+				string[] split = args.Speech.Split(' ');
+
+				if (split.Length != 3)
+					return;
+
+				try
 				{
-					Mobile from = args.Mobile;
+					string name = split[1];
+					double value = Convert.ToDouble(split[2]);
 
-					string[] split = args.Speech.Split(' ');
-
-					if (split.Length == 3)
-					{
-						try
-						{
-							string name = split[1];
-							double value = Convert.ToDouble(split[2]);
-
-							if (Insensitive.Equals(name, "str"))
-								ChangeStrength(from, (int)value);
-							else if (Insensitive.Equals(name, "dex"))
-								ChangeDexterity(from, (int)value);
-							else if (Insensitive.Equals(name, "int"))
-								ChangeIntelligence(from, (int)value);
-							else
-								ChangeSkill(from, name, value);
-						}
-						catch
-						{
-						}
-					}
+					if (Insensitive.Equals(name, "str"))
+						ChangeStrength(from, (int)value);
+					else if (Insensitive.Equals(name, "dex"))
+						ChangeDexterity(from, (int)value);
+					else if (Insensitive.Equals(name, "int"))
+						ChangeIntelligence(from, (int)value);
+					else
+						ChangeSkill(from, name, value);
 				}
-				else if (Insensitive.Equals(args.Speech, "help"))
+				catch
 				{
-					args.Mobile.SendGump(new TCHelpGump());
-
-					args.Handled = true;
+					// ignored
 				}
+			}
+			else if (Insensitive.Equals(args.Speech, "help"))
+			{
+				args.Mobile.SendGump(new TcHelpGump());
+
+				args.Handled = true;
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace Server.Misc
 			}
 			else
 			{
-				if ((value + from.RawDex + from.RawInt) > from.StatCap)
+				if (value + from.RawDex + from.RawInt > from.StatCap)
 				{
 					from.SendLocalizedMessage(1005629); // You can not exceed the stat cap.  Try setting another stat lower first.
 				}
@@ -88,7 +88,7 @@ namespace Server.Misc
 			}
 			else
 			{
-				if ((from.RawStr + value + from.RawInt) > from.StatCap)
+				if (from.RawStr + value + from.RawInt > from.StatCap)
 				{
 					from.SendLocalizedMessage(1005629); // You can not exceed the stat cap.  Try setting another stat lower first.
 				}
@@ -108,7 +108,7 @@ namespace Server.Misc
 			}
 			else
 			{
-				if ((from.RawStr + from.RawDex + value) > from.StatCap)
+				if (from.RawStr + from.RawDex + value > from.StatCap)
 				{
 					from.SendLocalizedMessage(1005629); // You can not exceed the stat cap.  Try setting another stat lower first.
 				}
@@ -135,14 +135,14 @@ namespace Server.Misc
 			{
 				if (value < 0 || value > skill.Cap)
 				{
-					from.SendMessage(string.Format("Your skill in {0} is capped at {1:F1}.", skill.Info.Name, skill.Cap));
+					from.SendMessage($"Your skill in {skill.Info.Name} is capped at {skill.Cap:F1}.");
 				}
 				else
 				{
 					int newFixedPoint = (int)(value * 10.0);
 					int oldFixedPoint = skill.BaseFixedPoint;
 
-					if (((skill.Owner.Total - oldFixedPoint) + newFixedPoint) > skill.Owner.Cap)
+					if (skill.Owner.Total - oldFixedPoint + newFixedPoint > skill.Owner.Cap)
 					{
 						from.SendMessage("You can not exceed the skill cap.  Try setting another skill lower first.");
 					}
@@ -849,15 +849,15 @@ namespace Server.Misc
 			//FillBank(m);
 		}
 
-		public class TCHelpGump : Gump
+		private class TcHelpGump : Gump
 		{
-			public TCHelpGump() : base(40, 40)
+			public TcHelpGump() : base(40, 40)
 			{
 				AddPage(0);
 				AddBackground(0, 0, 160, 120, 5054);
 
 				AddButton(10, 10, 0xFB7, 0xFB9, 1, GumpButtonType.Reply, 0);
-				AddLabel(45, 10, 0x34, "CorexUO");
+				AddLabel(45, 10, 0x34, "UOMoons");
 
 				AddButton(10, 35, 0xFB7, 0xFB9, 2, GumpButtonType.Reply, 0);
 				AddLabel(45, 35, 0x34, "List of skills");
@@ -873,9 +873,9 @@ namespace Server.Misc
 			{
 				switch (info.ButtonID)
 				{
-					case 1: // CorexUO
+					case 1: // UOMoons
 						{
-							sender.LaunchBrowser("https://github.com/corexuo/");
+							sender.LaunchBrowser("https://github.com/UO-Moons/");
 							break;
 						}
 					case 2: // List of skills
@@ -893,7 +893,7 @@ namespace Server.Misc
 							{
 								string v = strings[i];
 
-								if ((sb.Length + 1 + v.Length) >= 256)
+								if (sb.Length + 1 + v.Length >= 256)
 								{
 									sender.Send(new AsciiMessage(Server.Serial.MinusOne, -1, MessageType.Label, 0x35, 3, "System", sb.ToString()));
 									sb = new StringBuilder();

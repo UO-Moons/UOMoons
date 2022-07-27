@@ -22,21 +22,21 @@ public class ReactiveArmorSpell : MagerySpell
 
 	public static void EndArmor(Mobile m)
 	{
-		if (m_Table.Contains(m))
+		if (!m_Table.Contains(m))
+			return;
+
+		ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
+
+		if (mods != null)
 		{
-			ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
-
-			if (mods != null)
+			for (var i = 0; i < mods.Length; ++i)
 			{
-				for (var i = 0; i < mods.Length; ++i)
-				{
-					m.RemoveResistanceMod(mods[i]);
-				}
+				m.RemoveResistanceMod(mods[i]);
 			}
-
-			m_Table.Remove(m);
-			BuffInfo.RemoveBuff(m, BuffIcon.ReactiveArmor);
 		}
+
+		m_Table.Remove(m);
+		BuffInfo.RemoveBuff(m, BuffIcon.ReactiveArmor);
 	}
 
 	public override bool CheckCast()
@@ -50,13 +50,11 @@ public class ReactiveArmorSpell : MagerySpell
 			return false;
 		}
 
-		if (!Caster.CanBeginAction(typeof(DefensiveSpell)))
-		{
-			Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
-			return false;
-		}
+		if (Caster.CanBeginAction(typeof(DefensiveSpell)))
+			return true;
+		Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
+		return false;
 
-		return true;
 	}
 
 	private static readonly Hashtable m_Table = new();

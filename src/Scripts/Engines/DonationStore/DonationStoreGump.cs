@@ -33,7 +33,7 @@ public class DonationStoreGump : Gump
 	private void GeneratGiftList(Mobile acct)
 	{
 		string username = acct.Account.Username;
-		int offset = 40;
+		const int offset = 40;
 
 		ArrayList giftList = DonationStore.GetDonationGiftList(username);
 		if (giftList.Count == 0)
@@ -59,16 +59,16 @@ public class DonationStoreGump : Gump
 
 	public override void OnResponse(NetState sender, RelayInfo info)
 	{
-		if (info.ButtonID > 0 && info.ButtonID <= 5)
-		{
-			_mFrom.CloseGump(typeof(DonationStoreGump));
+		if (info.ButtonID is <= 0 or > 5)
+			return;
 
-			long giftId = _mGiftIDs[info.ButtonID - 1];
-			IEntity gift = DonationStore.RedeemGift(giftId, _mFrom.Account.Username);
-			if (gift == null) return;
-			_mFrom.AddToBackpack((Item)gift);
-			_mFrom.SendMessage("{0} has been placed in your backpack. Thank you for your donation!", ((Item)gift).Name);
-		}
+		_mFrom.CloseGump(typeof(DonationStoreGump));
+
+		long giftId = _mGiftIDs[info.ButtonID - 1];
+		IEntity gift = DonationStore.RedeemGift(giftId, _mFrom.Account.Username);
+		if (gift == null) return;
+		_mFrom.AddToBackpack((Item)gift);
+		_mFrom.SendMessage("{0} has been placed in your backpack. Thank you for your donation!", ((Item)gift).Name);
 	}
 
 }

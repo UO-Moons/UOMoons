@@ -68,7 +68,7 @@ namespace Server.Engines.Quests.Zento
 
 						if (Utility.RandomBool())
 						{
-							BaseWeapon weapon = Loot.Construct(Loot.SEWeaponTypes) as BaseWeapon;
+							BaseWeapon weapon = Loot.Construct(Loot.SeWeaponTypes) as BaseWeapon;
 
 							if (weapon != null)
 							{
@@ -78,7 +78,7 @@ namespace Server.Engines.Quests.Zento
 						}
 						else
 						{
-							BaseArmor armor = Loot.Construct(Loot.SEArmorTypes) as BaseArmor;
+							BaseArmor armor = Loot.Construct(Loot.SeArmorTypes) as BaseArmor;
 
 							if (armor != null)
 							{

@@ -2,7 +2,6 @@ using Server.Mobiles;
 
 namespace Server.Items;
 
-[TypeAlias("drNO.ThieveItems.LifeShieldLotion")]
 public class LifeShieldLotion : BaseBalmOrLotion
 {
 	public override int LabelNumber => 1094945;  // Life Shield Lotion
@@ -27,17 +26,14 @@ public class LifeShieldLotion : BaseBalmOrLotion
 
 	public static double HandleLifeDrain(PlayerMobile pm, double damage)
 	{
-		if (IsUnderThieveConsumableEffect(pm, ThieveConsumableEffect.LifeShieldLotionEffect))
-		{
-			int rnd = 50 + Utility.Random(50);
-			int dmgMod = (int)(damage * (rnd / 100.0));
-			damage = damage - dmgMod;
+		if (!IsUnderThieveConsumableEffect(pm, ThieveConsumableEffect.LifeShieldLotionEffect))
 			return damage;
-		}
-		else
-		{
-			return damage;
-		}
+
+		int rnd = 50 + Utility.Random(50);
+		int dmgMod = (int)(damage * (rnd / 100.0));
+		damage -= dmgMod;
+		return damage;
+
 	}
 
 	public LifeShieldLotion(Serial serial)

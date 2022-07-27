@@ -108,7 +108,7 @@ public class CurseSpell : MagerySpell
 		return m_UnderEffect.ContainsKey(m);
 	}
 
-	public void Target(Mobile m)
+	private void Target(Mobile m)
 	{
 		if (!Caster.CanSee(m))
 		{
@@ -151,8 +151,8 @@ public class CurseSpell : MagerySpell
 		}
 
 		SpellHelper.AddStatCurse(caster, m, StatType.Str, false);
-		SpellHelper.AddStatCurse(caster, m, StatType.Dex, true);
-		SpellHelper.AddStatCurse(caster, m, StatType.Int, true);
+		SpellHelper.AddStatCurse(caster, m, StatType.Dex);
+		SpellHelper.AddStatCurse(caster, m, StatType.Int);
 
 		int percentage = (int)(SpellHelper.GetOffsetScalar(caster, m, true) * 100);
 		TimeSpan length = SpellHelper.GetDuration(caster, m);

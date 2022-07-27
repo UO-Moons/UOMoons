@@ -1104,7 +1104,7 @@ namespace Server.Mobiles
                 //-----------------------				
                 case 34:
                     SetTargPending();
-                    new MeteorSwarmSpell(m_Mobile, null).Cast();
+                    new MeteorSwarmSpell(m_Mobile, null, null).Cast();
                     m_Mobile.DebugSay("meteor swarm");
                     return true;
                 //-----------------------				

@@ -10,11 +10,13 @@ public class GoldShower
 	{
 		Do(center, map, ChampionSystem.GoldShowerPiles, ChampionSystem.GoldShowerMinAmount, ChampionSystem.GoldShowerMaxAmount);
 	}
+
 	public static void DoForHarrower(Point3D center, Map map)
 	{
 		Do(center, map, ChampionSystem.HarrowerGoldShowerPiles, ChampionSystem.HarrowerGoldShowerMinAmount, ChampionSystem.HarrowerGoldShowerMaxAmount);
 	}
-	public static void Do(Point3D center, Map map, int piles, int minAmount, int maxAmount)
+
+	private static void Do(Point3D center, Map map, int piles, int minAmount, int maxAmount)
 	{
 		new GoodiesTimer(center, map, piles, minAmount, maxAmount).Start();
 	}

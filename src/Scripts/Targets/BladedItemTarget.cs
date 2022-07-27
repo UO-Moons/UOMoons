@@ -9,32 +9,32 @@ namespace Server.Targets;
 
 public class BladedItemTarget : Target
 {
-	private readonly Item _mItem;
+	private readonly Item m_Item;
 
 	public BladedItemTarget(Item item) : base(2, false, TargetFlags.None)
 	{
-		_mItem = item;
+		m_Item = item;
 	}
 
 	protected override void OnTargetOutOfRange(Mobile from, object targeted)
 	{
 		if (targeted is UnholyBone bone && from.InRange(bone, 12))
-			bone.Carve(from, _mItem);
+			bone.Carve(from, m_Item);
 		else
 			base.OnTargetOutOfRange(from, targeted);
 	}
 
 	protected override void OnTarget(Mobile from, object targeted)
 	{
-		if (_mItem.Deleted)
+		if (m_Item.Deleted)
 			return;
 
 		switch (targeted)
 		{
 			case ICarvable carvable:
-				carvable.Carve(from, _mItem);
+				carvable.Carve(from, m_Item);
 				break;
-			case SwampDragon dragon when dragon.HasBarding:
+			case SwampDragon { HasBarding: true } dragon:
 			{
 				if (!dragon.Controlled || dragon.ControlMaster != from)
 					from.SendLocalizedMessage(1053022); // You cannot remove barding from a swamp dragon you do not own.
@@ -44,24 +44,19 @@ public class BladedItemTarget : Target
 			}
 			default:
 			{
-				if (targeted is StaticTarget target)
+				if (targeted is StaticTarget { ItemID: 0xD15 or 0xD16 }) // red mushroom
 				{
-					int itemId = target.ItemID;
-
-					if (itemId is 0xD15 or 0xD16) // red mushroom
+					if (from is PlayerMobile player)
 					{
-						if (from is PlayerMobile player)
-						{
-							QuestSystem qs = player.Quest;
+						QuestSystem qs = player.Quest;
 
-							if (qs is WitchApprenticeQuest)
+						if (qs is WitchApprenticeQuest)
+						{
+							if (qs.FindObjective(typeof(FindIngredientObjective)) is FindIngredientObjective {Completed: false, Ingredient: Ingredient.RedMushrooms} obj)
 							{
-								if (qs.FindObjective(typeof(FindIngredientObjective)) is FindIngredientObjective {Completed: false, Ingredient: Ingredient.RedMushrooms} obj)
-								{
-									player.SendLocalizedMessage(1055036); // You slice a red cap mushroom from its stem.
-									obj.Complete();
-									return;
-								}
+								player.SendLocalizedMessage(1055036); // You slice a red cap mushroom from its stem.
+								obj.Complete();
+								return;
 							}
 						}
 					}
@@ -70,7 +65,7 @@ public class BladedItemTarget : Target
 				HarvestSystem system = Lumberjacking.System;
 				HarvestDefinition def = Lumberjacking.System.Definition;
 
-				if (!system.GetHarvestDetails(from, _mItem, targeted, out int tileId, out Map map, out Point3D loc))
+				if (!system.GetHarvestDetails(from, m_Item, targeted, out var tileId, out Map map, out Point3D loc))
 				{
 					from.SendLocalizedMessage(500494); // You can't use a bladed item on that!
 				}

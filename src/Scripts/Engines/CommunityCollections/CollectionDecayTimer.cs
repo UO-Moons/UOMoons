@@ -14,7 +14,7 @@ public class CollectionDecayTimer : Timer
 
 	protected override void OnTick()
 	{
-		if (_mCollection != null && _mCollection.DailyDecay > 0)
+		if (_mCollection is { DailyDecay: > 0 })
 			_mCollection.Points -= _mCollection.DailyDecay;
 	}
 }

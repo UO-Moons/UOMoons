@@ -1,9 +1,11 @@
+using Server.Multis;
+using Server.Targeting;
+
 namespace Server.Misc
 {
 	public class Helpers
 	{
-		public static readonly int[] Offsets = new int[]
-		{
+		public static readonly int[] Offsets = {
 			-1, -1,
 			-1,  0,
 			-1,  1,
@@ -34,9 +36,11 @@ namespace Server.Misc
 			new(1538, 1341, -3),
 			new(528, 223, -38)
 		};
+
 		private static readonly Point3D[] m_MalasLocs = {
 			new(976, 517, -30)
 		};
+
 		private static readonly Point3D[] m_TokunoLocs = {
 			new(710, 1162, 25),
 			new(1034, 515, 18),
@@ -78,6 +82,48 @@ namespace Server.Misc
 			}
 
 			return closest;
+		}
+
+		private static readonly int[] m_WaterTiles = {
+			0x00A8, 0x00AB,
+			0x0136, 0x0137
+		};
+
+		public static bool ValidateDeepWater(Map map, int x, int y)
+		{
+			int tileId = map.Tiles.GetLandTile(x, y).Id;
+			bool water = false;
+
+			for (int i = 0; !water && i < m_WaterTiles.Length; i += 2)
+				water = tileId >= m_WaterTiles[i] && tileId <= m_WaterTiles[i + 1];
+
+			return water;
+		}
+
+		private static readonly int[] m_UndeepWaterTiles = {
+			0x1797, 0x179C
+		};
+
+		public static bool ValidateUndeepWater(Map map, object obj, ref int z)
+		{
+			if (obj is not StaticTarget target)
+				return false;
+
+			if (BaseHouse.FindHouseAt(target.Location, map, 0) != null)
+				return false;
+
+			int itemId = target.ItemID;
+
+			for (int i = 0; i < m_UndeepWaterTiles.Length; i += 2)
+			{
+				if (itemId < m_UndeepWaterTiles[i] || itemId > m_UndeepWaterTiles[i + 1])
+					continue;
+
+				z = target.Z;
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

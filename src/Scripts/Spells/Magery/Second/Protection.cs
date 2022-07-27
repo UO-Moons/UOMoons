@@ -97,21 +97,20 @@ public class ProtectionSpell : MagerySpell
 
 	public static void EndProtection(Mobile m)
 	{
-		if (m_Table.Contains(m))
+		if (!m_Table.Contains(m))
+			return;
+		object[] mods = (object[])m_Table[m];
+
+		m_Table.Remove(m);
+		Registry.Remove(m);
+
+		if (mods != null)
 		{
-			object[] mods = (object[])m_Table[m];
-
-			m_Table.Remove(m);
-			Registry.Remove(m);
-
-			if (mods != null)
-			{
-				m.RemoveResistanceMod((ResistanceMod) mods[0]);
-				m.RemoveSkillMod((SkillMod) mods[1]);
-			}
-
-			BuffInfo.RemoveBuff(m, BuffIcon.Protection);
+			m.RemoveResistanceMod((ResistanceMod) mods[0]);
+			m.RemoveSkillMod((SkillMod) mods[1]);
 		}
+
+		BuffInfo.RemoveBuff(m, BuffIcon.Protection);
 	}
 
 	public override void OnCast()
@@ -175,10 +174,12 @@ public class ProtectionSpell : MagerySpell
 		public InternalTimer(Mobile caster) : base(TimeSpan.FromSeconds(0))
 		{
 			double val = caster.Skills[SkillName.Magery].Value * 2.0;
-			if (val < 15)
-				val = 15;
-			else if (val > 240)
-				val = 240;
+			val = val switch
+			{
+				< 15 => 15,
+				> 240 => 240,
+				_ => val
+			};
 
 			_caster = caster;
 			Delay = TimeSpan.FromSeconds(val);

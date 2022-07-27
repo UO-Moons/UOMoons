@@ -115,7 +115,7 @@ internal class SpiritSpeak
 			base.OnDisturb(type, message);
 		}
 
-		public override bool CheckDisturb(DisturbType type, bool checkFirst, bool resistable)
+		public override bool CheckDisturb(DisturbType type, bool resistable)
 		{
 			return type is not (DisturbType.EquipRequest or DisturbType.UseRequest);
 		}

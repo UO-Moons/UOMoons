@@ -13,7 +13,7 @@ public enum HeadType
 public class Head : BaseItem, ICarvable
 {
 	#region ICarvable Members
-	public void Carve(Mobile from, Item item)
+	public bool Carve(Mobile from, Item item)
 	{
 		Item brain = new Item(7408);
 		Item skull = new Item(6882);
@@ -36,6 +36,7 @@ public class Head : BaseItem, ICarvable
 		}
 
 		Delete();
+		return true;
 	}
 	#endregion
 	[CommandProperty(AccessLevel.GameMaster)]

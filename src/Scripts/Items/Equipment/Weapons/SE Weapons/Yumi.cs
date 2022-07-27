@@ -5,7 +5,7 @@ namespace Server.Items
 	[Flipable(0x27A5, 0x27F0)]
 	public class Yumi : BaseRanged
 	{
-		public override int EffectID => 0xF42;
+		public override int EffectId => 0xF42;
 		public override Type AmmoType => typeof(Arrow);
 		public override Item Ammo => new Arrow();
 

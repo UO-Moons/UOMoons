@@ -27,7 +27,7 @@ public class Confidence : SamuraiSpell
 		return m_Table.ContainsKey(m);
 	}
 
-	public static void BeginConfidence(Mobile m)
+	private static void BeginConfidence(Mobile m)
 	{
 		if (m_Table.TryGetValue(m, out Timer t))
 			t.Stop();
@@ -64,7 +64,7 @@ public class Confidence : SamuraiSpell
 		return m_RegenTable.ContainsKey(m);
 	}
 
-	public static void BeginRegenerating(Mobile m)
+	private static void BeginRegenerating(Mobile m)
 	{
 		if (m_RegenTable.TryGetValue(m, out var t))
 			t.Stop();

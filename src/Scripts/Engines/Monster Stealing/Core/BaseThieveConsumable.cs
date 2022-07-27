@@ -17,8 +17,8 @@ public enum ThieveConsumableEffect
 
 public class ThieveConsumableInfo
 {
-	public ThieveConsumableEffect Effect;
-	public Timer EffectTimer;
+	public readonly ThieveConsumableEffect Effect;
+	public readonly Timer EffectTimer;
 
 	public ThieveConsumableInfo(BaseThieveConsumable.InternalTimer t, ThieveConsumableEffect e)
 	{
@@ -36,19 +36,19 @@ public abstract class BaseThieveConsumable : Item
 
 	public class InternalTimer : Timer
 	{
-		public PlayerMobile Pm;
-		public ThieveConsumableEffect Effect;
+		private readonly PlayerMobile m_Pm;
+		private readonly ThieveConsumableEffect m_Effect;
 
 		protected override void OnTick()
 		{
-			RemoveEffect(Pm, Effect);
+			RemoveEffect(m_Pm, m_Effect);
 		}
 
 		public InternalTimer(PlayerMobile p, ThieveConsumableEffect e, TimeSpan delay)
 			: base(delay)
 		{
-			Pm = p;
-			Effect = e;
+			m_Pm = p;
+			m_Effect = e;
 		}
 	}
 
@@ -89,7 +89,7 @@ public abstract class BaseThieveConsumable : Item
 		Consume();
 	}
 
-	protected static void RemoveEffect(PlayerMobile pm, ThieveConsumableEffect effectType)
+	private static void RemoveEffect(PlayerMobile pm, ThieveConsumableEffect effectType)
 	{
 		if (EffectTable.ContainsKey(pm))
 		{
@@ -111,11 +111,11 @@ public abstract class BaseThieveConsumable : Item
 				for (int i = 0; i < list.Count; i++)
 				{
 					ResistanceMod curr = list[i];
-					if ((curr.Type == ResistanceType.Cold && curr.Offset == -5) || (curr.Type == ResistanceType.Fire && curr.Offset == -5) || (curr.Type == ResistanceType.Physical && curr.Offset == 30))
-					{
-						list.RemoveAt(i);
-						i--;
-					}
+					if ((curr.Type != ResistanceType.Cold || curr.Offset != -5) &&
+					    (curr.Type != ResistanceType.Fire || curr.Offset != -5) &&
+					    (curr.Type != ResistanceType.Physical || curr.Offset != 30)) continue;
+					list.RemoveAt(i);
+					i--;
 				}
 			}
 		}
@@ -125,32 +125,17 @@ public abstract class BaseThieveConsumable : Item
 
 	public static bool CanUse(PlayerMobile pm, BaseThieveConsumable consum)
 	{
-		if (CheckThieveConsumable(pm) != ThieveConsumableEffect.None)
-		{
-			return false;
-		}
-
-		return true;
+		return CheckThieveConsumable(pm) == ThieveConsumableEffect.None;
 	}
 
 	public static bool IsUnderThieveConsumableEffect(PlayerMobile pm, ThieveConsumableEffect eff)
 	{
-		if (EffectTable.ContainsKey(pm) && EffectTable[pm].Effect == eff)
-		{
-			return true;
-		}
-
-		return false;
+		return EffectTable.ContainsKey(pm) && EffectTable[pm].Effect == eff;
 	}
 
-	public static ThieveConsumableEffect CheckThieveConsumable(PlayerMobile pm)
+	private static ThieveConsumableEffect CheckThieveConsumable(PlayerMobile pm)
 	{
-		if (EffectTable.ContainsKey(pm))
-		{
-			return EffectTable[pm].Effect;
-		}
-
-		return ThieveConsumableEffect.None;
+		return EffectTable.ContainsKey(pm) ? EffectTable[pm].Effect : ThieveConsumableEffect.None;
 	}
 
 	public BaseThieveConsumable(Serial serial)

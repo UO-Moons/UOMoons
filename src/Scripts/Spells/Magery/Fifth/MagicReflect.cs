@@ -31,13 +31,12 @@ public class MagicReflectSpell : MagerySpell
 			return false;
 		}
 
-		if (!Caster.CanBeginAction(typeof(DefensiveSpell)))
-		{
-			Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
-			return false;
-		}
+		if (Caster.CanBeginAction(typeof(DefensiveSpell)))
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(1005385); // The spell will not adhere to you at this time.
+		return false;
+
 	}
 
 	private static readonly Hashtable m_Table = new();
@@ -114,7 +113,7 @@ public class MagicReflectSpell : MagerySpell
 				if (Caster.BeginAction(typeof(DefensiveSpell)))
 				{
 					int value = (int)(Caster.Skills[SkillName.Magery].Value + Caster.Skills[SkillName.Inscribe].Value);
-					value = (int)(8 + (value / 200) * 7.0);//absorb from 8 to 15 "circles"
+					value = (int)(8 + value / 200.0 * 7.0);//absorb from 8 to 15 "circles"
 
 					Caster.MagicDamageAbsorb = value;
 
@@ -133,19 +132,19 @@ public class MagicReflectSpell : MagerySpell
 
 	public static void EndReflect(Mobile m)
 	{
-		if (m_Table.Contains(m))
+		if (!m_Table.Contains(m))
+			return;
+
+		ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
+
+		if (mods != null)
 		{
-			ResistanceMod[] mods = (ResistanceMod[])m_Table[m];
-
-			if (mods != null)
-			{
-				for (int i = 0; i < mods.Length; ++i)
-					m.RemoveResistanceMod(mods[i]);
-			}
-
-			m_Table.Remove(m);
-			BuffInfo.RemoveBuff(m, BuffIcon.MagicReflection);
+			for (int i = 0; i < mods.Length; ++i)
+				m.RemoveResistanceMod(mods[i]);
 		}
+
+		m_Table.Remove(m);
+		BuffInfo.RemoveBuff(m, BuffIcon.MagicReflection);
 	}
 
 	public static bool HasReflect(Mobile m)

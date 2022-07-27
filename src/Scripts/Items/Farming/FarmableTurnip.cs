@@ -1,48 +1,47 @@
-namespace Server.Items
+namespace Server.Items;
+
+public class FarmableTurnip : FarmableCrop
 {
-	public class FarmableTurnip : FarmableCrop
+	private static int GetCropId()
 	{
-		public static int GetCropID()
+		return Utility.Random(3169, 3);
+	}
+
+	public override Item GetCropObject()
+	{
+		Turnip turnip = new Turnip
 		{
-			return Utility.Random(3169, 3);
-		}
+			ItemId = Utility.Random(3385, 2)
+		};
 
-		public override Item GetCropObject()
-		{
-			Turnip turnip = new Turnip
-			{
-				ItemId = Utility.Random(3385, 2)
-			};
+		return turnip;
+	}
 
-			return turnip;
-		}
+	public override int GetPickedId()
+	{
+		return 3254;
+	}
 
-		public override int GetPickedID()
-		{
-			return 3254;
-		}
+	[Constructable]
+	public FarmableTurnip() : base(GetCropId())
+	{
+	}
 
-		[Constructable]
-		public FarmableTurnip() : base(GetCropID())
-		{
-		}
+	public FarmableTurnip(Serial serial) : base(serial)
+	{
+	}
 
-		public FarmableTurnip(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.WriteEncodedInt(0); // version
+	}
 
-			writer.WriteEncodedInt(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		reader.ReadEncodedInt();
 	}
 }

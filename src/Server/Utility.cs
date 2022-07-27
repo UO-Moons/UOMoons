@@ -104,9 +104,9 @@ namespace Server
 			if (str == null)
 				return "";
 
-			bool hasOpen = (str.IndexOf('<') >= 0);
-			bool hasClose = (str.IndexOf('>') >= 0);
-			bool hasPound = (str.IndexOf('#') >= 0);
+			bool hasOpen = str.IndexOf('<') >= 0;
+			bool hasClose = str.IndexOf('>') >= 0;
+			bool hasPound = str.IndexOf('#') >= 0;
 
 			if (!hasOpen && !hasClose && !hasPound)
 				return str;
@@ -283,7 +283,7 @@ namespace Server
 
 			uint mask = uint.MaxValue << 32 - cidrLength;
 
-			return ((cidrPrefixValue & mask) == (ipValue & mask));
+			return (cidrPrefixValue & mask) == (ipValue & mask);
 		}
 
 		private static uint OrderedAddressValue(byte[] bytes)
@@ -291,15 +291,15 @@ namespace Server
 			if (bytes.Length != 4)
 				return 0;
 
-			return (uint)((((bytes[0] << 0x18) | (bytes[1] << 0x10)) | (bytes[2] << 8)) | bytes[3]) & 0xffffffff;
+			return (uint)((bytes[0] << 0x18) | (bytes[1] << 0x10) | (bytes[2] << 8) | bytes[3]) & 0xffffffff;
 		}
 
 		private static uint SwapUnsignedInt(uint source)
 		{
-			return (((source & 0x000000FF) << 0x18)
-			| ((source & 0x0000FF00) << 8)
-			| ((source & 0x00FF0000) >> 8)
-			| ((source & 0xFF000000) >> 0x18));
+			return ((source & 0x000000FF) << 0x18)
+			       | ((source & 0x0000FF00) << 8)
+			       | ((source & 0x00FF0000) >> 8)
+			       | ((source & 0xFF000000) >> 0x18);
 		}
 
 		public static bool TryConvertIPv6toIPv4(ref IPAddress address)
@@ -449,7 +449,7 @@ namespace Server
 
 		public static bool IPMatchClassC(IPAddress ip1, IPAddress ip2)
 		{
-			return ((Utility.GetAddressValue(ip1) & 0xFFFFFF) == (Utility.GetAddressValue(ip2) & 0xFFFFFF));
+			return (GetAddressValue(ip1) & 0xFFFFFF) == (GetAddressValue(ip2) & 0xFFFFFF);
 		}
 
 		public static int InsensitiveCompare(string first, string second)
@@ -664,8 +664,8 @@ namespace Server
 			if (p2 is Item i2)
 				p2 = i2.GetWorldLocation();
 
-			return (p1.X >= (p2.X - range)) && (p1.X <= (p2.X + range))
-				&& (p1.Y >= (p2.Y - range)) && (p1.Y <= (p2.Y + range));
+			return p1.X >= p2.X - range && p1.X <= p2.X + range
+			                            && p1.Y >= p2.Y - range && p1.Y <= p2.Y + range;
 		}
 		#endregion
 
@@ -800,16 +800,51 @@ namespace Server
 		}
 
 		#region Random
+		/// <summary>
+		/// Enables or disables floating dice. 
+		/// Floating dice uses a double to obtain a lower average value range.
+		/// Consistent average values for [1,000,000 x 1d6+0] rolls: [Integral: 3.50]  [Floating: 2.25]
+		/// </summary>
+		public static bool FloatingDice = false;
+
 		//4d6+8 would be: Utility.Dice( 4, 6, 8 )
 		public static int Dice(int numDice, int numSides, int bonus)
 		{
-			int total = 0;
+			return Dice(numDice, numSides, bonus, FloatingDice);
+		}
 
-			for (int i = 0; i < numDice; ++i)
-				total += RandomImpl.Next(numSides) + 1;
+		public static int Dice(int numDice, int numSides, int bonus, bool floating)
+		{
+			if (floating)
+			{
+				double min = numDice, max = min;
 
-			total += bonus;
-			return total;
+				for (var i = 0; i < numDice; ++i)
+				{
+					max += Random(numSides);
+				}
+
+				return (int)Math.Round(RandomMinMax(min, max)) + bonus;
+			}
+
+			var total = 0;
+
+			for (var i = 0; i < numDice; ++i)
+			{
+				total += Random(numSides) + 1;
+			}
+
+			return total + bonus;
+		}
+
+		public static T RandomList<T>(List<T> list)
+		{
+			return list[RandomImpl.Next(list.Count)];
+		}
+
+		public static T RandomList<T>(params T[] list)
+		{
+			return list[RandomImpl.Next(list.Length)];
 		}
 
 		public static int RandomList(params int[] list)
@@ -822,20 +857,123 @@ namespace Server
 			return RandomImpl.NextBool();
 		}
 
-		public static int RandomMinMax(int min, int max)
+#if MONO
+		private static class EnumCache<T> where T : struct, IConvertible
+#else
+		private static class EnumCache<T> where T : struct, Enum
+#endif
+		{
+			public static readonly T[] Values = (T[])Enum.GetValues(typeof(T));
+		}
+
+#if MONO
+		public static TEnum RandomEnum<TEnum>() where TEnum : struct, IConvertible            
+#else
+		public static TEnum RandomEnum<TEnum>() where TEnum : struct, Enum
+#endif
+		{
+			return RandomList(EnumCache<TEnum>.Values);
+		}
+
+#if MONO
+		public static TEnum RandomMinMax<TEnum>(TEnum min, TEnum max) where TEnum : struct, IConvertible            
+#else
+		public static TEnum RandomMinMax<TEnum>(TEnum min, TEnum max) where TEnum : struct, Enum
+#endif
+		{
+			var values = EnumCache<TEnum>.Values;
+
+			if (values.Length == 0)
+			{
+				return default;
+			}
+
+			int curIdx = -1, minIdx = -1, maxIdx = -1;
+
+			while (++curIdx < values.Length)
+			{
+				if (Equals(values[curIdx], min))
+				{
+					minIdx = curIdx;
+				}
+				else if (Equals(values[curIdx], max))
+				{
+					maxIdx = curIdx;
+				}
+			}
+
+			if (minIdx == 0 && maxIdx == values.Length - 1)
+			{
+				return RandomList(values);
+			}
+
+			curIdx = -1;
+
+			if (minIdx >= 0)
+			{
+				if (minIdx == maxIdx)
+				{
+					curIdx = minIdx;
+				}
+				else if (maxIdx > minIdx)
+				{
+					curIdx = RandomMinMax(minIdx, maxIdx);
+				}
+			}
+
+			if (curIdx >= 0 && curIdx < values.Length)
+			{
+				return values[curIdx];
+			}
+
+			return RandomList(min, max);
+		}
+
+		public static TimeSpan RandomMinMax(TimeSpan min, TimeSpan max)
+		{
+			return TimeSpan.FromTicks(RandomMinMax(min.Ticks, max.Ticks));
+		}
+
+		public static double RandomMinMax(double min, double max)
 		{
 			if (min > max)
 			{
-				int copy = min;
-				min = max;
-				max = copy;
+				(min, max) = (max, min);
 			}
 			else if (min == max)
 			{
 				return min;
 			}
 
-			return min + RandomImpl.Next((max - min) + 1);
+			return min + RandomImpl.NextDouble() * (max - min);
+		}
+
+		public static long RandomMinMax(long min, long max)
+		{
+			if (min > max)
+			{
+				(min, max) = (max, min);
+			}
+			else if (min == max)
+			{
+				return min;
+			}
+
+			return min + (long)(RandomImpl.NextDouble() * (max - min));
+		}
+
+		public static int RandomMinMax(int min, int max)
+		{
+			if (min > max)
+			{
+				(min, max) = (max, min);
+			}
+			else if (min == max)
+			{
+				return min;
+			}
+
+			return min + RandomImpl.Next(max - min + 1);
 		}
 
 		public static int Random(int from, int count)
@@ -844,14 +982,13 @@ namespace Server
 			{
 				return from;
 			}
-			else if (count > 0)
+
+			if (count > 0)
 			{
 				return from + RandomImpl.Next(count);
 			}
-			else
-			{
-				return from - RandomImpl.Next(-count);
-			}
+
+			return from - RandomImpl.Next(-count);
 		}
 
 		public static int Random(int count)
@@ -1222,146 +1359,84 @@ namespace Server
 
 		#endregion
 
-		public static readonly SkillName[] AllSkills = new SkillName[]
+		private static readonly SkillName[] m_AllSkills =
 		{
-			SkillName.Alchemy,
-			SkillName.Anatomy,
-			SkillName.AnimalLore,
-			SkillName.ItemID,
-			SkillName.ArmsLore,
-			SkillName.Parry,
-			SkillName.Begging,
-			SkillName.Blacksmith,
-			SkillName.Fletching,
-			SkillName.Peacemaking,
-			SkillName.Camping,
-			SkillName.Carpentry,
-			SkillName.Cartography,
-			SkillName.Cooking,
-			SkillName.DetectHidden,
-			SkillName.Discordance,
-			SkillName.EvalInt,
-			SkillName.Healing,
-			SkillName.Fishing,
-			SkillName.Forensics,
-			SkillName.Herding,
-			SkillName.Hiding,
-			SkillName.Provocation,
-			SkillName.Inscribe,
-			SkillName.Lockpicking,
-			SkillName.Magery,
-			SkillName.MagicResist,
-			SkillName.Tactics,
-			SkillName.Snooping,
-			SkillName.Musicianship,
-			SkillName.Poisoning,
-			SkillName.Archery,
-			SkillName.SpiritSpeak,
-			SkillName.Stealing,
-			SkillName.Tailoring,
-			SkillName.AnimalTaming,
-			SkillName.TasteID,
-			SkillName.Tinkering,
-			SkillName.Tracking,
-			SkillName.Veterinary,
-			SkillName.Swords,
-			SkillName.Macing,
-			SkillName.Fencing,
-			SkillName.Wrestling,
-			SkillName.Lumberjacking,
-			SkillName.Mining,
-			SkillName.Meditation,
-			SkillName.Stealth,
-			SkillName.RemoveTrap,
-			SkillName.Necromancy,
-			SkillName.Focus,
-			SkillName.Chivalry,
-			SkillName.Bushido,
-			SkillName.Ninjitsu,
-			SkillName.Spellweaving
+			SkillName.Alchemy, SkillName.Anatomy, SkillName.AnimalLore, SkillName.ItemID, SkillName.ArmsLore, SkillName.Parry,
+			SkillName.Begging, SkillName.Blacksmith, SkillName.Fletching, SkillName.Peacemaking, SkillName.Camping,
+			SkillName.Carpentry, SkillName.Cartography, SkillName.Cooking, SkillName.DetectHidden, SkillName.Discordance,
+			SkillName.EvalInt, SkillName.Healing, SkillName.Fishing, SkillName.Forensics, SkillName.Herding, SkillName.Hiding,
+			SkillName.Provocation, SkillName.Inscribe, SkillName.Lockpicking, SkillName.Magery, SkillName.MagicResist,
+			SkillName.Tactics, SkillName.Snooping, SkillName.Musicianship, SkillName.Poisoning, SkillName.Archery,
+			SkillName.SpiritSpeak, SkillName.Stealing, SkillName.Tailoring, SkillName.AnimalTaming, SkillName.TasteID,
+			SkillName.Tinkering, SkillName.Tracking, SkillName.Veterinary, SkillName.Swords, SkillName.Macing, SkillName.Fencing,
+			SkillName.Wrestling, SkillName.Lumberjacking, SkillName.Mining, SkillName.Meditation, SkillName.Stealth,
+			SkillName.RemoveTrap, SkillName.Necromancy, SkillName.Focus, SkillName.Chivalry, SkillName.Bushido,
+			SkillName.Ninjitsu, SkillName.Spellweaving, SkillName.Mysticism, SkillName.Imbuing, SkillName.Throwing
 		};
 
-		public static readonly SkillName[] CombatSkills = new SkillName[]
+		private static readonly SkillName[] m_CombatSkills =
 		{
-			SkillName.Archery,
-			SkillName.Swords,
-			SkillName.Macing,
-			SkillName.Fencing,
-			SkillName.Wrestling
+			SkillName.Archery, SkillName.Swords, SkillName.Macing, SkillName.Fencing, SkillName.Wrestling
 		};
 
-		public static readonly SkillName[] CraftSkills = new SkillName[]
+		private static readonly SkillName[] m_CraftSkills =
 		{
-			SkillName.Alchemy,
-			SkillName.Blacksmith,
-			SkillName.Fletching,
-			SkillName.Carpentry,
-			SkillName.Cartography,
-			SkillName.Cooking,
-			SkillName.Inscribe,
-			SkillName.Tailoring,
-			SkillName.Tinkering
+			SkillName.Alchemy, SkillName.Blacksmith, SkillName.Fletching, SkillName.Carpentry, SkillName.Cartography,
+			SkillName.Cooking, SkillName.Inscribe, SkillName.Tailoring, SkillName.Tinkering
 		};
 
 		public static SkillName RandomSkill()
 		{
-			return AllSkills[Utility.Random(AllSkills.Length - (Core.ML ? 0 : Core.SE ? 1 : Core.AOS ? 3 : 6))];
+			return m_AllSkills[Random(m_AllSkills.Length - (Core.ML ? 0 : Core.SE ? 1 : Core.AOS ? 3 : 6))];
 		}
 
 		public static SkillName RandomCombatSkill()
 		{
-			return CombatSkills[Utility.Random(CombatSkills.Length)];
+			return m_CombatSkills[Random(m_CombatSkills.Length)];
 		}
 
 		public static SkillName RandomCraftSkill()
 		{
-			return CraftSkills[Utility.Random(CraftSkills.Length)];
+			return m_CraftSkills[Random(m_CraftSkills.Length)];
+		}
+
+		public static void FixPoint(ref int top, ref int bottom)
+		{
+			if (bottom >= top)
+				return;
+
+			(bottom, top) = (top, bottom);
+		}
+
+		public static void FixPoints(ref int topX, ref int topY, ref int bottomX, ref int bottomY)
+		{
+			FixPoint(ref topX, ref bottomX);
+			FixPoint(ref topY, ref bottomY);
+		}
+
+		public static void FixPoints(ref int topX, ref int topY, ref int topZ, ref int bottomX, ref int bottomY, ref int bottomZ)
+		{
+			FixPoint(ref topX, ref bottomX);
+			FixPoint(ref topY, ref bottomY);
+			FixPoint(ref topZ, ref bottomZ);
+		}
+
+		public static void FixPoints(ref Point2D top, ref Point2D bottom)
+		{
+			FixPoints(ref top.m_X, ref top.m_Y, ref bottom.m_X, ref bottom.m_Y);
 		}
 
 		public static void FixPoints(ref Point3D top, ref Point3D bottom)
 		{
-			if (bottom.m_X < top.m_X)
-			{
-				int swap = top.m_X;
-				top.m_X = bottom.m_X;
-				bottom.m_X = swap;
-			}
-
-			if (bottom.m_Y < top.m_Y)
-			{
-				int swap = top.m_Y;
-				top.m_Y = bottom.m_Y;
-				bottom.m_Y = swap;
-			}
-
-			if (bottom.m_Z < top.m_Z)
-			{
-				int swap = top.m_Z;
-				top.m_Z = bottom.m_Z;
-				bottom.m_Z = swap;
-			}
-		}
-
-		public static ArrayList BuildArrayList(IEnumerable enumerable)
-		{
-			IEnumerator e = enumerable.GetEnumerator();
-
-			ArrayList list = new();
-
-			while (e.MoveNext())
-			{
-				list.Add(e.Current);
-			}
-
-			return list;
+			FixPoints(ref top.m_X, ref top.m_Y, ref top.m_Z, ref bottom.m_X, ref bottom.m_Y, ref bottom.m_Z);
 		}
 
 		public static bool RangeCheck(IPoint2D p1, IPoint2D p2, int range)
 		{
-			return (p1.X >= (p2.X - range))
-				&& (p1.X <= (p2.X + range))
-				&& (p1.Y >= (p2.Y - range))
-				&& (p2.Y <= (p2.Y + range));
+			return p1.X >= p2.X - range
+				&& p1.X <= p2.X + range
+				&& p1.Y >= p2.Y - range
+				&& p2.Y <= p2.Y + range;
 		}
 
 		public static void FormatBuffer(TextWriter output, Stream input, int length)
@@ -1468,7 +1543,7 @@ namespace Server
 				return callback.Method.Name;
 			}
 
-			return string.Format("{0}.{1}", callback.Method.DeclaringType.FullName, callback.Method.Name);
+			return $"{callback.Method.DeclaringType.FullName}.{callback.Method.Name}";
 		}
 
 		private static readonly Stack<ConsoleColor> m_ConsoleColors = new();
@@ -1520,12 +1595,7 @@ namespace Server
 				bound2 = i;
 			}
 
-			return (num < bound2 + allowance && num > bound1 - allowance);
-		}
-
-		public static void AssignRandomHair(Mobile m)
-		{
-			AssignRandomHair(m, true);
+			return num < bound2 + allowance && num > bound1 - allowance;
 		}
 
 		public static void AssignRandomHair(Mobile m, int hue)
@@ -1534,17 +1604,12 @@ namespace Server
 			m.HairHue = hue;
 		}
 
-		public static void AssignRandomHair(Mobile m, bool randomHue)
+		public static void AssignRandomHair(Mobile m, bool randomHue = true)
 		{
 			m.HairItemId = m.Race.RandomHair(m);
 
 			if (randomHue)
 				m.HairHue = m.Race.RandomHairHue();
-		}
-
-		public static void AssignRandomFacialHair(Mobile m)
-		{
-			AssignRandomFacialHair(m, true);
 		}
 
 		public static void AssignRandomFacialHair(Mobile m, int hue)
@@ -1553,7 +1618,7 @@ namespace Server
 			m.FacialHairHue = hue;
 		}
 
-		public static void AssignRandomFacialHair(Mobile m, bool randomHue)
+		public static void AssignRandomFacialHair(Mobile m, bool randomHue = true)
 		{
 			m.FacialHairItemId = m.Race.RandomFacialHair(m);
 
@@ -1561,19 +1626,25 @@ namespace Server
 				m.FacialHairHue = m.Race.RandomHairHue();
 		}
 
+#if MONO
+		public static List<TOutput> CastConvertList<TInput, TOutput>(List<TInput> list ) where TInput : class where TOutput : class
+#else
 		public static List<TOutput> CastConvertList<TInput, TOutput>(List<TInput> list) where TOutput : TInput
+#endif
 		{
-			return list.ConvertAll<TOutput>(new Converter<TInput, TOutput>(delegate (TInput value) { return (TOutput)value; }));
+			return list.ConvertAll(value => (TOutput)value);
 		}
 
 		public static List<TOutput> SafeConvertList<TInput, TOutput>(List<TInput> list) where TOutput : class
 		{
-			List<TOutput> output = new(list.Capacity);
+			var output = new List<TOutput>(list.Capacity);
 
-			for (int i = 0; i < list.Count; i++)
+			for (var i = 0; i < list.Count; i++)
 			{
 				if (list[i] is TOutput t)
+				{
 					output.Add(t);
+				}
 			}
 
 			return output;

@@ -38,13 +38,12 @@ public class IncognitoSpell : MagerySpell
 			return false;
 		}
 
-		if (Caster.BodyMod == 183 || Caster.BodyMod == 184)
-		{
-			Caster.SendLocalizedMessage(1042402); // You cannot use incognito while wearing body paint
-			return false;
-		}
+		if (Caster.BodyMod != 183 && Caster.BodyMod != 184)
+			return true;
 
-		return true;
+		Caster.SendLocalizedMessage(1042402); // You cannot use incognito while wearing body paint
+		return false;
+
 	}
 
 	public override void OnCast()
@@ -78,7 +77,7 @@ public class IncognitoSpell : MagerySpell
 				Caster.HueMod = Caster.Race.RandomSkinHue();
 				Caster.NameMod = Caster.Female ? NameList.RandomName("female") : NameList.RandomName("male");
 
-				if (Caster is PlayerMobile pm && pm.Race != null)
+				if (Caster is PlayerMobile { Race: { } } pm)
 				{
 					pm.SetHairMods(pm.Race.RandomHair(pm.Female), pm.Race.RandomFacialHair(pm.Female));
 					pm.HairHue = pm.Race.RandomHairHue();
@@ -121,18 +120,16 @@ public class IncognitoSpell : MagerySpell
 
 	private static readonly Hashtable m_Timers = new();
 
-	public static bool StopTimer(Mobile m)
+	public static void StopTimer(Mobile m)
 	{
 		Timer t = (Timer)m_Timers[m];
 
-		if (t != null)
-		{
-			t.Stop();
-			m_Timers.Remove(m);
-			BuffInfo.RemoveBuff(m, BuffIcon.Incognito);
-		}
+		if (t == null)
+			return;
 
-		return t != null;
+		t.Stop();
+		m_Timers.Remove(m);
+		BuffInfo.RemoveBuff(m, BuffIcon.Incognito);
 	}
 
 	private static readonly int[] m_HairIDs = {

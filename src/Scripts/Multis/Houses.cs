@@ -546,12 +546,12 @@ namespace Server.Multis
         {
             uint keyValue = CreateKeys(owner);
 
-            BaseDoor door = MakeDoor(false, DoorFacing.EastCW);
+            BaseDoor door = MakeDoor(false, DoorFacing.EastCw);
 
             door.KeyValue = keyValue;
 
             if (door is BaseHouseDoor)
-                ((BaseHouseDoor)door).Facing = DoorFacing.EastCCW;
+                ((BaseHouseDoor)door).Facing = DoorFacing.EastCcw;
 
             AddDoor(door, -2, 0, id == 0xA2 ? 24 : 27);
 

@@ -14,7 +14,7 @@ namespace Server.Mobiles
 			Name = "a water elemental";
 			Body = 16;
 			BaseSoundId = 278;
-
+			HasDecanter = true;
 			SetStr(126, 155);
 			SetDex(66, 85);
 			SetInt(101, 125);

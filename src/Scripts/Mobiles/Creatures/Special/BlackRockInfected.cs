@@ -7,14 +7,12 @@ namespace Server.Mobiles
     {
         public static readonly double InfectedChestChance = .10;
 
-        public static readonly Map[] Maps = new Map[]            // Maps that Blackrock Infected will spawn on
-		{
+        public static readonly Map[] Maps = {
             Map.Felucca,
             Map.Trammel
         };
 
-        public static readonly Type[] Artifacts = new Type[]
-        {
+        public static readonly Type[] Artifacts = {
             typeof(GoldBricks),
             typeof(PhillipsWoodenSteed),
             typeof(AlchemistsBauble),
@@ -44,7 +42,7 @@ namespace Server.Mobiles
         {
             private readonly BaseCreature m_Owner;
 
-            public BlackRockStamRegen(Mobile m)
+            public BlackRockStamRegen(IEntity m)
                 : base(TimeSpan.FromSeconds(.5), TimeSpan.FromSeconds(2))
             {
                 Priority = TimerPriority.FiftyMs;
@@ -57,7 +55,7 @@ namespace Server.Mobiles
                 {
                     m_Owner.Stam++;
 
-                    Delay = Interval = (m_Owner.Stam < (m_Owner.StamMax * .75)) ? TimeSpan.FromSeconds(.5) : TimeSpan.FromSeconds(2);
+                    Delay = Interval = m_Owner.Stam < m_Owner.StamMax * .75 ? TimeSpan.FromSeconds(.5) : TimeSpan.FromSeconds(2);
                 }
                 else
                 {
@@ -67,15 +65,15 @@ namespace Server.Mobiles
         }
 
         // Buffs
-        public static readonly double HitsBuff = 1.0;
-        public static readonly double StrBuff = 2.05;
-        public static readonly double IntBuff = 2.20;
-        public static readonly double DexBuff = 2.20;
-        public static readonly double SkillsBuff = 2.20;
-        public static readonly double SpeedBuff = 2.20;
-        public static readonly double FameBuff = 2.40;
-        public static readonly double KarmaBuff = 2.40;
-        public static readonly int DamageBuff = 10;
+        public const double HitsBuff = 1.0;
+        public const double StrBuff = 2.05;
+        public const double IntBuff = 2.20;
+        public const double DexBuff = 2.20;
+        public const double SkillsBuff = 2.20;
+        public const double SpeedBuff = 2.20;
+        public const double FameBuff = 2.40;
+        public const double KarmaBuff = 2.40;
+        public const int DamageBuff = 10;
 
         public static void Convert(BaseCreature bc)
         {
@@ -165,7 +163,7 @@ namespace Server.Mobiles
 
             for (int i = 0; i < bc.Skills.Length; i++)
             {
-                Skill skill = (Skill)bc.Skills[i];
+                Skill skill = bc.Skills[i];
 
                 if (skill.Base > 0.0)
                 {
@@ -207,12 +205,12 @@ namespace Server.Mobiles
                 return false;
             }
 
-            if (bc is BaseChampion || bc is Harrower || bc is BaseVendor || bc is BaseEscortable || bc.Summoned || bc.Controlled || bc is Clone || bc.IsBlackRock)
+            if (bc is BaseChampion or Harrower or BaseVendor or BaseEscortable || bc.Summoned || bc.Controlled || bc is MirrorImageClone || bc.IsBlackRock)
             {
                 return false;
             }
 
-            if (bc is DreadHorn || bc is MonstrousInterredGrizzle || bc is Travesty || bc is ChiefParoxysmus || bc is LadyMelisande || bc is ShimmeringEffusion || bc.IsParagon)
+            if (bc is DreadHorn or MonstrousInterredGrizzle or Travesty or ChiefParoxysmus or LadyMelisande or ShimmeringEffusion || bc.IsParagon)
             {
                 return false;
             }
@@ -224,7 +222,7 @@ namespace Server.Mobiles
                 fame = 32000;
             }
 
-            double chance = 1 / Math.Round(20.0 - (fame / 3200));
+            double chance = 1 / Math.Round(20.0 - fame / 3200);
 
             return chance > Utility.RandomDouble();
         }
@@ -255,12 +253,11 @@ namespace Server.Mobiles
 
         public static void GiveArtifactTo(Mobile m)
         {
-            Item item = (Item)Activator.CreateInstance(Artifacts[Utility.Random(Artifacts.Length)]);
+	        Item item = (Item)Activator.CreateInstance(Artifacts[Utility.Random(Artifacts.Length)]);
 
-            if (m.AddToBackpack(item))
-                m.SendMessage("As a reward for slaying the mighty paragon, an artifact has been placed in your backpack.");
-            else
-                m.SendMessage("As your backpack is full, your reward for destroying the legendary paragon has been placed at your feet.");
+	        m.SendMessage(m.AddToBackpack(item)
+		        ? "As a reward for slaying the mighty paragon, an artifact has been placed in your backpack."
+		        : "As your backpack is full, your reward for destroying the legendary paragon has been placed at your feet.");
         }
     }
 }

@@ -1,244 +1,231 @@
-namespace Server.Items
+namespace Server.Items;
+
+[Furniture]
+[Flipable(0xB4F, 0xB4E, 0xB50, 0xB51)]
+public class FancyWoodenChairCushion : BaseItem
 {
-	[Furniture]
-	[Flipable(0xB4F, 0xB4E, 0xB50, 0xB51)]
-	public class FancyWoodenChairCushion : BaseItem
+	[Constructable]
+	public FancyWoodenChairCushion() : base(0xB4F)
 	{
-		[Constructable]
-		public FancyWoodenChairCushion() : base(0xB4F)
-		{
-			Weight = 20.0;
-		}
-
-		public FancyWoodenChairCushion(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 6.0)
-				Weight = 20.0;
-		}
+		Weight = 20.0;
 	}
 
-	[Furniture]
-	[Flipable(0xB53, 0xB52, 0xB54, 0xB55)]
-	public class WoodenChairCushion : BaseItem
+	public FancyWoodenChairCushion(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public WoodenChairCushion() : base(0xB53)
-		{
-			Weight = 20.0;
-		}
-
-		public WoodenChairCushion(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 6.0)
-				Weight = 20.0;
-		}
 	}
 
-	[Furniture]
-	[Flipable(0xB57, 0xB56, 0xB59, 0xB58)]
-	public class WoodenChair : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public WoodenChair() : base(0xB57)
-		{
-			Weight = 20.0;
-		}
+		base.Serialize(writer);
 
-		public WoodenChair(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 6.0)
-				Weight = 20.0;
-		}
+		writer.Write(0);
 	}
 
-	[Furniture]
-	[Flipable(0xB5B, 0xB5A, 0xB5C, 0xB5D)]
-	public class BambooChair : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public BambooChair() : base(0xB5B)
-		{
-			Weight = 20.0;
-		}
+		base.Deserialize(reader);
 
-		public BambooChair(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-
-			if (Weight == 6.0)
-				Weight = 20.0;
-		}
+[Furniture]
+[Flipable(0xB53, 0xB52, 0xB54, 0xB55)]
+public class WoodenChairCushion : BaseItem
+{
+	[Constructable]
+	public WoodenChairCushion() : base(0xB53)
+	{
+		Weight = 20.0;
 	}
 
-	[DynamicFliping]
-	[Flipable(0x1218, 0x1219, 0x121A, 0x121B)]
-	public class StoneChair : BaseItem
+	public WoodenChairCushion(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public StoneChair() : base(0x1218)
-		{
-			Weight = 20;
-		}
-
-		public StoneChair(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.Write(0);
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadInt();
-		}
 	}
 
-	[DynamicFliping]
-	[Flipable(0x2DE3, 0x2DE4, 0x2DE5, 0x2DE6)]
-	public class OrnateElvenChair : BaseItem
+	public override void Serialize(GenericWriter writer)
 	{
-		[Constructable]
-		public OrnateElvenChair() : base(0x2DE3)
-		{
-			Weight = 1.0;
-		}
+		base.Serialize(writer);
 
-		public OrnateElvenChair(Serial serial) : base(serial)
-		{
-		}
-
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+		writer.Write(0);
 	}
 
-	[DynamicFliping]
-	[Flipable(0x2DEB, 0x2DEC, 0x2DED, 0x2DEE)]
-	public class BigElvenChair : BaseItem
+	public override void Deserialize(GenericReader reader)
 	{
-		[Constructable]
-		public BigElvenChair() : base(0x2DEB)
-		{
-		}
+		base.Deserialize(reader);
 
-		public BigElvenChair(Serial serial) : base(serial)
-		{
-		}
+		reader.ReadInt();
+	}
+}
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
-
-			writer.WriteEncodedInt(0); // version
-		}
-
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
-
-			int version = reader.ReadEncodedInt();
-		}
+[Furniture]
+[Flipable(0xB57, 0xB56, 0xB59, 0xB58)]
+public class WoodenChair : BaseItem
+{
+	[Constructable]
+	public WoodenChair() : base(0xB57)
+	{
+		Weight = 20.0;
 	}
 
-	[DynamicFliping]
-	[Flipable(0x2DF5, 0x2DF6)]
-	public class ElvenReadingChair : BaseItem
+	public WoodenChair(Serial serial) : base(serial)
 	{
-		[Constructable]
-		public ElvenReadingChair() : base(0x2DF5)
-		{
-		}
+	}
 
-		public ElvenReadingChair(Serial serial) : base(serial)
-		{
-		}
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
 
-		public override void Serialize(GenericWriter writer)
-		{
-			base.Serialize(writer);
+		writer.Write(0);
+	}
 
-			writer.WriteEncodedInt(0); // version
-		}
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
 
-		public override void Deserialize(GenericReader reader)
-		{
-			base.Deserialize(reader);
+		reader.ReadInt();
+	}
+}
 
-			int version = reader.ReadEncodedInt();
-		}
+[Furniture]
+[Flipable(0xB5B, 0xB5A, 0xB5C, 0xB5D)]
+public class BambooChair : BaseItem
+{
+	[Constructable]
+	public BambooChair() : base(0xB5B)
+	{
+		Weight = 20.0;
+	}
+
+	public BambooChair(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[DynamicFliping]
+[Flipable(0x1218, 0x1219, 0x121A, 0x121B)]
+public class StoneChair : BaseItem
+{
+	[Constructable]
+	public StoneChair() : base(0x1218)
+	{
+		Weight = 20;
+	}
+
+	public StoneChair(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.Write(0);
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadInt();
+	}
+}
+
+[DynamicFliping]
+[Flipable(0x2DE3, 0x2DE4, 0x2DE5, 0x2DE6)]
+public class OrnateElvenChair : BaseItem
+{
+	[Constructable]
+	public OrnateElvenChair() : base(0x2DE3)
+	{
+		Weight = 1.0;
+	}
+
+	public OrnateElvenChair(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.WriteEncodedInt(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadEncodedInt();
+	}
+}
+
+[DynamicFliping]
+[Flipable(0x2DEB, 0x2DEC, 0x2DED, 0x2DEE)]
+public class BigElvenChair : BaseItem
+{
+	[Constructable]
+	public BigElvenChair() : base(0x2DEB)
+	{
+	}
+
+	public BigElvenChair(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.WriteEncodedInt(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadEncodedInt();
+	}
+}
+
+[DynamicFliping]
+[Flipable(0x2DF5, 0x2DF6)]
+public class ElvenReadingChair : BaseItem
+{
+	[Constructable]
+	public ElvenReadingChair() : base(0x2DF5)
+	{
+	}
+
+	public ElvenReadingChair(Serial serial) : base(serial)
+	{
+	}
+
+	public override void Serialize(GenericWriter writer)
+	{
+		base.Serialize(writer);
+
+		writer.WriteEncodedInt(0); // version
+	}
+
+	public override void Deserialize(GenericReader reader)
+	{
+		base.Deserialize(reader);
+
+		reader.ReadEncodedInt();
 	}
 }

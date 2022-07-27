@@ -83,7 +83,7 @@ namespace Server.Multis
 
 			chest.LiftOverride = true;
 
-			TreasureMapChest.Fill(chest, 1);
+			//TreasureMapChest.Fill(chest, 1);
 
 			AddItem(chest, 2, -2, 0);
 

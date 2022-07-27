@@ -12,7 +12,7 @@ public class TasteID
 		SkillInfo.Table[(int)SkillName.TasteID].Callback = OnUse;
 	}
 
-	public static TimeSpan OnUse(Mobile m)
+	private static TimeSpan OnUse(Mobile m)
 	{
 		m.Target = new InternalTarget();
 

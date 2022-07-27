@@ -446,7 +446,7 @@ public struct Rectangle2D
 			_end.m_Y = r._end.m_Y;
 	}
 
-	public bool Contains(Point3D p)
+	public readonly bool Contains(Point3D p)
 	{
 		return _start.m_X <= p.m_X && _start.m_Y <= p.m_Y && _end.m_X > p.m_X && _end.m_Y > p.m_Y;
 		//return ( m_Start <= p && m_End > p );

@@ -27,7 +27,7 @@ public sealed class ChampionSkullBrazier : AddonComponent
 	[CommandProperty(AccessLevel.GameMaster)]
 	public ChampionSkullPlatform Platform => _mPlatform;
 	[CommandProperty(AccessLevel.GameMaster)]
-	public ChampionSkullType Type
+	private ChampionSkullType Type
 	{
 		get => _mType;
 		set
@@ -40,7 +40,7 @@ public sealed class ChampionSkullBrazier : AddonComponent
 	public Item Skull
 	{
 		get => _mSkull;
-		set
+		private set
 		{
 			_mSkull = value;
 			_mPlatform?.Validate();
@@ -54,7 +54,7 @@ public sealed class ChampionSkullBrazier : AddonComponent
 		BeginSacrifice(from);
 	}
 
-	public void BeginSacrifice(Mobile from)
+	private void BeginSacrifice(Mobile from)
 	{
 		if (Deleted)
 			return;
@@ -81,7 +81,7 @@ public sealed class ChampionSkullBrazier : AddonComponent
 		}
 	}
 
-	public void EndSacrifice(Mobile from, ChampionSkull skull)
+	private void EndSacrifice(Mobile from, ChampionSkull skull)
 	{
 		if (Deleted)
 			return;

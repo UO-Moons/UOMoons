@@ -34,7 +34,7 @@ public class Shadowjump : NinjaSpell
 		return base.CheckCast();
 	}
 
-	public override bool CheckDisturb(DisturbType type, bool firstCircle, bool resistable)
+	public override bool CheckDisturb(DisturbType type, bool resistable)
 	{
 		return false;
 	}
@@ -45,7 +45,7 @@ public class Shadowjump : NinjaSpell
 		Caster.Target = new InternalTarget(this);
 	}
 
-	public void Target(IPoint3D p)
+	private void Target(IPoint3D p)
 	{
 		IPoint3D orig = p;
 		Map map = Caster.Map;
